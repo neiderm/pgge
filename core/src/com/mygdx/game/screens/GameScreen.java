@@ -6,16 +6,24 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -36,6 +44,10 @@ public class GameScreen implements Screen {
  //   private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam;
+    public ModelBatch modelBatch;
+    public Model model;
+    public ModelInstance instance;
+
     private CameraInputController camController;
     //    public FirstPersonCameraController camController;
     private Environment environment;
@@ -153,12 +165,23 @@ public class GameScreen implements Screen {
         environment.add(
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
+        modelBatch = new ModelBatch();
+
         cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
         cam.position.set(3f, 7f, 10f);
         cam.lookAt(0, 4, 0); //         cam.lookAt(0, -2, -4);
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        model = modelBuilder.createBox(5f, 5f, 5f,
+                new Material(ColorAttribute.createDiffuse(Color.GREEN)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        instance = new ModelInstance(model);
+
+        instance.transform.scale(2.0f, 2.0f, 2.0f);
+        Matrix4 tmp = instance.transform;
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -229,6 +252,10 @@ public class GameScreen implements Screen {
 
         engine.update(delta);
 
+        modelBatch.begin(cam);
+        modelBatch.render(instance);
+        modelBatch.end();
+
         // GUI viewport (full screen)
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -274,6 +301,8 @@ public class GameScreen implements Screen {
 //  Disposing the model will automatically make all instances invalid!
 
     //    EntityFactory.model.dispose();
+        modelBatch.dispose();
+        model.dispose();
 
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
