@@ -1,27 +1,22 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -29,24 +24,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
-import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
-import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
-import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.mygdx.game.MyGdxGame;
-
-import java.util.Iterator;
-import java.util.Random;
+import com.mygdx.game.systems.BulletSystem;
 
 /**
  * Created by mango on 12/18/17.
@@ -57,11 +36,11 @@ public class GameScreen implements Screen {
     private MyGdxGame game;
 
     private Engine engine;
-//    private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
+    private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
  //   private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam;
-    public ModelBatch modelBatch;
+//    public ModelBatch modelBatch;
     public Model model;
     public ModelInstance instance;
 
@@ -76,30 +55,9 @@ public class GameScreen implements Screen {
     private ShapeRenderer shapeRenderer;
 
 //    private PlayerComponent playerComp;
-    private btRigidBody playerBody;
+//    private btRigidBody playerBody;
 
     static private int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
-
-
-
-    public AssetManager assets;
-
-    public Vector3 tmpV = new Vector3();
-    public Matrix4 tmpM = new Matrix4();
-
-    btCollisionConfiguration collisionConfiguration;
-    btCollisionDispatcher dispatcher;
-    btBroadphaseInterface broadphase;
-    btConstraintSolver solver;
-    btDynamicsWorld collisionWorld;
-
-    private Model landscapeModel;
-    private ModelInstance landscapeInstance;
-
-    Vector3 gravity = new Vector3(0, -9.81f, 0);
-    public Random rnd = new Random();
-    private final ModelBuilder modelBuilder = new ModelBuilder();
-
 
 
     /*
@@ -125,7 +83,6 @@ public class GameScreen implements Screen {
   //          playerComp.vvv.x = screenX - ctr.x;
     //        playerComp.vvv.y = 0;
       //      playerComp.vvv.z = screenY - ctr.y;
-
         }
 
         @Override
@@ -140,7 +97,6 @@ public class GameScreen implements Screen {
 
                 return true;
             }
-
             return false;
         }
 
@@ -153,18 +109,15 @@ public class GameScreen implements Screen {
 
                 isTouchInPad = true;
                 setVector(screenX, screenY);
-
                 return true;
-
-            } else if (true == isTouchInPad) {
+            }
+            else if (true == isTouchInPad) {
                 // still touching, but out of bounds, so escape it
 //                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
 
 //                playerComp.vvv = new Vector3(0,0,0); // let motion continue while touch down?
-
                 return true;
             }
-
             return false;
         }
 
@@ -189,7 +142,6 @@ public class GameScreen implements Screen {
 
     public GameScreen(MyGdxGame game) {
 
-        Bullet.init(); // do in bullet system added to engine?
         this.game = game;
 
         touchBoxW = Gdx.graphics.getWidth() / 4;
@@ -203,8 +155,6 @@ public class GameScreen implements Screen {
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
-
-        modelBatch = new ModelBatch();
 
         cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
         cam.position.set(3f, 7f, 10f);
@@ -222,92 +172,22 @@ public class GameScreen implements Screen {
         instance.transform.scale(2.0f, 2.0f, 2.0f);
         Matrix4 tmp = instance.transform;
 
-
-        Bullet.init();
-        // Create the bullet world
-        collisionConfiguration = new btDefaultCollisionConfiguration();
-        dispatcher = new btCollisionDispatcher(collisionConfiguration);
-        broadphase = new btDbvtBroadphase();
-        solver = new btSequentialImpulseConstraintSolver();
-        collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-        collisionWorld.setGravity(gravity);
-
-        assets = new AssetManager();
-        assets.load("data/landscape.g3db", Model.class);
-
-
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
-
 
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(new MyInputAdapter());
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
 
-
-
-        assets.finishLoading();
-
-        //
-        // here onwards all assets ready!
-        //
-
-
-        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        Model cube = modelBuilder.createBox(2f, 2f, 2f,
-                new Material(TextureAttribute.createDiffuse(cubeTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        physObj.boxTemplateModel = cube;  // must set the visual templates before using.
-
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"),false);
-        Model ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        physObj.ballTemplateModel = ball;
-
-        physObj.collisionWorld = collisionWorld;
-
-
-        // little point putting static meshes in a convenience wrapper
-        // as you only have a few and don't spawn them repeatedly
-
-        landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        btCollisionShape triMesh = (btCollisionShape)new btBvhTriangleMeshShape(landscapeModel.meshParts);
-        // put the landscape at an angle so stuff falls of it...
-        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1,0,0), 20f));
-        btRigidBody landscape = new btRigidBody(0, motionstate , triMesh);
-        landscapeInstance = new ModelInstance(landscapeModel);
-        landscapeInstance.transform = motionstate.transform;
-        collisionWorld.addRigidBody(landscape);
-
-
-        // uncomment for a terrain alternative;
-        //tmpM.idt().trn(0, -4, 0);
-        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
-        tmpM.idt().trn(10, -5, 0);
-        new physObj(physObj.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
-
-        for (int i = 0; i < 300; i++) {
-            tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-            physObj.pType tp;
-            tp = physObj.pType.BOX;
-            if (i > 200) {
-                tp = physObj.pType.SPHERE;
-            }
-            new physObj(tp, tmpV.cpy(), rnd.nextFloat() + 0.5f, tmpM);
-        }
-
-
-
-
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
         addEntities();
 
         // Font files from ashley-superjumper
-        font = new BitmapFont(Gdx.files.internal("data/font.fnt"), Gdx.files.internal("data/font.png"), false);
+        font = new BitmapFont(
+                Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
 
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -338,7 +218,7 @@ public class GameScreen implements Screen {
     private void addSystems() {
         engine = new Engine();
 //        engine.addSystem(renderSystem = new RenderSystem(environment, cam));
-  //      engine.addSystem(bulletSystem = new BulletSystem());
+        engine.addSystem(bulletSystem = new BulletSystem(environment, cam));
     //    engine.addSystem(new EnemySystem());
       //  engine.addSystem(new PlayerSystem(this.game));
     }
@@ -359,50 +239,13 @@ public class GameScreen implements Screen {
         //         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        engine.update(delta);
 
-
-        // TODO variable timesteps are usually not good for physics sims
-        // but good enough for a quick example... (should really accrue delta
-        // time and decrement chunks of sim steps)
-        // however for the time being bullet seems to be coping better than
-        // expected with variable(ish) timesteps
-        // increase itterations for more accurate but slower sim
-        collisionWorld.stepSimulation(Gdx.graphics.getDeltaTime(), 5);
-
-        modelBatch.begin(cam);
+//        modelBatch.begin(cam);
 //        modelBatch.render(instance);
 
+        engine.update(delta);
 
-        Iterator<physObj> it = physObj.physObjects.iterator();
-        while (it.hasNext()) {
-            physObj pob = it.next();
-
-            if (pob.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
-                pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
-                pob.motionstate.getWorldTransform(tmpM);
-                tmpM.getTranslation(tmpV);
-                if (tmpV.y<-10) {
-                    tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-                    pob.body.setWorldTransform(tmpM);
-                    pob.body.setAngularVelocity(Vector3.Zero);
-                    pob.body.setLinearVelocity(Vector3.Zero);
-                }
-            }
-
-            // TODO
-            // while we're looping all the physics objects we might as well
-            // update them (ie game logic)
-
-            modelBatch.render(pob.modelInst, environment);
-
-        }
-
-        modelBatch.render(landscapeInstance, environment);
-
-
-
-        modelBatch.end();
+//        modelBatch.end();
 
         // GUI viewport (full screen)
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -442,32 +285,14 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
 
-
-        collisionWorld.dispose();
-        solver.dispose();
-        broadphase.dispose();
-        dispatcher.dispose();
-        collisionConfiguration.dispose();
-
-        Iterator<physObj> it = physObj.physObjects.iterator();
-        while (it.hasNext()) {
-            physObj pob = it.next();
-            // doing it like this to avoid comodification...
-            it.remove();
-            pob.dispose();
-        }
-        modelBatch.dispose();
-        assets.dispose();
-
-
-//        engine.removeSystem(bulletSystem); // make the system dispose its stuff
+        engine.removeSystem(bulletSystem); // make the system dispose its stuff
   //      engine.removeSystem(renderSystem); // make the system dispose its stuff
 
 // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
 
     //    EntityFactory.model.dispose();
-        modelBatch.dispose();
+//        modelBatch.dispose();
         model.dispose();
 
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
