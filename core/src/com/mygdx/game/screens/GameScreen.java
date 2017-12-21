@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -24,8 +25,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
+
 
 /**
  * Created by mango on 12/18/17.
@@ -34,6 +37,8 @@ import com.mygdx.game.systems.BulletSystem;
 public class GameScreen implements Screen {
 
     private MyGdxGame game;
+//    public AssetManager assets;
+//    private Model landscapeModel;
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -62,6 +67,8 @@ public class GameScreen implements Screen {
 
     /*
      * my multiplexed input adaptor
+
+TODO: something screwing up camera when virtual touchpad is used
      */
     private class MyInputAdapter extends InputAdapter {
 
@@ -180,9 +187,18 @@ public class GameScreen implements Screen {
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
 
+
+
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
+/*
+            assets = new AssetManager();
+            assets.load("data/landscape.g3db", Model.class);
+            assets.finishLoading();
+*/
         addSystems();
         addEntities();
+
+
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -203,6 +219,7 @@ public class GameScreen implements Screen {
 
     void addEntities() {
 
+        EntityFactory.CreateEntities(engine /*, assets */);
 //        engine.addEntity(EntityFactory.createGround(new Vector3(0, 0, 0)));
   //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
     //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));
@@ -217,8 +234,12 @@ public class GameScreen implements Screen {
 
     private void addSystems() {
         engine = new Engine();
+
 //        engine.addSystem(renderSystem = new RenderSystem(environment, cam));
-        engine.addSystem(bulletSystem = new BulletSystem(environment, cam));
+
+//        landscapeModel = assets.get("data/landscape.g3db", Model.class);
+        engine.addSystem(bulletSystem = new BulletSystem(environment, cam /*, landscapeModel */ ));
+
     //    engine.addSystem(new EnemySystem());
       //  engine.addSystem(new PlayerSystem(this.game));
     }
@@ -300,6 +321,9 @@ public class GameScreen implements Screen {
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
+
+//        landscapeModel.dispose(); ... hmmm ok that's what asset mgr for ! ;)
+//        assets.dispose();
     }
 
     @Override

@@ -4,6 +4,8 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -31,9 +33,9 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.screens.physObj;
 
-import java.util.Iterator;
 import java.util.Random;
 
 /**
@@ -68,11 +70,14 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
     private final ModelBuilder modelBuilder = new ModelBuilder();
 
+//    private Engine engine;
+    private ImmutableArray<Entity> entities;
 
-    public BulletSystem(Environment environment, PerspectiveCamera cam) {
+
+    public BulletSystem(Environment environment, PerspectiveCamera cam /* , Model landscapeModel *//* tmp */) {
+
         this.environment = environment;
         this.cam = cam;
-
 
         modelBatch = new ModelBatch();
 
@@ -85,10 +90,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
 
-        assets = new AssetManager();
-        assets.load("data/landscape.g3db", Model.class);
-        assets.finishLoading();
-
+///*
+    assets = new AssetManager();
+    assets.load("data/landscape.g3db", Model.class);
+    assets.finishLoading();
+//*/
         //
         // here onwards all assets ready!
         //
@@ -99,7 +105,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
         physObj.boxTemplateModel = cube;  // must set the visual templates before using.
 
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"),false);
+        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
         Model ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
@@ -109,12 +115,13 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         // little point putting static meshes in a convenience wrapper
         // as you only have a few and don't spawn them repeatedly
-
-        landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        btCollisionShape triMesh = (btCollisionShape)new btBvhTriangleMeshShape(landscapeModel.meshParts);
+///*
+    landscapeModel = assets.get("data/landscape.g3db", Model.class);
+//*/
+        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
         // put the landscape at an angle so stuff falls of it...
-        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1,0,0), 20f));
-        btRigidBody landscape = new btRigidBody(0, motionstate , triMesh);
+        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
+        btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
         landscapeInstance = new ModelInstance(landscapeModel);
         landscapeInstance.transform = motionstate.transform;
         collisionWorld.addRigidBody(landscape);
@@ -125,16 +132,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         tmpM.idt().trn(10, -5, 0);
         new physObj(physObj.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
 
-        for (int i = 0; i < 300; i++) {
-            tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-            physObj.pType tp;
-            tp = physObj.pType.BOX;
-            if (i > 200) {
-                tp = physObj.pType.SPHERE;
-            }
-            new physObj(tp, tmpV.cpy(), rnd.nextFloat() + 0.5f, tmpM);
-        }
     }
 
     @Override
@@ -144,38 +141,42 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         modelBatch.begin(cam);
 
-        Iterator<physObj> it = physObj.physObjects.iterator();
-        while (it.hasNext()) {
-            physObj pob = it.next();
-
-            if (pob.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
-                pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
-                pob.motionstate.getWorldTransform(tmpM);
-                tmpM.getTranslation(tmpV);
-                if (tmpV.y<-10) {
-                    tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-                    pob.body.setWorldTransform(tmpM);
-                    pob.body.setAngularVelocity(Vector3.Zero);
-                    pob.body.setLinearVelocity(Vector3.Zero);
+//{
+        for (Entity e : entities) {
+            physObj pob = e.getComponent(BulletComponent.class).pob;
+            if (null != pob) {
+                if (pob.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+                    pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
+                    pob.motionstate.getWorldTransform(tmpM);
+                    tmpM.getTranslation(tmpV);
+                    if (tmpV.y < -10) {
+                        tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
+                        pob.body.setWorldTransform(tmpM);
+                        pob.body.setAngularVelocity(Vector3.Zero);
+                        pob.body.setLinearVelocity(Vector3.Zero);
+                    }
                 }
+                // TODO
+                // while we're looping all the physics objects we might as well
+                // update them (ie game logic)
+                modelBatch.render(pob.modelInst, environment);
             }
-
-            // TODO
-            // while we're looping all the physics objects we might as well
-            // update them (ie game logic)
-
-            modelBatch.render(pob.modelInst, environment);
+            modelBatch.render(landscapeInstance, environment);
         }
-
-        modelBatch.render(landscapeInstance, environment);
-
+//}
         modelBatch.end();
     }
 
     @Override
     public void addedToEngine(Engine engine) {
 
+//        this.engine = engine;
 
+        // Grabs all entities with desired components
+        entities = engine.getEntitiesFor(Family.all(BulletComponent.class).get());
+
+        // listener for these so that their bullet objects can be dispose'd
+        engine.addEntityListener(Family.all(BulletComponent.class).get(), this);
     }
 
     @Override
@@ -187,12 +188,12 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         dispatcher.dispose();
         collisionConfiguration.dispose();
 
-        Iterator<physObj> it = physObj.physObjects.iterator();
-        while (it.hasNext()) {
-            physObj pob = it.next();
-            // doing it like this to avoid comodification...
-            it.remove();
-            pob.dispose();
+
+        // tmp ... loop all Bullet entities to destroy resources
+        for (Entity e : entities) {
+            physObj pob = e.getComponent(BulletComponent.class).pob;
+            if (null != pob)
+                pob.dispose();
         }
 
         modelBatch.dispose();
@@ -201,6 +202,9 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
     @Override
     public void entityAdded(Entity entity) {
+
+        physObj pob = entity.getComponent(BulletComponent.class).pob;
+// TODO: more physics setup things can done here and not in physObj()
     }
 
     @Override

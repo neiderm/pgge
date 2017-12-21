@@ -19,8 +19,6 @@ import java.util.ArrayList;
 
 public class physObj {
 
-
-
     public static class MotionState extends btMotionState {
 
         public Matrix4 transform;
@@ -44,7 +42,7 @@ public class physObj {
     public static Vector3 tmp = new Vector3();
 
     //    public static ArrayList<physObj> physObjects = new ArrayList<>();
-    public static ArrayList<physObj> physObjects = new ArrayList<physObj>(); // GN: Error:(41, 66) error: diamond operator is not supported in -source 1.6 (use -source 7 or higher to enable diamond operator)
+//    public static ArrayList<physObj> physObjects = new ArrayList<physObj>(); // GN: Error:(41, 66) error: diamond operator is not supported in -source 1.6 (use -source 7 or higher to enable diamond operator)
 
     public enum pType {
         SPHERE, BOX
@@ -96,7 +94,7 @@ public class physObj {
 
         collisionWorld.addRigidBody(body);
 
-        physObjects.add(this);
+//        physObjects.add(this);
     }
 
     public void dispose() {
@@ -105,7 +103,7 @@ public class physObj {
         bodyInfo.dispose();
 //		motionstate.dispose();  body deletion does this?
 
-        physObjects.remove(this);
+//        physObjects.remove(this);
 
     }
 }
