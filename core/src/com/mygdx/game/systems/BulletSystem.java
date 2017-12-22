@@ -34,6 +34,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.screens.physObj;
 
 import java.util.Random;
@@ -74,7 +75,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     private ImmutableArray<Entity> entities;
 
 
-    public BulletSystem(Environment environment, PerspectiveCamera cam /* , Model landscapeModel *//* tmp */) {
+    public BulletSystem(Engine engine, Environment environment, PerspectiveCamera cam /* , Model landscapeModel *//* tmp */) {
 
         this.environment = environment;
         this.cam = cam;
@@ -130,8 +131,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         //tmpM.idt().trn(0, -4, 0);
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-        new physObj(physObj.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
-
+        EntityFactory.CreateEntity(engine, physObj.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
     }
 
     @Override

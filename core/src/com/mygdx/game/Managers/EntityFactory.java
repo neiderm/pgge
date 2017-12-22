@@ -11,7 +11,7 @@ import com.mygdx.game.screens.physObj;
 import java.util.Random;
 
 /**
- * Created by utf1247 on 12/21/2017.
+ * Created by neiderm on 12/21/2017.
  */
 
 public class EntityFactory {
@@ -19,6 +19,29 @@ public class EntityFactory {
     static final int N_ENTITIES = 300;
     static final int N_BOXES = 200;
 
+
+    static public physObj CreateObject(physObj.pType tp, Vector3 sz, float mass, Matrix4 transform) {
+
+        physObj pob = new physObj(tp, sz, mass, transform);
+        return pob;
+    }
+
+    static public Entity CreateEntity(
+            Engine engine, physObj.pType tp, Vector3 sz, float mass, Matrix4 transform){
+
+        physObj pob = CreateObject(tp, sz, mass, transform);
+
+        Entity e = new Entity();
+        engine.addEntity(e);
+
+// tmp: pob could be created in bc constructor, but this is temporary ;)
+        BulletComponent bc = new BulletComponent();
+
+        bc.pob = pob;
+        e.add(bc);
+
+        return e;
+    }
 
     static public void CreateEntities(Engine engine /*, AssetManager assets */) {
 
@@ -39,14 +62,7 @@ public class EntityFactory {
                 tp = physObj.pType.SPHERE;
             }
 
-            pob = new physObj(tp, tmpV.cpy(), rnd.nextFloat() + 0.5f, tmpM);
-
-            Entity e = new Entity();
-            engine.addEntity(e);
-// tmp: pob could be created in bc constructor, but this is temporary ;)
-            BulletComponent bc = new BulletComponent();
-            bc.pob = pob;
-            e.add(bc);
+            CreateEntity(engine, tp, tmpV.cpy(), rnd.nextFloat() + 0.5f, tmpM);
         }
     }
 }
