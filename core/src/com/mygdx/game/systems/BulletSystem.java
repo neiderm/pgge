@@ -82,7 +82,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         modelBatch = new ModelBatch();
 
-        Bullet.init();
+//        Bullet.init();
         // Create the bullet world
         collisionConfiguration = new btDefaultCollisionConfiguration();
         dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -96,21 +96,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     assets.load("data/landscape.g3db", Model.class);
     assets.finishLoading();
 //*/
-        //
-        // here onwards all assets ready!
-        //
-
-        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        Model cube = modelBuilder.createBox(2f, 2f, 2f,
-                new Material(TextureAttribute.createDiffuse(cubeTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        EntityFactory.boxTemplateModel = cube;  // must set the visual templates before using.
-
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        Model ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        EntityFactory.ballTemplateModel = ball;
 
         physObj.collisionWorld = collisionWorld;
 
@@ -127,11 +112,13 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         landscapeInstance.transform = motionstate.transform;
         collisionWorld.addRigidBody(landscape);
 
-        // uncomment for a terrain alternative;
-        //tmpM.idt().trn(0, -4, 0);
-        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
-        tmpM.idt().trn(10, -5, 0);
-        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+if (true) {
+    // uncomment for a terrain alternative;
+    //tmpM.idt().trn(0, -4, 0);
+    //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
+    tmpM.idt().trn(10, -5, 0);
+    EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+}
     }
 
     @Override
@@ -203,8 +190,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void entityAdded(Entity entity) {
 
-        physObj pob = entity.getComponent(BulletComponent.class).pob;
+        BulletComponent bc = entity.getComponent(BulletComponent.class);
+
 // TODO: more physics setup things can done here and not in physObj()
+
+//        collisionWorld.addRigidBody(bc.pob.body);
     }
 
     @Override

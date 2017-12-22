@@ -25,9 +25,11 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.bullet.Bullet;
 import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
+import com.mygdx.game.systems.RenderSystem;
 
 
 /**
@@ -233,9 +235,12 @@ TODO: something screwing up camera when virtual touchpad is used
     }
 
     private void addSystems() {
+
+        Bullet.init(); // must be done before any bullet object can be created
+
         engine = new Engine();
 
-//        engine.addSystem(renderSystem = new RenderSystem(environment, cam));
+        engine.addSystem(new RenderSystem(engine, environment, cam));
 
 //        landscapeModel = assets.get("data/landscape.g3db", Model.class);
         engine.addSystem(bulletSystem = new BulletSystem(
