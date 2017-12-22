@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -22,8 +21,8 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    static final int N_ENTITIES = 300;
-    static final int N_BOXES = 200;
+    static final int N_ENTITIES = 30;
+    static final int N_BOXES = 20;
 
     public static Model boxTemplateModel;
     public static Model ballTemplateModel;
@@ -32,27 +31,25 @@ public class EntityFactory {
         SPHERE, BOX
     };
 
-    static private physObj CreateObject(
+    static private physObj CreateObject( BulletComponent bc ,
             pType tp, Vector3 sz, float mass, Matrix4 transform, ModelInstance modelInst) {
 
-        btCollisionShape shape = null;
-
         if (tp == pType.BOX) {
-            shape = new btBoxShape(sz);
+            bc.shape = new btBoxShape(sz);
             modelInst = new ModelInstance(boxTemplateModel);
         }
 
         if (tp == pType.SPHERE) {
             sz.y = sz.x;
             sz.z = sz.x; // sphere must be symetrical!
-            shape = new btSphereShape(sz.x);
+            bc.shape = new btSphereShape(sz.x);
             modelInst = new ModelInstance(ballTemplateModel);
         }
 
         modelInst.transform = transform.cpy(); // probably ok not to cpy here ;)
 
 
-        physObj pob = new physObj(sz, mass, modelInst, shape);
+        physObj pob = new physObj(sz, mass, modelInst, bc.shape);
 
         return pob;
     }
@@ -60,16 +57,17 @@ public class EntityFactory {
     static public Entity CreateEntity(
             Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform){
 
-        ModelComponent mc = new ModelComponent();
-
-        physObj pob = CreateObject(tp, sz, mass, transform, mc.modelInst);
-
-
         Entity e = new Entity();
         engine.addEntity(e);
 
 // tmp: pob could be created in bc constructor, but this is temporary ;)
         BulletComponent bc = new BulletComponent();
+
+        ModelComponent mc = new ModelComponent();
+
+        physObj pob = CreateObject(bc,
+                tp, sz, mass, transform, mc.modelInst);
+
 
         bc.pob = pob;
         e.add(bc);

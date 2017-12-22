@@ -38,17 +38,15 @@ public class physObj {
 
     public ModelInstance modelInst;
 
-    public btCollisionShape shape;
     public btRigidBody.btRigidBodyConstructionInfo bodyInfo;
     public btRigidBody body;
     public static btDynamicsWorld collisionWorld;
     public final Vector3 scale;
 
 
-    public physObj(Vector3 sz, float mass, ModelInstance _inst, btCollisionShape _shape) {
+    public physObj(Vector3 sz, float mass, ModelInstance _inst, btCollisionShape shape) {
 
         this.modelInst = _inst;
-        this.shape = _shape;
 
         scale = sz.cpy();
 
@@ -74,7 +72,7 @@ public class physObj {
 
     public void dispose() {
         body.dispose();
-        shape.dispose();
+//        shape.dispose();
         bodyInfo.dispose();
 //		motionstate.dispose();  body deletion does this?
     }
