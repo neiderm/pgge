@@ -1,17 +1,12 @@
 package com.mygdx.game.screens;
 
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
-
-import java.util.ArrayList;
 
 /**
  * Created by mango on 12/18/17.
@@ -41,15 +36,6 @@ public class physObj {
     public MotionState motionstate;
     public static Vector3 tmp = new Vector3();
 
-    //    public static ArrayList<physObj> physObjects = new ArrayList<>();
-//    public static ArrayList<physObj> physObjects = new ArrayList<physObj>(); // GN: Error:(41, 66) error: diamond operator is not supported in -source 1.6 (use -source 7 or higher to enable diamond operator)
-
-    public enum pType {
-        SPHERE, BOX
-    };
-
-    public static Model boxTemplateModel;
-    public static Model ballTemplateModel;
     public ModelInstance modelInst;
 
     public btCollisionShape shape;
@@ -59,20 +45,11 @@ public class physObj {
     public final Vector3 scale;
 
 
-    public physObj(pType tp, Vector3 sz, float mass, final Matrix4 transform) {
-        if (tp == pType.BOX) {
-            shape = new btBoxShape(sz);
-            modelInst = new ModelInstance(boxTemplateModel);
-        }
+    public physObj(Vector3 sz, float mass, ModelInstance _inst, btCollisionShape _shape) {
 
-        if (tp == pType.SPHERE) {
-            sz.y = sz.x;
-            sz.z = sz.x; // sphere must be symetrical!
-            shape = new btSphereShape(sz.x);
-            modelInst = new ModelInstance(ballTemplateModel);
-        }
+        this.modelInst = _inst;
+        this.shape = _shape;
 
-        modelInst.transform = transform.cpy();
         scale = sz.cpy();
 
         if (mass == 0) {
@@ -93,8 +70,6 @@ public class physObj {
         }
 
         collisionWorld.addRigidBody(body);
-
-//        physObjects.add(this);
     }
 
     public void dispose() {
@@ -102,8 +77,5 @@ public class physObj {
         shape.dispose();
         bodyInfo.dispose();
 //		motionstate.dispose();  body deletion does this?
-
-//        physObjects.remove(this);
-
     }
 }

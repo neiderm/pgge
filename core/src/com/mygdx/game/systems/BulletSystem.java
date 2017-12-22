@@ -104,13 +104,13 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         Model cube = modelBuilder.createBox(2f, 2f, 2f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        physObj.boxTemplateModel = cube;  // must set the visual templates before using.
+        EntityFactory.boxTemplateModel = cube;  // must set the visual templates before using.
 
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
         Model ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        physObj.ballTemplateModel = ball;
+        EntityFactory.ballTemplateModel = ball;
 
         physObj.collisionWorld = collisionWorld;
 
@@ -131,7 +131,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         //tmpM.idt().trn(0, -4, 0);
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-        EntityFactory.CreateEntity(engine, physObj.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
     }
 
     @Override
