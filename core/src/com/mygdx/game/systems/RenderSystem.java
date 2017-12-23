@@ -26,10 +26,14 @@ import com.mygdx.game.Managers.EntityFactory;
 
 public class RenderSystem extends EntitySystem implements EntityListener {
 
+    private Model cube;
+    private Model ball;
+
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
 
     private final ModelBuilder modelBuilder = new ModelBuilder();
+
 
     public RenderSystem(Engine engine, Environment environment, PerspectiveCamera cam ) {
 
@@ -37,13 +41,13 @@ public class RenderSystem extends EntitySystem implements EntityListener {
         Matrix4 tmpM = new Matrix4();
 
         Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        Model cube = modelBuilder.createBox(2f, 2f, 2f,
+        cube = modelBuilder.createBox(2f, 2f, 2f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
         EntityFactory.boxTemplateModel = cube;  // must set the visual templates before using.
 
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        Model ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
+        ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
         EntityFactory.ballTemplateModel = ball;
@@ -72,6 +76,8 @@ if (false) {
     @Override
     public void removedFromEngine(Engine engine) {
 
+        ball.dispose();
+        cube.dispose();
     }
 
     @Override
