@@ -31,25 +31,25 @@ public class EntityFactory {
         SPHERE, BOX
     };
 
-    static private physObj CreateObject( BulletComponent bc ,
-            pType tp, Vector3 sz, float mass, Matrix4 transform, ModelInstance modelInst) {
+    static private physObj CreateObject( BulletComponent bc , ModelComponent mc ,
+            pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         if (tp == pType.BOX) {
             bc.shape = new btBoxShape(sz);
-            modelInst = new ModelInstance(boxTemplateModel);
+            mc.modelInst = new ModelInstance(boxTemplateModel);
         }
 
         if (tp == pType.SPHERE) {
             sz.y = sz.x;
             sz.z = sz.x; // sphere must be symetrical!
             bc.shape = new btSphereShape(sz.x);
-            modelInst = new ModelInstance(ballTemplateModel);
+            mc.modelInst = new ModelInstance(ballTemplateModel);
         }
 
-        modelInst.transform = transform.cpy(); // probably ok not to cpy here ;)
+        mc.modelInst.transform = transform.cpy(); // probably ok not to cpy here ;)
 
 
-        physObj pob = new physObj(sz, mass, modelInst, bc.shape);
+        physObj pob = new physObj(sz, mass, mc.modelInst, bc.shape /* , bc.body */ );
 
         return pob;
     }
@@ -64,10 +64,10 @@ public class EntityFactory {
         BulletComponent bc = new BulletComponent();
 
         ModelComponent mc = new ModelComponent();
+        mc.scale = sz;
+        e.add(mc);
 
-        physObj pob = CreateObject(bc,
-                tp, sz, mass, transform, mc.modelInst);
-
+        physObj pob = CreateObject(bc, mc, tp, sz, mass, transform);
 
         bc.pob = pob;
         e.add(bc);
