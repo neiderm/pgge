@@ -31,7 +31,7 @@ public class EntityFactory {
         SPHERE, BOX
     };
 
-    static private physObj CreateObject( BulletComponent bc , ModelComponent mc ,
+    static private void  CreateObject( BulletComponent bc , ModelComponent mc ,
             pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         if (tp == pType.BOX) {
@@ -49,9 +49,13 @@ public class EntityFactory {
         mc.modelInst.transform = transform.cpy(); // probably ok not to cpy here ;)
 
 
-        physObj pob = new physObj(sz, mass, mc.modelInst, bc.shape /* , bc.body */ );
+        physObj pob = new physObj(sz, mass, mc.modelInst, bc.shape   );
 
-        return pob;
+bc.body = pob.body;
+bc.motionstate = pob.motionstate;
+
+bc.pob = pob;
+
     }
 
     static public Entity CreateEntity(
@@ -67,9 +71,8 @@ public class EntityFactory {
         mc.scale = sz;
         e.add(mc);
 
-        physObj pob = CreateObject(bc, mc, tp, sz, mass, transform);
+        CreateObject(bc, mc, tp, sz, mass, transform);
 
-        bc.pob = pob;
         e.add(bc);
 
         return e;

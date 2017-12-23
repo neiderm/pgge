@@ -122,19 +122,26 @@ if (true) {
 
         modelBatch.begin(cam);
 
-//{
         for (Entity e : entities) {
-            physObj pob = e.getComponent(BulletComponent.class).pob;
-            if (null != pob) {
-                if (pob.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+
+            BulletComponent bc = e.getComponent(BulletComponent.class);
+            physObj pob = bc.pob; // tmp
+            btRigidBody body = bc.body;
+
+            if (null != bc) {
+                if (body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+
                     pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
-                    pob.motionstate.getWorldTransform(tmpM);
+
+                    bc.motionstate.getWorldTransform(tmpM);
+
                     tmpM.getTranslation(tmpV);
+
                     if (tmpV.y < -10) {
                         tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-                        pob.body.setWorldTransform(tmpM);
-                        pob.body.setAngularVelocity(Vector3.Zero);
-                        pob.body.setLinearVelocity(Vector3.Zero);
+                        body.setWorldTransform(tmpM);
+                        body.setAngularVelocity(Vector3.Zero);
+                        body.setLinearVelocity(Vector3.Zero);
                     }
                 }
                 // TODO
@@ -144,7 +151,7 @@ if (true) {
             }
             modelBatch.render(landscapeInstance, environment);
         }
-//}
+
         modelBatch.end();
     }
 
@@ -180,6 +187,7 @@ if (true) {
                 pob.dispose();
 
             bc.shape.dispose();
+            bc.body.dispose();
         }
 
         modelBatch.dispose();
