@@ -44,7 +44,7 @@ public class GameScreen implements Screen {
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
- //   private RenderSystem renderSystem; //for invoking removeSystem (dispose)
+    private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam;
 //    public ModelBatch modelBatch;
@@ -201,7 +201,6 @@ TODO: something screwing up camera when virtual touchpad is used
         addEntities();
 
 
-
         // Font files from ashley-superjumper
         font = new BitmapFont(
                 Gdx.files.internal("data/font.fnt"),
@@ -240,7 +239,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
         engine = new Engine();
 
-        engine.addSystem(new RenderSystem(engine, environment, cam));
+        engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
 
 //        landscapeModel = assets.get("data/landscape.g3db", Model.class);
         engine.addSystem(bulletSystem = new BulletSystem(
@@ -313,7 +312,7 @@ TODO: something screwing up camera when virtual touchpad is used
     public void dispose() {
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
-  //      engine.removeSystem(renderSystem); // make the system dispose its stuff
+        engine.removeSystem(renderSystem); // make the system dispose its stuff
 
 // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!

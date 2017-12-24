@@ -106,7 +106,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         landscapeInstance.transform = motionstate.transform;
         collisionWorld.addRigidBody(landscape);
 
-if (true) {
+if (false == EntityFactory.BIGBALL_IN_RENDER) {
     // uncomment for a terrain alternative;
     //tmpM.idt().trn(0, -4, 0);
     //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
@@ -134,11 +134,11 @@ if (true) {
                     pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
 
                     bc.motionstate.getWorldTransform(tmpM);
-
                     tmpM.getTranslation(tmpV);
 
                     if (tmpV.y < -10) {
                         tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
+// did idt, so need to scl
                         body.setWorldTransform(tmpM);
                         body.setAngularVelocity(Vector3.Zero);
                         body.setLinearVelocity(Vector3.Zero);
@@ -147,7 +147,9 @@ if (true) {
                 // TODO
                 // while we're looping all the physics objects we might as well
                 // update them (ie game logic)
-                modelBatch.render(pob.modelInst, environment);
+if (true != EntityFactory.RENDER) {
+    modelBatch.render(pob.modelInst, environment);
+} // if (true == EntityFactory.RENDER) {
             }
             modelBatch.render(landscapeInstance, environment);
         }

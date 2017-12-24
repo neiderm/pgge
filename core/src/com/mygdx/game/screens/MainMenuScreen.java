@@ -43,8 +43,6 @@ public class MainMenuScreen implements Screen {
         }
     }
 
-    ;
-
     public MainMenuScreen(MyGdxGame game) {
 
         this.game = game;

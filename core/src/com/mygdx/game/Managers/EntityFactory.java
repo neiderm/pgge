@@ -21,8 +21,11 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    static final int N_ENTITIES = 30;
-    static final int N_BOXES = 20;
+    static public final boolean RENDER = true;
+    static public final boolean BIGBALL_IN_RENDER = false;
+
+    static private final int N_ENTITIES = 30;
+    static private final int N_BOXES = 20;
 
     public static Model boxTemplateModel;
     public static Model ballTemplateModel;
@@ -64,16 +67,14 @@ bc.pob = pob;
         Entity e = new Entity();
         engine.addEntity(e);
 
-// tmp: pob could be created in bc constructor, but this is temporary ;)
-        BulletComponent bc = new BulletComponent();
-
         ModelComponent mc = new ModelComponent();
         mc.scale = sz;
         e.add(mc);
 
-        CreateObject(bc, mc, tp, sz, mass, transform);
-
+        BulletComponent bc = new BulletComponent();
         e.add(bc);
+
+        CreateObject(bc, mc, tp, sz, mass, transform);
 
         return e;
     }
