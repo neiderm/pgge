@@ -107,13 +107,13 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld.addRigidBody(landscape);
 
 if (false == EntityFactory.BIGBALL_IN_RENDER) {
-    // uncomment for a terrain alternative;
-    //tmpM.idt().trn(0, -4, 0);
-    //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
+        // uncomment for a terrain alternative;
+        //tmpM.idt().trn(0, -4, 0);
+        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
     tmpM.idt().trn(10, -5, 0);
     EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
-}
     }
+}
 
     @Override
     public void update(float deltaTime) {
@@ -138,10 +138,10 @@ if (false == EntityFactory.BIGBALL_IN_RENDER) {
 
                     if (tmpV.y < -10) {
                         tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-// did idt, so need to scl
+                        // did idt, so need to scl
                         body.setWorldTransform(tmpM);
-                        body.setAngularVelocity(Vector3.Zero);
-                        body.setLinearVelocity(Vector3.Zero);
+                        body.setAngularVelocity(Vector3.Zero.cpy());
+                        body.setLinearVelocity(Vector3.Zero.cpy());
                     }
                 }
                 // TODO

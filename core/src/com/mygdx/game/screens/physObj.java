@@ -34,11 +34,11 @@ public class physObj {
     }
 
     public MotionState motionstate;
-    public static Vector3 tmp = new Vector3();
+//    public static Vector3 tmp = new Vector3();
 
     public ModelInstance modelInst;
 
-    public btRigidBody.btRigidBodyConstructionInfo bodyInfo;
+//    public btRigidBody.btRigidBodyConstructionInfo bodyInfo;
     public btRigidBody body;
     public static btDynamicsWorld collisionWorld;
     public final Vector3 scale;
@@ -46,22 +46,28 @@ public class physObj {
 
     public physObj(Vector3 sz, float mass, ModelInstance _inst, btCollisionShape shape) {
 
+        Vector3 tmp = new Vector3();
+
         this.modelInst = _inst;
 
         scale = sz.cpy();
 
         if (mass == 0) {
             modelInst.transform.scl(sz);
-            tmp = Vector3.Zero;
+            tmp = Vector3.Zero.cpy();
             motionstate = null;
         } else {
             shape.calculateLocalInertia(mass, tmp);
             motionstate = new MotionState(modelInst.transform);
         }
 
-        bodyInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, motionstate, shape, tmp.cpy());
+        btRigidBody.btRigidBodyConstructionInfo bodyInfo ;
+//        bodyInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, motionstate, shape, tmp);
+                bodyInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, motionstate, shape, tmp.cpy());
         body = new btRigidBody(bodyInfo);
         body.setFriction(0.8f);
+
+        bodyInfo.dispose();
 
         if (mass == 0) {
             body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
@@ -73,7 +79,7 @@ public class physObj {
     public void dispose() {
         body.dispose();
 //        shape.dispose();
-        bodyInfo.dispose();
+//        bodyInfo.dispose();
 //		motionstate.dispose();  body deletion does this?
     }
 }
