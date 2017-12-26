@@ -2,6 +2,7 @@ package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.screens.physObj;
@@ -20,6 +21,9 @@ public
     public physObj.MotionState motionstate;
     public btCollisionShape shape;
     public btRigidBody body;
+
+    public Vector3 scale; // tmp?
+
 
     public BulletComponent(){
 

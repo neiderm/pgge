@@ -24,8 +24,8 @@ public class EntityFactory {
     static public final boolean RENDER = true;
     static public final boolean BIGBALL_IN_RENDER = false;
 
-    static private final int N_ENTITIES = 30;
-    static private final int N_BOXES = 20;
+    static private final int N_ENTITIES = 21;
+    static private final int N_BOXES = 10;
 
     public static Model boxTemplateModel;
     public static Model ballTemplateModel;
@@ -37,22 +37,26 @@ public class EntityFactory {
     static private void  CreateObject( BulletComponent bc , ModelComponent mc ,
             pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
+        ModelInstance modelInst = null;
+
         if (tp == pType.BOX) {
             bc.shape = new btBoxShape(sz);
-            mc.modelInst = new ModelInstance(boxTemplateModel);
+            modelInst = new ModelInstance(boxTemplateModel);
         }
 
         if (tp == pType.SPHERE) {
             sz.y = sz.x;
             sz.z = sz.x; // sphere must be symetrical!
             bc.shape = new btSphereShape(sz.x);
-            mc.modelInst = new ModelInstance(ballTemplateModel);
+            modelInst = new ModelInstance(ballTemplateModel);
         }
 
-        mc.modelInst.transform = transform.cpy(); // probably ok not to cpy here ;)
+        modelInst.transform = transform.cpy(); // ok not to cpy here ?
 
+        mc.modelInst  = modelInst;
+//        bc.modelInst  = modelInst;
 
-        physObj pob = new physObj(sz, mass, mc.modelInst, bc.shape   );
+        physObj pob = new physObj(sz, mass, modelInst, bc.shape   );
 
 bc.body = pob.body;
 bc.motionstate = pob.motionstate;
@@ -68,11 +72,14 @@ bc.pob = pob;
         engine.addEntity(e);
 
         ModelComponent mc = new ModelComponent();
-        mc.scale = sz;
+//        mc.scale = sz;
         e.add(mc);
 
         BulletComponent bc = new BulletComponent();
         e.add(bc);
+
+        bc.scale = sz.cpy();//tmp?
+
 
         CreateObject(bc, mc, tp, sz, mass, transform);
 
@@ -89,10 +96,9 @@ bc.pob = pob;
             tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
             tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
-            pType tp;
-            tp = pType.BOX;
+            pType tp = pType.BOX;
 
-            if (i > N_BOXES) {
+            if (i >= N_BOXES) {
                 tp = pType.SPHERE;
             }
 

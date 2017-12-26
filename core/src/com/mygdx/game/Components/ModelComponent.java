@@ -12,5 +12,5 @@ public class ModelComponent implements Component {
 
     public ModelInstance modelInst;
 
-    public Vector3 scale;
+//    public Vector3 scale;
 }
