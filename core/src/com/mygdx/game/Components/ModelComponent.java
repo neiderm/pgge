@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 
 public class ModelComponent implements Component {
 
-    public ModelInstance modelInst;
+//    public ModelInstance modelInst;
 
 //    public Vector3 scale;
 }

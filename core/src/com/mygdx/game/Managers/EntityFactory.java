@@ -21,7 +21,6 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    static public final boolean RENDER = true;
     static public final boolean BIGBALL_IN_RENDER = false;
 
     static private final int N_ENTITIES = 21;
@@ -32,10 +31,12 @@ public class EntityFactory {
 
     public enum pType {
         SPHERE, BOX
-    };
+    }
 
-    static private void  CreateObject( BulletComponent bc , ModelComponent mc ,
-            pType tp, Vector3 sz, float mass, Matrix4 transform) {
+    ;
+
+    static private void CreateObject(BulletComponent bc, ModelComponent mc,
+                                     pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         ModelInstance modelInst = null;
 
@@ -51,35 +52,30 @@ public class EntityFactory {
             modelInst = new ModelInstance(ballTemplateModel);
         }
 
-        modelInst.transform = transform.cpy(); // ok not to cpy here ?
+        modelInst.transform = new Matrix4(transform);
 
-        mc.modelInst  = modelInst;
-//        bc.modelInst  = modelInst;
+//        mc.modelInst  = modelInst;
+        bc.modelInst = modelInst;
+        bc.scale = new Vector3(sz);
 
-        physObj pob = new physObj(sz, mass, modelInst, bc.shape   );
+        physObj pob = new physObj(bc.scale, mass, modelInst, bc.shape);
 
-bc.body = pob.body;
-bc.motionstate = pob.motionstate;
-
-bc.pob = pob;
+        bc.body = pob.body;
+        bc.motionstate = pob.motionstate;
 
     }
 
     static public Entity CreateEntity(
-            Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform){
+            Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         Entity e = new Entity();
         engine.addEntity(e);
 
         ModelComponent mc = new ModelComponent();
-//        mc.scale = sz;
         e.add(mc);
 
         BulletComponent bc = new BulletComponent();
         e.add(bc);
-
-        bc.scale = sz.cpy();//tmp?
-
 
         CreateObject(bc, mc, tp, sz, mass, transform);
 
@@ -102,8 +98,7 @@ bc.pob = pob;
                 tp = pType.SPHERE;
             }
 
-            // probabbly not necessary to cpy
-            CreateEntity(engine, tp, tmpV.cpy(), rnd.nextFloat() + 0.5f, tmpM);
+            CreateEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
         }
     }
 }

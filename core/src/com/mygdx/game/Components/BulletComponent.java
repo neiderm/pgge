@@ -1,6 +1,7 @@
 package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -13,17 +14,12 @@ import com.mygdx.game.screens.physObj;
 
 public class BulletComponent implements Component {
 
-    // private
-public
-    physObj pob;
-
-
     public physObj.MotionState motionstate;
     public btCollisionShape shape;
     public btRigidBody body;
 
     public Vector3 scale; // tmp?
-
+    public ModelInstance modelInst; // tmp?
 
     public BulletComponent(){
 

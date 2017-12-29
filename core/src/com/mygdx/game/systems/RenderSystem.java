@@ -102,13 +102,11 @@ if (true == EntityFactory.BIGBALL_IN_RENDER ) {
 
         for (Entity e : entities) {
 
-            ModelComponent mc = e.getComponent(ModelComponent.class);
+//            ModelComponent mc = e.getComponent(ModelComponent.class);
+            BulletComponent mc = e.getComponent(BulletComponent.class);
 
             if (null != mc) {
-if (true == EntityFactory.RENDER) {
-//    mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
-    modelBatch.render(mc.modelInst, environment);
-}
+                modelBatch.render(mc.modelInst, environment);
             }
 //            modelBatch.render(landscapeInstance, environment);
 

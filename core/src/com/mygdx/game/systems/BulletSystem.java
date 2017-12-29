@@ -125,13 +125,12 @@ if (false == EntityFactory.BIGBALL_IN_RENDER) {
         for (Entity e : entities) {
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
-            physObj pob = bc.pob; // tmp
             btRigidBody body = bc.body;
 
             if (null != bc) {
                 if (body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
 
-                    pob.modelInst.transform.mul(tmpM.setToScaling(pob.scale));
+                    bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale));
 
                     bc.motionstate.getWorldTransform(tmpM);
                     tmpM.getTranslation(tmpV);
@@ -144,12 +143,6 @@ if (false == EntityFactory.BIGBALL_IN_RENDER) {
                         body.setLinearVelocity(Vector3.Zero.cpy());
                     }
                 }
-                // TODO
-                // while we're looping all the physics objects we might as well
-                // update them (ie game logic)
-if (true != EntityFactory.RENDER) {
-    modelBatch.render(pob.modelInst, environment);
-} // if (true == EntityFactory.RENDER) {
             }
             modelBatch.render(landscapeInstance, environment);
         }
@@ -183,10 +176,6 @@ if (true != EntityFactory.RENDER) {
         for (Entity e : entities) {
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
-            physObj pob = bc.pob;
-
-            if (null != pob)
-                pob.dispose();
 
             bc.shape.dispose();
             bc.body.dispose();

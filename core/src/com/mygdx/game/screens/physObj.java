@@ -34,23 +34,14 @@ public class physObj {
     }
 
     public MotionState motionstate;
-//    public static Vector3 tmp = new Vector3();
 
-    public ModelInstance modelInst;
-
-//    public btRigidBody.btRigidBodyConstructionInfo bodyInfo;
     public btRigidBody body;
     public static btDynamicsWorld collisionWorld;
-    public final Vector3 scale;
 
 
-    public physObj(Vector3 sz, float mass, ModelInstance _inst, btCollisionShape shape) {
+    public physObj(Vector3 sz, float mass, ModelInstance modelInst, btCollisionShape shape) {
 
         Vector3 tmp = new Vector3();
-
-        this.modelInst = _inst;
-
-        scale = sz.cpy();
 
         if (mass == 0) {
             modelInst.transform.scl(sz);
