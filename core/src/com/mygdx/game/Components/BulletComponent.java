@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 import com.mygdx.game.screens.physObj;
 
 /**
@@ -14,7 +15,29 @@ import com.mygdx.game.screens.physObj;
 
 public class BulletComponent implements Component {
 
-    public physObj.MotionState motionstate;
+
+    public static class MotionState extends btMotionState {
+
+        public Matrix4 transform;
+
+        public MotionState(final Matrix4 transform) {
+            this.transform = transform;
+        }
+
+        @Override
+        public void getWorldTransform(Matrix4 worldTrans) {
+            worldTrans.set(transform);
+        }
+
+        @Override
+        public void setWorldTransform(Matrix4 worldTrans) {
+            transform.set(worldTrans);
+        }
+    }
+
+    public MotionState motionstate;
+//    public physObj.MotionState motionstate;
+
     public btCollisionShape shape;
     public btRigidBody body;
 

@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.screens.physObj;
@@ -33,7 +34,7 @@ public class EntityFactory {
         SPHERE, BOX
     }
 
-    ;
+
 
     static private void CreateObject(BulletComponent bc, ModelComponent mc,
                                      pType tp, Vector3 sz, float mass, Matrix4 transform) {
@@ -58,11 +59,29 @@ public class EntityFactory {
         bc.modelInst = modelInst;
         bc.scale = new Vector3(sz);
 
-        physObj pob = new physObj(bc.scale, mass, modelInst, bc.shape);
 
-        bc.body = pob.body;
-        bc.motionstate = pob.motionstate;
+        Vector3 tmp = new Vector3();
 
+        if (mass == 0) {
+            modelInst.transform.scl(sz);
+            tmp = Vector3.Zero.cpy();
+            bc.motionstate = null;
+        } else {
+            bc.shape.calculateLocalInertia(mass, tmp);
+            bc.motionstate = new BulletComponent.MotionState(modelInst.transform);
+        }
+
+        btRigidBody.btRigidBodyConstructionInfo bodyInfo ;
+        bodyInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, bc.motionstate, bc.shape, tmp);
+        bc.body = new btRigidBody(bodyInfo);
+        bc.body.setFriction(0.8f);
+
+        bodyInfo.dispose();
+
+        if (mass == 0) {
+            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+        }
+        physObj pob = new physObj(bc.body);
     }
 
     static public Entity CreateEntity(
