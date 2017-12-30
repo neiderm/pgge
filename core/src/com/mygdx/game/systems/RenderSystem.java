@@ -35,11 +35,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
     private ModelBatch modelBatch;
 
-    private Model cube;
-    private Model ball;
-
-    private Vector3 tmpV = new Vector3();
-    private Matrix4 tmpM = new Matrix4();
 
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
@@ -53,26 +48,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
         this.cam = cam;
 
         modelBatch = new ModelBatch();
-
-        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        cube = modelBuilder.createBox(2f, 2f, 2f,
-                new Material(TextureAttribute.createDiffuse(cubeTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        EntityFactory.boxTemplateModel = cube;  // must set the visual templates before using.
-
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        ball = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-        EntityFactory.ballTemplateModel = ball;
-
-if (true == EntityFactory.BIGBALL_IN_RENDER ) {
-    // uncomment for a terrain alternative;
-    //tmpM.idt().trn(0, -4, 0);
-    //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
-    tmpM.idt().trn(10, -5, 0);
-    EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
-}
     }
 
     @Override
@@ -90,8 +65,6 @@ if (true == EntityFactory.BIGBALL_IN_RENDER ) {
     @Override
     public void removedFromEngine(Engine engine) {
 
-        ball.dispose();
-        cube.dispose();
         modelBatch.dispose();
     }
 
@@ -109,7 +82,6 @@ if (true == EntityFactory.BIGBALL_IN_RENDER ) {
                 modelBatch.render(mc.modelInst, environment);
             }
 //            modelBatch.render(landscapeInstance, environment);
-
         }
 
         modelBatch.end();

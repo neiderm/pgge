@@ -2,8 +2,14 @@ package com.mygdx.game.Managers;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
@@ -22,13 +28,27 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    static public final boolean BIGBALL_IN_RENDER = false;
+    static private Model boxTemplateModel;
+    static private Model ballTemplateModel;
+
+    static {
+        final ModelBuilder modelBuilder = new ModelBuilder();
+
+        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
+        boxTemplateModel  = modelBuilder.createBox(2f, 2f, 2f,
+                new Material(TextureAttribute.createDiffuse(cubeTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
+        ballTemplateModel = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
+                new Material(TextureAttribute.createDiffuse(sphereTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+    }
+
 
     static private final int N_ENTITIES = 21;
     static private final int N_BOXES = 10;
 
-    public static Model boxTemplateModel;
-    public static Model ballTemplateModel;
 
     public enum pType {
         SPHERE, BOX
@@ -119,5 +139,19 @@ public class EntityFactory {
 
             CreateEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
         }
+
+
+        // uncomment for a terrain alternative;
+        //tmpM.idt().trn(0, -4, 0);
+        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
+        tmpM.idt().trn(10, -5, 0);
+        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+    }
+
+
+    static public void dispose(){
+
+        boxTemplateModel.dispose();
+        ballTemplateModel.dispose();
     }
 }

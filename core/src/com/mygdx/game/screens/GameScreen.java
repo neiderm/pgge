@@ -47,7 +47,7 @@ public class GameScreen implements Screen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam;
-//    public ModelBatch modelBatch;
+    //    public ModelBatch modelBatch;
     public Model model;
     public ModelInstance instance;
 
@@ -89,9 +89,9 @@ TODO: something screwing up camera when virtual touchpad is used
 
             Vector2 ctr = new Vector2();
             touchBoxRect.getCenter(ctr);
-  //          playerComp.vvv.x = screenX - ctr.x;
-    //        playerComp.vvv.y = 0;
-      //      playerComp.vvv.z = screenY - ctr.y;
+            //          playerComp.vvv.x = screenX - ctr.x;
+            //        playerComp.vvv.y = 0;
+            //      playerComp.vvv.z = screenY - ctr.y;
         }
 
         @Override
@@ -119,8 +119,7 @@ TODO: something screwing up camera when virtual touchpad is used
                 isTouchInPad = true;
                 setVector(screenX, screenY);
                 return true;
-            }
-            else if (true == isTouchInPad) {
+            } else if (true == isTouchInPad) {
                 // still touching, but out of bounds, so escape it
 //                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
 
@@ -135,10 +134,9 @@ TODO: something screwing up camera when virtual touchpad is used
 
             Gdx.app.log(this.getClass().getName(), String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
 
-            if (true == isTouchInPad)
-            {
+            if (true == isTouchInPad) {
 //                isTouchInPad = false;
-  //              playerComp.vvv = new Vector3(0,0,0);
+                //              playerComp.vvv = new Vector3(0,0,0);
 
 // TODO: ? on touchUP: counter the force applied by the "joystick", but allow energy of a bounce to persist
 
@@ -190,7 +188,6 @@ TODO: something screwing up camera when virtual touchpad is used
         Gdx.input.setInputProcessor(multiplexer);
 
 
-
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
 /*
             assets = new AssetManager();
@@ -222,15 +219,15 @@ TODO: something screwing up camera when virtual touchpad is used
 
         EntityFactory.CreateEntities(engine /*, assets */);
 //        engine.addEntity(EntityFactory.createGround(new Vector3(0, 0, 0)));
-  //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
-    //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));
-      //  engine.addEntity(EntityFactory.createRamp(new Vector3(0, 0.5f, 0)));
+        //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
+        //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));
+        //  engine.addEntity(EntityFactory.createRamp(new Vector3(0, 0.5f, 0)));
 
 //        Entity e = EntityFactory.createPlayer(new Vector3(0, 1.5f, 0), 5.0f);
 //        engine.addEntity(e);
 
-  //      playerComp = e.getComponent(PlayerComponent.class);
-    //    playerBody = e.getComponent(BulletComponent.class).body;
+        //      playerComp = e.getComponent(PlayerComponent.class);
+        //    playerBody = e.getComponent(BulletComponent.class).body;
     }
 
     private void addSystems() {
@@ -243,10 +240,10 @@ TODO: something screwing up camera when virtual touchpad is used
 
 //        landscapeModel = assets.get("data/landscape.g3db", Model.class);
         engine.addSystem(bulletSystem = new BulletSystem(
-                engine, environment, cam /*, landscapeModel */ ));
+                engine, environment, cam /*, landscapeModel */));
 
-    //    engine.addSystem(new EnemySystem());
-      //  engine.addSystem(new PlayerSystem(this.game));
+        //    engine.addSystem(new EnemySystem());
+        //  engine.addSystem(new PlayerSystem(this.game));
     }
 
 
@@ -317,7 +314,8 @@ TODO: something screwing up camera when virtual touchpad is used
 // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
 
-    //    EntityFactory.model.dispose();
+        EntityFactory.dispose(); // static dispose models
+
 //        modelBatch.dispose();
         model.dispose();
 

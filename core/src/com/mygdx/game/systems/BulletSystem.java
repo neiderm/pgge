@@ -106,13 +106,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         landscapeInstance.transform = motionstate.transform;
         collisionWorld.addRigidBody(landscape);
 
-if (false == EntityFactory.BIGBALL_IN_RENDER) {
-        // uncomment for a terrain alternative;
-        //tmpM.idt().trn(0, -4, 0);
-        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
-    tmpM.idt().trn(10, -5, 0);
-    EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
-    }
 }
 
     @Override
@@ -190,9 +183,7 @@ if (false == EntityFactory.BIGBALL_IN_RENDER) {
 
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-// TODO: more physics setup things can done here and not in physObj()
-
-//        collisionWorld.addRigidBody(bc.pob.body);
+//        collisionWorld.addRigidBody(bc.body);
     }
 
     @Override
