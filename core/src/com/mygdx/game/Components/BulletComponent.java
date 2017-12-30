@@ -1,14 +1,12 @@
 package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
-import com.mygdx.game.screens.physObj;
 
 /**
  * Created by utf1247 on 12/21/2017.
@@ -58,11 +56,16 @@ public class BulletComponent implements Component {
         // put the landscape at an angle so stuff falls of it...
         motionstate =
                 new MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-        btRigidBody body = new btRigidBody(0, motionstate, shape);
+//                new MotionState(transform);
+
+        this.body = new btRigidBody(0, motionstate, shape);
         this.modelInst = modelInst;
+        this.shape = shape;
 
         modelInst.transform = motionstate.transform;
-//        collisionWorld.addRigidBody(landscape);
-
     }
+
+
+
+
 }

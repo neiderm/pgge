@@ -8,15 +8,11 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
@@ -25,8 +21,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Managers.EntityFactory;
-import com.mygdx.game.screens.physObj;
 
 import java.util.Random;
 
@@ -45,7 +39,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     btCollisionDispatcher dispatcher;
     btBroadphaseInterface broadphase;
     btConstraintSolver solver;
-    btDynamicsWorld collisionWorld;
+
+public static   btDynamicsWorld collisionWorld;
 
 
     Vector3 gravity = new Vector3(0, -9.81f, 0);
@@ -65,22 +60,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
-
-
-
-        // little point putting static meshes in a convenience wrapper
-        // as you only have a few and don't spawn them repeatedly
-///*
-if (true != EntityFactory.asdf) {
-    Model landscapeModel = EntityFactory.landscapeModel;
-    btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
-    // put the landscape at an angle so stuff falls of it...
-    physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-    EntityFactory.landscape = new btRigidBody(0, motionstate, triMesh);
-    EntityFactory.landscapeInstance = new ModelInstance(landscapeModel);
-    EntityFactory.landscapeInstance.transform = motionstate.transform;
-    collisionWorld.addRigidBody(EntityFactory.landscape);
-}        //*/
 }
 
     @Override
