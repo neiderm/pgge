@@ -6,23 +6,13 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Managers.EntityFactory;
-import com.mygdx.game.screens.physObj;
 
 /**
  * Created by mango on 12/18/17.
@@ -34,7 +24,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
     private PerspectiveCamera cam;
 
     private ModelBatch modelBatch;
-
 
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
@@ -81,7 +70,8 @@ public class RenderSystem extends EntitySystem implements EntityListener {
             if (null != mc) {
                 modelBatch.render(mc.modelInst, environment);
             }
-//            modelBatch.render(landscapeInstance, environment);
+
+            modelBatch.render(EntityFactory.landscapeInstance, environment);
         }
 
         modelBatch.end();

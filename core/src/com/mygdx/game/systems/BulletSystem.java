@@ -9,7 +9,6 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -39,11 +38,6 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    private Environment environment;
-    private PerspectiveCamera cam;
-
-    private ModelBatch modelBatch;
-
     public Vector3 tmpV = new Vector3();
     public Matrix4 tmpM = new Matrix4();
 
@@ -53,7 +47,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     btConstraintSolver solver;
     btDynamicsWorld collisionWorld;
 
-    private ModelInstance landscapeInstance;
 
     Vector3 gravity = new Vector3(0, -9.81f, 0);
     public Random rnd = new Random();
@@ -64,11 +57,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
     public BulletSystem(Engine engine, Environment environment, PerspectiveCamera cam /* , Model landscapeModel *//* tmp */) {
 
-        this.environment = environment;
-        this.cam = cam;
-
-        modelBatch = new ModelBatch();
-
 //        Bullet.init();
         // Create the bullet world
         collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -78,34 +66,27 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
 
-/*
-    assets = new AssetManager();
-    assets.load("data/landscape.g3db", Model.class);
-    assets.finishLoading();
-*/
 
 
         // little point putting static meshes in a convenience wrapper
         // as you only have a few and don't spawn them repeatedly
 ///*
-        Model landscapeModel = EntityFactory.landscapeModel;
-    //*/
-        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
-        // put the landscape at an angle so stuff falls of it...
-        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-        btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
-        landscapeInstance = new ModelInstance(landscapeModel);
-        landscapeInstance.transform = motionstate.transform;
-        collisionWorld.addRigidBody(landscape);
-
+if (true != EntityFactory.asdf) {
+    Model landscapeModel = EntityFactory.landscapeModel;
+    btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+    // put the landscape at an angle so stuff falls of it...
+    physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
+    EntityFactory.landscape = new btRigidBody(0, motionstate, triMesh);
+    EntityFactory.landscapeInstance = new ModelInstance(landscapeModel);
+    EntityFactory.landscapeInstance.transform = motionstate.transform;
+    collisionWorld.addRigidBody(EntityFactory.landscape);
+}        //*/
 }
 
     @Override
     public void update(float deltaTime) {
 
         collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
-
-        modelBatch.begin(cam);
 
         for (Entity e : entities) {
 
@@ -129,10 +110,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                     }
                 }
             }
-            modelBatch.render(landscapeInstance, environment);
         }
 
-        modelBatch.end();
     }
 
     @Override
@@ -165,8 +144,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
             bc.shape.dispose();
             bc.body.dispose();
         }
-
-        modelBatch.dispose();
     }
 
     @Override

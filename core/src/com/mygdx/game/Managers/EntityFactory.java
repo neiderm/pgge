@@ -20,6 +20,7 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.screens.physObj;
 
 import java.util.Random;
 
@@ -161,21 +162,37 @@ public class EntityFactory {
         tmpM.idt().trn(10, -5, 0);
         EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
 
-
+        if (true == asdf) {
+            _createLandscape();
+        }
     }
 
+
+    static public boolean asdf = false;
+    static public ModelInstance landscapeInstance;
+    static public btRigidBody landscape;
 
     static private void createLandscape(){
-        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+
+        btCollisionShape triMesh =
+                (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+
         // put the landscape at an angle so stuff falls of it...
-//        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-//        btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
-//        landscapeInstance = new ModelInstance(landscapeModel);
-//        landscapeInstance.transform = motionstate.transform;
-//        physObj.collisionWorld.addRigidBody(landscape);
+        BulletComponent bc = new BulletComponent(
+                triMesh, new ModelInstance(landscapeModel),
+                new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
     }
 
+    static private void _createLandscape(){
 
+        Model landscapeModel = EntityFactory.landscapeModel;
+        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+        // put the landscape at an angle so stuff falls of it...
+        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
+        EntityFactory.landscape = new btRigidBody(0, motionstate, triMesh);
+        EntityFactory.landscapeInstance = new ModelInstance(landscapeModel);
+        EntityFactory.landscapeInstance.transform = motionstate.transform;
+    }
 
     static public void dispose(){
 
