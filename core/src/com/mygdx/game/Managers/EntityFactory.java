@@ -3,6 +3,7 @@ package com.mygdx.game.Managers;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -13,11 +14,12 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.screens.physObj;
 
 import java.util.Random;
 
@@ -27,6 +29,9 @@ import java.util.Random;
  */
 
 public class EntityFactory {
+
+    static public AssetManager assets;
+    static public Model landscapeModel;
 
     static private Model boxTemplateModel;
     static private Model ballTemplateModel;
@@ -43,6 +48,15 @@ public class EntityFactory {
         ballTemplateModel = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+
+///*
+        assets = new AssetManager();
+        assets.load("data/landscape.g3db", Model.class);
+        assets.finishLoading();
+        landscapeModel = assets.get("data/landscape.g3db", Model.class);
+        //*/
+
     }
 
 
@@ -101,7 +115,6 @@ public class EntityFactory {
         if (mass == 0) {
             bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
         }
-        physObj pob = new physObj(bc.body);
     }
 
     static public Entity CreateEntity(
@@ -114,9 +127,10 @@ public class EntityFactory {
         e.add(mc);
 
         BulletComponent bc = new BulletComponent();
-        e.add(bc);
 
         CreateObject(bc, mc, tp, sz, mass, transform);
+
+        e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
         return e;
     }
@@ -146,12 +160,28 @@ public class EntityFactory {
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
         EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+
+
     }
+
+
+    static private void createLandscape(){
+        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+        // put the landscape at an angle so stuff falls of it...
+//        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
+//        btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
+//        landscapeInstance = new ModelInstance(landscapeModel);
+//        landscapeInstance.transform = motionstate.transform;
+//        physObj.collisionWorld.addRigidBody(landscape);
+    }
+
 
 
     static public void dispose(){
 
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
+
+        assets.dispose();
     }
 }

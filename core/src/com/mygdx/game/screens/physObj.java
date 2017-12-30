@@ -1,8 +1,6 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 
 /**
@@ -32,10 +30,6 @@ public class physObj {
 
 //    public MotionState motionstate;
 
-    public static btDynamicsWorld collisionWorld;
+//    public static btDynamicsWorld collisionWorld;
 
-    public physObj(btRigidBody body) {
-
-        collisionWorld.addRigidBody(body);
-    }
 }

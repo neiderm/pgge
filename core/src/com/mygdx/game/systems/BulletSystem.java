@@ -6,13 +6,11 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
@@ -46,8 +44,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
     private ModelBatch modelBatch;
 
-    public AssetManager assets;
-
     public Vector3 tmpV = new Vector3();
     public Matrix4 tmpM = new Matrix4();
 
@@ -57,13 +53,10 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     btConstraintSolver solver;
     btDynamicsWorld collisionWorld;
 
-    private Model landscapeModel;
     private ModelInstance landscapeInstance;
 
     Vector3 gravity = new Vector3(0, -9.81f, 0);
     public Random rnd = new Random();
-
-    private final ModelBuilder modelBuilder = new ModelBuilder();
 
 //    private Engine engine;
     private ImmutableArray<Entity> entities;
@@ -85,19 +78,18 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
 
-///*
+/*
     assets = new AssetManager();
     assets.load("data/landscape.g3db", Model.class);
     assets.finishLoading();
-//*/
+*/
 
-        physObj.collisionWorld = collisionWorld;
 
         // little point putting static meshes in a convenience wrapper
         // as you only have a few and don't spawn them repeatedly
 ///*
-    landscapeModel = assets.get("data/landscape.g3db", Model.class);
-//*/
+        Model landscapeModel = EntityFactory.landscapeModel;
+    //*/
         btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
         // put the landscape at an angle so stuff falls of it...
         physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
@@ -175,7 +167,6 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         }
 
         modelBatch.dispose();
-        assets.dispose();
     }
 
     @Override
@@ -183,7 +174,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-//        collisionWorld.addRigidBody(bc.body);
+        collisionWorld.addRigidBody(bc.body);
     }
 
     @Override
