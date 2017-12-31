@@ -239,8 +239,7 @@ TODO: something screwing up camera when virtual touchpad is used
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
 
 //        landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        engine.addSystem(bulletSystem = new BulletSystem(
-                engine, environment, cam /*, landscapeModel */));
+        engine.addSystem(bulletSystem = new BulletSystem(engine));
 
         //    engine.addSystem(new EnemySystem());
         //  engine.addSystem(new PlayerSystem(this.game));

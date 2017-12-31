@@ -51,14 +51,10 @@ public class EntityFactory {
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
-
-///*
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        //*/
-
     }
 
 
@@ -156,67 +152,37 @@ public class EntityFactory {
             CreateEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
         }
 
-
         // uncomment for a terrain alternative;
         //tmpM.idt().trn(0, -4, 0);
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
         EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
 
-        if (true)
-            _createLandscape();
-        else
-            createLandscape(engine);
+        createLandscape(engine);
     }
-
-
-    static public btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
-    static public physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-    static public btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
-    static public ModelInstance landscapeInstance = new ModelInstance(landscapeModel);
 
     static private void createLandscape(Engine engine){
 
         Entity e = new Entity();
 
-        btCollisionShape triMesh =
-                (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
-
         // put the landscape at an angle so stuff falls of it...
-        Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+
         BulletComponent bc = new BulletComponent(
-                triMesh, new ModelInstance(landscapeModel),
-                // transform
-                new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f)
-        );
+                new btBvhTriangleMeshShape(landscapeModel.meshParts),
+                new ModelInstance(landscapeModel),
+                new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
         engine.addEntity(e);
-    }
 
-    static private void _createLandscape(){
-
-        Model landscapeModel = EntityFactory.landscapeModel;
-        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
-        // put the landscape at an angle so stuff falls of it...
-        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-        EntityFactory.landscape = new btRigidBody(0, motionstate, triMesh);
-        EntityFactory.landscapeInstance = new ModelInstance(landscapeModel);
-        EntityFactory.landscapeInstance.transform = motionstate.transform;
-
-        landscapeInstance.transform = motionstate.transform;
-
-
-        BulletSystem.collisionWorld.addRigidBody(EntityFactory.landscape);
+        ModelComponent mc = new ModelComponent();
+        e.add(mc);
     }
 
     static public void dispose(){
 
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
-
-        triMesh.dispose();
-        landscape.dispose();
 
         assets.dispose();
     }

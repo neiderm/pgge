@@ -70,8 +70,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
             if (null != mc) {
                 modelBatch.render(mc.modelInst, environment);
             }
-
-            modelBatch.render(EntityFactory.landscapeInstance, environment);
         }
 
         modelBatch.end();

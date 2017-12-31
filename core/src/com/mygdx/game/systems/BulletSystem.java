@@ -32,25 +32,25 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    public Vector3 tmpV = new Vector3();
-    public Matrix4 tmpM = new Matrix4();
+    private Vector3 tmpV = new Vector3();
+    private Matrix4 tmpM = new Matrix4();
 
-    btCollisionConfiguration collisionConfiguration;
-    btCollisionDispatcher dispatcher;
-    btBroadphaseInterface broadphase;
-    btConstraintSolver solver;
+    private btCollisionConfiguration collisionConfiguration;
+    private btCollisionDispatcher dispatcher;
+    private btBroadphaseInterface broadphase;
+    private btConstraintSolver solver;
 
-public static   btDynamicsWorld collisionWorld;
+    private btDynamicsWorld collisionWorld;
 
 
-    Vector3 gravity = new Vector3(0, -9.81f, 0);
-    public Random rnd = new Random();
+    private Vector3 gravity = new Vector3(0, -9.81f, 0);
+    private Random rnd = new Random();
 
 //    private Engine engine;
     private ImmutableArray<Entity> entities;
 
 
-    public BulletSystem(Engine engine, Environment environment, PerspectiveCamera cam /* , Model landscapeModel *//* tmp */) {
+    public BulletSystem(Engine engine) {
 
 //        Bullet.init();
         // Create the bullet world
@@ -60,7 +60,7 @@ public static   btDynamicsWorld collisionWorld;
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
-}
+    }
 
     @Override
     public void update(float deltaTime) {
@@ -72,8 +72,13 @@ public static   btDynamicsWorld collisionWorld;
             BulletComponent bc = e.getComponent(BulletComponent.class);
             btRigidBody body = bc.body;
 
-            if (null != bc) {
-                if (body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+            if (null != bc
+                    && null != bc.modelInst && null != bc.motionstate) {
+
+                if (
+//                        bc.scale != null // landscape mesh has no scale
+                        body.isActive()
+                 ) {  // gdx bullet used to leave scaling alone which was rather useful...
 
                     bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale));
 
@@ -88,9 +93,10 @@ public static   btDynamicsWorld collisionWorld;
                         body.setLinearVelocity(Vector3.Zero.cpy());
                     }
                 }
+            } else {
+                bc = null;
             }
         }
-
     }
 
     @Override
@@ -120,8 +126,10 @@ public static   btDynamicsWorld collisionWorld;
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
-            bc.shape.dispose();
-            bc.body.dispose();
+            if (null != bc && null != bc.shape && null != bc.body) {
+                bc.shape.dispose();
+                bc.body.dispose();
+            }
         }
     }
 
@@ -130,7 +138,11 @@ public static   btDynamicsWorld collisionWorld;
 
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-        collisionWorld.addRigidBody(bc.body);
+        if (null != bc) {
+            if (null != bc.body) {
+                collisionWorld.addRigidBody(bc.body);
+            }
+        }
     }
 
     @Override

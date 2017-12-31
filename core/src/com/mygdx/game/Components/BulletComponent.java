@@ -42,6 +42,11 @@ public class BulletComponent implements Component {
     public Vector3 scale; // tmp?
     public ModelInstance modelInst; // tmp?
 
+    public int id;
+
+    static public int cnt = 0;
+
+
     public BulletComponent(){
 
     }
@@ -53,19 +58,14 @@ public class BulletComponent implements Component {
 
     public BulletComponent(btCollisionShape shape, ModelInstance modelInst, Matrix4 transform) {
 
-        // put the landscape at an angle so stuff falls of it...
-        motionstate =
-                new MotionState(new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
-//                new MotionState(transform);
+        this.id = cnt++;
 
-        this.body = new btRigidBody(0, motionstate, shape);
+        this.motionstate = new MotionState(transform);
+
+        this.body = new btRigidBody(0, this.motionstate, shape);
         this.modelInst = modelInst;
         this.shape = shape;
-
-        modelInst.transform = motionstate.transform;
+        this.modelInst.transform = this.motionstate.transform;
     }
-
-
-
 
 }
