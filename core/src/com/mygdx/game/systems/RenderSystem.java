@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Managers.EntityFactory;
 
 /**
  * Created by mango on 12/18/17.
@@ -27,8 +26,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
-
-    private final ModelBuilder modelBuilder = new ModelBuilder();
 
 
     public RenderSystem(Engine engine, Environment environment, PerspectiveCamera cam ) {

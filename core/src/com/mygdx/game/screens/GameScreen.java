@@ -5,7 +5,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -64,7 +63,7 @@ public class GameScreen implements Screen {
 //    private PlayerComponent playerComp;
 //    private btRigidBody playerBody;
 
-    static private int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
+    private static int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
 
 
     /*
@@ -119,7 +118,7 @@ TODO: something screwing up camera when virtual touchpad is used
                 isTouchInPad = true;
                 setVector(screenX, screenY);
                 return true;
-            } else if (true == isTouchInPad) {
+            } else if (isTouchInPad) {
                 // still touching, but out of bounds, so escape it
 //                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
 
@@ -134,7 +133,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
             Gdx.app.log(this.getClass().getName(), String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
 
-            if (true == isTouchInPad) {
+            if (isTouchInPad) {
 //                isTouchInPad = false;
                 //              playerComp.vvv = new Vector3(0,0,0);
 
@@ -177,7 +176,6 @@ TODO: something screwing up camera when virtual touchpad is used
         instance = new ModelInstance(model);
 
         instance.transform.scale(2.0f, 2.0f, 2.0f);
-        Matrix4 tmp = instance.transform;
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -295,7 +293,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.rect(
-                Gdx.graphics.getWidth() / 2 - touchBoxW / 2, 0,
+                (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2, 0,
                 touchBoxW, touchBoxH);
         shapeRenderer.end();
     }

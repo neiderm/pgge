@@ -6,8 +6,6 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
@@ -73,12 +71,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
             btRigidBody body = bc.body;
 
             if (null != bc
-                    && null != bc.modelInst && null != bc.motionstate) {
+                    && null != bc.modelInst && null != bc.motionstate
+                    && null != bc.scale) // landscape mesh has no scale
+            {
 
-                if (
-//                        bc.scale != null // landscape mesh has no scale
-                        body.isActive()
-                 ) {  // gdx bullet used to leave scaling alone which was rather useful...
+                if (body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
 
                     bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale));
 
@@ -92,6 +89,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                         body.setAngularVelocity(Vector3.Zero.cpy());
                         body.setLinearVelocity(Vector3.Zero.cpy());
                     }
+                } else{
+                    //bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale)); // why not?
                 }
             } else {
                 bc = null;

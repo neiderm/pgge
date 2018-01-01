@@ -44,7 +44,7 @@ public class BulletComponent implements Component {
 
     public int id;
 
-    static public int cnt = 0;
+    public static int cnt = 0;
 
 
     public BulletComponent(){

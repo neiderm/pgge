@@ -15,13 +15,10 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.screens.physObj;
-import com.mygdx.game.systems.BulletSystem;
 
 import java.util.Random;
 
@@ -32,11 +29,11 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    static public AssetManager assets;
-    static public Model landscapeModel;
+    public static final AssetManager assets;
+    public static final Model landscapeModel;
 
-    static private Model boxTemplateModel;
-    static private Model ballTemplateModel;
+    private static Model boxTemplateModel;
+    private static Model ballTemplateModel;
 
     static {
         final ModelBuilder modelBuilder = new ModelBuilder();
@@ -58,8 +55,8 @@ public class EntityFactory {
     }
 
 
-    static private final int N_ENTITIES = 21;
-    static private final int N_BOXES = 10;
+    private static final int N_ENTITIES = 1;
+    private static final int N_BOXES = 10;
 
 
     public enum pType {
@@ -68,7 +65,7 @@ public class EntityFactory {
 
 
 
-    static private void CreateObject(BulletComponent bc, ModelComponent mc,
+    private static void CreateObject(BulletComponent bc, ModelComponent mc,
                                      pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         ModelInstance modelInst = null;
@@ -115,7 +112,7 @@ public class EntityFactory {
         }
     }
 
-    static public Entity CreateEntity(
+    public static Entity CreateEntity(
             Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
         Entity e = new Entity();
@@ -133,7 +130,7 @@ public class EntityFactory {
         return e;
     }
 
-    static public void CreateEntities(Engine engine /*, AssetManager assets */) {
+    public static void CreateEntities(Engine engine /*, AssetManager assets */) {
 
         Vector3 tmpV = new Vector3(); // size
         Matrix4 tmpM = new Matrix4(); // transform
@@ -161,7 +158,7 @@ public class EntityFactory {
         createLandscape(engine);
     }
 
-    static private void createLandscape(Engine engine){
+    private static void createLandscape(Engine engine){
 
         Entity e = new Entity();
 
@@ -179,7 +176,7 @@ public class EntityFactory {
         e.add(mc);
     }
 
-    static public void dispose(){
+    public static void dispose(){
 
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();

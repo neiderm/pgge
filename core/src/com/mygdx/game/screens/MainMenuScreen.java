@@ -24,7 +24,7 @@ public class MainMenuScreen implements Screen {
     SpriteBatch batch;
     ShapeRenderer shapeRenderer;
 
-    static private int touchBoxW = 20, touchBoxH = 10;
+    private static int touchBoxW = 20, touchBoxH = 10;
 
     private class MyInputAdapter extends InputAdapter {
         @Override
@@ -45,6 +45,7 @@ public class MainMenuScreen implements Screen {
 
     public MainMenuScreen(MyGdxGame game) {
 
+        Gdx.graphics.setWindowedMode(800,600);
         this.game = game;
 
         font = new BitmapFont();
@@ -81,8 +82,8 @@ public class MainMenuScreen implements Screen {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.rect(
-                Gdx.graphics.getWidth() / 2 - touchBoxW / 2,
-                Gdx.graphics.getHeight() / 2 - touchBoxH / 2,
+                (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2,
+                (float)Gdx.graphics.getHeight() / 2 - touchBoxH / 2,
                 touchBoxW, touchBoxH);
         shapeRenderer.end();
     }
