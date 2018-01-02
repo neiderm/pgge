@@ -1,2 +1,3 @@
 # gdxBullet
-libgdx and Bullet experiments
+libGDX and Bullet physics demo from "http://bedroomcoders.co.uk/libgdx-bullet-redux-2/" 
+and modified to Ashley ECS (entity component system architecture).
