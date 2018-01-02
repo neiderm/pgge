@@ -37,11 +37,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     private btCollisionDispatcher dispatcher;
     private btBroadphaseInterface broadphase;
     private btConstraintSolver solver;
-
     private btDynamicsWorld collisionWorld;
 
-
-    private Vector3 gravity = new Vector3(0, -9.81f, 0);
     private Random rnd = new Random();
 
 //    private Engine engine;
@@ -49,6 +46,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
 
     public BulletSystem(Engine engine) {
+
+        Vector3 gravity = new Vector3(0, -9.81f, 0);
 
 //        Bullet.init();
         // Create the bullet world

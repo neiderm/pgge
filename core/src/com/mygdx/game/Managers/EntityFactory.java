@@ -29,10 +29,10 @@ import java.util.Random;
 
 public class EntityFactory {
 
-    public static final AssetManager assets;
-    public static final Model landscapeModel;
+    private static final AssetManager assets;
+    private static final Model landscapeModel;
 
-    public enum pType {
+    private enum pType {
         SPHERE, BOX
     }
 

@@ -47,8 +47,8 @@ public class GameScreen implements Screen {
 
     private PerspectiveCamera cam;
     //    public ModelBatch modelBatch;
-    public Model model;
-    public ModelInstance instance;
+    private Model model;
+    private ModelInstance instance;
 
     private CameraInputController camController;
     //    public FirstPersonCameraController camController;
