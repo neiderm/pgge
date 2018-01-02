@@ -32,6 +32,10 @@ public class EntityFactory {
     public static final AssetManager assets;
     public static final Model landscapeModel;
 
+    public enum pType {
+        SPHERE, BOX
+    }
+
     private static Model boxTemplateModel;
     private static Model ballTemplateModel;
 
@@ -55,14 +59,8 @@ public class EntityFactory {
     }
 
 
-    private static final int N_ENTITIES = 1;
+    private static final int N_ENTITIES = 21;
     private static final int N_BOXES = 10;
-
-
-    public enum pType {
-        SPHERE, BOX
-    }
-
 
 
     private static void CreateObject(BulletComponent bc, ModelComponent mc,
@@ -93,15 +91,15 @@ public class EntityFactory {
 
         if (mass == 0) {
             modelInst.transform.scl(sz);
-            tmp = Vector3.Zero.cpy();
+            tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
             bc.motionstate = null;
         } else {
             bc.shape.calculateLocalInertia(mass, tmp);
             bc.motionstate = new BulletComponent.MotionState(modelInst.transform);
         }
 
-        btRigidBody.btRigidBodyConstructionInfo bodyInfo ;
-        bodyInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, bc.motionstate, bc.shape, tmp);
+        btRigidBody.btRigidBodyConstructionInfo bodyInfo =
+                new btRigidBody.btRigidBodyConstructionInfo(mass, bc.motionstate, bc.shape, tmp);
         bc.body = new btRigidBody(bodyInfo);
         bc.body.setFriction(0.8f);
 
