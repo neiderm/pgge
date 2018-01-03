@@ -161,11 +161,11 @@ public class EntityFactory {
         Entity e = new Entity();
 
         // put the landscape at an angle so stuff falls of it...
+        ModelInstance inst = new ModelInstance(landscapeModel);
+        inst.transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
 
         BulletComponent bc = new BulletComponent(
-                new btBvhTriangleMeshShape(landscapeModel.meshParts),
-                new ModelInstance(landscapeModel),
-                new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f));
+                new btBvhTriangleMeshShape(landscapeModel.meshParts), inst);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
         engine.addEntity(e);
