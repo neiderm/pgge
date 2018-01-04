@@ -15,6 +15,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
@@ -64,28 +65,11 @@ public class EntityFactory {
 
 
     private static void CreateObject(BulletComponent bc, ModelComponent mc,
-                                     pType tp, Vector3 sz, float mass, Matrix4 transform) {
-
-        ModelInstance modelInst = null;
-
-        if (tp == pType.BOX) {
-            bc.shape = new btBoxShape(sz);
-            modelInst = new ModelInstance(boxTemplateModel);
-        }
-
-        if (tp == pType.SPHERE) {
-            sz.y = sz.x;
-            sz.z = sz.x; // sphere must be symetrical!
-            bc.shape = new btSphereShape(sz.x);
-            modelInst = new ModelInstance(ballTemplateModel);
-        }
-
-        modelInst.transform = new Matrix4(transform);
+                                     ModelInstance modelInst, Vector3 sz, float mass, Matrix4 transform) {
 
 //        mc.modelInst  = modelInst;
-        bc.modelInst = modelInst;
-        bc.scale = new Vector3(sz);
 
+        bc.scale = new Vector3(sz);
 
         Vector3 tmp = new Vector3();
 
@@ -106,12 +90,31 @@ public class EntityFactory {
         bodyInfo.dispose();
 
         if (mass == 0) {
-            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+//            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+            bc.body.translate(modelInst.transform.getTranslation(tmp));
         }
     }
 
     public static Entity CreateEntity(
             Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
+
+        btCollisionShape shape = null;
+        ModelInstance modelInst = null;
+
+        if (tp == pType.BOX) {
+            shape = new btBoxShape(sz);
+            modelInst = new ModelInstance(boxTemplateModel);
+        }
+
+        if (tp == pType.SPHERE) {
+            sz.y = sz.x;
+            sz.z = sz.x; // sphere must be symetrical!
+            shape = new btSphereShape(sz.x);
+            modelInst = new ModelInstance(ballTemplateModel);
+        }
+
+        modelInst.transform = new Matrix4(transform);
+
 
         Entity e = new Entity();
         engine.addEntity(e);
@@ -119,9 +122,9 @@ public class EntityFactory {
         ModelComponent mc = new ModelComponent();
         e.add(mc);
 
-        BulletComponent bc = new BulletComponent();
+        BulletComponent bc = new BulletComponent(shape, modelInst);
 
-        CreateObject(bc, mc, tp, sz, mass, transform);
+        CreateObject(bc, mc, modelInst, sz, mass, transform);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
