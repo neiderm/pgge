@@ -89,10 +89,10 @@ public class EntityFactory {
 
         bodyInfo.dispose();
 
-        if (mass == 0) {
-//            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-            bc.body.translate(modelInst.transform.getTranslation(tmp));
-        }
+//        if (mass == 0) {
+////            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+//            bc.body.translate(modelInst.transform.getTranslation(tmp));
+//        }
     }
 
     public static Entity CreateEntity(
@@ -139,11 +139,11 @@ public class EntityFactory {
         Entity e = CreateEntity(engine, tp, sz, mass, transform);
 
         // special sauce here for static entity
-//        Vector3 tmp = new Vector3();
-//        BulletComponent bc = e.getComponent(BulletComponent.class);
+        Vector3 tmp = new Vector3();
+        BulletComponent bc = e.getComponent(BulletComponent.class);
 //        ModelComponent mc = e.getComponent(ModelComponent.class);
-//        //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-//        bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
+        //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+        bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
 
         return e;
     }
