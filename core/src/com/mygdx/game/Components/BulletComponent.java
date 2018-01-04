@@ -56,10 +56,29 @@ public class BulletComponent implements Component {
 
         this.id = cnt++;
 
-        this.motionstate = new MotionState(modelInst.transform);
-        this.body = new btRigidBody(0, this.motionstate, shape);
+//        this.motionstate = new MotionState(modelInst.transform);
+//        this.body = new btRigidBody(0, this.motionstate, shape);
         this.modelInst = modelInst;
         this.shape = shape;
+
+
+        Vector3 tmp = new Vector3();
+
+        if (mass == 0) {
+//            modelInst.transform.scl(sz);
+            tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
+            this.motionstate = null;
+        } else {
+            this.shape.calculateLocalInertia(mass, tmp);
+            this.motionstate = new BulletComponent.MotionState(modelInst.transform);
+        }
+
+        btRigidBody.btRigidBodyConstructionInfo bodyInfo =
+                new btRigidBody.btRigidBodyConstructionInfo(mass, this.motionstate, this.shape, tmp);
+        this.body = new btRigidBody(bodyInfo);
+        this.body.setFriction(0.8f);
+
+        bodyInfo.dispose();
     }
 
 

@@ -64,8 +64,7 @@ public class EntityFactory {
     private static final int N_BOXES = 10;
 
 
-    private static void CreateObject(
-            BulletComponent bc, ModelInstance modelInst, Vector3 sz, float mass) {
+    private static void CreateObject(BulletComponent bc, ModelInstance modelInst, float mass) {
 
 //        mc.modelInst  = modelInst;
 
@@ -123,7 +122,7 @@ public class EntityFactory {
 
         BulletComponent bc = new BulletComponent(shape, modelInst, mass);
 
-        CreateObject(bc, modelInst, sz, mass);
+//        CreateObject(bc, modelInst, mass);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
