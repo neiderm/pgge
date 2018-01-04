@@ -74,7 +74,7 @@ public class EntityFactory {
         Vector3 tmp = new Vector3();
 
         if (mass == 0) {
-            modelInst.transform.scl(sz);
+//            modelInst.transform.scl(sz);
             tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
             bc.motionstate = null;
         } else {
@@ -144,6 +144,8 @@ public class EntityFactory {
 //        ModelComponent mc = e.getComponent(ModelComponent.class);
         //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
         bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
+
+        bc.modelInst.transform.scl(sz);
 
         return e;
     }
