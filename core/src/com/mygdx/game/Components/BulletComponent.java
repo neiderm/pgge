@@ -51,18 +51,25 @@ public class BulletComponent implements Component {
 
     }
 
-    public BulletComponent(Matrix4 transform){
 
-//        motionstate = new physObj.MotionState(transform);
-    }
-
-    public BulletComponent(btCollisionShape shape, ModelInstance modelInst) {
+    public BulletComponent(btCollisionShape shape, ModelInstance modelInst, float mass) {
 
         this.id = cnt++;
 
         this.motionstate = new MotionState(modelInst.transform);
         this.body = new btRigidBody(0, this.motionstate, shape);
         this.modelInst = modelInst;
+        this.shape = shape;
+    }
+
+
+    public BulletComponent(btCollisionShape shape, Matrix4 transform) {
+
+        this.id = cnt++;
+
+        this.motionstate = new MotionState(transform);
+        this.body = new btRigidBody(0, this.motionstate, shape);
+//        this.modelInst = modelInst;
         this.shape = shape;
     }
 

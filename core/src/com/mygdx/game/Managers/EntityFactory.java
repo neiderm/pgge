@@ -64,12 +64,12 @@ public class EntityFactory {
     private static final int N_BOXES = 10;
 
 
-    private static void CreateObject(BulletComponent bc, ModelComponent mc,
-                                     ModelInstance modelInst, Vector3 sz, float mass, Matrix4 transform) {
+    private static void CreateObject(
+            BulletComponent bc, ModelInstance modelInst, Vector3 sz, float mass) {
 
 //        mc.modelInst  = modelInst;
 
-        bc.scale = new Vector3(sz);
+//        bc.scale = new Vector3(sz);
 
         Vector3 tmp = new Vector3();
 
@@ -115,23 +115,40 @@ public class EntityFactory {
 
         modelInst.transform = new Matrix4(transform);
 
-
         Entity e = new Entity();
         engine.addEntity(e);
 
         ModelComponent mc = new ModelComponent();
         e.add(mc);
 
-        BulletComponent bc = new BulletComponent(shape, modelInst);
+        BulletComponent bc = new BulletComponent(shape, modelInst, mass);
 
-        CreateObject(bc, mc, modelInst, sz, mass, transform);
+        CreateObject(bc, modelInst, sz, mass);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
+
+        bc.scale = new Vector3(sz);
 
         return e;
     }
 
-    public static void CreateEntities(Engine engine /*, AssetManager assets */) {
+    // static entity
+    public static Entity CreateEntity(Engine engine, pType tp, Vector3 sz, Matrix4 transform) {
+
+        float mass = 0f;
+        Entity e = CreateEntity(engine, tp, sz, mass, transform);
+
+        // special sauce here for static entity
+//        Vector3 tmp = new Vector3();
+//        BulletComponent bc = e.getComponent(BulletComponent.class);
+//        ModelComponent mc = e.getComponent(ModelComponent.class);
+//        //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+//        bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
+
+        return e;
+    }
+
+    public static void CreateEntities(Engine engine) {
 
         Vector3 tmpV = new Vector3(); // size
         Matrix4 tmpM = new Matrix4(); // transform
@@ -154,7 +171,7 @@ public class EntityFactory {
         //tmpM.idt().trn(0, -4, 0);
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), 0, tmpM);
+        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
 
         createLandscape(engine);
     }
@@ -168,7 +185,9 @@ public class EntityFactory {
         inst.transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
 
         BulletComponent bc = new BulletComponent(
-                new btBvhTriangleMeshShape(landscapeModel.meshParts), inst);
+                new btBvhTriangleMeshShape(landscapeModel.meshParts), inst.transform);
+
+        bc.modelInst = inst;
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
         engine.addEntity(e);
