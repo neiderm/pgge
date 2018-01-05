@@ -9,7 +9,7 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Matrix4;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 
@@ -18,6 +18,8 @@ import com.mygdx.game.Components.ModelComponent;
  */
 
 public class RenderSystem extends EntitySystem implements EntityListener {
+
+    private Matrix4 tmpM = new Matrix4();
 
     private Environment environment;
     private PerspectiveCamera cam;
@@ -61,12 +63,21 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
         for (Entity e : entities) {
 
-//            ModelComponent mc = e.getComponent(ModelComponent.class);
-            BulletComponent mc = e.getComponent(BulletComponent.class);
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            BulletComponent bc = e.getComponent(BulletComponent.class);
 
-            if (null != mc) {
-                modelBatch.render(mc.modelInst, environment);
+            if (null != mc
+                    && null != mc.modelInst
+                    && null != mc.scale // landscape mesh has no scale
+                    && null != bc.body)
+            {
+                if (bc.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+
+                    mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
+                }
             }
+
+            modelBatch.render(mc.modelInst, environment);
         }
 
         modelBatch.end();

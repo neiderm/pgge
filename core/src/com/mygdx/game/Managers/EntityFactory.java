@@ -17,7 +17,6 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 
@@ -88,14 +87,12 @@ public class EntityFactory {
         Entity e = new Entity();
         engine.addEntity(e);
 
-        ModelComponent mc = new ModelComponent(sz);
+        ModelComponent mc = new ModelComponent(modelInst, sz);
         e.add(mc);
 
-        BulletComponent bc = new BulletComponent(shape, modelInst, mass);
+        BulletComponent bc = new BulletComponent(shape, modelInst.transform, mass);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
-
-//        mc.scale = new Vector3(sz);
 
         return e;
     }
@@ -109,12 +106,14 @@ public class EntityFactory {
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
         BulletComponent bc = e.getComponent(BulletComponent.class);
-//        ModelComponent mc = e.getComponent(ModelComponent.class);
-        //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-        bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
+
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+
+        // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+        bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
 
         // static entity not use motion state so just set the scale on it once and for all
-        bc.modelInst.transform.scl(sz);
+        mc.modelInst.transform.scl(sz);
 
         return e;
     }
@@ -151,19 +150,19 @@ public class EntityFactory {
 
         Entity e = new Entity();
 
-        // put the landscape at an angle so stuff falls of it...
         ModelInstance inst = new ModelInstance(landscapeModel);
-        inst.transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+
+        // put the landscape at an angle so stuff falls of it...
+        Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+        inst.transform = transform;
 
         BulletComponent bc = new BulletComponent(
-                new btBvhTriangleMeshShape(landscapeModel.meshParts), inst.transform);
-
-        bc.modelInst = inst;
+                new btBvhTriangleMeshShape(landscapeModel.meshParts), transform);
 
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
         engine.addEntity(e);
 
-        ModelComponent mc = new ModelComponent();
+        ModelComponent mc = new ModelComponent(inst);
         e.add(mc);
     }
 

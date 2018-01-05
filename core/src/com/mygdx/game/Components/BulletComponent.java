@@ -1,7 +1,6 @@
 package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -39,22 +38,17 @@ public class BulletComponent implements Component {
     public btCollisionShape shape;
     public btRigidBody body;
 
-//    public Vector3 scale; // tmp?
-    public ModelInstance modelInst; // tmp?
-
     public int id;
 
     public static int cnt = 0;
 
 
 
-
-
-    public BulletComponent(btCollisionShape shape, ModelInstance modelInst, float mass) {
+    public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 
         this.id = cnt++;
 
-        this.modelInst = modelInst;
+//        this._modelInst = modelInst;
         this.shape = shape;
 
 
@@ -66,7 +60,7 @@ public class BulletComponent implements Component {
             this.motionstate = null;
         } else {
             this.shape.calculateLocalInertia(mass, tmp);
-            this.motionstate = new BulletComponent.MotionState(modelInst.transform);
+            this.motionstate = new BulletComponent.MotionState(transform);
         }
 
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
