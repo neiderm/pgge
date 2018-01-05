@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -69,11 +68,11 @@ public class EntityFactory {
 
         Model model = null;
         btCollisionShape shape = null;
-        ModelInstance modelInst = null;
+//        ModelInstance modelInst = null;
 
         if (tp == pType.BOX) {
             shape = new btBoxShape(sz);
-            modelInst = new ModelInstance(boxTemplateModel);
+//            modelInst = new ModelInstance(boxTemplateModel);
             model = boxTemplateModel;
         }
 
@@ -81,20 +80,21 @@ public class EntityFactory {
             sz.y = sz.x;
             sz.z = sz.x; // sphere must be symetrical!
             shape = new btSphereShape(sz.x);
-            modelInst = new ModelInstance(ballTemplateModel);
+//            modelInst = new ModelInstance(ballTemplateModel);
             model = ballTemplateModel;
         }
-
-        modelInst.transform = new Matrix4(transform);
 
         Entity e = new Entity();
         engine.addEntity(e);
 
-        ModelComponent mc = new ModelComponent(model, transform, modelInst, sz);
+        // really? this will be bullet comp motion state linked to same copy of instance transform?
+//        Matrix4 crap = transform;
+        Matrix4 crap = new Matrix4(transform); // defensive copy, must NOT assume caller made a new instance!
+
+        ModelComponent mc = new ModelComponent(model, crap, sz);
         e.add(mc);
 
-        BulletComponent bc = new BulletComponent(shape, modelInst.transform, mass);
-
+        BulletComponent bc = new BulletComponent(shape, crap, mass);
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
         return e;

@@ -18,12 +18,20 @@ public class ModelComponent implements Component {
     public ModelComponent(Model model, Matrix4 transform) {
 
         this.modelInst = new ModelInstance(model);
+
+        // must link to the passed arg, it must be linked to bullet motion state
         this.modelInst.transform = transform;
     }
 
-    public ModelComponent(Model model, Matrix4 transform, ModelInstance modelInst, Vector3 scale) {
+    public ModelComponent(Model model, Matrix4 transform, Vector3 scale) {
 
-        this.modelInst = modelInst;
+//        this.modelInst = new ModelInstance(model);
+
+        // must link to the passed arg, it must be linked to bullet motion state
+//        this.modelInst.transform = transform;
+
+        this(model, transform);
+
         this.scale = new Vector3(scale);
 
     }
