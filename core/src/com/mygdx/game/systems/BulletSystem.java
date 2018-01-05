@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.ModelComponent;
 
 import java.util.Random;
 
@@ -66,17 +67,19 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         for (Entity e : entities) {
 
+            ModelComponent mc = e.getComponent(ModelComponent.class);
             BulletComponent bc = e.getComponent(BulletComponent.class);
             btRigidBody body = bc.body;
 
             if (null != bc
                     && null != bc.modelInst && null != bc.motionstate
-                    && null != bc.scale) // landscape mesh has no scale
+                    && null != mc.scale) // landscape mesh has no scale
             {
 
                 if (body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
 
-                    bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale));
+// do this on model instant in render system?
+                    bc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
 
                     bc.motionstate.getWorldTransform(tmpM);
                     tmpM.getTranslation(tmpV);

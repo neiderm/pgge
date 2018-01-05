@@ -64,35 +64,6 @@ public class EntityFactory {
     private static final int N_BOXES = 10;
 
 
-    private static void CreateObject(BulletComponent bc, ModelInstance modelInst, float mass) {
-
-//        mc.modelInst  = modelInst;
-
-//        bc.scale = new Vector3(sz);
-
-        Vector3 tmp = new Vector3();
-
-        if (mass == 0) {
-//            modelInst.transform.scl(sz);
-            tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
-            bc.motionstate = null;
-        } else {
-            bc.shape.calculateLocalInertia(mass, tmp);
-            bc.motionstate = new BulletComponent.MotionState(modelInst.transform);
-        }
-
-        btRigidBody.btRigidBodyConstructionInfo bodyInfo =
-                new btRigidBody.btRigidBodyConstructionInfo(mass, bc.motionstate, bc.shape, tmp);
-        bc.body = new btRigidBody(bodyInfo);
-        bc.body.setFriction(0.8f);
-
-        bodyInfo.dispose();
-
-//        if (mass == 0) {
-////            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-//            bc.body.translate(modelInst.transform.getTranslation(tmp));
-//        }
-    }
 
     public static Entity CreateEntity(
             Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
@@ -117,16 +88,14 @@ public class EntityFactory {
         Entity e = new Entity();
         engine.addEntity(e);
 
-        ModelComponent mc = new ModelComponent();
+        ModelComponent mc = new ModelComponent(sz);
         e.add(mc);
 
         BulletComponent bc = new BulletComponent(shape, modelInst, mass);
 
-//        CreateObject(bc, modelInst, mass);
-
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
-        bc.scale = new Vector3(sz);
+//        mc.scale = new Vector3(sz);
 
         return e;
     }
@@ -144,6 +113,7 @@ public class EntityFactory {
         //            bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
         bc.body.translate(bc.modelInst.transform.getTranslation(tmp));
 
+        // static entity not use motion state so just set the scale on it once and for all
         bc.modelInst.transform.scl(sz);
 
         return e;

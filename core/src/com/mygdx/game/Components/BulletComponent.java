@@ -39,7 +39,7 @@ public class BulletComponent implements Component {
     public btCollisionShape shape;
     public btRigidBody body;
 
-    public Vector3 scale; // tmp?
+//    public Vector3 scale; // tmp?
     public ModelInstance modelInst; // tmp?
 
     public int id;
@@ -47,17 +47,13 @@ public class BulletComponent implements Component {
     public static int cnt = 0;
 
 
-    public BulletComponent(){
 
-    }
 
 
     public BulletComponent(btCollisionShape shape, ModelInstance modelInst, float mass) {
 
         this.id = cnt++;
 
-//        this.motionstate = new MotionState(modelInst.transform);
-//        this.body = new btRigidBody(0, this.motionstate, shape);
         this.modelInst = modelInst;
         this.shape = shape;
 
