@@ -215,7 +215,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
     void addEntities() {
 
-        EntityFactory.CreateEntities(engine /*, assets */);
+        EntityFactory.createEntities(engine);
 //        engine.addEntity(EntityFactory.createGround(new Vector3(0, 0, 0)));
         //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
         //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));

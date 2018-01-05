@@ -64,15 +64,17 @@ public class EntityFactory {
 
 
 
-    public static Entity CreateEntity(
+    public static Entity createEntity(
             Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
 
+        Model model = null;
         btCollisionShape shape = null;
         ModelInstance modelInst = null;
 
         if (tp == pType.BOX) {
             shape = new btBoxShape(sz);
             modelInst = new ModelInstance(boxTemplateModel);
+            model = boxTemplateModel;
         }
 
         if (tp == pType.SPHERE) {
@@ -80,6 +82,7 @@ public class EntityFactory {
             sz.z = sz.x; // sphere must be symetrical!
             shape = new btSphereShape(sz.x);
             modelInst = new ModelInstance(ballTemplateModel);
+            model = ballTemplateModel;
         }
 
         modelInst.transform = new Matrix4(transform);
@@ -87,7 +90,7 @@ public class EntityFactory {
         Entity e = new Entity();
         engine.addEntity(e);
 
-        ModelComponent mc = new ModelComponent(modelInst, sz);
+        ModelComponent mc = new ModelComponent(model, transform, modelInst, sz);
         e.add(mc);
 
         BulletComponent bc = new BulletComponent(shape, modelInst.transform, mass);
@@ -98,10 +101,10 @@ public class EntityFactory {
     }
 
     // static entity
-    public static Entity CreateEntity(Engine engine, pType tp, Vector3 sz, Matrix4 transform) {
+    public static Entity createEntity(Engine engine, pType tp, Vector3 sz, Matrix4 transform) {
 
         float mass = 0f;
-        Entity e = CreateEntity(engine, tp, sz, mass, transform);
+        Entity e = createEntity(engine, tp, sz, mass, transform);
 
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
@@ -118,7 +121,7 @@ public class EntityFactory {
         return e;
     }
 
-    public static void CreateEntities(Engine engine) {
+    public static void createEntities(Engine engine) {
 
         Vector3 tmpV = new Vector3(); // size
         Matrix4 tmpM = new Matrix4(); // transform
@@ -134,14 +137,14 @@ public class EntityFactory {
                 tp = pType.SPHERE;
             }
 
-            CreateEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
+            createEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
         }
 
         // uncomment for a terrain alternative;
         //tmpM.idt().trn(0, -4, 0);
         //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-        EntityFactory.CreateEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
+        createEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
 
         createLandscape(engine);
     }
@@ -149,21 +152,15 @@ public class EntityFactory {
     private static void createLandscape(Engine engine){
 
         Entity e = new Entity();
-
-        ModelInstance inst = new ModelInstance(landscapeModel);
+        engine.addEntity(e);
 
         // put the landscape at an angle so stuff falls of it...
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
-        inst.transform = transform;
 
-        BulletComponent bc = new BulletComponent(
-                new btBvhTriangleMeshShape(landscapeModel.meshParts), transform);
+        e.add(new BulletComponent(
+                new btBvhTriangleMeshShape(landscapeModel.meshParts), transform));
 
-        e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
-        engine.addEntity(e);
-
-        ModelComponent mc = new ModelComponent(inst);
-        e.add(mc);
+        e.add(new ModelComponent(landscapeModel, transform));
     }
 
     public static void dispose(){
