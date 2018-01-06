@@ -33,26 +33,23 @@ public class BulletComponent implements Component {
         }
     }
 
-    public MotionState motionstate;
+    public final MotionState motionstate;
+    public final btCollisionShape shape;
+    public final btRigidBody body;
 
-    public btCollisionShape shape;
-    public btRigidBody body;
-
-    public int id;
-
+    // idfk
+    public final int id;
     public static int cnt = 0;
 
 
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 
-        this.id = cnt++;
+        Vector3 tmp = new Vector3();
 
-//        this._modelInst = modelInst;
+        this.id = cnt++;
         this.shape = shape;
 
-
-        Vector3 tmp = new Vector3();
 
         if (mass == 0) {
 //            modelInst.transform.scl(sz);
@@ -60,7 +57,7 @@ public class BulletComponent implements Component {
             this.motionstate = null;
         } else {
             this.shape.calculateLocalInertia(mass, tmp);
-            this.motionstate = new BulletComponent.MotionState(transform);
+            this.motionstate = new MotionState(transform);
         }
 
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
@@ -78,7 +75,6 @@ public class BulletComponent implements Component {
 
         this.motionstate = new MotionState(transform);
         this.body = new btRigidBody(0, this.motionstate, shape);
-//        this.modelInst = modelInst;
         this.shape = shape;
     }
 
