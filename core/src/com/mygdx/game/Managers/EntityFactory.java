@@ -58,21 +58,57 @@ public class EntityFactory {
     }
 
 
+    static class GameObject {
+        public static Model model;
+        public static pType tp;
+        public btCollisionShape shape;
+        public Vector3 size;
+        public Matrix4 transform;
+    }
+
+    static class SphereObject extends GameObject {
+        {
+            tp = pType.SPHERE;
+            model = ballTemplateModel;
+        }
+
+        float radius;
+
+        SphereObject(float r, Matrix4 trans) {
+            shape = new btSphereShape(r);
+            radius = r;
+//            size.x = size.y = size.z = r;
+            size = new Vector3(r, r, r);
+            transform = trans;
+        }
+    }
+
+    static class BoxObject extends GameObject {
+        {
+            tp = pType.BOX;
+            model = boxTemplateModel;
+        }
+
+        BoxObject(Vector3 sz, Matrix4 trans) {
+            shape = new btBoxShape(sz);
+            size = sz;
+            transform = trans;
+        }
+    }
+
     private static final int N_ENTITIES = 21;
     private static final int N_BOXES = 10;
 
 
 
     public static Entity createEntity(
-            Engine engine, pType tp, Vector3 sz, float mass, Matrix4 transform) {
+            Engine engine, pType tp, Vector3 sz, Matrix4 transform, float mass) {
 
         Model model = null;
         btCollisionShape shape = null;
-//        ModelInstance modelInst = null;
 
         if (tp == pType.BOX) {
             shape = new btBoxShape(sz);
-//            modelInst = new ModelInstance(boxTemplateModel);
             model = boxTemplateModel;
         }
 
@@ -80,7 +116,6 @@ public class EntityFactory {
             sz.y = sz.x;
             sz.z = sz.x; // sphere must be symetrical!
             shape = new btSphereShape(sz.x);
-//            modelInst = new ModelInstance(ballTemplateModel);
             model = ballTemplateModel;
         }
 
@@ -104,12 +139,11 @@ public class EntityFactory {
     public static Entity createEntity(Engine engine, pType tp, Vector3 sz, Matrix4 transform) {
 
         float mass = 0f;
-        Entity e = createEntity(engine, tp, sz, mass, transform);
+        Entity e = createEntity(engine, tp, sz, transform, mass);
 
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
         BulletComponent bc = e.getComponent(BulletComponent.class);
-
         ModelComponent mc = e.getComponent(ModelComponent.class);
 
         // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
@@ -121,7 +155,23 @@ public class EntityFactory {
         return e;
     }
 
+    public static Entity createEntity(Engine engine, GameObject object, float mass){
+
+        Entity e = createEntity(engine, object.tp, object.size, object.transform, mass);
+        return e;
+    }
+
+    public static Entity createEntity(Engine engine, GameObject object){
+
+        Entity e = createEntity(engine, object.tp, object.size, object.transform);
+        return e;
+    }
+
+
+
     public static void createEntities(Engine engine) {
+
+        GameObject object;
 
         Vector3 tmpV = new Vector3(); // size
         Matrix4 tmpM = new Matrix4(); // transform
@@ -131,20 +181,27 @@ public class EntityFactory {
             tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
             tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
-            pType tp = pType.BOX;
+            pType tp;
 
-            if (i >= N_BOXES) {
+            if (i < N_BOXES) {
+                tp = pType.BOX;
+                object = new BoxObject(tmpV, tmpM);
+            } else {
                 tp = pType.SPHERE;
+                object = new SphereObject(tmpV.x, tmpM);
             }
 
-            createEntity(engine, tp, tmpV, rnd.nextFloat() + 0.5f, tmpM);
+//            createEntity(engine, tp, tmpV, tmpM, rnd.nextFloat() + 0.5f);
+            createEntity(engine, object, rnd.nextFloat() + 0.5f);
         }
 
         // uncomment for a terrain alternative;
-        //tmpM.idt().trn(0, -4, 0);
-        //new physObj(physObj.pType.BOX, tmpV.set(20f, 1f, 20f), 0, tmpM);	// zero mass = static
+//        tmpM.idt().trn(0, -4, 0);
+//        createEntity(engine, pType.BOX, tmpV.set(20f, 1f, 20f), tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-        createEntity(engine, EntityFactory.pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
+//        createEntity(engine, pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
+
+        createEntity(engine, new SphereObject(8, tmpM));
 
         createLandscape(engine);
     }
