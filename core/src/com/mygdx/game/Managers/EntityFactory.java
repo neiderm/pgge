@@ -100,46 +100,30 @@ public class EntityFactory {
     private static final int N_BOXES = 10;
 
 
-
-    public static Entity createEntity(
-            Engine engine, pType tp, Vector3 sz, Matrix4 transform, float mass) {
-
-        Model model = null;
-        btCollisionShape shape = null;
-
-        if (tp == pType.BOX) {
-            shape = new btBoxShape(sz);
-            model = boxTemplateModel;
-        }
-
-        if (tp == pType.SPHERE) {
-            sz.y = sz.x;
-            sz.z = sz.x; // sphere must be symetrical!
-            shape = new btSphereShape(sz.x);
-            model = ballTemplateModel;
-        }
+    public static Entity createEntity(Engine engine, GameObject object, float mass) {
 
         Entity e = new Entity();
         engine.addEntity(e);
 
         // really? this will be bullet comp motion state linked to same copy of instance transform?
 //        Matrix4 crap = transform;
-        Matrix4 crap = new Matrix4(transform); // defensive copy, must NOT assume caller made a new instance!
+        Matrix4 crap = new Matrix4(object.transform); // defensive copy, must NOT assume caller made a new instance!
 
-        ModelComponent mc = new ModelComponent(model, crap, sz);
+        ModelComponent mc = new ModelComponent(object.model, crap, object.size);
         e.add(mc);
 
-        BulletComponent bc = new BulletComponent(shape, crap, mass);
+        BulletComponent bc = new BulletComponent(object.shape, crap, mass);
         e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
 
         return e;
     }
 
+
     // static entity
-    public static Entity createEntity(Engine engine, pType tp, Vector3 sz, Matrix4 transform) {
+    public static Entity createEntity(Engine engine, GameObject object){
 
         float mass = 0f;
-        Entity e = createEntity(engine, tp, sz, transform, mass);
+        Entity e = createEntity(engine, object, mass);
 
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
@@ -150,23 +134,10 @@ public class EntityFactory {
         bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
 
         // static entity not use motion state so just set the scale on it once and for all
-        mc.modelInst.transform.scl(sz);
+        mc.modelInst.transform.scl(object.size);
 
         return e;
     }
-
-    public static Entity createEntity(Engine engine, GameObject object, float mass){
-
-        Entity e = createEntity(engine, object.tp, object.size, object.transform, mass);
-        return e;
-    }
-
-    public static Entity createEntity(Engine engine, GameObject object){
-
-        Entity e = createEntity(engine, object.tp, object.size, object.transform);
-        return e;
-    }
-
 
 
     public static void createEntities(Engine engine) {
@@ -181,17 +152,12 @@ public class EntityFactory {
             tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
             tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
-            pType tp;
-
             if (i < N_BOXES) {
-                tp = pType.BOX;
                 object = new BoxObject(tmpV, tmpM);
             } else {
-                tp = pType.SPHERE;
                 object = new SphereObject(tmpV.x, tmpM);
             }
 
-//            createEntity(engine, tp, tmpV, tmpM, rnd.nextFloat() + 0.5f);
             createEntity(engine, object, rnd.nextFloat() + 0.5f);
         }
 
@@ -199,8 +165,6 @@ public class EntityFactory {
 //        tmpM.idt().trn(0, -4, 0);
 //        createEntity(engine, pType.BOX, tmpV.set(20f, 1f, 20f), tmpM);	// zero mass = static
         tmpM.idt().trn(10, -5, 0);
-//        createEntity(engine, pType.SPHERE, tmpV.set(8f, 8f, 8f), tmpM);
-
         createEntity(engine, new SphereObject(8, tmpM));
 
         createLandscape(engine);
