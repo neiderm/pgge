@@ -15,24 +15,28 @@ public class ModelComponent implements Component {
     public ModelInstance modelInst;
     public Vector3 scale;
 
+
+    public ModelComponent(Model model, Matrix4 transform, final String... rootNodeIds) {
+
+        this.modelInst = new ModelInstance(model, transform, rootNodeIds);
+    }
+
     public ModelComponent(Model model, Matrix4 transform) {
 
-        this.modelInst = new ModelInstance(model);
+        /*
+         * note: ModelInstance will link it's instance member transform to the one we pass in ....
+         * which is what we want, because we should also be linking it to the transform in the
+         * bullet motion state!
+         */
+        this.modelInst = new ModelInstance(model, transform);
 
-        // must link to the passed arg, it must be linked to bullet motion state
-        this.modelInst.transform = transform;
+        // must link to the passed arg, it must be linked to bullet motion state i.e. ....
+        //        this.modelInst.transform = transform;
     }
 
     public ModelComponent(Model model, Matrix4 transform, Vector3 scale) {
 
-//        this.modelInst = new ModelInstance(model);
-
-        // must link to the passed arg, it must be linked to bullet motion state
-//        this.modelInst.transform = transform;
-
         this(model, transform);
-
         this.scale = new Vector3(scale);
-
     }
 }

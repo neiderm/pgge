@@ -4,10 +4,13 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -28,6 +31,8 @@ import java.util.Random;
 
 public class EntityFactory {
 
+    private static Model model;
+        
     private static final AssetManager assets;
     private static final Model landscapeModel;
 
@@ -39,15 +44,15 @@ public class EntityFactory {
     private static Model ballTemplateModel;
 
     static {
-        final ModelBuilder modelBuilder = new ModelBuilder();
+        final ModelBuilder mb = new ModelBuilder();
 
         Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        boxTemplateModel  = modelBuilder.createBox(2f, 2f, 2f,
+        boxTemplateModel  = mb.createBox(2f, 2f, 2f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        ballTemplateModel = modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
+        ballTemplateModel = mb.createSphere(2f, 2f, 2f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
@@ -55,35 +60,66 @@ public class EntityFactory {
         assets.load("data/landscape.g3db", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
+
+
+        final float groundW = 25.0f;
+        final float groundH = 1.0f;
+        final float groundD = 25.0f;
+
+        mb.begin();
+
+        mb.node().id = "ground";
+        mb.part("ground", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.RED))).box(groundW, groundH, groundD);
+        mb.node().id = "sphere";
+        mb.part("sphere", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
+        mb.node().id = "box";
+        mb.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
+        mb.node().id = "cone";
+        mb.part("cone", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 2f, 1f, 10);
+        mb.node().id = "capsule";
+        mb.part("capsule", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(0.5f, 2f, 10);
+        mb.node().id = "cylinder";
+        mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
+                new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 2f, 1f, 10);
+
+        model = mb.end();
     }
 
 
-    static class GameObject {
+    private abstract static class GameObject {
         public static Model model;
         public static pType tp;
+
         public btCollisionShape shape;
         public Vector3 size;
         public Matrix4 transform;
     }
 
-    static class SphereObject extends GameObject {
+
+    private static class SphereObject extends GameObject {
+        //static ... need to set these statics for each class instance which is pointless
         {
             tp = pType.SPHERE;
             model = ballTemplateModel;
         }
 
-        float radius;
+        // private float radius;
 
         SphereObject(float r, Matrix4 trans) {
             shape = new btSphereShape(r);
-            radius = r;
-//            size.x = size.y = size.z = r;
+            // radius = r;
             size = new Vector3(r, r, r);
             transform = trans;
         }
     }
 
-    static class BoxObject extends GameObject {
+    private static class BoxObject extends GameObject {
+        //static ... need to set these statics for each class instance which is pointless
         {
             tp = pType.BOX;
             model = boxTemplateModel;
@@ -100,7 +136,7 @@ public class EntityFactory {
     private static final int N_BOXES = 10;
 
 
-    public static Entity createEntity(Engine engine, GameObject object, float mass) {
+    private static Entity createEntity(Engine engine, GameObject object, float mass) {
 
         Entity e = new Entity();
         engine.addEntity(e);
@@ -109,7 +145,7 @@ public class EntityFactory {
 //        Matrix4 crap = transform;
         Matrix4 crap = new Matrix4(object.transform); // defensive copy, must NOT assume caller made a new instance!
 
-        ModelComponent mc = new ModelComponent(object.model, crap, object.size);
+        ModelComponent mc = new ModelComponent(object.model, crap, object.size); // model is STATIC, not instance vairable!!!!!
         e.add(mc);
 
         BulletComponent bc = new BulletComponent(object.shape, crap, mass);
@@ -120,7 +156,7 @@ public class EntityFactory {
 
 
     // static entity
-    public static Entity createEntity(Engine engine, GameObject object){
+    private static Entity createEntity(Engine engine, GameObject object){
 
         float mass = 0f;
         Entity e = createEntity(engine, object, mass);
@@ -161,14 +197,47 @@ public class EntityFactory {
             createEntity(engine, object, rnd.nextFloat() + 0.5f);
         }
 
-        // uncomment for a terrain alternative;
-//        tmpM.idt().trn(0, -4, 0);
-//        createEntity(engine, pType.BOX, tmpV.set(20f, 1f, 20f), tmpM);	// zero mass = static
-        tmpM.idt().trn(10, -5, 0);
-        createEntity(engine, new SphereObject(8, tmpM));
 
+if (false) {
+    // uncomment for a terrain alternative;
+    tmpM.idt().trn(0, -4, 0);
+    createEntity(engine, new BoxObject(tmpV.set(20f, 1f, 20f), tmpM));    // zero mass = static
+//        tmpM.idt().trn(10, -5, 0);
+//        createEntity(engine, new SphereObject(8, tmpM));
+} else {
+    createGround(engine);
+}
         createLandscape(engine);
     }
+
+    private static void createGround(Engine engine){
+
+        Entity e = new Entity();
+        engine.addEntity(e);
+
+        Vector3 size = new Vector3(20, 1, 20);
+
+        Matrix4 transform = new Matrix4().idt().trn(0, -4, 0);;
+
+//        createEntity(engine, new BoxObject(new Vector3(20f, 1f, 20f), transform));	// zero mass = static
+        btBoxShape shape = new btBoxShape(size);
+        e.add(new BulletComponent(shape, transform, 0.0f));
+
+        e.add(new ModelComponent(model, transform, "box"));
+
+
+        // special sauce here for static entity
+        Vector3 tmp = new Vector3();
+        BulletComponent bc = e.getComponent(BulletComponent.class);
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+
+        // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+        bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
+
+        // static entity not use motion state so just set the scale on it once and for all
+        mc.modelInst.transform.scl(size);
+    }
+
 
     private static void createLandscape(Engine engine){
 
@@ -188,7 +257,7 @@ public class EntityFactory {
 
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
-
+        model.dispose();
         assets.dispose();
     }
 }
