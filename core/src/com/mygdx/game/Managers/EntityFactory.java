@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -157,6 +158,24 @@ public class EntityFactory {
         }
     }
 
+    private static class CrateObject extends GameObject {
+
+        private ModelInstance instance;
+        private Vector3 size;
+        private Matrix4 transform;
+        private float mass;
+        private btCollisionShape shape;
+
+        CrateObject(Model model, Matrix4 transform, float mass, btCollisionShape shape) {
+            instance = new ModelInstance(model, transform);
+            this.transform = new Matrix4(transform);
+            this.size = new Vector3(size);
+            this.mass = mass;
+            this.shape = shape;
+        }
+
+    }
+
     /*
      * static things that are on the landscape ... we might want lots of these
      */
@@ -167,35 +186,56 @@ public class EntityFactory {
     /*
      derived factories do special sauce for static vs dynamic entities:
      */
-    private abstract class ObjectFactory<T extends GameObject>{
+    private abstract class EntiteeFactory<T extends GameObject>{
 
-        T object;
-//        ObjectFactory(){;}
-        ObjectFactory(T object) {this.object = object;}
-        Entity create() {
-             return object.create();
+        Entity create(T object) {
+            return this.create(object, new Vector3(0, 0, 0));
+        }
+
+        Entity create(T object, Vector3 translation) {
+            return object.create();
         }
     }
-    private class StaticObjectFactory extends ObjectFactory<ThingObject >{
 
-        StaticObjectFactory(ThingObject object) {
-           super(object);
+    //    private class StaticEntiteeFactory extends EntiteeFactory< GameObject >{
+    private class StaticEntiteeFactory extends EntiteeFactory {
+
+        Entity create(GameObject object) {
+            Entity e = super.create(object);
+            return e;
         }
+    }
 
-        @Override
-        Entity create() {
-            return (super.create());
+    //    not sure what it does .... < GameObject >
+    private class DynamicEntiteeFactory extends EntiteeFactory < GameObject >{
+        Entity create(GameObject object) {
+            Entity e = super.create(object);
+            return e;
         }
     }
 
     private void makeObjects() {
-        ThingObject object = new ThingObject ();
-        StaticObjectFactory factory = new StaticObjectFactory(object);
-        makeEntities(factory);
-    }
 
-    private void makeEntities(ObjectFactory factory){
-        factory.create();
+        Entity e;
+        StaticEntiteeFactory sfactory;
+        DynamicEntiteeFactory dfactory;
+
+        Matrix4 tmpM = new Matrix4();
+        Vector3 size = new Vector3(20f, 1f, 20f);
+
+        CrateObject bigcrate = new CrateObject(
+                boxTemplateModel, tmpM.idt().trn(0, -4, 0), 0f, new btBoxShape(size));
+
+        CrateObject smallcrate = new CrateObject(
+                boxTemplateModel, tmpM.idt().trn(0, -4, 0), 0f, new btBoxShape(size));
+
+        sfactory = new StaticEntiteeFactory();
+        e = sfactory.create(bigcrate, new Vector3(1, 2, 3));
+        e = sfactory.create(smallcrate);
+
+        dfactory = new DynamicEntiteeFactory();
+        e = dfactory.create(bigcrate);
+        e = dfactory.create(smallcrate);
     }
 
 
