@@ -32,7 +32,6 @@ import java.util.Random;
 public class EntityFactory {
 
     private static Model model;
-        
     private static final AssetManager assets;
     private static final Model landscapeModel;
 
@@ -91,75 +90,121 @@ public class EntityFactory {
     }
 
 
+    /*
+     * currently there is no instance variables in this class.
+     *  everything done in create() so that it can return an Entity, which conceivable could be
+     * handed off to an instance of an appropriate factory.
+     * Might want to think about what instance variable could allow
+     * instances of objects that can be reused/pooled
+     */
     private abstract static class GameObject {
-        public static Model model;
-        public static pType tp;
 
-        public btCollisionShape shape;
-        public Vector3 size;
-        public Matrix4 transform;
-    }
-
-
-    private static class SphereObject extends GameObject {
-        //static ... need to set these statics for each class instance which is pointless
-        {
-            tp = pType.SPHERE;
-            model = ballTemplateModel;
+        Entity create() {
+            Entity e = new Entity();
+            return e;
         }
 
-        // private float radius;
+        Entity create(Model model, Float mass, Matrix4 transform, Vector3 size, btCollisionShape shape) {
 
-        SphereObject(float r, Matrix4 trans) {
-            shape = new btSphereShape(r);
-            // radius = r;
-            size = new Vector3(r, r, r);
-            transform = trans;
+            Entity e = create();
+
+            // really? this will be bullet comp motion state linked to same copy of instance transform?
+//        Matrix4 crap = transform;
+            Matrix4 crap = new Matrix4(transform); // defensive copy, must NOT assume caller made a new instance!
+
+            e.add(new ModelComponent(model, crap, size)); // model is STATIC, not instance vairable!!!!!
+            e.add(new BulletComponent(shape, crap, mass));
+
+            return e;
+        }
+    }
+
+    private static class SphereObject extends GameObject {
+
+        Entity create(/* Model model, */ float mass, float radius, Matrix4 trans) {
+
+            Vector3 size = new Vector3(radius, radius, radius);
+            Entity e = create(ballTemplateModel, mass, trans, size, new btSphereShape(radius));
+            return e;
         }
     }
 
     private static class BoxObject extends GameObject {
-        //static ... need to set these statics for each class instance which is pointless
-        {
-            tp = pType.BOX;
-            model = boxTemplateModel;
-        }
 
-        BoxObject(Vector3 sz, Matrix4 trans) {
-            shape = new btBoxShape(sz);
-            size = sz;
-            transform = trans;
+        Entity create(/* Model model, */ float mass, Vector3 size, Matrix4 trans){
+
+            Entity e = create(boxTemplateModel, mass, trans, size, new btBoxShape(size));
+            return e;
         }
     }
 
-    private static final int N_ENTITIES = 21;
-    private static final int N_BOXES = 10;
+    /*
+     * we might want lots of these ... islands in the sky, all made of mesh shapes
+     */
+    private static class LandscapeObject extends GameObject {
 
+//         Entity create(final Array<T> meshParts, Matrix4 transform){ ??????
+        Entity create(Model model, Matrix4 transform){
 
-    private static Entity createEntity(Engine engine, GameObject object, float mass) {
+            Entity e = create();
 
-        Entity e = new Entity();
-        engine.addEntity(e);
+            e.add(new BulletComponent(
+                    new btBvhTriangleMeshShape(model.meshParts), transform));
 
-        // really? this will be bullet comp motion state linked to same copy of instance transform?
-//        Matrix4 crap = transform;
-        Matrix4 crap = new Matrix4(object.transform); // defensive copy, must NOT assume caller made a new instance!
+            e.add(new ModelComponent(model, transform));
 
-        ModelComponent mc = new ModelComponent(object.model, crap, object.size); // model is STATIC, not instance vairable!!!!!
-        e.add(mc);
+            return e;
+        }
+    }
 
-        BulletComponent bc = new BulletComponent(object.shape, crap, mass);
-        e.add(bc); // now the BC can be added (bullet system needs valid body on entity added event)
-
-        return e;
+    /*
+     * static things that are on the landscape ... we might want lots of these
+     */
+    private static class ThingObject extends GameObject {
     }
 
 
-    // static entity
-    private static Entity createEntity(Engine engine, GameObject object){
+    /*
+     derived factories do special sauce for static vs dynamic entities:
+     */
+    private abstract class ObjectFactory<T extends GameObject>{
 
-        float mass = 0f;
-        Entity e = createEntity(engine, object, mass);
+        T object;
+//        ObjectFactory(){;}
+        ObjectFactory(T object) {this.object = object;}
+        Entity create() {
+             return object.create();
+        }
+    }
+    private class StaticObjectFactory extends ObjectFactory<ThingObject >{
+
+        StaticObjectFactory(ThingObject object) {
+           super(object);
+        }
+
+        @Override
+        Entity create() {
+            return (super.create());
+        }
+    }
+
+    private void makeObjects() {
+        ThingObject object = new ThingObject ();
+        StaticObjectFactory factory = new StaticObjectFactory(object);
+        makeEntities(factory);
+    }
+
+    private void makeEntities(ObjectFactory factory){
+        factory.create();
+    }
+
+
+
+    // static entity (tmp, will be done in factory or in a game object derived for static?)
+    private static Entity createEntity(Entity e){
+
+//        float mass = 0f;
+//        Entity e = createEntity(engine, object, mass);
 
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
@@ -170,7 +215,8 @@ public class EntityFactory {
         bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
 
         // static entity not use motion state so just set the scale on it once and for all
-        mc.modelInst.transform.scl(object.size);
+//        mc.modelInst.transform.scl(object.size);
+        mc.modelInst.transform.scl(mc.scale);
 
         return e;
     }
@@ -178,7 +224,8 @@ public class EntityFactory {
 
     public static void createEntities(Engine engine) {
 
-        GameObject object;
+        final int N_ENTITIES = 21;
+        final int N_BOXES = 10;
 
         Vector3 tmpV = new Vector3(); // size
         Matrix4 tmpM = new Matrix4(); // transform
@@ -189,25 +236,29 @@ public class EntityFactory {
             tmpM.idt().trn(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                object = new BoxObject(tmpV, tmpM);
+                engine.addEntity(new BoxObject().create(rnd.nextFloat() + 0.5f, tmpV, tmpM));
             } else {
-                object = new SphereObject(tmpV.x, tmpM);
+                engine.addEntity(new SphereObject().create(rnd.nextFloat() + 0.5f, tmpV.x, tmpM));
             }
-
-            createEntity(engine, object, rnd.nextFloat() + 0.5f);
         }
 
+        Entity e;
 
-if (false) {
-    // uncomment for a terrain alternative;
-    tmpM.idt().trn(0, -4, 0);
-    createEntity(engine, new BoxObject(tmpV.set(20f, 1f, 20f), tmpM));    // zero mass = static
-//        tmpM.idt().trn(10, -5, 0);
-//        createEntity(engine, new SphereObject(8, tmpM));
-} else {
-    createGround(engine);
-}
-        createLandscape(engine);
+        tmpM.idt().trn(0, -4, 0);
+        e = new BoxObject().create(0f, tmpV.set(20f, 1f, 20f), tmpM);
+        engine.addEntity(e);
+        createEntity(e);
+
+        tmpM.idt().trn(10, 5, 0);
+        e = new SphereObject().create(0f, 8, tmpM);
+        engine.addEntity(e);
+        createEntity(e);
+
+//        createGround(engine);
+
+        // put the landscape at an angle so stuff falls of it...
+        Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+        engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
     }
 
     private static void createGround(Engine engine){
@@ -217,7 +268,7 @@ if (false) {
 
         Vector3 size = new Vector3(20, 1, 20);
 
-        Matrix4 transform = new Matrix4().idt().trn(0, -4, 0);;
+        Matrix4 transform = new Matrix4().idt().trn(0, -4, 0);
 
 //        createEntity(engine, new BoxObject(new Vector3(20f, 1f, 20f), transform));	// zero mass = static
         btBoxShape shape = new btBoxShape(size);
@@ -238,20 +289,6 @@ if (false) {
         mc.modelInst.transform.scl(size);
     }
 
-
-    private static void createLandscape(Engine engine){
-
-        Entity e = new Entity();
-        engine.addEntity(e);
-
-        // put the landscape at an angle so stuff falls of it...
-        Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
-
-        e.add(new BulletComponent(
-                new btBvhTriangleMeshShape(landscapeModel.meshParts), transform));
-
-        e.add(new ModelComponent(landscapeModel, transform));
-    }
 
     public static void dispose(){
 
