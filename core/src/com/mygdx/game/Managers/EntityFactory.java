@@ -106,8 +106,9 @@ protected btCollisionShape shape;
 
         GameObject() {}
 
-        GameObject(Model model) {
+        GameObject(Model model, Vector3 size) {
             this.model = model;
+            this.size = size;
         }
 
         Entity create() {
@@ -135,9 +136,8 @@ protected btCollisionShape shape;
         private float radius;
 
         SphereObject(float radius) {
-            this.size = new Vector3(radius, radius, radius);
+            super(ballTemplateModel, new Vector3(radius, radius, radius));
             this.radius = radius;
-            this.model = ballTemplateModel;
         }
 
         Entity create(/* Model model, */ float mass, Vector3 translation) {
@@ -151,8 +151,7 @@ protected btCollisionShape shape;
     private static class BoxObject extends GameObject {
 
         BoxObject(Vector3 size) {
-            this.size = new Vector3(size);
-            this.model = boxTemplateModel;
+            super(boxTemplateModel, size);
         }
 
         Entity create(/* Model model, */ float mass, Vector3 translation){
