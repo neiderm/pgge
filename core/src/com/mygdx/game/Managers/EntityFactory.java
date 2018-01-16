@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -181,46 +180,11 @@ protected btCollisionShape shape;
         }
     }
 
-    private static class SomeObject /* extends GameObject */ {
-
-        private Model model;
-        private Vector3 size;
-//        private float mass;
-//        private btCollisionShape shape;
-
-        SomeObject(/* Model model, */ float mass, Vector3 size) {
-            this.model = boxTemplateModel;
-            this.size = new Vector3(size);
-//            this.mass = mass;
-//            this.shape = new btBoxShape(size);
-        }
-
-        Entity create(float mass, Vector3 translation) {
-
-            Entity e = new Entity();
-
-            // really? this will be bullet comp motion state linked to same copy of instance transform?
-//        Matrix4 crap = transform;
-//            Matrix4 crap = new Matrix4(transform); // defensive copy, must NOT assume caller made a new instance!
-
-            Matrix4 crap = new Matrix4().idt().trn(translation);
-
-            e.add(new ModelComponent(model, crap, size)); // model is STATIC, not instance vairable!!!!!
-
-            // need to confirm but I think the collision shape must be unique to all physics bodies?
-            btCollisionShape shape = new btBoxShape(size);
-
-            e.add(new BulletComponent(shape, crap, mass));
-
-            return e;
-        }
-    }
-
 
     /*
      derived factories do special sauce for static vs dynamic entities:
      */
-    private static /* abstract */ class EntiteeFactory<T extends SomeObject>{
+    private static /* abstract */ class EntiteeFactory<T extends GameObject>{
 
         T object;
 
@@ -268,7 +232,7 @@ protected btCollisionShape shape;
         Vector3 size = new Vector3(20f, 1f, 20f);
 
 
-        SomeObject smallcrate = new SomeObject(0f, size);
+//        SomeObject smallcrate = new SomeObject(0f, size);
 
         sfactory = new StaticEntiteeFactory();
         e = sfactory.create(0, new Vector3(1, 2, 3) );
@@ -336,8 +300,8 @@ protected btCollisionShape shape;
 if (true)
         e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, new Vector3(0, -4, 0));
 else {
-    SomeObject bigCrate = new SomeObject(0, new Vector3(20f, 1f, 20f));
-    EntiteeFactory<SomeObject> bigCrateFactory = new EntiteeFactory<SomeObject>(bigCrate);
+    BoxObject bigCrate = new BoxObject(new Vector3(20f, 1f, 20f));
+    EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigCrate);
     e = bigCrateFactory.create(0, new Vector3(0, -4, 0));
 }
         engine.addEntity(e);
