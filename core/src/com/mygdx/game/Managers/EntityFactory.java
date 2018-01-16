@@ -91,17 +91,11 @@ public class EntityFactory {
 
 
     /*
-     * currently there is no instance variables in this class.
-     *  everything done in create() so that it can return an Entity, which conceivable could be
-     * handed off to an instance of an appropriate factory.
-     * Might want to think about what instance variable could allow
-     * instances of objects that can be reused/pooled
      */
     private abstract static class GameObject {
 
         protected Model model;
         protected Vector3 size;
-protected btCollisionShape shape;
 
         GameObject() {}
 
@@ -111,11 +105,14 @@ protected btCollisionShape shape;
         }
 
         Entity create() {
-            Entity e = new Entity();
-            return e;
+            return new Entity();
         }
 
-        Entity create(float mass, Vector3 translation) {
+        Entity create(float mass, Vector3 translation){
+            return new Entity();
+        }
+
+        Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
             Entity e = create();
 
@@ -124,7 +121,7 @@ protected btCollisionShape shape;
             Matrix4 transform = new Matrix4().idt().trn(translation);
 
             e.add(new ModelComponent(model, transform, size));
-            e.add(new BulletComponent(this.shape, transform, mass));
+            e.add(new BulletComponent(shape, transform, mass));
 
             return e;
         }
@@ -141,9 +138,7 @@ protected btCollisionShape shape;
 
         Entity create(/* Model model, */ float mass, Vector3 translation) {
 
-            shape = new btSphereShape(radius);
-            Entity e = super.create(mass, translation);
-            return e;
+            return super.create(mass, translation, new btSphereShape(radius));
         }
     }
 
@@ -155,9 +150,7 @@ protected btCollisionShape shape;
 
         Entity create(/* Model model, */ float mass, Vector3 translation){
 
-            shape = new btBoxShape(size);
-            Entity e = super.create(mass, translation);
-            return e;
+            return super.create(mass, translation, new btBoxShape(size));
         }
     }
 
@@ -188,65 +181,44 @@ protected btCollisionShape shape;
 
         T object;
 
-        EntiteeFactory(){}
+//        EntiteeFactory(){}
 
         EntiteeFactory(T object){
             this.object = object;
         }
 
-        Entity create() {
-
-            return create(0, new Vector3(0, 0, 0));
-        }
+//        Entity create() {
+//            return create(0, new Vector3(0, 0, 0));
+//        }
 
         Entity create(float mass, Vector3 translation) {
-
             return object.create(mass, translation);
         }
     }
 
-    //    private class StaticEntiteeFactory extends EntiteeFactory< GameObject >{
-    private class StaticEntiteeFactory extends EntiteeFactory {
+    private static class StaticEntiteeFactory<T extends GameObject> extends EntiteeFactory{
 
-        Entity create(GameObject object) {
-            Entity e = super.create();
+        StaticEntiteeFactory(T object){
+            super(object);
+        }
+
+        Entity create(Vector3 translation) {
+            Entity e = object.create(0f, translation);
+
+            // special sauce here for static entity
+            Vector3 tmp = new Vector3();
+            BulletComponent bc = e.getComponent(BulletComponent.class);
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+
+            // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
+            bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
+
+            // static entity not use motion state so just set the scale on it once and for all
+            mc.modelInst.transform.scl(mc.scale);
+
             return e;
         }
     }
-
-    //    not sure what it does .... < GameObject >
-//    private class DynamicEntiteeFactory extends EntiteeFactory < GameObject >{
-//        Entity create(GameObject object) {
-//            Entity e = super.create();
-//            return e;
-//        }
-//    }
-
-    private void makeObjects() {
-
-        Entity e;
-        StaticEntiteeFactory sfactory;
-//        DynamicEntiteeFactory dfactory;
-
-        Matrix4 tmpM = new Matrix4();
-        Vector3 size = new Vector3(20f, 1f, 20f);
-
-
-//        SomeObject smallcrate = new SomeObject(0f, size);
-
-        sfactory = new StaticEntiteeFactory();
-        e = sfactory.create(0, new Vector3(1, 2, 3) );
-
-//        dfactory = new DynamicEntiteeFactory();
-//        e = dfactory.create(0, new Vector3(1, 2, 3));
-
-
-        BoxObject bigcrate = new BoxObject(size);
-
-//        EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigcrate);
-//        bigCrateFactory.create(0, new Vector3(0, 0, 0));
-    }
-
 
 
     // static entity (tmp, will be done in factory or in a game object derived for static?)
@@ -297,20 +269,27 @@ protected btCollisionShape shape;
         Entity e;
 
         tmpM.idt().trn(0, -4, 0);
-if (false)
-        e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, new Vector3(0, -4, 0));
-else {
-    BoxObject bigCrate = new BoxObject(new Vector3(20f, 1f, 20f));
-    EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigCrate);
-    e = bigCrateFactory.create(0, new Vector3(0, -4, 0));
-}
+        if (false)
+            e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, new Vector3(0, -4, 0));
+        else {
+            BoxObject bigCrate = new BoxObject(new Vector3(20f, 1f, 20f));
+            EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigCrate);
+            e = bigCrateFactory.create(0, new Vector3(0, -4, 0));
+        }
         engine.addEntity(e);
         createEntity(e);
 
-
-        e = new SphereObject(8).create(0f, new Vector3(10, 5, 0));
+        if (false) {
+            e = new SphereObject(8).create(0f, new Vector3(10, 5, 0));
+            engine.addEntity(e);
+            createEntity(e);
+        } else {
+            StaticEntiteeFactory<SphereObject> bigSphereFactory =
+                    new StaticEntiteeFactory<SphereObject>(new SphereObject(8));
+            e = bigSphereFactory.create(new Vector3(10, 5, 0));
+        }
         engine.addEntity(e);
-        createEntity(e);
+
 
 //        createGround(engine);
 
