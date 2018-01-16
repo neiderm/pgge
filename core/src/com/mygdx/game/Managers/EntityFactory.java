@@ -115,7 +115,7 @@ protected btCollisionShape shape;
             return e;
         }
 
-        Entity create(Float mass, Vector3 translation) {
+        Entity create(float mass, Vector3 translation) {
 
             Entity e = create();
 
@@ -297,7 +297,7 @@ protected btCollisionShape shape;
         Entity e;
 
         tmpM.idt().trn(0, -4, 0);
-if (true)
+if (false)
         e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, new Vector3(0, -4, 0));
 else {
     BoxObject bigCrate = new BoxObject(new Vector3(20f, 1f, 20f));
