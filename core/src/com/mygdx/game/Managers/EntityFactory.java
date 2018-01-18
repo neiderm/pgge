@@ -236,28 +236,6 @@ public class EntityFactory {
     }
 
 
-    // static entity (tmp, will be done in factory or in a game object derived for static?)
-    private static Entity createEntity(Entity e){
-
-//        float mass = 0f;
-//        Entity e = createEntity(engine, object, mass);
-
-        // special sauce here for static entity
-        Vector3 tmp = new Vector3();
-        BulletComponent bc = e.getComponent(BulletComponent.class);
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-
-        // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-        bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
-
-        // static entity not use motion state so just set the scale on it once and for all
-//        mc.modelInst.transform.scl(object.size);
-        mc.modelInst.transform.scl(mc.scale);
-
-        return e;
-    }
-
-
     public static void createEntities(Engine engine) {
 
         final int N_ENTITIES = 21;
@@ -280,33 +258,26 @@ public class EntityFactory {
             }
         }
 
-        Entity e;
+
+        StaticEntiteeFactory<GameObject> staticFactory =
+                new StaticEntiteeFactory<GameObject>();
+
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
-        BoxObject bo = new BoxObject(new Vector3(20f, 1f, 20f), boxTemplateModel);
-        EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>();
 
-        if (false)
-            e = bo.create(0, tran);
-        else {
-            e = bigCrateFactory.create(bo, 0, tran);
-        }
-        engine.addEntity(e);
-        createEntity(e);
+        engine.addEntity( staticFactory.create(
+                new BoxObject(new Vector3(20f, 1f, 20f), boxTemplateModel),tran) );
 
-
-        StaticEntiteeFactory<GameObject> bigSphereFactory =
-                new StaticEntiteeFactory<GameObject>();
-        engine.addEntity( bigSphereFactory.create(
+        engine.addEntity( staticFactory.create(
                 new SphereObject(8), new Vector3(10, 5 + yTrans, 0)) );
 
 
-//        createGround(engine);
-///*
+        createGround(engine);
+/*
         tran = new Vector3(-15, 1, -20);
         BoxObject bb = new BoxObject(new Vector3(20f, 1f, 20f), model, "box");
-        engine.addEntity( bigSphereFactory.create(bb, tran ) );
-//*/
+        engine.addEntity( staticFactory.create(bb, tran ) );
+*/
 
 
         // put the landscape at an angle so stuff falls of it...
@@ -317,18 +288,14 @@ public class EntityFactory {
 
     private static void createGround(Engine engine){
 
-        Entity e = new Entity();
-        engine.addEntity(e);
-
         Vector3 size = new Vector3(20, 1, 20);
 
-        Matrix4 transform = new Matrix4().idt().trn(-15, 1, -20);
+        EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>();
 
-        btBoxShape shape = new btBoxShape(size);
-        e.add(new BulletComponent(shape, transform, 0.0f));
+        Entity e = bigCrateFactory.create(
+                new BoxObject(size, model, "box"), 0, new Vector3(-15, 1, -20));
 
-        e.add(new ModelComponent(model, transform, "box"));
-
+        engine.addEntity(e);
 
         // special sauce here for static entity
         Vector3 tmp = new Vector3();
