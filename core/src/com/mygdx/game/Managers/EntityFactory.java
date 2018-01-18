@@ -183,30 +183,30 @@ public class EntityFactory {
      */
     private static /* abstract */ class EntiteeFactory<T extends GameObject>{
 
-        T object;
+//        T object;
 
-//        EntiteeFactory(){}
-
+        EntiteeFactory(){}
+/*
         EntiteeFactory(T object){
             this.object = object;
         }
-
+*/
 //        Entity create() {
 //            return create(0, new Vector3(0, 0, 0));
 //        }
 
-        Entity create(float mass, Vector3 translation) {
+        Entity create(T object, float mass, Vector3 translation) {
             return object.create(mass, translation);
         }
     }
 
     private static class StaticEntiteeFactory<T extends GameObject> extends EntiteeFactory{
-
+/*
         StaticEntiteeFactory(T object){
             super(object);
         }
-
-        Entity create(Vector3 translation) {
+*/
+        Entity create(T object, Vector3 translation) {
             Entity e = object.create(0f, translation);
 
             // special sauce here for static entity
@@ -272,20 +272,22 @@ public class EntityFactory {
         Entity e;
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
+        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(20f, 1f, 20f));
+        EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>();
+
         if (false)
-            e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, tran);
+            e = bo.create(0, tran);
         else {
-            BoxObject bigCrate = new BoxObject(boxTemplateModel, new Vector3(20f, 1f, 20f));
-            EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigCrate);
-            e = bigCrateFactory.create(0, tran);
+            e = bigCrateFactory.create(bo, 0, tran);
         }
         engine.addEntity(e);
         createEntity(e);
 
 
         StaticEntiteeFactory<SphereObject> bigSphereFactory =
-                new StaticEntiteeFactory<SphereObject>(new SphereObject(8));
-        engine.addEntity( bigSphereFactory.create(new Vector3(10, 5 + yTrans, 0)) );
+                new StaticEntiteeFactory<SphereObject>();
+        engine.addEntity( bigSphereFactory.create(
+                new SphereObject(8), new Vector3(10, 5 + yTrans, 0)) );
 
 
         createGround(engine);
