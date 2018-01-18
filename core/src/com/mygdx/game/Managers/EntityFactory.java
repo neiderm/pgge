@@ -145,7 +145,11 @@ public class EntityFactory {
     private static class BoxObject extends GameObject {
 
         BoxObject(Vector3 size) {
-            super(boxTemplateModel, size);
+            this(boxTemplateModel, size);
+        }
+
+        BoxObject(Model model, Vector3 size) {
+            super(model, size);
         }
 
         Entity create(/* Model model, */ float mass, Vector3 translation){
@@ -249,7 +253,6 @@ public class EntityFactory {
         final int N_BOXES = 10;
 
         Vector3 tmpV = new Vector3(); // size
-        Matrix4 tmpM = new Matrix4(); // transform
         Random rnd = new Random();
 
         for (int i = 0; i < N_ENTITIES; i++) {
@@ -267,34 +270,32 @@ public class EntityFactory {
         }
 
         Entity e;
-
-        tmpM.idt().trn(0, -4, 0);
+        float yTrans = -10.0f;
+        Vector3 tran = new Vector3(0, -4 + yTrans, 0);
         if (false)
-            e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, new Vector3(0, -4, 0));
+            e = new BoxObject(new Vector3(20f, 1f, 20f)).create(0, tran);
         else {
-            BoxObject bigCrate = new BoxObject(new Vector3(20f, 1f, 20f));
+            BoxObject bigCrate = new BoxObject(boxTemplateModel, new Vector3(20f, 1f, 20f));
             EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>(bigCrate);
-            e = bigCrateFactory.create(0, new Vector3(0, -4, 0));
+            e = bigCrateFactory.create(0, tran);
         }
         engine.addEntity(e);
         createEntity(e);
 
-        if (false) {
-            e = new SphereObject(8).create(0f, new Vector3(10, 5, 0));
-            engine.addEntity(e);
-            createEntity(e);
-        } else {
-            StaticEntiteeFactory<SphereObject> bigSphereFactory =
-                    new StaticEntiteeFactory<SphereObject>(new SphereObject(8));
-            e = bigSphereFactory.create(new Vector3(10, 5, 0));
-        }
-        engine.addEntity(e);
+
+        StaticEntiteeFactory<SphereObject> bigSphereFactory =
+                new StaticEntiteeFactory<SphereObject>(new SphereObject(8));
+        engine.addEntity( bigSphereFactory.create(new Vector3(10, 5 + yTrans, 0)) );
 
 
-//        createGround(engine);
+        createGround(engine);
+
+
+
 
         // put the landscape at an angle so stuff falls of it...
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+        transform.trn(0, 0 + yTrans, 0);
         engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
     }
 
@@ -305,9 +306,8 @@ public class EntityFactory {
 
         Vector3 size = new Vector3(20, 1, 20);
 
-        Matrix4 transform = new Matrix4().idt().trn(0, -4, 0);
+        Matrix4 transform = new Matrix4().idt().trn(-15, 1, -20);
 
-//        createEntity(engine, new BoxObject(new Vector3(20f, 1f, 20f), transform));	// zero mass = static
         btBoxShape shape = new btBoxShape(size);
         e.add(new BulletComponent(shape, transform, 0.0f));
 
@@ -323,7 +323,7 @@ public class EntityFactory {
         bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
 
         // static entity not use motion state so just set the scale on it once and for all
-        mc.modelInst.transform.scl(size);
+        mc.modelInst.transform.scl(size.scl(2.0f)); // hack hack hack, we're not creating collision shapes w/ half extents!
     }
 
 

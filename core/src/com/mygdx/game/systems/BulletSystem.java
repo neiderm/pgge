@@ -78,7 +78,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                     bc.motionstate.getWorldTransform(tmpM);
                     tmpM.getTranslation(tmpV);
 
-                    if (tmpV.y < -10) {
+                    if (tmpV.y < -20) {
                         tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
                         // did idt, so need to scl
                         body.setWorldTransform(tmpM);
