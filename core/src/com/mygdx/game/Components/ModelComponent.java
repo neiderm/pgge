@@ -39,4 +39,15 @@ public class ModelComponent implements Component {
         this(model, transform);
         this.scale = new Vector3(scale);
     }
+
+    public ModelComponent(Model model, Matrix4 transform, Vector3 scale, String rootNodeId) {
+
+        // ?????? 	public ModelInstance (final Model model, final Matrix4 transform, final String... rootNodeIds) {
+        if (null != rootNodeId)
+            this.modelInst = new ModelInstance(model, transform, rootNodeId);
+        else
+            this.modelInst = new ModelInstance(model, transform);
+
+        this.scale = new Vector3(scale);
+    }
 }

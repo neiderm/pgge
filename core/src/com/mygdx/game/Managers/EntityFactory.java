@@ -96,12 +96,19 @@ public class EntityFactory {
 
         protected Model model;
         protected Vector3 size;
+        protected String rootNodeId = null;
 
         GameObject() {}
 
-        GameObject(Model model, Vector3 size) {
+        GameObject(Vector3 size, Model model) {
             this.model = model;
             this.size = size;
+        }
+
+        GameObject(Vector3 size, Model model, String rootNodeId) {
+            this.model = model;
+            this.size = size;
+            this.rootNodeId = rootNodeId;
         }
 
         Entity create() {
@@ -120,7 +127,7 @@ public class EntityFactory {
             // defensive copy, must NOT assume caller made a new instance!
             Matrix4 transform = new Matrix4().idt().trn(translation);
 
-            e.add(new ModelComponent(model, transform, size));
+            e.add(new ModelComponent(model, transform, size, rootNodeId));
             e.add(new BulletComponent(shape, transform, mass));
 
             return e;
@@ -132,7 +139,7 @@ public class EntityFactory {
         private float radius;
 
         SphereObject(float radius) {
-            super(ballTemplateModel, new Vector3(radius, radius, radius));
+            super(new Vector3(radius, radius, radius), ballTemplateModel);
             this.radius = radius;
         }
 
@@ -145,11 +152,15 @@ public class EntityFactory {
     private static class BoxObject extends GameObject {
 
         BoxObject(Vector3 size) {
-            this(boxTemplateModel, size);
+            this(size, boxTemplateModel);
         }
 
-        BoxObject(Model model, Vector3 size) {
-            super(model, size);
+        BoxObject(Vector3 size, Model model) {
+            super(size, model);
+        }
+
+        BoxObject(Vector3 size, Model model, final String rootNodeId) {
+            super(size, model, rootNodeId);
         }
 
         Entity create(/* Model model, */ float mass, Vector3 translation){
@@ -272,7 +283,7 @@ public class EntityFactory {
         Entity e;
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
-        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(20f, 1f, 20f));
+        BoxObject bo = new BoxObject(new Vector3(20f, 1f, 20f), boxTemplateModel);
         EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>();
 
         if (false)
@@ -284,15 +295,18 @@ public class EntityFactory {
         createEntity(e);
 
 
-        StaticEntiteeFactory<SphereObject> bigSphereFactory =
-                new StaticEntiteeFactory<SphereObject>();
+        StaticEntiteeFactory<GameObject> bigSphereFactory =
+                new StaticEntiteeFactory<GameObject>();
         engine.addEntity( bigSphereFactory.create(
                 new SphereObject(8), new Vector3(10, 5 + yTrans, 0)) );
 
 
-        createGround(engine);
-
-
+//        createGround(engine);
+///*
+        tran = new Vector3(-15, 1, -20);
+        BoxObject bb = new BoxObject(new Vector3(20f, 1f, 20f), model, "box");
+        engine.addEntity( bigSphereFactory.create(bb, tran ) );
+//*/
 
 
         // put the landscape at an angle so stuff falls of it...
