@@ -34,11 +34,6 @@ public class EntityFactory {
     private static Model model;
     private static final AssetManager assets;
     private static final Model landscapeModel;
-
-    private enum pType {
-        SPHERE, BOX
-    }
-
     private static Model boxTemplateModel;
     private static Model ballTemplateModel;
 
@@ -46,12 +41,12 @@ public class EntityFactory {
         final ModelBuilder mb = new ModelBuilder();
 
         Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        boxTemplateModel  = mb.createBox(2f, 2f, 2f,
+        boxTemplateModel  = mb.createBox(1f, 1f, 1f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        ballTemplateModel = mb.createSphere(2f, 2f, 2f, 16, 16,
+        ballTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
@@ -61,15 +56,8 @@ public class EntityFactory {
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
 
 
-        final float groundW = 25.0f;
-        final float groundH = 1.0f;
-        final float groundD = 25.0f;
-
         mb.begin();
 
-        mb.node().id = "ground";
-        mb.part("ground", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.RED))).box(groundW, groundH, groundD);
         mb.node().id = "sphere";
         mb.part("sphere", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
@@ -145,7 +133,7 @@ public class EntityFactory {
 
         Entity create(/* Model model, */ float mass, Vector3 translation) {
 
-            return super.create(mass, translation, new btSphereShape(radius));
+            return super.create(mass, translation, new btSphereShape(radius * 0.5f));
         }
     }
 
@@ -165,7 +153,7 @@ public class EntityFactory {
 
         Entity create(/* Model model, */ float mass, Vector3 translation){
 
-            return super.create(mass, translation, new btBoxShape(size));
+            return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
         }
     }
 
@@ -192,7 +180,7 @@ public class EntityFactory {
     /*
      derived factories do special sauce for static vs dynamic entities:
      */
-    private static /* abstract */ class EntiteeFactory<T extends GameObject>{
+    private static abstract class EntiteeFactory<T extends GameObject>{
 
 //        T object;
 
@@ -247,6 +235,7 @@ public class EntityFactory {
         for (int i = 0; i < N_ENTITIES; i++) {
 
             tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
+            tmpV.scl(2.0f); // this keeps object "same" size relative to previous model size was 2x
 
             Vector3 translation =
                     new Vector3 (rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
@@ -259,54 +248,24 @@ public class EntityFactory {
         }
 
 
-        StaticEntiteeFactory<GameObject> staticFactory =
-                new StaticEntiteeFactory<GameObject>();
+        StaticEntiteeFactory<GameObject> staticFactory = new StaticEntiteeFactory<GameObject>();
 
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
 
         engine.addEntity( staticFactory.create(
-                new BoxObject(new Vector3(20f, 1f, 20f), boxTemplateModel),tran) );
+                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
 
         engine.addEntity( staticFactory.create(
-                new SphereObject(8), new Vector3(10, 5 + yTrans, 0)) );
+                new SphereObject(16), new Vector3(10, 5 + yTrans, 0)) );
 
-
-        createGround(engine);
-/*
-        tran = new Vector3(-15, 1, -20);
-        BoxObject bb = new BoxObject(new Vector3(20f, 1f, 20f), model, "box");
-        engine.addEntity( staticFactory.create(bb, tran ) );
-*/
-
+        engine.addEntity( staticFactory.create(
+                new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
 
         // put the landscape at an angle so stuff falls of it...
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
         transform.trn(0, 0 + yTrans, 0);
         engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
-    }
-
-    private static void createGround(Engine engine){
-
-        Vector3 size = new Vector3(20, 1, 20);
-
-        EntiteeFactory<BoxObject> bigCrateFactory = new EntiteeFactory<BoxObject>();
-
-        Entity e = bigCrateFactory.create(
-                new BoxObject(size, model, "box"), 0, new Vector3(-15, 1, -20));
-
-        engine.addEntity(e);
-
-        // special sauce here for static entity
-        Vector3 tmp = new Vector3();
-        BulletComponent bc = e.getComponent(BulletComponent.class);
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-
-        // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-        bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
-
-        // static entity not use motion state so just set the scale on it once and for all
-        mc.modelInst.transform.scl(size.scl(2.0f)); // hack hack hack, we're not creating collision shapes w/ half extents!
     }
 
 
