@@ -21,11 +21,9 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.RenderSystem;
@@ -215,7 +213,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
     void addEntities() {
 
-        EntityFactory.createEntities(engine);
+        physObj.createEntities(engine);
 //        engine.addEntity(EntityFactory.createGround(new Vector3(0, 0, 0)));
         //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
         //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));
@@ -311,7 +309,7 @@ TODO: something screwing up camera when virtual touchpad is used
 // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
 
-        EntityFactory.dispose(); // static dispose models
+        physObj.dispose(); // static dispose models
 
 //        modelBatch.dispose();
         model.dispose();
