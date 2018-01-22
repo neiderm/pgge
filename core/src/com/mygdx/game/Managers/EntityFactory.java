@@ -37,6 +37,9 @@ public class EntityFactory {
     private static Model boxTemplateModel;
     private static Model ballTemplateModel;
 
+    private EntityFactory() {
+    }
+
     static {
         final ModelBuilder mb = new ModelBuilder();
 
@@ -99,15 +102,15 @@ public class EntityFactory {
             this.rootNodeId = rootNodeId;
         }
 
-        Entity create() {
+        protected Entity create() {
             return new Entity();
         }
 
-        Entity create(float mass, Vector3 translation){
+        protected Entity create(float mass, Vector3 translation){
             return new Entity();
         }
 
-        Entity create(float mass, Vector3 translation, btCollisionShape shape) {
+        protected Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
             Entity e = create();
 
@@ -126,22 +129,20 @@ public class EntityFactory {
 
         private float radius;
 
-        SphereObject(float radius) {
-            super(new Vector3(radius, radius, radius), ballTemplateModel);
+        SphereObject(float radius, Model model) {
+
+            super(new Vector3(radius, radius, radius), model);
             this.radius = radius;
         }
 
-        Entity create(/* Model model, */ float mass, Vector3 translation) {
+        @Override
+        protected Entity create(/* Model model, */ float mass, Vector3 translation) {
 
             return super.create(mass, translation, new btSphereShape(radius * 0.5f));
         }
     }
 
     private static class BoxObject extends GameObject {
-
-        BoxObject(Vector3 size) {
-            this(size, boxTemplateModel);
-        }
 
         BoxObject(Vector3 size, Model model) {
             super(size, model);
@@ -151,7 +152,8 @@ public class EntityFactory {
             super(size, model, rootNodeId);
         }
 
-        Entity create(/* Model model, */ float mass, Vector3 translation){
+        @Override
+        protected Entity create(/* Model model, */ float mass, Vector3 translation){
 
             return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
         }
@@ -180,7 +182,7 @@ public class EntityFactory {
     /*
      derived factories do special sauce for static vs dynamic entities:
      */
-    private static abstract class EntiteeFactory<T extends GameObject>{
+    private abstract static class EntiteeFactory<T extends GameObject>{
 
 //        T object;
 
@@ -241,12 +243,11 @@ public class EntityFactory {
                     new Vector3 (rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(new BoxObject(tmpV).create(rnd.nextFloat() + 0.5f, translation ));
+                engine.addEntity(new BoxObject(tmpV, boxTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
             } else {
-                engine.addEntity(new SphereObject(tmpV.x).create(rnd.nextFloat() + 0.5f, translation ));
+                engine.addEntity(new SphereObject(tmpV.x, ballTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
             }
         }
-
 
         StaticEntiteeFactory<GameObject> staticFactory = new StaticEntiteeFactory<GameObject>();
 
@@ -257,7 +258,7 @@ public class EntityFactory {
                 new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
 
         engine.addEntity( staticFactory.create(
-                new SphereObject(16), new Vector3(10, 5 + yTrans, 0)) );
+                new SphereObject(16, ballTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
 
         engine.addEntity( staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
