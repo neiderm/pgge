@@ -14,7 +14,12 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.Managers.EntityFactory;
+import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btConeShape;
+import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
+import com.mygdx.game.Managers.EntityFactory.*;
+
+
 
 import java.util.Random;
 
@@ -91,31 +96,50 @@ public class physObj {
                     new Vector3 (rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(new EntityFactory.BoxObject(tmpV, boxTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
+                engine.addEntity(
+                        new BoxObject(tmpV, boxTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
             } else {
-                engine.addEntity(new EntityFactory.SphereObject(tmpV.x, ballTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
+                engine.addEntity(
+                        new SphereObject(tmpV.x, ballTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
             }
         }
 
-        EntityFactory.StaticEntiteeFactory<EntityFactory.GameObject> staticFactory =
-                new EntityFactory.StaticEntiteeFactory<EntityFactory.GameObject>();
+
+        Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
+        Vector3 s = new Vector3(1, 1, 1);
+
+        engine.addEntity(
+                new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
+                        new btConeShape(0.5f, 2.0f)));
+
+        engine.addEntity(
+                new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
+                        new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+
+        engine.addEntity(
+                new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
+                        new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+
+        
+        StaticEntiteeFactory<GameObject> staticFactory =
+                new StaticEntiteeFactory<GameObject>();
 
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
 
         engine.addEntity( staticFactory.create(
-                new EntityFactory.BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
+                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
 
         engine.addEntity( staticFactory.create(
-                new EntityFactory.SphereObject(16, ballTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
+                new SphereObject(16, ballTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
 
         engine.addEntity( staticFactory.create(
-                new EntityFactory.BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
+                new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
 
         // put the landscape at an angle so stuff falls of it...
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
         transform.trn(0, 0 + yTrans, 0);
-        engine.addEntity(new EntityFactory.LandscapeObject().create(landscapeModel, transform));
+        engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
     }
 
 

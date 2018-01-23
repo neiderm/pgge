@@ -23,7 +23,7 @@ public class EntityFactory {
 
     /*
      */
-    public abstract static class GameObject {
+    public /* abstract */ static class GameObject {
 
         protected Model model;
         protected Vector3 size;
@@ -37,7 +37,7 @@ public class EntityFactory {
             this.size = size;
         }
 
-        private GameObject(Vector3 size, Model model, String rootNodeId) {
+        public GameObject(Vector3 size, Model model, String rootNodeId) {
             this.model = model;
             this.size = size;
             this.rootNodeId = rootNodeId;
@@ -47,11 +47,13 @@ public class EntityFactory {
             return new Entity();
         }
 
-        protected Entity create(float mass, Vector3 translation) {
+        ///*
+        public Entity create(float mass, Vector3 translation) {
             return new Entity();
         }
 
-        protected Entity create(float mass, Vector3 translation, btCollisionShape shape) {
+        //*/
+        public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
             Entity e = create();
 
@@ -134,13 +136,16 @@ public class EntityFactory {
             this.object = object;
         }
 */
-//        Entity create() {
-//            return create(0, new Vector3(0, 0, 0));
-//        }
-
+/*
+        Entity create() {
+            return create(0, new Vector3(0, 0, 0));
+        }
+*/
+/*
         private Entity create(T object, float mass, Vector3 translation) {
             return object.create(mass, translation);
         }
+*/
     }
 
     public static class StaticEntiteeFactory<T extends GameObject> extends EntiteeFactory {
@@ -150,6 +155,7 @@ public class EntityFactory {
                 }
         */
         public Entity create(T object, Vector3 translation) {
+
             Entity e = object.create(0f, translation);
 
             // special sauce here for static entity
