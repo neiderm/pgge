@@ -120,6 +120,32 @@ public class physObj {
                 new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                         new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 
+
+/*
+        engine.addEntity(
+                new BoxObject(new Vector3(2, 2, 2), boxTemplateModel).create(
+                        1.0f, new Vector3(0, 0 + 4, 0 -5f) ));
+*/
+        BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
+
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
+
+        int wallW = 0;
+        int wallH = 0;
+        for (wallH = 0; wallH < 2; wallH++) {
+            for (wallW = 0; wallW < 3; wallW++) {
+
+            }
+        }
+
+
+
+
         
         StaticEntiteeFactory<GameObject> staticFactory =
                 new StaticEntiteeFactory<GameObject>();
