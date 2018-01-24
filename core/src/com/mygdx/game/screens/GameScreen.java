@@ -134,7 +134,7 @@ TODO: something screwing up camera when virtual touchpad is used
             Gdx.app.log(this.getClass().getName(), String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
 
             if (isTouchInPad) {
-//                isTouchInPad = false;
+                isTouchInPad = false;
                 //              playerComp.vvv = new Vector3(0,0,0);
 
 // TODO: ? on touchUP: counter the force applied by the "joystick", but allow energy of a bounce to persist
