@@ -20,7 +20,7 @@ import com.mygdx.game.screens.MainMenuScreen;
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    static private final float forceScl = 0.2f;
+    static private final float forceScl = 0.1f;
     static private final float vLossLin = -0.5f;
     static private final float vLossAng = -5.0f;
 
