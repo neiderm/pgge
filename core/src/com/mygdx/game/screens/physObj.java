@@ -36,6 +36,7 @@ public class physObj {
     private static final AssetManager assets;
     private static final Model landscapeModel;
     private static Model boxTemplateModel;
+    private static Model sphereTemplateModel;
     private static Model ballTemplateModel;
 
     private physObj(){
@@ -50,8 +51,13 @@ public class physObj {
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        ballTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
+        sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+        Texture ballTex = new Texture(Gdx.files.internal("data/Ball8.jpg"), false);
+        ballTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
+                new Material(TextureAttribute.createDiffuse(ballTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         assets = new AssetManager();
@@ -103,7 +109,7 @@ public class physObj {
                         new BoxObject(tmpV, boxTemplateModel).create(tmpV.x, translation ));
             } else {
                 engine.addEntity(
-                        new SphereObject(tmpV.x, ballTemplateModel).create(tmpV.x, translation ));
+                        new SphereObject(tmpV.x, sphereTemplateModel).create(tmpV.x, translation ));
             }
         }
 
@@ -124,7 +130,7 @@ public class physObj {
                         new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 
 
-        Entity plyr = new GameObject(s, model, "sphere").create(rnd.nextFloat() + 0.5f, t,
+        Entity plyr = new GameObject(s, ballTemplateModel).create(rnd.nextFloat() + 0.5f, t,
                 new btSphereShape(0.5f));
         plyr.add(new PlayerComponent());
         engine.addEntity(plyr);
@@ -159,7 +165,7 @@ public class physObj {
                 new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
 
         engine.addEntity( staticFactory.create(
-                new SphereObject(16, ballTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
+                new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
 
         engine.addEntity( staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
@@ -173,6 +179,7 @@ public class physObj {
 
     public static void dispose(){
 
+        sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
         model.dispose();

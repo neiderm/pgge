@@ -32,7 +32,7 @@ public class EntityFactory {
         private GameObject() {
         }
 
-        private GameObject(Vector3 size, Model model) {
+        public GameObject(Vector3 size, Model model) {
             this.model = model;
             this.size = size;
         }
