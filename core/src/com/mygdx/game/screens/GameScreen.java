@@ -19,13 +19,16 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
+import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
 
@@ -36,12 +39,11 @@ import com.mygdx.game.systems.RenderSystem;
 public class GameScreen implements Screen {
 
     private MyGdxGame game;
-//    public AssetManager assets;
-//    private Model landscapeModel;
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
+    private PlayerSystem playerSystem; //for reference to player entity
 
     private PerspectiveCamera cam;
     //    public ModelBatch modelBatch;
@@ -58,7 +60,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
 
-//    private PlayerComponent playerComp;
+    private PlayerComponent playerComp;
 //    private btRigidBody playerBody;
 
     private static int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
@@ -86,9 +88,9 @@ TODO: something screwing up camera when virtual touchpad is used
 
             Vector2 ctr = new Vector2();
             touchBoxRect.getCenter(ctr);
-            //          playerComp.vvv.x = screenX - ctr.x;
-            //        playerComp.vvv.y = 0;
-            //      playerComp.vvv.z = screenY - ctr.y;
+            playerComp.vvv.x = screenX - ctr.x;
+            playerComp.vvv.y = 0;
+            playerComp.vvv.z = screenY - ctr.y;
         }
 
         @Override
@@ -214,16 +216,14 @@ TODO: something screwing up camera when virtual touchpad is used
     void addEntities() {
 
         physObj.createEntities(engine);
-//        engine.addEntity(EntityFactory.createGround(new Vector3(0, 0, 0)));
-        //      engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, 12)));
-        //    engine.addEntity(EntityFactory.createWall(new Vector3(0, 1, -12)));
-        //  engine.addEntity(EntityFactory.createRamp(new Vector3(0, 0.5f, 0)));
 
 //        Entity e = EntityFactory.createPlayer(new Vector3(0, 1.5f, 0), 5.0f);
 //        engine.addEntity(e);
 
-        //      playerComp = e.getComponent(PlayerComponent.class);
+//        playerComp = e.getComponent(PlayerComponent.class);
         //    playerBody = e.getComponent(BulletComponent.class).body;
+
+        playerComp = playerSystem.playerEntity.getComponent(PlayerComponent.class);
     }
 
     private void addSystems() {
@@ -234,11 +234,10 @@ TODO: something screwing up camera when virtual touchpad is used
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
 
-//        landscapeModel = assets.get("data/landscape.g3db", Model.class);
         engine.addSystem(bulletSystem = new BulletSystem(engine));
 
         //    engine.addSystem(new EnemySystem());
-        //  engine.addSystem(new PlayerSystem(this.game));
+          engine.addSystem(playerSystem = new PlayerSystem(this.game));
     }
 
 
