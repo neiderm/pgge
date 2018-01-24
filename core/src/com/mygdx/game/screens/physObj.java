@@ -1,6 +1,7 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
@@ -17,6 +18,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
+import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory.*;
 
 
@@ -97,10 +100,10 @@ public class physObj {
 
             if (i < N_BOXES) {
                 engine.addEntity(
-                        new BoxObject(tmpV, boxTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
+                        new BoxObject(tmpV, boxTemplateModel).create(tmpV.x, translation ));
             } else {
                 engine.addEntity(
-                        new SphereObject(tmpV.x, ballTemplateModel).create(rnd.nextFloat() + 0.5f, translation ));
+                        new SphereObject(tmpV.x, ballTemplateModel).create(tmpV.x, translation ));
             }
         }
 
@@ -121,11 +124,12 @@ public class physObj {
                         new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 
 
-/*
-        engine.addEntity(
-                new BoxObject(new Vector3(2, 2, 2), boxTemplateModel).create(
-                        1.0f, new Vector3(0, 0 + 4, 0 -5f) ));
-*/
+        Entity plyr = new GameObject(s, model, "sphere").create(rnd.nextFloat() + 0.5f, t,
+                new btSphereShape(0.5f));
+        plyr.add(new PlayerComponent());
+        engine.addEntity(plyr);
+
+
         BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
 
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
@@ -142,8 +146,6 @@ public class physObj {
 
             }
         }
-
-
 
 
         
