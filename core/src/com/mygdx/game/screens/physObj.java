@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
@@ -38,9 +39,12 @@ public class physObj {
     private static Model boxTemplateModel;
     private static Model sphereTemplateModel;
     private static Model ballTemplateModel;
+    private static Model tankTemplateModel;
 
     private physObj(){
     }
+
+    static Vector3 tankSize = new Vector3(1, 1, 2);
 
     static {
         final ModelBuilder mb = new ModelBuilder();
@@ -57,6 +61,10 @@ public class physObj {
 
         Texture ballTex = new Texture(Gdx.files.internal("data/Ball8.jpg"), false);
         ballTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
+                new Material(TextureAttribute.createDiffuse(ballTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+        tankTemplateModel  = mb.createBox(tankSize.x, tankSize.y, tankSize.z,
                 new Material(TextureAttribute.createDiffuse(ballTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
@@ -130,8 +138,8 @@ public class physObj {
                         new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 
 
-        Entity plyr = new GameObject(s, ballTemplateModel).create(rnd.nextFloat() + 0.5f, t,
-                new btSphereShape(0.5f));
+        Entity plyr = new GameObject(s, tankTemplateModel).create(rnd.nextFloat() + 0.5f, t,
+                new btBoxShape(tankSize.cpy().scl(0.5f)));
         plyr.add(new PlayerComponent());
         engine.addEntity(plyr);
 
@@ -179,6 +187,7 @@ public class physObj {
 
     public static void dispose(){
 
+        tankTemplateModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
