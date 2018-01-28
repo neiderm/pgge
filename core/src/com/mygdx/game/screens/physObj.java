@@ -15,15 +15,16 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.Managers.EntityFactory.*;
-
-
+import com.mygdx.game.Managers.EntityFactory.BoxObject;
+import com.mygdx.game.Managers.EntityFactory.GameObject;
+import com.mygdx.game.Managers.EntityFactory.LandscapeObject;
+import com.mygdx.game.Managers.EntityFactory.SphereObject;
+import com.mygdx.game.Managers.EntityFactory.StaticEntiteeFactory;
 
 import java.util.Random;
 
@@ -124,7 +125,7 @@ public class physObj {
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1);
-
+///*
         engine.addEntity(
                 new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
                         new btConeShape(0.5f, 2.0f)));
@@ -136,23 +137,30 @@ public class physObj {
         engine.addEntity(
                 new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                         new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+//*/
+/*
+        float mass = 1.0f;
+        Entity plyr = new GameObject(s, tankTemplateModel).create(
+                mass, t, new btBoxShape(tankSize.cpy().scl(0.5f)));
+        plyr.add(new PlayerComponent(mass));
+*/
+        float mass = 5.1f; // can't go much more mass, ball way too fast!
+        Entity plyr = new GameObject(s, ballTemplateModel).create(
+                mass, t, new btSphereShape(0.5f));
+        plyr.add(new PlayerComponent(mass));
 
-
-        Entity plyr = new GameObject(s, tankTemplateModel).create(rnd.nextFloat() + 0.5f, t,
-                new btBoxShape(tankSize.cpy().scl(0.5f)));
-        plyr.add(new PlayerComponent());
         engine.addEntity(plyr);
 
 
         BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
-
+///*
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-
+//*/
         int wallW = 0;
         int wallH = 0;
         for (wallH = 0; wallH < 2; wallH++) {

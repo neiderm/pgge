@@ -73,7 +73,10 @@ public class RenderSystem extends EntitySystem implements EntityListener {
             {
                 if (bc.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
 
-                    mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
+                    if (!bc.sFlag) {
+                        mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
+//                        mc.modelInst.transform.scl(mc.scale); // nfg idfk, should be same but objects are skewed on 1 or more axis
+                    }
                 }
             }
 

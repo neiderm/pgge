@@ -24,7 +24,10 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
@@ -61,7 +64,8 @@ public class GameScreen implements Screen {
     private ShapeRenderer shapeRenderer;
 
     private PlayerComponent playerComp;
-//    private btRigidBody playerBody;
+    private BulletComponent bulletComp;
+    //    private btRigidBody playerBody;
 
     private static int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
 
@@ -135,7 +139,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
             if (isTouchInPad) {
                 isTouchInPad = false;
-                //              playerComp.vvv = new Vector3(0,0,0);
+                playerComp.vvv = new Vector3(0,0,0);
 
 // TODO: ? on touchUP: counter the force applied by the "joystick", but allow energy of a bounce to persist
 
@@ -187,11 +191,6 @@ TODO: something screwing up camera when virtual touchpad is used
 
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
-/*
-            assets = new AssetManager();
-            assets.load("data/landscape.g3db", Model.class);
-            assets.finishLoading();
-*/
         addSystems();
         addEntities();
 
@@ -224,6 +223,7 @@ TODO: something screwing up camera when virtual touchpad is used
         //    playerBody = e.getComponent(BulletComponent.class).body;
 
         playerComp = playerSystem.playerEntity.getComponent(PlayerComponent.class);
+        bulletComp = playerSystem.playerEntity.getComponent(BulletComponent.class);
     }
 
     private void addSystems() {
@@ -274,11 +274,14 @@ TODO: something screwing up camera when virtual touchpad is used
 
         //if (null != playerBody)
         {
+            btRigidBody playerBody = bulletComp.body;
             String s;
-            s = String.format("one");
+            s = String.format("%+2.1f %+2.1f %+2.1f",
+                    playerBody.getLinearVelocity().x, playerBody.getLinearVelocity().y, playerBody.getLinearVelocity().z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("two");
+            s = String.format("%+2.1f %+2.1f %+2.1f",
+                    playerComp.vvv.x, playerComp.vvv.y, playerComp.vvv.z);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
             s = String.format("three");
@@ -318,9 +321,6 @@ TODO: something screwing up camera when virtual touchpad is used
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-
-//        landscapeModel.dispose(); ... hmmm ok that's what asset mgr for ! ;)
-//        assets.dispose();
     }
 
     @Override

@@ -20,9 +20,13 @@ import com.mygdx.game.screens.MainMenuScreen;
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    static private final float forceScl = 0.1f;
-    static private final float vLossLin = -0.5f;
-    static private final float vLossAng = -5.0f;
+    static private final float forceScl = 0.2f; // rolling sphere
+//    static private final float forceScl = 0.7f; // box
+
+    // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
+    static private final float vLossLin = -1.9f; // -0.5f;
+
+//    static private final float vLossAng = -5.0f;
 
     private Engine engine;
     public Entity playerEntity;
@@ -50,13 +54,15 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         float mass = playerComp.mass;
         btRigidBody body = playerEntity.getComponent(BulletComponent.class).body;
 
-if (true) {
-    body.applyCentralForce(playerComp.vvv.scl(forceScl * mass));
+        float force = forceScl * mass;
 
-    // always apply loss of energy (torque negative of vA, linear negative of vL, fraction of mass)
-//    body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
-//    body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * mass));
-}
+        body.applyCentralForce(playerComp.vvv.scl(force));
+
+// my negative linear force is great for rolling, but should not apply while FALLING!
+        // always apply loss of energy (torque negative of vA, linear negative of vL, fraction of mass)
+        // (only works for sphere if mostly in surface contact, not if falling any significant distance)
+//        body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
+        body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * mass));
 
         body.getWorldTransform(inst.transform);
 

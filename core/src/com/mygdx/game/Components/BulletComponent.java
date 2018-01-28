@@ -38,6 +38,7 @@ public class BulletComponent implements Component {
     public final btRigidBody body;
 
     // idfk
+public boolean sFlag = false; // need to make component for static entity
     public final int id;
     public static int cnt = 0;
 
@@ -63,7 +64,8 @@ public class BulletComponent implements Component {
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
                 new btRigidBody.btRigidBodyConstructionInfo(mass, this.motionstate, this.shape, tmp);
         this.body = new btRigidBody(bodyInfo);
-        this.body.setFriction(0.8f);
+//float crap = this.body.getFriction(); 0.5 default
+        this.body.setFriction(0.8f); // doesn't make a difference for static/kinematic objects?
 
         bodyInfo.dispose();
     }
