@@ -234,7 +234,7 @@ TODO: something screwing up camera when virtual touchpad is used
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
 
-        engine.addSystem(bulletSystem = new BulletSystem(engine));
+        engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
 
         //    engine.addSystem(new EnemySystem());
           engine.addSystem(playerSystem = new PlayerSystem(this.game));

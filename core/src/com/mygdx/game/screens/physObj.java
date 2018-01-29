@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
@@ -37,6 +38,7 @@ public class physObj {
     private static Model model;
     private static final AssetManager assets;
     private static final Model landscapeModel;
+    private static final Model shipModel;
     private static Model boxTemplateModel;
     private static Model sphereTemplateModel;
     private static Model ballTemplateModel;
@@ -71,9 +73,10 @@ public class physObj {
 
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
+        assets.load("data/ship.g3db", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-
+        shipModel = assets.get("data/ship.g3db", Model.class);
 
         mb.begin();
 
@@ -145,8 +148,9 @@ public class physObj {
         plyr.add(new PlayerComponent(mass));
 */
         float mass = 5.1f; // can't go much more mass, ball way too fast!
-        Entity plyr = new GameObject(s, ballTemplateModel).create(
-                mass, t, new btSphereShape(0.5f));
+//        Entity plyr = new GameObject(s, ballTemplateModel).create(
+        Entity plyr = new GameObject(s, shipModel).create(
+                mass, t, new btBoxShape(new Vector3(0.5f, 0.75f, 0.25f)));
         plyr.add(new PlayerComponent(mass));
 
         engine.addEntity(plyr);
@@ -178,7 +182,7 @@ public class physObj {
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
 
         engine.addEntity( staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel),tran) );
+                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran) );
 
         engine.addEntity( staticFactory.create(
                 new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)) );

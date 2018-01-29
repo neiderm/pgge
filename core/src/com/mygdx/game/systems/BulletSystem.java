@@ -6,8 +6,10 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
@@ -18,6 +20,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
+import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.mygdx.game.Components.BulletComponent;
 
 import java.util.Random;
@@ -44,8 +47,12 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 //    private Engine engine;
     private ImmutableArray<Entity> entities;
 
+    private DebugDrawer debugDrawer;
+    private PerspectiveCamera camera; // for debug drawing
 
-    public BulletSystem(Engine engine) {
+    public BulletSystem(Engine engine, PerspectiveCamera cam) {
+
+        this.camera = cam;
 
         Vector3 gravity = new Vector3(0, -9.81f, 0);
 
@@ -57,6 +64,9 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(gravity);
+        debugDrawer = new DebugDrawer();
+        debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
+//        collisionWorld.setDebugDrawer(debugDrawer);
     }
 
     @Override
@@ -65,6 +75,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
 
         for (Entity e : entities) {
+
+            // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
+            debugDrawer.begin(camera);
+            collisionWorld.debugDrawWorld();
+            debugDrawer.end();
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
             btRigidBody body = bc.body;
@@ -79,17 +94,13 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                     tmpM.getTranslation(tmpV);
 
                     if (tmpV.y < -20) {
-                        tmpM.setToTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-                        // did idt, so need to scl
+// might end up putting this w/ a different system / component ... should be same to get translation from transformation matrix?
+                        tmpM.setTranslation(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
                         body.setWorldTransform(tmpM);
                         body.setAngularVelocity(Vector3.Zero.cpy());
                         body.setLinearVelocity(Vector3.Zero.cpy());
                     }
-                } else{
-                    //bc.modelInst.transform.mul(tmpM.setToScaling(bc.scale)); // why not?
                 }
-            } else {
-                bc = null;
             }
         }
     }
