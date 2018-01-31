@@ -21,7 +21,7 @@ import com.mygdx.game.screens.MainMenuScreen;
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    private static final float forceScl = 0.2f;
+    private static final float forceScl = 0.2f * 60;
 
     // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
     private static final float vLossLin = -0.5f; // so this is kinda like coef of friction!
@@ -48,12 +48,13 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
 
+    private Matrix4 tmpM = new Matrix4();
+    private Vector3 tmpV = new Vector3();
+
     @Override
     public void update(float delta) {
 
-        ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
-
-        Matrix4 tmpM = new Matrix4();
+//        ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
 
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
         btRigidBody body = bc.body;
@@ -72,19 +73,22 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 // for dynamic object you should get world trans directly from rigid body!
         body.getWorldTransform(tmpM); // body.getWorldTransform(inst.transform);
 
-        Vector3 trans = new Vector3();
-        tmpM.getTranslation(trans); // inst.transform.getTranslation(trans);
+        tmpM.getTranslation(tmpV); // inst.transform.getTranslation(trans);
 
-        if (trans.y < -20) {
+        if (tmpV.y < -20) {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
         }
-
-
-        // let's rotate the "tank" by a constant rate
-        // eventually, will rotate @ constant rate while stick left or stick right.
+        
+        // rotate by a constant rate according to stick left or stick right.
         // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
+        float degrees = 0;
+        if (playerComp.vvv.x < -0.5) {
+            degrees = 1;
+        } else if (playerComp.vvv.x > 0.5) {
+            degrees = -1;
+        }
 
-        tmpM.rotate(0, 0, 1, 1); // does not touch translation ;)
+        tmpM.rotate(0, 0, 1, degrees); // does not touch translation ;)
         body.setWorldTransform(tmpM);
     }
 

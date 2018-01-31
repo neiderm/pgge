@@ -71,7 +71,11 @@ public class GameScreen implements Screen {
 //private ModelComponent modelComp;
     //    private btRigidBody playerBody;
 
-    private static int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
+    private static final int touchBoxW = Gdx.graphics.getWidth() / 4;
+    private static final int touchBoxH = Gdx.graphics.getHeight() / 4;
+    private static final int gameBoxW = Gdx.graphics.getWidth();
+    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
+//        gameBoxH = Gdx.graphics.getHeight();
 
 
     /*
@@ -87,7 +91,6 @@ public class GameScreen implements Screen {
 
         private int touchDownCt = 0;
         private int touchUpCt = 0;
-
         private boolean isTouchInPad = false;
 
         // create a location rectangle for touchbox (in terms of screen coordinates!)
@@ -96,13 +99,14 @@ public class GameScreen implements Screen {
                 Gdx.graphics.getHeight() - touchBoxH,
                 touchBoxW, touchBoxH);
 
-        private void setVector(int screenX, int screenY) {
+        private Vector2 ctr = new Vector2();
 
-            Vector2 ctr = new Vector2();
+        private void setVector(int screenX, int screenY) {
+            float normalize = (touchBoxH / 2);
             touchBoxRect.getCenter(ctr);
-            playerComp.vvv.x = screenX - ctr.x;
+            playerComp.vvv.x = (screenX - ctr.x) / normalize;
             playerComp.vvv.y = 0;
-            playerComp.vvv.z = screenY - ctr.y;
+            playerComp.vvv.z = (screenY - ctr.y) / normalize;
         }
 
         @Override
@@ -110,7 +114,8 @@ public class GameScreen implements Screen {
 
             if (touchBoxRect.contains(screenX, screenY)) {
 
-                Gdx.app.log(this.getClass().getName(), String.format("touchDown%d x = %d y = %d", touchDownCt++, screenX, screenY));
+                Gdx.app.log(this.getClass().getName(),
+                        String.format("touchDown%d x = %d y = %d", touchDownCt++, screenX, screenY));
 
                 isTouchInPad = true;
                 setVector(screenX, screenY);
@@ -126,14 +131,12 @@ public class GameScreen implements Screen {
             if (touchBoxRect.contains(screenX, screenY)) {
 
 //                Gdx.app.log(this.g0etClass().getName(), String.format("x = %d y = %d", screenX, screenY));
-
                 isTouchInPad = true;
                 setVector(screenX, screenY);
                 return true;
             } else if (isTouchInPad) {
                 // still touching, but out of bounds, so escape it
 //                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
-
 //                playerComp.vvv = new Vector3(0,0,0); // let motion continue while touch down?
                 return true;
             }
@@ -143,14 +146,12 @@ public class GameScreen implements Screen {
         @Override
         public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 
-            Gdx.app.log(this.getClass().getName(), String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
+            Gdx.app.log(this.getClass().getName(),
+                    String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
 
             if (isTouchInPad) {
                 isTouchInPad = false;
-                playerComp.vvv = new Vector3(0,0,0);
-
-// TODO: ? on touchUP: counter the force applied by the "joystick", but allow energy of a bounce to persist
-
+                playerComp.vvv = Vector3.Zero.cpy();
                 return true;
             }
             return false;
@@ -161,12 +162,6 @@ public class GameScreen implements Screen {
     public GameScreen(MyGdxGame game) {
 
         this.game = game;
-
-        touchBoxW = Gdx.graphics.getWidth() / 4;
-        touchBoxH = Gdx.graphics.getHeight() / 4;
-        gameBoxW = Gdx.graphics.getWidth();
-        gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
-//        gameBoxH = Gdx.graphics.getHeight();
 
         environment = new Environment();
         environment.set(
@@ -306,6 +301,7 @@ mmm.getRotation(r);
         shapeRenderer.rect(
                 (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2, 0,
                 touchBoxW, touchBoxH);
+        shapeRenderer.circle((float)Gdx.graphics.getWidth() / 2, (float)0 + touchBoxH / 2, 1);
         shapeRenderer.end();
     }
 
