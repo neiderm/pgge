@@ -21,16 +21,15 @@ import com.mygdx.game.screens.MainMenuScreen;
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    private static final float forceScl = 0.2f; // rolling sphere
-//    static private final float forceScl = 0.7f; // box
+    private static final float forceScl = 0.2f;
 
     // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
-    private static final float vLossLin = -1.9f; // -0.5f;     HA this is kinda like coef of friction!
+    private static final float vLossLin = -0.5f; // so this is kinda like coef of friction!
 
 //    static private final float vLossAng = -5.0f;
 
 
-    private Engine engine;
+//    private Engine engine;
     public Entity playerEntity;
     private PlayerComponent playerComp;
 
@@ -61,7 +60,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
 // should only apply force if linear velocity less than some limit!
         float force = forceScl * playerComp.mass;
-        body.applyCentralForce(playerComp.vvv.scl(force));
+        body.applyCentralForce(playerComp.vvv.cpy().scl(force));
 
 // my negative linear force is great for rolling, but should not apply while FALLING!
 // need to simulate friction (function of velocity?) when collision detected
