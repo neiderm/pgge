@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
@@ -24,9 +25,10 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //    static private final float forceScl = 0.7f; // box
 
     // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
-    static private final float vLossLin = -1.9f; // -0.5f;
+    static private final float vLossLin = -1.9f; // -0.5f;     HA this is kinda like coef of friction!
 
 //    static private final float vLossAng = -5.0f;
+
 
     private Engine engine;
     public Entity playerEntity;
@@ -51,23 +53,25 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
 
-        float mass = playerComp.mass;
+
         btRigidBody body = playerEntity.getComponent(BulletComponent.class).body;
 
-        float force = forceScl * mass;
 
+        float force = forceScl * playerComp.mass;
         body.applyCentralForce(playerComp.vvv.scl(force));
 
 // my negative linear force is great for rolling, but should not apply while FALLING!
+// need to simulate friction (function of velocity?) when collision detected
         // always apply loss of energy (torque negative of vA, linear negative of vL, fraction of mass)
         // (only works for sphere if mostly in surface contact, not if falling any significant distance)
 //        body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
-        body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * mass));
+        body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * playerComp.mass));
 
-        body.getWorldTransform(inst.transform);
+        Matrix4 tmpM = new Matrix4();
+        body.getWorldTransform(tmpM); // body.getWorldTransform(inst.transform);
 
         Vector3 trans = new Vector3();
-        inst.transform.getTranslation(trans);
+        tmpM.getTranslation(trans); // inst.transform.getTranslation(trans);
 
         if (trans.y < -20) {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
