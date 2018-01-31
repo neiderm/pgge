@@ -19,7 +19,8 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
-import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
@@ -102,7 +103,7 @@ public class physObj {
 
     public static void createEntities(Engine engine) {
 
-        final int N_ENTITIES = 21;
+        final int N_ENTITIES = 1;
         final int N_BOXES = 10;
 
         Vector3 tmpV = new Vector3(); // size
@@ -128,43 +129,58 @@ public class physObj {
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1);
-///*
-        engine.addEntity(
-                new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
-                        new btConeShape(0.5f, 2.0f)));
+if (false) {
+    engine.addEntity(
+            new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
+                    new btConeShape(0.5f, 2.0f)));
 
-        engine.addEntity(
-                new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
-                        new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+    engine.addEntity(
+            new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
+                    new btCapsuleShape(0.5f, 0.5f * 2.0f)));
 
-        engine.addEntity(
-                new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
-                        new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
-//*/
+    engine.addEntity(
+            new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
+                    new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+} // false
 /*
         float mass = 1.0f;
         Entity plyr = new GameObject(s, tankTemplateModel).create(
                 mass, t, new btBoxShape(tankSize.cpy().scl(0.5f)));
         plyr.add(new PlayerComponent(mass));
-*/
+    */
         float mass = 5.1f; // can't go much more mass, ball way too fast!
 //        Entity plyr = new GameObject(s, ballTemplateModel).create(
         Entity plyr = new GameObject(s, shipModel).create(
-                mass, t, new btBoxShape(new Vector3(0.5f, 0.75f, 0.25f)));
+                mass, new Vector3(0, 5f, -5f),
+                new btBoxShape(new Vector3(0.5f, 0.75f, 0.25f)));
         plyr.add(new PlayerComponent(mass));
-
         engine.addEntity(plyr);
 
+        Matrix4 tmpM = new Matrix4();
+        BulletComponent bc = plyr.getComponent(BulletComponent.class);
+        btRigidBody body = bc.body;
+        bc.motionstate.getWorldTransform(tmpM);
+        tmpM.getTranslation(tmpV);
 
-        BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
-///*
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-//*/
+        // these rotations are equivalent!!!
+        //        tmpM.setFromEulerAngles(0, -90, 0);
+//        tmpM.rotate(1, 0, 0, -90);
+        tmpM.rotate(-1, 0, 0, 90);
+
+        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
+        body.setWorldTransform(tmpM); // setCenterOfMassTransform
+
+
+if (false) {
+    BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
+
+    engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
+    engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
+    engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
+    engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
+    engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
+    engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
+} // false
         int wallW = 0;
         int wallH = 0;
         for (wallH = 0; wallH < 2; wallH++) {

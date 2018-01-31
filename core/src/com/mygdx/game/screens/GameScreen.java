@@ -22,12 +22,15 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
@@ -65,6 +68,7 @@ public class GameScreen implements Screen {
 
     private PlayerComponent playerComp;
     private BulletComponent bulletComp;
+//private ModelComponent modelComp;
     //    private btRigidBody playerBody;
 
     private static int touchBoxW, touchBoxH, gameBoxW, gameBoxH;
@@ -72,8 +76,12 @@ public class GameScreen implements Screen {
 
     /*
      * my multiplexed input adaptor
-
-TODO: something screwing up camera when virtual touchpad is used
+     * TODO:
+     *   inputSystem.update(virtualPadX, virtualPadY, virtualButtonStates);
+     *
+     *   inputSystem:update() would handle (what would presumably) be one certain entity that should
+     *   respond to inputs (note: input response not necessarily limited to the player, as maybe we
+     *   would want to also drive inputs to e.g. guided missile ;)
      */
     private class MyInputAdapter extends InputAdapter {
 
@@ -218,12 +226,12 @@ TODO: something screwing up camera when virtual touchpad is used
 
 //        Entity e = EntityFactory.createPlayer(new Vector3(0, 1.5f, 0), 5.0f);
 //        engine.addEntity(e);
-
 //        playerComp = e.getComponent(PlayerComponent.class);
         //    playerBody = e.getComponent(BulletComponent.class).body;
 
         playerComp = playerSystem.playerEntity.getComponent(PlayerComponent.class);
         bulletComp = playerSystem.playerEntity.getComponent(BulletComponent.class);
+//modelComp = playerSystem.playerEntity.getComponent(ModelComponent.class);
     }
 
     private void addSystems() {
@@ -284,7 +292,10 @@ TODO: something screwing up camera when virtual touchpad is used
                     playerComp.vvv.x, playerComp.vvv.y, playerComp.vvv.z);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
-            s = String.format("three");
+            Matrix4 mmm = bulletComp.motionstate.transform;
+Quaternion r = new Quaternion();
+mmm.getRotation(r);
+            s = String.format("%+2.1f %+2.1f %+2.1f", r.getPitch(), r.getYaw(), r.getRoll());
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
 //        box.draw(batch);

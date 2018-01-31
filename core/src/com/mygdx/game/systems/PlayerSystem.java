@@ -49,12 +49,15 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
 
+
     public void update(float delta) {
 
         ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
 
+        Matrix4 tmpM = new Matrix4();
 
-        btRigidBody body = playerEntity.getComponent(BulletComponent.class).body;
+        BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
+        btRigidBody body = bc.body;
 
 
         float force = forceScl * playerComp.mass;
@@ -67,7 +70,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //        body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
         body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * playerComp.mass));
 
-        Matrix4 tmpM = new Matrix4();
+// I don't need to get world trans thru motionState ... are they same reference or equal??
         body.getWorldTransform(tmpM); // body.getWorldTransform(inst.transform);
 
         Vector3 trans = new Vector3();
@@ -76,7 +79,26 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         if (trans.y < -20) {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
         }
+
+
+        // let's rotate the "tank" by a constant rate
+        // eventually, will rotate @ constant rate while stick left or stick right.
+        // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
+
+//        bc.motionstate.getWorldTransform(tmpM);  // this is OK but I already have body.getWorldTransform(tmpM)
+//        tmpM.rotate(0, 0, 1, 1);
+//        tmpM.setTranslation(trans.x, trans.y, trans.z); // don't need this I guess
+
+
+// rotate the instance transform works just as well
+        tmpM = new Matrix4(inst.transform);
+        //tmpM.rotate(0, 1, 0, 1);
+        tmpM.rotate(0, 0, 1, 1); // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
+//tmpM.setTranslation(trans.x, trans.y, trans.z);
+
+        body.setWorldTransform(tmpM);
     }
+
 
     @Override
     public void entityAdded(Entity entity) {
