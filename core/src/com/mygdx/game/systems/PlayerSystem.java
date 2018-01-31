@@ -21,11 +21,11 @@ import com.mygdx.game.screens.MainMenuScreen;
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    static private final float forceScl = 0.2f; // rolling sphere
+    private static final float forceScl = 0.2f; // rolling sphere
 //    static private final float forceScl = 0.7f; // box
 
     // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
-    static private final float vLossLin = -1.9f; // -0.5f;     HA this is kinda like coef of friction!
+    private static final float vLossLin = -1.9f; // -0.5f;     HA this is kinda like coef of friction!
 
 //    static private final float vLossAng = -5.0f;
 
@@ -49,7 +49,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
 
-
+    @Override
     public void update(float delta) {
 
         ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
@@ -59,7 +59,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
         btRigidBody body = bc.body;
 
-
+// should only apply force if linear velocity less than some limit!
         float force = forceScl * playerComp.mass;
         body.applyCentralForce(playerComp.vvv.scl(force));
 
@@ -70,7 +70,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //        body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
         body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * playerComp.mass));
 
-// I don't need to get world trans thru motionState ... are they same reference or equal??
+// for dynamic object you should get world trans directly from rigid body!
         body.getWorldTransform(tmpM); // body.getWorldTransform(inst.transform);
 
         Vector3 trans = new Vector3();
@@ -85,17 +85,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         // eventually, will rotate @ constant rate while stick left or stick right.
         // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
 
-//        bc.motionstate.getWorldTransform(tmpM);  // this is OK but I already have body.getWorldTransform(tmpM)
-//        tmpM.rotate(0, 0, 1, 1);
-//        tmpM.setTranslation(trans.x, trans.y, trans.z); // don't need this I guess
-
-
-// rotate the instance transform works just as well
-        tmpM = new Matrix4(inst.transform);
-        //tmpM.rotate(0, 1, 0, 1);
-        tmpM.rotate(0, 0, 1, 1); // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
-//tmpM.setTranslation(trans.x, trans.y, trans.z);
-
+        tmpM.rotate(0, 0, 1, 1); // does not touch translation ;)
         body.setWorldTransform(tmpM);
     }
 

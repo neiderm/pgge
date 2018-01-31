@@ -36,6 +36,7 @@ import java.util.Random;
 
 public class physObj {
 
+    private static boolean useTestObjects = true;
     private static Model model;
     private static final AssetManager assets;
     private static final Model landscapeModel;
@@ -129,7 +130,7 @@ public class physObj {
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1);
-if (false) {
+if (useTestObjects) {
     engine.addEntity(
             new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
                     new btConeShape(0.5f, 2.0f)));
@@ -141,7 +142,7 @@ if (false) {
     engine.addEntity(
             new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                     new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
-} // false
+} //
 /*
         float mass = 1.0f;
         Entity plyr = new GameObject(s, tankTemplateModel).create(
@@ -151,27 +152,27 @@ if (false) {
         float mass = 5.1f; // can't go much more mass, ball way too fast!
 //        Entity plyr = new GameObject(s, ballTemplateModel).create(
         Entity plyr = new GameObject(s, shipModel).create(
-                mass, new Vector3(0, 5f, -5f),
+                mass, new Vector3(0, 15f, -5f),
                 new btBoxShape(new Vector3(0.5f, 0.75f, 0.25f)));
         plyr.add(new PlayerComponent(mass));
         engine.addEntity(plyr);
 
         Matrix4 tmpM = new Matrix4();
-        BulletComponent bc = plyr.getComponent(BulletComponent.class);
-        btRigidBody body = bc.body;
-        bc.motionstate.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
+        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
+        body.getWorldTransform(tmpM);
 
         // these rotations are equivalent!!!
-        //        tmpM.setFromEulerAngles(0, -90, 0);
 //        tmpM.rotate(1, 0, 0, -90);
         tmpM.rotate(-1, 0, 0, 90);
 
-        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
+        //        tmpM.getTranslation(tmpV);
+//                tmpM.setFromEulerAngles(0, -90, 0);  // but this one clears translation!
+//        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
+
         body.setWorldTransform(tmpM); // setCenterOfMassTransform
 
 
-if (false) {
+if (useTestObjects) {
     BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
 
     engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
@@ -180,7 +181,7 @@ if (false) {
     engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
     engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
     engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-} // false
+} //
         int wallW = 0;
         int wallH = 0;
         for (wallH = 0; wallH < 2; wallH++) {
@@ -210,6 +211,8 @@ if (false) {
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
         transform.trn(0, 0 + yTrans, 0);
         engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
+
+// TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
     }
 
 
