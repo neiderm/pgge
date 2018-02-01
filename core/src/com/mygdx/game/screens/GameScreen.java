@@ -290,6 +290,7 @@ public class GameScreen implements Screen {
             Matrix4 mmm = bulletComp.motionstate.transform;
 Quaternion r = new Quaternion();
 mmm.getRotation(r);
+r = bulletComp.body.getOrientation(); /// same as getRotation?
             s = String.format("%+2.1f %+2.1f %+2.1f", r.getPitch(), r.getYaw(), r.getRoll());
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }

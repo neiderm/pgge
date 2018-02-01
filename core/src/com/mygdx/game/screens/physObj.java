@@ -153,7 +153,7 @@ if (useTestObjects) {
 //        Entity plyr = new GameObject(s, ballTemplateModel).create(
         Entity plyr = new GameObject(s, shipModel).create(
                 mass, new Vector3(0, 15f, -5f),
-                new btBoxShape(new Vector3(0.5f, 0.75f, 0.25f)));
+                new btBoxShape(new Vector3(0.5f, 0.25f, 0.75f)));
         plyr.add(new PlayerComponent(mass));
         engine.addEntity(plyr);
 
@@ -163,13 +163,13 @@ if (useTestObjects) {
 
         // these rotations are equivalent!!!
 //        tmpM.rotate(1, 0, 0, -90);
-        tmpM.rotate(-1, 0, 0, 90);
+//        tmpM.rotate(-1, 0, 0, 90);
 
         //        tmpM.getTranslation(tmpV);
 //                tmpM.setFromEulerAngles(0, -90, 0);  // but this one clears translation!
 //        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
 
-        body.setWorldTransform(tmpM); // setCenterOfMassTransform
+//        body.setWorldTransform(tmpM); // setCenterOfMassTransform
 
 
 if (useTestObjects) {

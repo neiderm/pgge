@@ -60,7 +60,16 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         btRigidBody body = bc.body;
 
 // should only apply force if linear velocity less than some limit!
-        float force = forceScl * playerComp.mass;
+        float force = 0; // forceScl * playerComp.mass;
+
+body.getOrientation(); // ?
+
+        if (playerComp.vvv.z > 0.5) {
+            force = forceScl * playerComp.mass;
+        } else if (playerComp.vvv.z < -0.5) {
+            force = forceScl * playerComp.mass; // TODO: reverse!
+        }
+
         body.applyCentralForce(playerComp.vvv.cpy().scl(force));
 
 // my negative linear force is great for rolling, but should not apply while FALLING!
@@ -88,7 +97,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             degrees = -1;
         }
 
-        tmpM.rotate(0, 0, 1, degrees); // does not touch translation ;)
+        tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
         body.setWorldTransform(tmpM);
     }
 
@@ -101,6 +110,10 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             playerEntity = entity;
 
             playerComp = entity.getComponent(PlayerComponent.class);
+
+
+            // for getting transform (make it class instance)
+            BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
         }
     }
 
