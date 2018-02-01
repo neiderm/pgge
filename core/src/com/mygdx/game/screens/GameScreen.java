@@ -280,7 +280,8 @@ public class GameScreen implements Screen {
             btRigidBody playerBody = bulletComp.body;
             String s;
             s = String.format("%+2.1f %+2.1f %+2.1f",
-                    playerBody.getLinearVelocity().x, playerBody.getLinearVelocity().y, playerBody.getLinearVelocity().z);
+//                    playerBody.getLinearVelocity().x, playerBody.getLinearVelocity().y, playerBody.getLinearVelocity().z);
+                    playerComp.vVelocity.x, playerComp.vVelocity.y, playerComp.vVelocity.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
             s = String.format("%+2.1f %+2.1f %+2.1f",
@@ -288,9 +289,9 @@ public class GameScreen implements Screen {
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
             Matrix4 mmm = bulletComp.motionstate.transform;
-Quaternion r = new Quaternion();
-mmm.getRotation(r);
-r = bulletComp.body.getOrientation(); /// same as getRotation?
+            Quaternion r = new Quaternion();
+            mmm.getRotation(r);
+            r = bulletComp.body.getOrientation(); /// same as getRotation?
             s = String.format("%+2.1f %+2.1f %+2.1f", r.getPitch(), r.getYaw(), r.getRoll());
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }

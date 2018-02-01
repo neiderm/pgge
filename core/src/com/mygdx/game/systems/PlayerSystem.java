@@ -50,41 +50,60 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //        this.engine = engine;
 
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
+
+//        vVelocity = playerComp.vVelocity;
     }
 
     private Matrix4 tmpM = new Matrix4();
-    private Vector3 tmpV = new Vector3();
+    public Vector3 tmpV = new Vector3();
+//    public Vector3 vVelocity = new Vector3();
+    public Vector3 vVelocity; // = playerComp.vVelocity;
 
     @Override
     public void update(float delta) {
+
+        vVelocity = playerComp.vVelocity; // tmp to allow debugging on game screen
 
 //        ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
 
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
         btRigidBody body = bc.body;
 
-// should only apply force if linear velocity less than some limit!
-        float force = 0; // forceScl * playerComp.mass;
 
-Quaternion r = body.getOrientation(); // ?
-float yaw = r.getYaw();
-
-        if (playerComp.vvv.z < -0.5) {
-            force = forceScl * playerComp.mass;
-            tmpV.set(0, 0, -1);
-        } else if (playerComp.vvv.z > 0.5) {
-            force = forceScl * playerComp.mass; // TODO: reverse!
-            tmpV.set(0, 0, 1);
+        // rotate by a constant rate according to stick left or stick right.
+        // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
+        float degrees = 0;
+        if (playerComp.vvv.x < -0.5) {
+            degrees = 1;
+        } else if (playerComp.vvv.x > 0.5) {
+            degrees = -1;
         }
 
-        tmpV.rotate(0, 1, 0, yaw);
-tmpV.x = sin(yaw);
-tmpV.z = cos(yaw);
 
-        tmpV.scl(force);
+        Quaternion r = body.getOrientation();
+        float yaw = r.getYawRad();
+        //            tmpV.rotate(0, 1, 0, yaw);
+        vVelocity.x = -sin(yaw);
+        vVelocity.y = 0;
+        vVelocity.z = -cos(yaw);
 
+
+        // should only apply force if linear velocity less than some limit!
+        float force = forceScl * playerComp.mass;
+
+        if (playerComp.vvv.z < -0.5) {
+//            tmpV.set(0, 0, -1);
+        } else if (playerComp.vvv.z > 0.5) {
+            // reverse!
+//            tmpV.set(0, 0, 1);
+            force *= -1;
+            // reverse the rotation
+            degrees *= -1;
+        } else
+            vVelocity.set(0, 0, 0);
+
+        body.applyCentralForce(vVelocity.cpy().scl(force));
 //        body.applyCentralForce(playerComp.vvv.cpy().scl(force));
-        body.applyCentralForce(tmpV);
 
 
 // my negative linear force is great for rolling, but should not apply while FALLING!
@@ -95,22 +114,13 @@ tmpV.z = cos(yaw);
         body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * playerComp.mass));
 
 // for dynamic object you should get world trans directly from rigid body!
-        body.getWorldTransform(tmpM); // body.getWorldTransform(inst.transform);
-
-        tmpM.getTranslation(tmpV); // inst.transform.getTranslation(trans);
+        body.getWorldTransform(tmpM);
+        tmpM.getTranslation(tmpV);
 
         if (tmpV.y < -20) {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
         }
-        
-        // rotate by a constant rate according to stick left or stick right.
-        // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
-        float degrees = 0;
-        if (playerComp.vvv.x < -0.5) {
-            degrees = 1;
-        } else if (playerComp.vvv.x > 0.5) {
-            degrees = -1;
-        }
+
 
         tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
         body.setWorldTransform(tmpM);
