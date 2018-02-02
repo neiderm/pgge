@@ -9,18 +9,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
-import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -30,7 +24,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
@@ -52,9 +45,6 @@ public class GameScreen implements Screen {
     private PlayerSystem playerSystem; //for reference to player entity
 
     private PerspectiveCamera cam;
-    //    public ModelBatch modelBatch;
-    private Model model;
-    private ModelInstance instance;
 
     private CameraInputController camController;
     //    public FirstPersonCameraController camController;
@@ -72,10 +62,12 @@ public class GameScreen implements Screen {
     //    private btRigidBody playerBody;
 
     private static final int touchBoxW = Gdx.graphics.getWidth() / 4;
-    private static final int touchBoxH = Gdx.graphics.getHeight() / 4;
+    private static final int touchBoxH = touchBoxW ; // Gdx.graphics.getHeight() / 4;
     private static final int gameBoxW = Gdx.graphics.getWidth();
-    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
-//        gameBoxH = Gdx.graphics.getHeight();
+//    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
+private static final int gameBoxH = Gdx.graphics.getHeight();
+
+private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
 
 
     /*
@@ -176,13 +168,6 @@ public class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-        ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(5f, 5f, 5f,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-        instance = new ModelInstance(model);
-
-        instance.transform.scale(2.0f, 2.0f, 2.0f);
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -236,7 +221,6 @@ public class GameScreen implements Screen {
         engine = new Engine();
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
-
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
 
         //    engine.addSystem(new EnemySystem());
@@ -255,17 +239,12 @@ public class GameScreen implements Screen {
         camController.update();
 
         // game box viewport
-        Gdx.gl.glViewport(0, touchBoxH, gameBoxW, gameBoxH);
+//        Gdx.gl.glViewport(0, touchBoxH, gameBoxW, gameBoxH);
+        Gdx.gl.glViewport(0, 0, gameBoxW, gameBoxH);
         //         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-
-//        modelBatch.begin(cam);
-//        modelBatch.render(instance);
-
         engine.update(delta);
-
-//        modelBatch.end();
 
         // GUI viewport (full screen)
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -299,11 +278,22 @@ public class GameScreen implements Screen {
 
         batch.end();
 
+//        shapeRenderer.setProjectionMatrix ????
+        // semi-opaque filled box over touch area
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(hudOverlayColor);
+        shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), touchBoxH);
+        shapeRenderer.end();
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.rect(
-                (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2, 0,
-                touchBoxW, touchBoxH);
-        shapeRenderer.circle((float)Gdx.graphics.getWidth() / 2, (float)0 + touchBoxH / 2, 1);
+                Gdx.graphics.getWidth() / 2.0f - touchBoxW / 2.0f, 0, touchBoxW, touchBoxH);
+        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, 1.0f);
+        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, touchBoxH / 2.0f);
         shapeRenderer.end();
     }
 
@@ -317,13 +307,7 @@ public class GameScreen implements Screen {
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
 
-// The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-//  Disposing the model will automatically make all instances invalid!
-
         physObj.dispose(); // static dispose models
-
-//        modelBatch.dispose();
-        model.dispose();
 
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
