@@ -49,8 +49,23 @@ public class EntityFactory {
             return new Entity();
         }
 
+        /*
+         * static entity
+         */
+        public Entity create(Vector3 translation) {
+
+            Entity e = create();
+
+            Matrix4 transform = new Matrix4().idt().trn(translation);
+
+            e.add(new ModelComponent(model, transform, size, rootNodeId));
+
+            return e;
+        }
+
         ///*
         public Entity create(float mass, Vector3 translation) {
+
             return new Entity();
         }
 

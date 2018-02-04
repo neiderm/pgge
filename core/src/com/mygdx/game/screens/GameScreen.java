@@ -27,6 +27,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
+import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
@@ -225,6 +226,7 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
 
         //    engine.addSystem(new EnemySystem());
           engine.addSystem(playerSystem = new PlayerSystem(this.game));
+        engine.addSystem(new CameraSystem());
     }
 
 

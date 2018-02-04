@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.math.Matrix4;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.ModelComponent;
 
 /**
@@ -63,19 +64,23 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
         for (Entity e : entities) {
 
+//            CameraComponent cc = e.getComponent(CameraComponent.class);
+//if (null != cc)
+//    cc.test = 1;
+
             ModelComponent mc = e.getComponent(ModelComponent.class);
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
-            if (null != mc
-                    && null != mc.modelInst
-                    && null != mc.scale // landscape mesh has no scale
-                    && null != bc.body)
-            {
-                if (bc.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+            if (null != mc && null != bc) {
+                if (null != mc.modelInst
+                        && null != mc.scale // landscape mesh has no scale
+                        && null != bc.body) {
+                    if (bc.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
 
-                    if (!bc.sFlag) {
-                        mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
+                        if (!bc.sFlag) {
+                            mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
 //                        mc.modelInst.transform.scl(mc.scale); // nfg idfk, should be same but objects are skewed on 1 or more axis
+                        }
                     }
                 }
             }

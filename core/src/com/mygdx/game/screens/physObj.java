@@ -21,6 +21,8 @@ import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.CameraComponent;
+import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
@@ -157,9 +159,9 @@ if (useTestObjects) {
         plyr.add(new PlayerComponent(mass));
         engine.addEntity(plyr);
 
-        Matrix4 tmpM = new Matrix4();
-        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
-        body.getWorldTransform(tmpM);
+//        Matrix4 tmpM = new Matrix4();
+//        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
+//        body.getWorldTransform(tmpM);
 
         // these rotations are equivalent!!!
 //        tmpM.rotate(1, 0, 0, -90);
@@ -170,6 +172,7 @@ if (useTestObjects) {
 //        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
 
 //        body.setWorldTransform(tmpM); // setCenterOfMassTransform
+
 
 
 if (useTestObjects) {
@@ -208,16 +211,29 @@ if (useTestObjects) {
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
 
         // put the landscape at an angle so stuff falls of it...
+// TODO: ship is "sticking" to landscape
         Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
         transform.trn(0, 0 + yTrans, 0);
         engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
 
 // TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
+
+
+        // visual marker for camera object
+        Entity e =
+                new GameObject(new Vector3(0.25f, 0.25f, 0.5f), model, "cone").create(new Vector3(0, 10f, -5f));
+        // static entity not use motion state so just set the scale on it once and for all
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+        mc.modelInst.transform.scl(mc.scale);
+        e.add(new CameraComponent());
+        engine.addEntity(e);
     }
 
 
     public static void dispose(){
 
+        // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
+//  Disposing the model will automatically make all instances invalid!
         tankTemplateModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
