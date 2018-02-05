@@ -61,35 +61,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
     @Override
     public void update(float delta) {
-
-        updatePlayer();
-        updateCamera();
-    }
-
-    /*
-    ultimately, i should have a camera system that can be a listener on any entity
-     (having a transform) to lookat and track.
-    for now .... lookat player and track a position relative to it
-    Also that camera would have a positin that can be changed perspecitve by the input device .. i.e.
-first-person in tank, behind tank, or above.
-     */
-    private void updateCamera(){
-/*
-        cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0); //         cam.lookAt(0, -2, -4);
-        cam.update();
-*/
-
-        BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
-
-        bc.body.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
-
-
-    }
-
-    private void updatePlayer(){
-
+        
         vVelocity = playerComp.vVelocity; // tmp to allow debugging on game screen
 
 //        ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;

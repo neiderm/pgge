@@ -1,6 +1,7 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
@@ -44,6 +45,7 @@ public class GameScreen implements Screen {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private PlayerSystem playerSystem; //for reference to player entity
+    private CameraSystem cameraSystem;
 
     private PerspectiveCamera cam;
 
@@ -205,14 +207,12 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
 
         physObj.createEntities(engine);
 
-//        Entity e = EntityFactory.createPlayer(new Vector3(0, 1.5f, 0), 5.0f);
-//        engine.addEntity(e);
-//        playerComp = e.getComponent(PlayerComponent.class);
-        //    playerBody = e.getComponent(BulletComponent.class).body;
+        Entity plyr = physObj.createPlayer(engine);
+
+        cameraSystem.setSubject(plyr);
 
         playerComp = playerSystem.playerEntity.getComponent(PlayerComponent.class);
         bulletComp = playerSystem.playerEntity.getComponent(BulletComponent.class);
-//modelComp = playerSystem.playerEntity.getComponent(ModelComponent.class);
     }
 
     private void addSystems() {
@@ -223,10 +223,9 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
-
-        //    engine.addSystem(new EnemySystem());
-          engine.addSystem(playerSystem = new PlayerSystem(this.game));
-        engine.addSystem(new CameraSystem());
+        engine.addSystem(playerSystem = new PlayerSystem(this.game));
+        cameraSystem = new CameraSystem();
+        engine.addSystem(cameraSystem);
     }
 
 

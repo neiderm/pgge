@@ -145,34 +145,6 @@ if (useTestObjects) {
             new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                     new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 } //
-/*
-        float mass = 1.0f;
-        Entity plyr = new GameObject(s, tankTemplateModel).create(
-                mass, t, new btBoxShape(tankSize.cpy().scl(0.5f)));
-        plyr.add(new PlayerComponent(mass));
-    */
-        float mass = 5.1f; // can't go much more mass, ball way too fast!
-//        Entity plyr = new GameObject(s, ballTemplateModel).create(
-        Entity plyr = new GameObject(s, shipModel).create(
-                mass, new Vector3(0, 15f, -5f),
-                new btBoxShape(new Vector3(0.5f, 0.25f, 0.75f)));
-        plyr.add(new PlayerComponent(mass));
-        engine.addEntity(plyr);
-
-//        Matrix4 tmpM = new Matrix4();
-//        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
-//        body.getWorldTransform(tmpM);
-
-        // these rotations are equivalent!!!
-//        tmpM.rotate(1, 0, 0, -90);
-//        tmpM.rotate(-1, 0, 0, 90);
-
-        //        tmpM.getTranslation(tmpV);
-//                tmpM.setFromEulerAngles(0, -90, 0);  // but this one clears translation!
-//        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
-
-//        body.setWorldTransform(tmpM); // setCenterOfMassTransform
-
 
 
 if (useTestObjects) {
@@ -227,6 +199,42 @@ if (useTestObjects) {
         mc.modelInst.transform.scl(mc.scale);
         e.add(new CameraComponent());
         engine.addEntity(e);
+    }
+
+
+    public static Entity createPlayer(Engine engine  )
+    {
+        Vector3 s = new Vector3(1, 1, 1);
+
+        /*
+        float mass = 1.0f;
+        Entity plyr = new GameObject(s, tankTemplateModel).create(
+                mass, t, new btBoxShape(tankSize.cpy().scl(0.5f)));
+        plyr.add(new PlayerComponent(mass));
+    */
+        float mass = 5.1f; // can't go much more mass, ball way too fast!
+//        Entity plyr = new GameObject(s, ballTemplateModel).create(
+        Entity plyr = new GameObject(s, shipModel).create(
+                mass, new Vector3(0, 15f, -5f),
+                new btBoxShape(new Vector3(0.5f, 0.25f, 0.75f)));
+        plyr.add(new PlayerComponent(mass));
+        engine.addEntity(plyr);
+
+//        Matrix4 tmpM = new Matrix4();
+//        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
+//        body.getWorldTransform(tmpM);
+
+        // these rotations are equivalent!!!
+//        tmpM.rotate(1, 0, 0, -90);
+//        tmpM.rotate(-1, 0, 0, 90);
+
+        //        tmpM.getTranslation(tmpV);
+//                tmpM.setFromEulerAngles(0, -90, 0);  // but this one clears translation!
+//        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
+
+//        body.setWorldTransform(tmpM); // setCenterOfMassTransform
+
+        return plyr;
     }
 
 
