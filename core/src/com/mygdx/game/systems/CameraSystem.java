@@ -5,17 +5,14 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 
 /**
  * Created by mango on 2/4/18.
  */
-
 
 /*
     ultimately, i should have a camera system that can be a listener on any entity
@@ -25,27 +22,28 @@ import com.mygdx.game.Components.PlayerComponent;
 first-person in tank, behind tank, or above.
 */
 
-
 public class CameraSystem extends EntitySystem implements EntityListener {
 
-    private ModelComponent modelComp;
-//    private PlayerComponent playerComp;
+    //    private PlayerComponent playerComp;
 //    private CameraComponent cameraComp;
+    //    private ModelComponent modelComp;
 
-    Matrix4 m = new Matrix4();
+    private ModelInstance camMdlInst;
+    private ModelInstance plrMdlInst;
 
 
     public CameraSystem() {
-
     }
 
     @Override
     public void entityAdded(Entity entity) {
 
-        modelComp = entity.getComponent(ModelComponent.class);
-//        cameraComp = entity.getComponent(CameraComponent.class);
+        //        cameraComp = entity.getComponent(CameraComponent.class);
+//        modelComp = entity.getComponent(ModelComponent.class);
 
-        m = new Matrix4(modelComp.modelInst.transform);
+        camMdlInst = entity.getComponent(ModelComponent.class).modelInst;
+
+//        m = new Matrix4(modelComp.modelInst.transform);   // doesn't work :(
     }
 
     @Override
@@ -61,10 +59,29 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         engine.addEntityListener(Family.all(CameraComponent.class).get(), this);
     }
 
-    Vector3 vect = new Vector3();
+    private Vector3 camVect = new Vector3();
+    private Vector3 subVect = new Vector3();
+    private Vector3 tmpV = new Vector3();
 
     @Override
     public void update(float delta) {
+
+        camMdlInst.transform.getTranslation(camVect);
+
+        plrMdlInst.transform.getTranslation(subVect);
+
+        // maintain camera altitude
+        subVect.y += 5.0f;
+
+        tmpV = subVect.sub(camVect);
+
+        tmpV.scl(0.1f); // proportional
+
+//        camVect.x += 0.1f;
+
+        camVect.add(tmpV);
+
+        camMdlInst.transform.setTranslation(camVect);
 
         /*
         cam.position.set(3f, 7f, 10f);
@@ -72,17 +89,12 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         cam.update();
 */
 
-        modelComp.modelInst.transform.getTranslation(vect);
-
-//        vect.x += 0.1f;
-        modelComp.modelInst.transform.setTranslation(vect);
     }
 
 
-    Entity subject;
-
     public void setSubject(Entity e) {
-        subject = e;
+
+        plrMdlInst = e.getComponent(ModelComponent.class).modelInst;
     }
 
 }
