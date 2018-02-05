@@ -5,10 +5,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.ModelComponent;
+
+import static com.badlogic.gdx.math.MathUtils.cos;
+import static com.badlogic.gdx.math.MathUtils.sin;
 
 /**
  * Created by mango on 2/4/18.
@@ -31,8 +36,10 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     private ModelInstance camMdlInst;
     private ModelInstance plrMdlInst;
 
+    private PerspectiveCamera cam;
 
-    public CameraSystem() {
+    public CameraSystem(PerspectiveCamera cam) {
+        this.cam = cam;
     }
 
     @Override
@@ -70,8 +77,21 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
         plrMdlInst.transform.getTranslation(subVect);
 
+
+        // TODO: target point should be "behind" player
+        // take negative of unit vector of players orientation
+        Quaternion r = new Quaternion();
+        plrMdlInst.transform.getRotation(r);
+// hackme ! this is not truly in 3D!
+float yaw = r.getYawRad();
+float dX = sin(yaw);
+float dZ = cos(yaw);
+camVect.x += dX * 1f;
+camVect.z += dZ * 1f;
+
         // maintain camera altitude
-        subVect.y += 5.0f;
+        subVect.y += 2.0f;
+
 
         tmpV = subVect.sub(camVect);
 
@@ -83,9 +103,9 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
         camMdlInst.transform.setTranslation(camVect);
 
-        /*
-        cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0); //         cam.lookAt(0, -2, -4);
+/*
+        cam.position.set(camVect);
+        cam.lookAt(subVect); //         cam.lookAt(0, -2, -4);
         cam.update();
 */
 

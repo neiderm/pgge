@@ -33,6 +33,8 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
+    private final boolean useDdbugDraw = false;
+
     private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
 
@@ -66,7 +68,9 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         collisionWorld.setGravity(gravity);
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
-//        collisionWorld.setDebugDrawer(debugDrawer);
+        if (useDdbugDraw) {
+            collisionWorld.setDebugDrawer(debugDrawer);
+        }
     }
 
     @Override

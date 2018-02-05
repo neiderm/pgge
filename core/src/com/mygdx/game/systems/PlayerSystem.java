@@ -55,16 +55,13 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     }
 
     private Matrix4 tmpM = new Matrix4();
-    public Vector3 tmpV = new Vector3();
-//    public Vector3 vVelocity = new Vector3();
+    private Vector3 tmpV = new Vector3();
     public Vector3 vVelocity; // = playerComp.vVelocity;
 
     @Override
     public void update(float delta) {
         
         vVelocity = playerComp.vVelocity; // tmp to allow debugging on game screen
-
-//        ModelInstance inst = playerEntity.getComponent(ModelComponent.class).modelInst;
 
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
         btRigidBody body = bc.body;

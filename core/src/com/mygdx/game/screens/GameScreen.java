@@ -224,7 +224,7 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
         engine.addSystem(playerSystem = new PlayerSystem(this.game));
-        cameraSystem = new CameraSystem();
+        cameraSystem = new CameraSystem(cam);
         engine.addSystem(cameraSystem);
     }
 
