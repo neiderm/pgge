@@ -16,6 +16,8 @@ import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.screens.MainMenuScreen;
 
+import java.util.Random;
+
 import static com.badlogic.gdx.math.MathUtils.cos;
 import static com.badlogic.gdx.math.MathUtils.sin;
 
@@ -57,6 +59,27 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
     public Vector3 vVelocity; // = playerComp.vVelocity;
+
+    Random rnd = new Random();
+
+    
+    public void onJumpButton(){
+
+        BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
+        btRigidBody body = bc.body;
+
+//        bc.body.applyTorqueImpulse(tmpV.set(25, 0, 0));
+
+        // random flip left or right
+        if (rnd.nextFloat() > 0.5f)
+            tmpV.set(0.1f, 0, 0);
+        else
+            tmpV.set(-0.1f, 0, 0);
+
+        bc.body.applyImpulse(vVelocity.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+
+    }
+
 
     @Override
     public void update(float delta) {

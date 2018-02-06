@@ -17,6 +17,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Rectangle;
@@ -65,12 +66,12 @@ public class GameScreen implements Screen {
     //    private btRigidBody playerBody;
 
     private static final int touchBoxW = Gdx.graphics.getWidth() / 4;
-    private static final int touchBoxH = touchBoxW ; // Gdx.graphics.getHeight() / 4;
+    private static final int touchBoxH = touchBoxW; // Gdx.graphics.getHeight() / 4;
     private static final int gameBoxW = Gdx.graphics.getWidth();
-//    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
-private static final int gameBoxH = Gdx.graphics.getHeight();
+    //    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
+    private static final int gameBoxH = Gdx.graphics.getHeight();
 
-private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
+    private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
 
 
     /*
@@ -94,6 +95,10 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
                 Gdx.graphics.getHeight() - touchBoxH,
                 touchBoxW, touchBoxH);
 
+        private Circle touchBoxCircle =
+                new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - touchBoxH/2, 5);
+
+
         private Vector2 ctr = new Vector2();
 
         private void setVector(int screenX, int screenY) {
@@ -109,13 +114,25 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
 
             if (touchBoxRect.contains(screenX, screenY)) {
 
+
+                if (touchBoxCircle.contains(screenX, screenY)) {
+                    playerSystem.onJumpButton();
+                }
+
+
                 Gdx.app.log(this.getClass().getName(),
                         String.format("touchDown%d x = %d y = %d", touchDownCt++, screenX, screenY));
 
                 isTouchInPad = true;
                 setVector(screenX, screenY);
 
+
+                cameraSystem.isActive = true;
+
                 return true;
+            }
+            else {
+                cameraSystem.isActive = false;
             }
             return false;
         }
@@ -293,7 +310,7 @@ private final Color hudOverlayColor = new Color(1, 0, 0, 0.3f);
         shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.rect(
                 Gdx.graphics.getWidth() / 2.0f - touchBoxW / 2.0f, 0, touchBoxW, touchBoxH);
-        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, 1.0f);
+        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, 10.0f);
         shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, touchBoxH / 2.0f);
         shapeRenderer.end();
     }
