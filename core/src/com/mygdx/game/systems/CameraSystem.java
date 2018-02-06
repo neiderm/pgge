@@ -114,9 +114,9 @@ if (!isActive){
         {
             camMdlInst.transform.setTranslation(camVect);
 
-
             cam.position.set(camVect);
             cam.lookAt(subVect);
+            cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
             cam.update();
         }
 
