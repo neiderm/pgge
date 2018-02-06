@@ -96,7 +96,7 @@ public class GameScreen implements Screen {
                 touchBoxW, touchBoxH);
 
         private Circle touchBoxCircle =
-                new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - touchBoxH/2, 5);
+                new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - touchBoxH/2, 10);
 
 
         private Vector2 ctr = new Vector2();
