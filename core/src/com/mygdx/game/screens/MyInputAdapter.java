@@ -5,7 +5,6 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.systems.InputReceiverSystem;
 
 import static com.mygdx.game.screens.GameScreen.touchBoxH;
@@ -26,6 +25,9 @@ import static com.mygdx.game.screens.GameScreen.touchBoxW;
      */
 class MyInputAdapter extends InputAdapter {
 
+    // TODO: multiple input receiver systems
+    private InputReceiverSystem registeredSystem;
+
     private int touchDownCt = 0;
     private int touchUpCt = 0;
     private boolean isTouchInPad = false;
@@ -41,8 +43,6 @@ class MyInputAdapter extends InputAdapter {
 
 
     private Vector2 ctr = new Vector2();
-
-    private InputReceiverSystem registeredSystem;
 
 
     public void registerSystem(InputReceiverSystem system){

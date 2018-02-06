@@ -77,7 +77,9 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     private Vector3 camVect = new Vector3();
     private Vector3 subVect = new Vector3();
     private Vector3 tgtVect = new Vector3();
-    private Vector3 tmpV = new Vector3();
+    private Vector3 integral = new Vector3(0, 0, 0);
+    private Vector3 error = new Vector3(0, 0, 0);
+    private Vector3 output = new Vector3(0, 0, 0);
 
     @Override
     public void update(float delta) {
@@ -103,23 +105,28 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         tgtVect.z += dZ * 3f;
 
 
-        tmpV = tgtVect.sub(camVect);
-        tmpV.scl(0.1f); // proportional
+        error = tgtVect.sub(camVect);
 
+        float kI = 0.001f;
+        integral.add(error.cpy().scl(delta * kI));
 
-        camVect.add(tmpV);
+        float kP = 0.02f;
+        output.set(error.cpy().scl(kP)); // proportional
+//output.add(integral);
+
+        camVect.add(output);
 
 
 //        if (isActive) // idfk
-        {
+
             camMdlInst.transform.setTranslation(camVect);
 
+        if (true) {
             cam.position.set(camVect);
             cam.lookAt(subVect);
             cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
             cam.update();
         }
-
     }
 
 

@@ -45,7 +45,7 @@ public class MainMenuScreen implements Screen {
 
     public MainMenuScreen(MyGdxGame game) {
 
-        Gdx.graphics.setWindowedMode(800,600);
+//        Gdx.graphics.setWindowedMode(800,600);
         this.game = game;
 
         font = new BitmapFont();
