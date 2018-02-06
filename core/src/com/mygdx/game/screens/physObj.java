@@ -182,18 +182,21 @@ if (useTestObjects) {
         engine.addEntity( staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
 
-        // put the landscape at an angle so stuff falls of it...
+if (false) {
+    // put the landscape at an angle so stuff falls of it...
 // TODO: ship is "sticking" to landscape
-        Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
-        transform.trn(0, 0 + yTrans, 0);
-        engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
+    Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+    transform.trn(0, 0 + yTrans, 0);
+    engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
+}
+
 
 // TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
 
 
         // visual marker for camera object
         Entity e =
-                new GameObject(new Vector3(0.25f, 0.25f, 0.5f), model, "cone").create(new Vector3(0, 10f, -5f));
+                new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
@@ -216,7 +219,9 @@ if (useTestObjects) {
 //        Entity plyr = new GameObject(s, ballTemplateModel).create(
         Entity plyr = new GameObject(s, shipModel).create(
                 mass, new Vector3(0, 15f, -5f),
-                new btBoxShape(new Vector3(0.5f, 0.25f, 0.75f)));
+                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
+//                new btConeShape(0.75f, 0.25f));
+//                new btCylinderShape(new Vector3(0.5f, 0.25f, 0.75f)));
         plyr.add(new PlayerComponent(mass));
         engine.addEntity(plyr);
 
