@@ -3,7 +3,6 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -17,12 +16,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
@@ -65,110 +60,15 @@ public class GameScreen implements Screen {
 //private ModelComponent modelComp;
     //    private btRigidBody playerBody;
 
-    private static final int touchBoxW = Gdx.graphics.getWidth() / 4;
-    private static final int touchBoxH = touchBoxW; // Gdx.graphics.getHeight() / 4;
-    private static final int gameBoxW = Gdx.graphics.getWidth();
+    public static final int touchBoxW = Gdx.graphics.getWidth() / 4;
+    public static final int touchBoxH = touchBoxW; // Gdx.graphics.getHeight() / 4;
+    public static final int gameBoxW = Gdx.graphics.getWidth();
     //    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
-    private static final int gameBoxH = Gdx.graphics.getHeight();
+    public static final int gameBoxH = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
 
 
-    /*
-     * my multiplexed input adaptor
-     * TODO:
-     *   inputSystem.update(virtualPadX, virtualPadY, virtualButtonStates);
-     *
-     *   inputSystem:update() would handle (what would presumably) be one certain entity that should
-     *   respond to inputs (note: input response not necessarily limited to the player, as maybe we
-     *   would want to also drive inputs to e.g. guided missile ;)
-     */
-    private class MyInputAdapter extends InputAdapter {
-
-        private int touchDownCt = 0;
-        private int touchUpCt = 0;
-        private boolean isTouchInPad = false;
-
-        // create a location rectangle for touchbox (in terms of screen coordinates!)
-        private Rectangle touchBoxRect = new Rectangle(
-                Gdx.graphics.getWidth() / 2 - touchBoxW / 2,
-                Gdx.graphics.getHeight() - touchBoxH,
-                touchBoxW, touchBoxH);
-
-        private Circle touchBoxCircle =
-                new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - touchBoxH/2, 10);
-
-
-        private Vector2 ctr = new Vector2();
-
-        private void setVector(int screenX, int screenY) {
-            float normalize = (touchBoxH / 2);
-            touchBoxRect.getCenter(ctr);
-            playerComp.vvv.x = (screenX - ctr.x) / normalize;
-            playerComp.vvv.y = 0;
-            playerComp.vvv.z = (screenY - ctr.y) / normalize;
-        }
-
-        @Override
-        public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-            if (touchBoxRect.contains(screenX, screenY)) {
-
-
-                if (touchBoxCircle.contains(screenX, screenY)) {
-                    playerSystem.onJumpButton();
-                }
-
-
-                Gdx.app.log(this.getClass().getName(),
-                        String.format("touchDown%d x = %d y = %d", touchDownCt++, screenX, screenY));
-
-                isTouchInPad = true;
-                setVector(screenX, screenY);
-
-
-                cameraSystem.isActive = true;
-
-                return true;
-            }
-            else {
-                cameraSystem.isActive = false;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean touchDragged(int screenX, int screenY, int pointer) {
-
-            if (touchBoxRect.contains(screenX, screenY)) {
-
-//                Gdx.app.log(this.g0etClass().getName(), String.format("x = %d y = %d", screenX, screenY));
-                isTouchInPad = true;
-                setVector(screenX, screenY);
-                return true;
-            } else if (isTouchInPad) {
-                // still touching, but out of bounds, so escape it
-//                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
-//                playerComp.vvv = new Vector3(0,0,0); // let motion continue while touch down?
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-
-            Gdx.app.log(this.getClass().getName(),
-                    String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
-
-            if (isTouchInPad) {
-                isTouchInPad = false;
-                playerComp.vvv = Vector3.Zero.cpy();
-                return true;
-            }
-            return false;
-        }
-    }
 
 
     public GameScreen(MyGdxGame game) {
@@ -183,7 +83,7 @@ public class GameScreen implements Screen {
 
         cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
         cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0); //         cam.lookAt(0, -2, -4);
+        cam.lookAt(0, 4, 0);
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
@@ -192,8 +92,10 @@ public class GameScreen implements Screen {
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
+
+        MyInputAdapter inputAdapter = new MyInputAdapter();
         InputMultiplexer multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(new MyInputAdapter());
+        multiplexer.addProcessor(inputAdapter);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
 
@@ -201,6 +103,8 @@ public class GameScreen implements Screen {
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
         addEntities();
+
+        inputAdapter.registerSystem(playerSystem);
 
 
         // Font files from ashley-superjumper

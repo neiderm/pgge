@@ -5,13 +5,12 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.screens.MainMenuScreen;
@@ -25,7 +24,7 @@ import static com.badlogic.gdx.math.MathUtils.sin;
  * Created by mango on 1/23/18.
  */
 
-public class PlayerSystem extends EntitySystem implements EntityListener {
+public class PlayerSystem extends EntitySystem implements EntityListener, InputReceiverSystem {
 
     private static final float forceScl = 0.2f * 60;
 
@@ -62,7 +61,30 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
     Random rnd = new Random();
 
-    
+
+    private void updateV(float x, float y){
+        playerComp.vvv.x = x;
+        playerComp.vvv.y = 0;
+        playerComp.vvv.z = y;
+    }
+
+    public void onTouchDown(Vector2 xy) {
+        updateV(xy.x, xy.y);
+    }
+
+    public void onTouchUp(Vector2 xy) {
+        updateV(xy.x, xy.y);
+    }
+
+    public void onTouchDragged(Vector2 xy) {
+        updateV(xy.x, xy.y);
+    }
+
+    public void onButton() {
+        onJumpButton();
+    }
+
+
     public void onJumpButton(){
 
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
@@ -91,9 +113,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         // rotate by a constant rate according to stick left or stick right.
         // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
         float degrees = 0;
-        if (playerComp.vvv.x < -0.5) {
+        if (playerComp.vvv.x < -0.25) {
             degrees = 1;
-        } else if (playerComp.vvv.x > 0.5) {
+        } else if (playerComp.vvv.x > 0.25) {
             degrees = -1;
         }
 
@@ -109,9 +131,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         // should only apply force if linear velocity less than some limit!
         float force = forceScl * playerComp.mass;
 
-        if (playerComp.vvv.z < -0.5) {
+        if (playerComp.vvv.z < -0.25) {
 //            tmpV.set(0, 0, -1);
-        } else if (playerComp.vvv.z > 0.5) {
+        } else if (playerComp.vvv.z > 0.25) {
             // reverse!
 //            tmpV.set(0, 0, 1);
             force *= -1;
