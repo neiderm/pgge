@@ -33,6 +33,8 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 //    private CameraComponent cameraComp;
     //    private ModelComponent modelComp;
 
+    public boolean isActive = false;
+
     private ModelInstance camMdlInst;
     private ModelInstance plrMdlInst;
 
@@ -68,6 +70,7 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
     private Vector3 camVect = new Vector3();
     private Vector3 subVect = new Vector3();
+    private Vector3 tgtVect = new Vector3();
     private Vector3 tmpV = new Vector3();
 
     @Override
@@ -76,38 +79,46 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         camMdlInst.transform.getTranslation(camVect);
 
         plrMdlInst.transform.getTranslation(subVect);
+        tgtVect.set(subVect);
+
+        // offset to maintain position above subject ...
+        tgtVect.y += 2.0f;
 
 
-        // TODO: target point should be "behind" player
+        // ... and then determine a point slightly "behind"
         // take negative of unit vector of players orientation
         Quaternion r = new Quaternion();
         plrMdlInst.transform.getRotation(r);
 // hackme ! this is not truly in 3D!
-float yaw = r.getYawRad();
-float dX = sin(yaw);
-float dZ = cos(yaw);
-camVect.x += dX * 1f;
-camVect.z += dZ * 1f;
+        float yaw = r.getYawRad();
+        float dX = sin(yaw);
+        float dZ = cos(yaw);
+        tgtVect.x += dX * 3f;
+        tgtVect.z += dZ * 3f;
+if (!isActive){
+//    tgtVect.x -= dX * 5f;
+//    tgtVect.z -= dZ * 5f;
+}
 
-        // maintain camera altitude
-        subVect.y += 2.0f;
 
 
-        tmpV = subVect.sub(camVect);
-
+        tmpV = tgtVect.sub(camVect);
         tmpV.scl(0.1f); // proportional
 
 //        camVect.x += 0.1f;
 
         camVect.add(tmpV);
 
-        camMdlInst.transform.setTranslation(camVect);
 
-/*
-        cam.position.set(camVect);
-        cam.lookAt(subVect); //         cam.lookAt(0, -2, -4);
-        cam.update();
-*/
+//        if (isActive) // idfk
+        {
+            camMdlInst.transform.setTranslation(camVect);
+
+
+            cam.position.set(camVect);
+            cam.lookAt(subVect);
+            cam.update();
+        }
 
     }
 
