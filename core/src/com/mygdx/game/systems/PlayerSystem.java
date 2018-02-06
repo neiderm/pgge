@@ -66,7 +66,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     public void onJumpButton(){
 
         BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
-        btRigidBody body = bc.body;
 
 //        bc.body.applyTorqueImpulse(tmpV.set(25, 0, 0));
 
@@ -77,7 +76,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             tmpV.set(-0.1f, 0, 0);
 
         bc.body.applyImpulse(vVelocity.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
-
     }
 
 
@@ -124,6 +122,32 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         body.applyCentralForce(vVelocity.cpy().scl(force));
 //        body.applyCentralForce(playerComp.vvv.cpy().scl(force));
+
+
+
+        // apply just enough rotation force to avoid getting "stuck"
+        // random flip left or right
+        float scale = 0.2f;
+        float xFudge = (rnd.nextFloat() - 0.5f) * scale;
+        float zFudge = (rnd.nextFloat() - 0.5f) * scale;
+// leave commented crap because thats how I got the magic number 0.2 ( (1/5)==0.2 )
+        /*
+        if (rnd.nextFloat() > 0.5f)
+            tmpV.set(0.1f, 0, 0);
+        else
+            tmpV.set(-0.1f, 0, 0);
+*//*
+        if (rnd.nextFloat() > 0.5f)
+            tmpV.set(0, 0, 0.1f);
+        else
+            tmpV.set(0, 0, -0.1f);
+*/
+        tmpV.set(xFudge, 0, zFudge);
+        bc.body.applyImpulse(vVelocity.set(0, 0.1f, 0), tmpV);
+
+
+
+
 
 
 // my negative linear force is great for rolling, but should not apply while FALLING!
