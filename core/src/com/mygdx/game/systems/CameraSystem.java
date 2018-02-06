@@ -17,6 +17,12 @@ import static com.badlogic.gdx.math.MathUtils.sin;
 
 /**
  * Created by mango on 2/4/18.
+
+This games called DFP ... dumb f*in programmer
+ push all the shit off the platforms before the time runs out.
+ can't do it ... you might be a Dummp fucking programmer1
+ 1
+
  */
 
 /*
@@ -95,17 +101,11 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         float dZ = cos(yaw);
         tgtVect.x += dX * 3f;
         tgtVect.z += dZ * 3f;
-if (!isActive){
-//    tgtVect.x -= dX * 5f;
-//    tgtVect.z -= dZ * 5f;
-}
-
 
 
         tmpV = tgtVect.sub(camVect);
         tmpV.scl(0.1f); // proportional
 
-//        camVect.x += 0.1f;
 
         camVect.add(tmpV);
 
