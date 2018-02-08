@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
@@ -21,10 +22,14 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
@@ -112,6 +117,8 @@ addTouchPad();
         addSystems();
         addEntities();
 
+
+// touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
 /*
         inputAdapter.registerSystem(playerSystem);
 */
@@ -122,6 +129,7 @@ addTouchPad();
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
 
+        // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
@@ -141,8 +149,14 @@ addTouchPad();
     private Drawable touchBackground;
     private Drawable touchKnob;
 
+
+    private Texture myTexture;
+    private TextureRegion myTextureRegion;
+    private TextureRegionDrawable myTexRegionDrawable;
+    private ImageButton button;
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
+     * https://gamedev.stackexchange.com/questions/121115/libgdx-simple-button-with-image
      */
     void addTouchPad()
     {
@@ -165,10 +179,36 @@ addTouchPad();
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
 
+
+        myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
+        myTextureRegion = new TextureRegion(myTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+        button = new ImageButton(myTexRegionDrawable); //Set the button up
+        button.setPosition(3 * Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 6);
+
+        /*
+         * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
+         */
+        button.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
+                playerSystem.onJumpButton();
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+            }
+        });
+
         //Create a Stage and add TouchPad
 //		stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, batch);
         stage = new Stage();
         stage.addActor(touchpad);
+        stage.addActor(button); //Add the button to the stage to perform rendering and take input.
+
         Gdx.input.setInputProcessor(stage);
     }
 
