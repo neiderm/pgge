@@ -22,12 +22,14 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
@@ -118,7 +120,6 @@ addTouchPad();
         addEntities();
 
 
-// touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
 /*
         inputAdapter.registerSystem(playerSystem);
 */
@@ -156,7 +157,6 @@ addTouchPad();
     private ImageButton button;
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
-     * https://gamedev.stackexchange.com/questions/121115/libgdx-simple-button-with-image
      */
     void addTouchPad()
     {
@@ -178,8 +178,17 @@ addTouchPad();
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
+        // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
+        touchpad.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                //do your things
+                playerSystem.updateV(touchpad.getKnobPercentX(), -touchpad.getKnobPercentY());
+            }
+        });
 
 
+        //https://gamedev.stackexchange.com/questions/121115/libgdx-simple-button-with-image
         myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
@@ -206,6 +215,7 @@ addTouchPad();
         //Create a Stage and add TouchPad
 //		stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, batch);
         stage = new Stage();
+        stage.clear();
         stage.addActor(touchpad);
         stage.addActor(button); //Add the button to the stage to perform rendering and take input.
 
@@ -311,9 +321,6 @@ addTouchPad();
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
-
-// hack!
-        playerSystem.updateV(touchpad.getKnobPercentX(), -touchpad.getKnobPercentY());
     }
 
     @Override
