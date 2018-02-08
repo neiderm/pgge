@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -20,6 +21,10 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
@@ -93,19 +98,23 @@ public class GameScreen implements Screen {
 //        camController = new FirstPersonCameraController(cam);
 
 
+/*
         MyInputAdapter inputAdapter = new MyInputAdapter();
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(inputAdapter);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
+*/
+addTouchPad();
 
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
         addEntities();
 
+/*
         inputAdapter.registerSystem(playerSystem);
-
+*/
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -122,6 +131,47 @@ public class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
     }
+
+
+
+    private Stage stage;
+    private Touchpad touchpad;
+    private Touchpad.TouchpadStyle touchpadStyle;
+    private Skin touchpadSkin;
+    private Drawable touchBackground;
+    private Drawable touchKnob;
+
+    /*
+     * from "http://www.bigerstaff.com/libgdx-touchpad-example"
+     */
+    void addTouchPad()
+    {
+        //Create a touchpad skin
+        touchpadSkin = new Skin();
+        //Set background image
+        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+        //Set knob image
+        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
+        //Create TouchPad Style
+        touchpadStyle = new Touchpad.TouchpadStyle();
+        //Create Drawable's from TouchPad skin
+        touchBackground = touchpadSkin.getDrawable("touchBackground");
+        touchKnob = touchpadSkin.getDrawable("touchKnob");
+        //Apply the Drawables to the TouchPad Style
+        touchpadStyle.background = touchBackground;
+        touchpadStyle.knob = touchKnob;
+        //Create new TouchPad with the created style
+        touchpad = new Touchpad(10, touchpadStyle);
+        //setBounds(x,y,width,height)
+        touchpad.setBounds(15, 15, 200, 200);
+
+        //Create a Stage and add TouchPad
+//		stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, batch);
+        stage = new Stage();
+        stage.addActor(touchpad);
+        Gdx.input.setInputProcessor(stage);
+    }
+
 
 
     void addEntities() {
@@ -217,6 +267,13 @@ public class GameScreen implements Screen {
         shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, 10.0f);
         shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, touchBoxH / 2.0f);
         shapeRenderer.end();
+
+
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
+
+// hack!
+        playerSystem.updateV(touchpad.getKnobPercentX(), -touchpad.getKnobPercentY());
     }
 
     @Override

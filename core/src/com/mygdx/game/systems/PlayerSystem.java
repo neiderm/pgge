@@ -62,7 +62,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
     Random rnd = new Random();
 
 
-    private void updateV(float x, float y){
+    public void updateV(float x, float y){
         playerComp.vvv.x = x;
         playerComp.vvv.y = 0;
         playerComp.vvv.z = y;
