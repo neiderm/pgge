@@ -3,7 +3,6 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -154,7 +153,9 @@ addTouchPad();
     private Texture myTexture;
     private TextureRegion myTextureRegion;
     private TextureRegionDrawable myTexRegionDrawable;
-    private ImageButton button;
+    private ImageButton buttonA;
+    private ImageButton buttonB;
+
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
@@ -192,17 +193,41 @@ addTouchPad();
         myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        button = new ImageButton(myTexRegionDrawable); //Set the button up
-        button.setPosition(3 * Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 6);
+        buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 6);
 
         /*
          * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
          */
-        button.addListener(new InputListener() {
+        buttonA.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
                 playerSystem.onJumpButton();
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+            }
+        });
+
+        buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4) - 100, (Gdx.graphics.getHeight() / 6) -100 );
+
+        /*
+         * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
+         */
+        buttonB.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
+                if (cameraSystem.isActive)
+                    cameraSystem.isActive = false;
+                else if (!cameraSystem.isActive)
+                    cameraSystem.isActive = true;
+                
                 return true;
             }
 
@@ -217,7 +242,8 @@ addTouchPad();
         stage = new Stage();
         stage.clear();
         stage.addActor(touchpad);
-        stage.addActor(button); //Add the button to the stage to perform rendering and take input.
+        stage.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
+        stage.addActor(buttonB);
 
         Gdx.input.setInputProcessor(stage);
     }
