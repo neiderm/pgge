@@ -3,6 +3,7 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -92,25 +93,7 @@ public class GameScreen implements Screen {
         environment.add(
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-        cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
-        cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0);
-        cam.near = 1f;
-        cam.far = 300f;
-        cam.update();
 
-
-        camController = new CameraInputController(cam);
-//        camController = new FirstPersonCameraController(cam);
-
-
-/*
-        MyInputAdapter inputAdapter = new MyInputAdapter();
-        InputMultiplexer multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(inputAdapter);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
-*/
 addTouchPad();
 
 
@@ -118,10 +101,6 @@ addTouchPad();
         addSystems();
         addEntities();
 
-
-/*
-        inputAdapter.registerSystem(playerSystem);
-*/
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -141,26 +120,22 @@ addTouchPad();
     }
 
 
-
     private Stage stage;
     private Touchpad touchpad;
-    private Touchpad.TouchpadStyle touchpadStyle;
-    private Skin touchpadSkin;
-    private Drawable touchBackground;
-    private Drawable touchKnob;
-
-
-    private Texture myTexture;
-    private TextureRegion myTextureRegion;
-    private TextureRegionDrawable myTexRegionDrawable;
-    private ImageButton buttonA;
-    private ImageButton buttonB;
 
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    void addTouchPad()
-    {
+    private void addTouchPad() {
+
+        Touchpad.TouchpadStyle touchpadStyle;
+        Skin touchpadSkin;
+        Drawable touchBackground;
+        Drawable touchKnob;
+        Texture myTexture;
+        TextureRegion myTextureRegion;
+        TextureRegionDrawable myTexRegionDrawable;
+
         //Create a touchpad skin
         touchpadSkin = new Skin();
         //Set background image
@@ -193,8 +168,8 @@ addTouchPad();
         myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 6);
+        ImageButton buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 6f);
 
         /*
          * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
@@ -213,8 +188,8 @@ addTouchPad();
             }
         });
 
-        buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4) - 100, (Gdx.graphics.getHeight() / 6) -100 );
+        ImageButton buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4f) - 100f, (Gdx.graphics.getHeight() / 6f) - 100f);
 
         /*
          * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
@@ -240,10 +215,28 @@ addTouchPad();
         stage.addActor(touchpad);
         stage.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
         stage.addActor(buttonB);
+//        Gdx.input.setInputProcessor(stage);
 
-        Gdx.input.setInputProcessor(stage);
+        cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
+        cam.position.set(3f, 7f, 10f);
+        cam.lookAt(0, 4, 0);
+        cam.near = 1f;
+        cam.far = 300f;
+        cam.update();
+
+        camController = new CameraInputController(cam);
+//        camController = new FirstPersonCameraController(cam);
+
+        InputMultiplexer multiplexer = new InputMultiplexer();
+/*
+        MyInputAdapter inputAdapter = new MyInputAdapter();
+        inputAdapter.registerSystem(playerSystem);
+        multiplexer.addProcessor(inputAdapter);
+*/
+        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(camController);
+        Gdx.input.setInputProcessor(multiplexer);
     }
-
 
 
     void addEntities() {
