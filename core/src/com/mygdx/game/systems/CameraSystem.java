@@ -42,6 +42,8 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 //    private CameraComponent cameraComp;
     //    private ModelComponent modelComp;
 
+    private PIDcontrol pid = new PIDcontrol(0.1f, 0, 0);
+
     private ModelInstance camMdlInst;
     private ModelInstance plrMdlInst;
 
@@ -175,14 +177,7 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         targetPosition.z += dZ * 3f;
 
 
-        error = targetPosition.sub(camPosition);
-
-        float kI = 0.001f;
-        integral.add(error.cpy().scl(delta * kI));
-
-        float kP = 0.1f;
-        output.set(error.cpy().scl(kP)); // proportional
-//output.add(integral);
+        output = pid.doControl(targetPosition, camPosition);
 
         camPosition.add(output);
 
