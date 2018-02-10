@@ -24,20 +24,30 @@ import static com.badlogic.gdx.math.MathUtils.sin;
  * Created by mango on 1/23/18.
  */
 
+
+/* idea for player camera placment (chaseer
+"We have a main character, who has a main node (the actor), a sight node (the point the character is
+supposed to be looking at), and a chase camera node (where we think the best chasing camera should
+be placed). "
+ */
+
+
 public class PlayerSystem extends EntitySystem implements EntityListener, InputReceiverSystem {
 
-    private static final float forceScl = 0.2f * 60;
+    // magnitude of force applied (property of "vehicle" type?)
+    private static final float forceMag = 12.0f;
 
-    // create a "braking" force ... ground/landscape is not dynamic and doesn't provide friction!
-    private static final float vLossLin = -0.5f; // so this is kinda like coef of friction!
+    /* kinetic friction? ... ground/landscape is not dynamic and doesn't provide friction!
+     * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
+     * passed as parameter to the friction computation .
+      * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
+      * velocity seems to be limited and constant ... go look up the math eventually */
+    private static final float MU = 0.5f;
 
-//    static private final float vLossAng = -5.0f;
-
-
-//    private Engine engine;
+    //    private Engine engine;
     public Entity playerEntity;
     private PlayerComponent playerComp;
-
+    private btRigidBody plyrPhysBody;
     private MyGdxGame game;
 
 
@@ -51,18 +61,16 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
 //        this.engine = engine;
 
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
-
-//        vVelocity = playerComp.vVelocity;
     }
 
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
-    public Vector3 vVelocity; // = playerComp.vVelocity;
+    public Vector3 forceVect; // = playerComp.forceVect;
 
-    Random rnd = new Random();
+    private Random rnd = new Random();
 
 
-    public void updateV(float x, float y){
+    public void updateV(float x, float y) {
         playerComp.vvv.x = x;
         playerComp.vvv.y = 0;
         playerComp.vvv.z = y;
@@ -71,25 +79,18 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
     public void onTouchDown(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
-
     public void onTouchUp(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
-
     public void onTouchDragged(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
-
     public void onButton() {
         onJumpButton();
     }
 
 
-    public void onJumpButton(){
-
-        BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
-
-//        bc.body.applyTorqueImpulse(tmpV.set(25, 0, 0));
+    public void onJumpButton() {
 
         // random flip left or right
         if (rnd.nextFloat() > 0.5f)
@@ -97,21 +98,18 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         else
             tmpV.set(-0.1f, 0, 0);
 
-        bc.body.applyImpulse(vVelocity.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+        plyrPhysBody.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
 
     @Override
     public void update(float delta) {
-        
-        vVelocity = playerComp.vVelocity; // tmp to allow debugging on game screen
 
-        BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
-        btRigidBody body = bc.body;
-
+        forceVect = playerComp.vVelocity; // tmp to allow debugging on game screen
 
         // rotate by a constant rate according to stick left or stick right.
         // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
+// the actual numbers here are irrelevant if less than deadzoneRadius of TouchPad
         float degrees = 0;
         if (playerComp.vvv.x < -0.25) {
             degrees = 1;
@@ -119,68 +117,33 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
             degrees = -1;
         }
 
-
-        Quaternion r = body.getOrientation();
+        // apply sin/cos to "stick" input to determine unit vector of force apply
+        Quaternion r = plyrPhysBody.getOrientation();
         float yaw = r.getYawRad();
         //            tmpV.rotate(0, 1, 0, yaw);
-        vVelocity.x = -sin(yaw);
-        vVelocity.y = 0;
-        vVelocity.z = -cos(yaw);
+        forceVect.x = -sin(yaw);
+        forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
+        forceVect.z = -cos(yaw);
 
-
-        // should only apply force if linear velocity less than some limit!
-        float force = forceScl * playerComp.mass;
 
         if (playerComp.vvv.z < -0.25) {
 //            tmpV.set(0, 0, -1);
         } else if (playerComp.vvv.z > 0.25) {
             // reverse!
-//            tmpV.set(0, 0, 1);
-            force *= -1;
+            forceVect.scl(-1);
             // reverse the rotation
             degrees *= -1;
         } else
-            vVelocity.set(0, 0, 0);
-
-        body.applyCentralForce(vVelocity.cpy().scl(force));
-//        body.applyCentralForce(playerComp.vvv.cpy().scl(force));
+            forceVect.set(0, 0, 0);
 
 
+        // TODO: check for contact w/ surface, only apply force if in contact, not falling
+        SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
+                plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
 
-        // apply just enough rotation force to avoid getting "stuck"
-        // random flip left or right
-        float scale = 0.2f;
-        float xFudge = (rnd.nextFloat() - 0.5f) * scale;
-        float zFudge = (rnd.nextFloat() - 0.5f) * scale;
-// leave commented crap because thats how I got the magic number 0.2 ( (1/5)==0.2 )
-        /*
-        if (rnd.nextFloat() > 0.5f)
-            tmpV.set(0.1f, 0, 0);
-        else
-            tmpV.set(-0.1f, 0, 0);
-*//*
-        if (rnd.nextFloat() > 0.5f)
-            tmpV.set(0, 0, 0.1f);
-        else
-            tmpV.set(0, 0, -0.1f);
-*/
-        tmpV.set(xFudge, 0, zFudge);
-        bc.body.applyImpulse(vVelocity.set(0, 0.1f, 0), tmpV);
-
-
-
-
-
-
-// my negative linear force is great for rolling, but should not apply while FALLING!
-// need to simulate friction (function of velocity?) when collision detected
-        // always apply loss of energy (torque negative of vA, linear negative of vL, fraction of mass)
-        // (only works for sphere if mostly in surface contact, not if falling any significant distance)
-//        body.applyTorque(body.getAngularVelocity().scl(vLossAng * mass)); // freaks out if angular scale factor > ~11 ???
-        body.applyCentralForce(body.getLinearVelocity().scl(vLossLin * playerComp.mass));
 
 // for dynamic object you should get world trans directly from rigid body!
-        body.getWorldTransform(tmpM);
+        plyrPhysBody.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
 
         if (tmpV.y < -20) {
@@ -188,8 +151,10 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         }
 
 
+// we should maybe be using torque for this to be consistent in dealing with our rigid body player!
         tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
-        body.setWorldTransform(tmpM);
+
+        plyrPhysBody.setWorldTransform(tmpM);
     }
 
 
@@ -199,12 +164,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
 //        if (null != entity.getComponent(PlayerComponent.class))
         {
             playerEntity = entity;
-
             playerComp = entity.getComponent(PlayerComponent.class);
 
-
-            // for getting transform (make it class instance)
-            BulletComponent bc = playerEntity.getComponent(BulletComponent.class);
+            plyrPhysBody = entity.getComponent(BulletComponent.class).body;
         }
     }
 
