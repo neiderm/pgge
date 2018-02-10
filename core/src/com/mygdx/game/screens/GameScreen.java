@@ -21,7 +21,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -33,7 +32,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
@@ -67,20 +65,14 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
 
-    private PlayerComponent playerComp;
-    private BulletComponent bulletComp;
-//private ModelComponent modelComp;
-    //    private btRigidBody playerBody;
+    private BulletComponent bulletComp; // tmp, debugging info
 
-    public static final int touchBoxW = Gdx.graphics.getWidth() / 4;
-    public static final int touchBoxH = touchBoxW; // Gdx.graphics.getHeight() / 4;
-    public static final int gameBoxW = Gdx.graphics.getWidth();
-    //    private static final int gameBoxH = Gdx.graphics.getHeight() - touchBoxH;
-    public static final int gameBoxH = Gdx.graphics.getHeight();
+    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
+    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-
-
+    private Stage stage;
+    private Touchpad touchpad;
 
 
     public GameScreen(MyGdxGame game) {
@@ -94,7 +86,7 @@ public class GameScreen implements Screen {
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
 
-addTouchPad();
+        addTouchPad();
 
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
@@ -119,9 +111,6 @@ addTouchPad();
         shapeRenderer = new ShapeRenderer();
     }
 
-
-    private Stage stage;
-    private Touchpad touchpad;
 
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
@@ -158,7 +147,9 @@ addTouchPad();
         touchpad.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                //do your things
+                /*          -1.0
+                       -1.0   +   +1.0
+                            + 1.0        */
                 playerSystem.updateV(touchpad.getKnobPercentX(), -touchpad.getKnobPercentY());
             }
         });
@@ -217,7 +208,7 @@ addTouchPad();
         stage.addActor(buttonB);
 //        Gdx.input.setInputProcessor(stage);
 
-        cam = new PerspectiveCamera(67, gameBoxW, gameBoxH);
+        cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
         cam.position.set(3f, 7f, 10f);
         cam.lookAt(0, 4, 0);
         cam.near = 1f;
@@ -247,7 +238,6 @@ addTouchPad();
 
         cameraSystem.setSubject(plyr);
 
-        playerComp = playerSystem.playerEntity.getComponent(PlayerComponent.class);
         bulletComp = playerSystem.playerEntity.getComponent(BulletComponent.class);
     }
 
@@ -276,8 +266,7 @@ addTouchPad();
         camController.update();
 
         // game box viewport
-//        Gdx.gl.glViewport(0, touchBoxH, gameBoxW, gameBoxH);
-        Gdx.gl.glViewport(0, 0, gameBoxW, gameBoxH);
+        Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         //         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -293,15 +282,12 @@ addTouchPad();
 
         //if (null != playerBody)
         {
-            btRigidBody playerBody = bulletComp.body;
             String s;
             s = String.format("%+2.1f %+2.1f %+2.1f",
-//                    playerBody.getLinearVelocity().x, playerBody.getLinearVelocity().y, playerBody.getLinearVelocity().z);
-                    playerComp.vVelocity.x, playerComp.vVelocity.y, playerComp.vVelocity.z);
+                    playerSystem.forceVect.x, playerSystem.forceVect.y, playerSystem.forceVect.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f",
-                    playerComp.vvv.x, playerComp.vvv.y, playerComp.vvv.z);
+            s = String.format("%+2.1f %+2.1f", 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
             Matrix4 mmm = bulletComp.motionstate.transform;
@@ -322,15 +308,8 @@ addTouchPad();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(hudOverlayColor);
-        shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), touchBoxH);
+        shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(
-                Gdx.graphics.getWidth() / 2.0f - touchBoxW / 2.0f, 0, touchBoxW, touchBoxH);
-        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, 10.0f);
-        shapeRenderer.circle(Gdx.graphics.getWidth() / 2.0f, touchBoxH / 2.0f, touchBoxH / 2.0f);
         shapeRenderer.end();
 
 

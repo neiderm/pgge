@@ -35,7 +35,7 @@ be placed). "
 public class PlayerSystem extends EntitySystem implements EntityListener, InputReceiverSystem {
 
     // magnitude of force applied (property of "vehicle" type?)
-    private static final float forceMag = 12.0f;
+    private static /* final */ float forceMag = 12.0f;
 
     /* kinetic friction? ... ground/landscape is not dynamic and doesn't provide friction!
      * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
@@ -43,6 +43,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
       * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
       * velocity seems to be limited and constant ... go look up the math eventually */
     private static final float MU = 0.5f;
+
+    public Vector3 forceVect = new Vector3();
+
 
     //    private Engine engine;
     public Entity playerEntity;
@@ -65,15 +68,12 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
 
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
-    public Vector3 forceVect; // = playerComp.forceVect;
-
     private Random rnd = new Random();
 
 
     public void updateV(float x, float y) {
-        playerComp.vvv.x = x;
-        playerComp.vvv.y = 0;
-        playerComp.vvv.z = y;
+        playerComp.inpVect.x = x;
+        playerComp.inpVect.y = y;
     }
 
     public void onTouchDown(Vector2 xy) {
@@ -105,19 +105,18 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
     @Override
     public void update(float delta) {
 
-        forceVect = playerComp.vVelocity; // tmp to allow debugging on game screen
+        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
         // rotate by a constant rate according to stick left or stick right.
         // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
-// the actual numbers here are irrelevant if less than deadzoneRadius of TouchPad
         float degrees = 0;
-        if (playerComp.vvv.x < -0.25) {
+        if (playerComp.inpVect.x < -DZ) {
             degrees = 1;
-        } else if (playerComp.vvv.x > 0.25) {
+        } else if (playerComp.inpVect.x > DZ) {
             degrees = -1;
         }
 
-        // apply sin/cos to "stick" input to determine unit vector of force apply
+        // use sin/cos to develop unit vector of force apply based on the ships heading
         Quaternion r = plyrPhysBody.getOrientation();
         float yaw = r.getYawRad();
         //            tmpV.rotate(0, 1, 0, yaw);
@@ -125,16 +124,13 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
         forceVect.z = -cos(yaw);
 
-
-        if (playerComp.vvv.z < -0.25) {
-//            tmpV.set(0, 0, -1);
-        } else if (playerComp.vvv.z > 0.25) {
-            // reverse!
+        if (playerComp.inpVect.y > DZ) {
+            // reverse thrust & "steer" opposite direction !
             forceVect.scl(-1);
-            // reverse the rotation
             degrees *= -1;
-        } else
+        } else if ( ! (playerComp.inpVect.y < -DZ)) {
             forceVect.set(0, 0, 0);
+        }
 
 
         // TODO: check for contact w/ surface, only apply force if in contact, not falling

@@ -7,8 +7,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.mygdx.game.systems.InputReceiverSystem;
 
-import static com.mygdx.game.screens.GameScreen.touchBoxH;
-import static com.mygdx.game.screens.GameScreen.touchBoxW;
 
 /**
  * Created by utf1247 on 2/6/2018.
@@ -25,6 +23,9 @@ import static com.mygdx.game.screens.GameScreen.touchBoxW;
      */
 class MyInputAdapter extends InputAdapter {
 
+    public static final int TOUCH_BOX_W = Gdx.graphics.getWidth() / 4;
+    public static final int TOUCH_BOX_H = TOUCH_BOX_W; // Gdx.graphics.getHeight() / 4;
+
     // TODO: multiple input receiver systems
     private InputReceiverSystem registeredSystem;
 
@@ -34,12 +35,12 @@ class MyInputAdapter extends InputAdapter {
 
     // create a location rectangle for touchbox (in terms of screen coordinates!)
     private Rectangle touchBoxRect = new Rectangle(
-            Gdx.graphics.getWidth() / 2 - touchBoxW / 2,
-            Gdx.graphics.getHeight() - touchBoxH,
-            touchBoxW, touchBoxH);
+            Gdx.graphics.getWidth() / 2 - TOUCH_BOX_W / 2,
+            Gdx.graphics.getHeight() - TOUCH_BOX_H,
+            TOUCH_BOX_W, TOUCH_BOX_H);
 
     private Circle touchBoxCircle =
-            new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - touchBoxH/2, 10);
+            new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - TOUCH_BOX_H /2, 10);
 
 
     private Vector2 ctr = new Vector2();
@@ -54,7 +55,7 @@ class MyInputAdapter extends InputAdapter {
 
     private Vector2 setVector(int screenX, int screenY) {
 
-        float normalize = (touchBoxH / 2);
+        float normalize = (TOUCH_BOX_H / 2);
         touchBoxRect.getCenter(ctr);
 
         tmpV2.x = (screenX - ctr.x) / normalize;
