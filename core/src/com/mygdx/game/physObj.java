@@ -1,4 +1,4 @@
-package com.mygdx.game.screens;
+package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -19,9 +19,6 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -49,7 +46,7 @@ public class physObj {
     private static Model ballTemplateModel;
     private static Model tankTemplateModel;
 
-    private physObj(){
+    private physObj() {
     }
 
     static Vector3 tankSize = new Vector3(1, 1, 2);
@@ -58,7 +55,7 @@ public class physObj {
         final ModelBuilder mb = new ModelBuilder();
 
         Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        boxTemplateModel  = mb.createBox(1f, 1f, 1f,
+        boxTemplateModel = mb.createBox(1f, 1f, 1f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
@@ -72,7 +69,7 @@ public class physObj {
                 new Material(TextureAttribute.createDiffuse(ballTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
-        tankTemplateModel  = mb.createBox(tankSize.x, tankSize.y, tankSize.z,
+        tankTemplateModel = mb.createBox(tankSize.x, tankSize.y, tankSize.z,
                 new Material(TextureAttribute.createDiffuse(ballTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
@@ -119,45 +116,45 @@ public class physObj {
             tmpV.scl(2.0f); // this keeps object "same" size relative to previous model size was 2x
 
             Vector3 translation =
-                    new Vector3 (rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
+                    new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
                 engine.addEntity(
-                        new BoxObject(tmpV, boxTemplateModel).create(tmpV.x, translation ));
+                        new BoxObject(tmpV, boxTemplateModel).create(tmpV.x, translation));
             } else {
                 engine.addEntity(
-                        new SphereObject(tmpV.x, sphereTemplateModel).create(tmpV.x, translation ));
+                        new SphereObject(tmpV.x, sphereTemplateModel).create(tmpV.x, translation));
             }
         }
 
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1);
-if (useTestObjects) {
-    engine.addEntity(
-            new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
-                    new btConeShape(0.5f, 2.0f)));
+        if (useTestObjects) {
+            engine.addEntity(
+                    new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
+                            new btConeShape(0.5f, 2.0f)));
 
-    engine.addEntity(
-            new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
-                    new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+            engine.addEntity(
+                    new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
+                            new btCapsuleShape(0.5f, 0.5f * 2.0f)));
 
-    engine.addEntity(
-            new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
-                    new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
-} //
+            engine.addEntity(
+                    new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
+                            new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+        } //
 
 
-if (useTestObjects) {
-    BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
+        if (useTestObjects) {
+            BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
 
-    engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
-    engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
-    engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
-    engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
-    engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
-    engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-} //
+            engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
+            engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
+            engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
+            engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
+            engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
+            engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
+        } //
         int wallW = 0;
         int wallH = 0;
         for (wallH = 0; wallH < 2; wallH++) {
@@ -167,33 +164,35 @@ if (useTestObjects) {
         }
 
 
-        
         StaticEntiteeFactory<GameObject> staticFactory =
                 new StaticEntiteeFactory<GameObject>();
 
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
 
-        engine.addEntity( staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran) );
+        engine.addEntity(staticFactory.create(
+                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran));
 
-        engine.addEntity( staticFactory.create(
-                new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)) );
+        engine.addEntity(staticFactory.create(
+                new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)));
 
-        engine.addEntity( staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20) ) );
+        engine.addEntity(staticFactory.create(
+                new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
 
-if (false) {
-    // put the landscape at an angle so stuff falls of it...
+        if (false) {
+            // put the landscape at an angle so stuff falls of it...
 // TODO: ship is "sticking" to landscape
-    Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
-    transform.trn(0, 0 + yTrans, 0);
-    engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
-}
+            Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+            transform.trn(0, 0 + yTrans, 0);
+            engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
+        }
 
 
 // TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
+    }
 
+
+    public static void createPlayerChaser(Engine engine, Vector3 chaseNode) {
 
         /*
          visual marker for camera object:
@@ -230,14 +229,13 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
         mc.modelInst.userData = 0xaa55;
-        e.add(new CharacterComponent());
-//    e.add(new CameraComponent());
+        e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
         engine.addEntity(e);
     }
 
 
-    public static Entity createPlayer(Engine engine  )
-    {
+    public static Entity createPlayer(Engine engine) {
+
         Vector3 s = new Vector3(1, 1, 1);
 
         /*
@@ -253,7 +251,9 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
                 new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
 //                new btConeShape(0.75f, 0.25f));
 //                new btCylinderShape(new Vector3(0.5f, 0.25f, 0.75f)));
-        plyr.add(new PlayerComponent(mass));
+
+        PlayerComponent comp = new PlayerComponent(mass);
+        plyr.add(comp);
         engine.addEntity(plyr);
 
 //        Matrix4 tmpM = new Matrix4();
@@ -270,11 +270,14 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
 //        body.setWorldTransform(tmpM); // setCenterOfMassTransform
 
+
+        createPlayerChaser(engine, comp.chaseNode);
+
         return plyr;
     }
 
 
-    public static void dispose(){
+    public static void dispose() {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!

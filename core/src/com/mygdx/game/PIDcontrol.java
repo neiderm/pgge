@@ -1,4 +1,4 @@
-package com.mygdx.game.systems;
+package com.mygdx.game;
 
 import com.badlogic.gdx.math.Vector3;
 
@@ -18,13 +18,13 @@ public class PIDcontrol {
 
     private Vector3 setpoint;
 
-    PIDcontrol(float kP, float kI, float kD) {
+    private PIDcontrol(float kP, float kI, float kD) {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
     }
 
-    PIDcontrol(Vector3 setpoint, float kP, float kI, float kD) {
+    public PIDcontrol(Vector3 setpoint, float kP, float kI, float kD) {
 
         this(kP, kI, kD);
         this.setpoint = setpoint;
@@ -42,7 +42,7 @@ public class PIDcontrol {
     }
 
 
-    public Vector3 doControl(Vector3 setpoint, Vector3 processVariable) {
+    private Vector3 doControl(Vector3 setpoint, Vector3 processVariable) {
 
         // e = setpoint - process .... process is current value of whatever we're controlling
         error = setpoint.sub(processVariable);

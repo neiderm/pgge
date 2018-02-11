@@ -12,7 +12,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.InputReceiverSystem;
 import com.mygdx.game.MyGdxGame;
+import com.mygdx.game.SliderForceControl;
 import com.mygdx.game.screens.MainMenuScreen;
 
 import java.util.Random;

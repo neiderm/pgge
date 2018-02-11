@@ -2,7 +2,7 @@ package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.Matrix4;
-import com.mygdx.game.systems.PIDcontrol;
+import com.mygdx.game.PIDcontrol;
 
 /**
  * Created by mango on 2/10/18.
@@ -15,10 +15,11 @@ import com.mygdx.game.systems.PIDcontrol;
 public class CharacterComponent implements Component {
 
     // idea for using controller instance e.g. PICcontrol etc.
-    /*
-    CharacterComponent(CharacterController controller){
+
+    public CharacterComponent(/* CharacterController */ PIDcontrol controller) {
+        this.controller = controller;
     }
-   */
+
     public PIDcontrol controller;
     public Matrix4 transform = new Matrix4();
 }

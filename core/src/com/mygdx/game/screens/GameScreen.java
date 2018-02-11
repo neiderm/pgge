@@ -36,6 +36,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
+import com.mygdx.game.physObj;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -56,7 +57,6 @@ public class GameScreen implements Screen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private PlayerSystem playerSystem; //for reference to player entity
     private CameraSystem cameraSystem;
-private CharacterSystem characterSystem;
 
     private PerspectiveCamera cam;
 
@@ -239,10 +239,7 @@ private CharacterSystem characterSystem;
 
         physObj.createEntities(engine);
 
-        Entity plyr = physObj.createPlayer(engine);
-
-        cameraSystem.setSubject(plyr);
-        characterSystem.setSubject(plyr);
+        physObj.createPlayer(engine);
 
         // quick hack to get player comp for debug display
         ImmutableArray<Entity> entities = engine.getEntities();
@@ -265,8 +262,7 @@ private CharacterSystem characterSystem;
         engine.addSystem(playerSystem = new PlayerSystem(this.game));
         cameraSystem = new CameraSystem(cam);
         engine.addSystem(cameraSystem);
-        characterSystem = new CharacterSystem();
-        engine.addSystem(characterSystem);
+        engine.addSystem(new CharacterSystem());
     }
 
 
@@ -297,7 +293,7 @@ private CharacterSystem characterSystem;
 
         //if (null != playerBody)
         {
-            Vector3 forceVect = playerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
+            Vector3 forceVect = PlayerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
             String s;
             s = String.format("%+2.1f %+2.1f %+2.1f",
                     forceVect.x, forceVect.y, forceVect.z);

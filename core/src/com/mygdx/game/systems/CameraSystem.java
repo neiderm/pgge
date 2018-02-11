@@ -145,7 +145,7 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     }
 
 
-    public void setSubject(Entity e) {
+    public void _setSubject(Entity e) {
 
         plrMdlInst = e.getComponent(ModelComponent.class).modelInst;
     }

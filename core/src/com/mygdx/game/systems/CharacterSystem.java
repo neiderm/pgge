@@ -8,7 +8,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 
 /**
  * Created by mango on 2/10/18.
@@ -53,15 +52,6 @@ public class CharacterSystem extends EntitySystem implements EntityListener {
         translation = charComp.transform.getTranslation(translation);
         translation.add(charComp.controller.doControl(translation));
         charComp.transform.setTranslation(translation);
-    }
-
-    /*
-    TODO: controller becomes an instance of a template class, probably do this in construction
-     */
-    public void setSubject(Entity e) {
-
-        charComp.controller = new PIDcontrol(
-                e.getComponent(PlayerComponent.class).chaseNode, 0.1f, 0, 0);
     }
 }
 
