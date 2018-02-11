@@ -22,6 +22,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CameraComponent;
+import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
@@ -194,13 +195,43 @@ if (false) {
 // TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
 
 
-        // visual marker for camera object
+        /*
+         visual marker for camera object:
+          Right now we're moving (translating) it directly, according to a PI loop idea.
+          ("Plant" output is simply an offset displacement added to present position).
+          This is fine IF the "camera body" is not colliding into another phsics body!
+          BETTER would be to treat Plant output as a force magnitude applied to camera dynamic body
+          (WE're using/calculating PID error term in 3D, so we could normalize this value
+          into a unit vector that would provde appropriate direction vector for applied force!
+          (NOTE: the camera "body" should NOT exert foces on other phys objects, so I THINK that
+          this is achievable simply by using mass of 0?)
+          Thinking in terms of kinematic bodyies ...
+
+          "Such an object that does move, but does not respond to collisions, is called a kinematic
+          body. In practice a kinematic body is very much like a static object, except that you can
+          change its location and rotation through code."
+
+          BUT I don't think kinematc is exactly right thing for my camera, because I don't want the
+          camera to affect other phys objects (like the way the ground that does not respond to
+          collisions but nonetheless influences objects with forces that can stop them falling
+          or them bounce roll etc.)
+
+FOR RIGHT NOW I will continue to move this chase around by code but i'll leave it as physics object
+until I make it a full phsics object controlled by forces. As a full fledged dynamics object, I  can
+have to deal with getting "caught" in other phys structures ... possibly build some "flotation" into
+camera and have it dragged along by player as a sort of tether. Or we could use raycast between
+player and camera, and if obstacle between, we "break" the tether, allow only force on camera to
+be it's "buoyancy", and let if "float up" until free of interposing obstacles .
+
+        */
         Entity e =
                 new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
-        e.add(new CameraComponent());
+        mc.modelInst.userData = 0xaa55;
+        e.add(new CharacterComponent());
+//    e.add(new CameraComponent());
         engine.addEntity(e);
     }
 

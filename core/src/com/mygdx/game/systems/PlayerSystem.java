@@ -44,14 +44,17 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
       * velocity seems to be limited and constant ... go look up the math eventually */
     private static final float MU = 0.5f;
 
-    public Vector3 forceVect = new Vector3();
-
 
     //    private Engine engine;
-    public Entity playerEntity;
-    private PlayerComponent playerComp;
-    private btRigidBody plyrPhysBody;
+    private PlayerComponent playerComp = null;
+    private btRigidBody plyrPhysBody = null;
     private MyGdxGame game;
+
+    // working variables
+    private static Matrix4 tmpM = new Matrix4();
+    private static Vector3 tmpV = new Vector3();
+    private static Random rnd = new Random();
+    public /* private */ static Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
 
     public PlayerSystem(MyGdxGame game) {
@@ -66,11 +69,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
 
-    private Matrix4 tmpM = new Matrix4();
-    private Vector3 tmpV = new Vector3();
-    private Random rnd = new Random();
-
-
     public void updateV(float x, float y) {
         playerComp.inpVect.x = x;
         playerComp.inpVect.y = y;
@@ -79,12 +77,15 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
     public void onTouchDown(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
+
     public void onTouchUp(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
+
     public void onTouchDragged(Vector2 xy) {
         updateV(xy.x, xy.y);
     }
+
     public void onButton() {
         onJumpButton();
     }
@@ -128,7 +129,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
             // reverse thrust & "steer" opposite direction !
             forceVect.scl(-1);
             degrees *= -1;
-        } else if ( ! (playerComp.inpVect.y < -DZ)) {
+        } else if (!(playerComp.inpVect.y < -DZ)) {
             forceVect.set(0, 0, 0);
         }
 
@@ -151,17 +152,48 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
 
         plyrPhysBody.setWorldTransform(tmpM);
+
+
+        updateChaseNode(playerComp.chaseNode, tmpM, 2.0f, 3.0f);
+    }
+
+
+    static Quaternion quat = new Quaternion();
+
+    /*
+    * this should be eventually put in its own class, player isn't the only thing could use a chase node!
+     */
+    private static void updateChaseNode(
+            Vector3 targetPosition, Matrix4 actorTransform, float height, float dist) {
+
+        targetPosition.set(actorTransform.getTranslation(tmpV));
+
+        // offset to maintain position above subject ...
+        targetPosition.y += height;
+
+        // ... and then determine a point slightly "behind"
+        // take negative of unit vector of players orientation
+        actorTransform.getRotation(quat);
+
+        // hackme ! this is not truly in 3D!
+        float yaw = quat.getYawRad();
+
+        float dX = sin(yaw);
+        float dZ = cos(yaw);
+        targetPosition.x += dX * dist;
+        targetPosition.z += dZ * dist;
     }
 
 
     @Override
     public void entityAdded(Entity entity) {
 
+        // TODO: only allow one player ... assertion that these
+        // state variables are not initialized (null)
+
 //        if (null != entity.getComponent(PlayerComponent.class))
         {
-            playerEntity = entity;
             playerComp = entity.getComponent(PlayerComponent.class);
-
             plyrPhysBody = entity.getComponent(BulletComponent.class).body;
         }
     }

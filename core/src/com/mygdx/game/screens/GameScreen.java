@@ -2,6 +2,7 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
@@ -20,6 +21,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -32,9 +34,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
+import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
@@ -52,6 +56,7 @@ public class GameScreen implements Screen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private PlayerSystem playerSystem; //for reference to player entity
     private CameraSystem cameraSystem;
+private CharacterSystem characterSystem;
 
     private PerspectiveCamera cam;
 
@@ -237,8 +242,16 @@ public class GameScreen implements Screen {
         Entity plyr = physObj.createPlayer(engine);
 
         cameraSystem.setSubject(plyr);
+        characterSystem.setSubject(plyr);
 
-        bulletComp = playerSystem.playerEntity.getComponent(BulletComponent.class);
+        // quick hack to get player comp for debug display
+        ImmutableArray<Entity> entities = engine.getEntities();
+        for (Entity e : entities) {
+            if (null != e.getComponent(PlayerComponent.class)) {
+                bulletComp = e.getComponent(BulletComponent.class);
+                break;
+            }
+        }
     }
 
     private void addSystems() {
@@ -252,6 +265,8 @@ public class GameScreen implements Screen {
         engine.addSystem(playerSystem = new PlayerSystem(this.game));
         cameraSystem = new CameraSystem(cam);
         engine.addSystem(cameraSystem);
+        characterSystem = new CharacterSystem();
+        engine.addSystem(characterSystem);
     }
 
 
@@ -282,9 +297,10 @@ public class GameScreen implements Screen {
 
         //if (null != playerBody)
         {
+            Vector3 forceVect = playerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
             String s;
             s = String.format("%+2.1f %+2.1f %+2.1f",
-                    playerSystem.forceVect.x, playerSystem.forceVect.y, playerSystem.forceVect.z);
+                    forceVect.x, forceVect.y, forceVect.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
             s = String.format("%+2.1f %+2.1f", 0f, 0f);
