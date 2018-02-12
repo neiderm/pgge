@@ -93,6 +93,16 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         return isController;
     }
 
+    /* this is basically just a hackinsh way to get the player chase node passed in, but
+       actually only matters if camera mode is transitioning to fixed perspective
+    */
+    public boolean nextOpMode(Vector3 position, Vector3 lookAt) {
+
+        camSavePerspPos.set(position);
+        camSavePerspDir.set(lookAt);
+        return nextOpMode();
+    }
+
     public void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
         cam.position.set(position);

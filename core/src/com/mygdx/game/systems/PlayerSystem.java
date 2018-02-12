@@ -165,7 +165,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
     /*
     * this should be eventually put in its own class, player isn't the only thing could use a chase node!
      */
-    private static void updateChaseNode(
+    public static void updateChaseNode(
             Vector3 targetPosition, Matrix4 actorTransform, float height, float dist) {
 
         targetPosition.set(actorTransform.getTranslation(tmpV));

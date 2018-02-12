@@ -120,8 +120,7 @@ public class GameScreen implements Screen {
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
-//        InputMultiplexer
-                multiplexer = new InputMultiplexer();
+        multiplexer = new InputMultiplexer();
 /*
         MyInputAdapter inputAdapter = new MyInputAdapter();
         inputAdapter.registerSystem(playerSystem);
@@ -229,7 +228,13 @@ public class GameScreen implements Screen {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
 
-                boolean isController = cameraSystem.nextOpMode();
+                Matrix4 tmpM = new Matrix4();
+                Vector3 tmpV = new Vector3();
+                player.getComponent(BulletComponent.class).body.getWorldTransform(tmpM);
+                PlayerSystem.updateChaseNode(tmpV, tmpM, 5.0f, 4.0f);
+                Vector3 lookAt = new Vector3();
+                tmpM.getTranslation(lookAt);
+                boolean isController = cameraSystem.nextOpMode(tmpV, lookAt);
 
                 if (isController)
                     multiplexer.addProcessor(camController);
