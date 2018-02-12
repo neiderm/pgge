@@ -68,40 +68,35 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
     private CameraOpMode cameraOpMode = FIXED_PERSPECTIVE;
 
-    private Vector3 camSavePerspPos = new Vector3();
-    private Vector3 camSavePerspDir = new Vector3();
-
     // these reference whatever the camera is supposed to be chasing
     private Matrix4 chasePositionRef;
     private Matrix4 chaseLookAtRef;
 
 
-    public boolean nextOpMode() {
+
+    /*
+    pass these in as matrix, so we don't care if they are stationary points, or "live" characters transforms
+     */
+    public boolean nextOpMode(Matrix4 positionTransform, Matrix4 lookAtTransform) {
 
         boolean isController = false;
 
-        if (FIXED_PERSPECTIVE == cameraOpMode) {
-            saveCameraLocation(); // save settings before changing
-        }
+        Vector3 lookAt = new Vector3();
+        Vector3 position = new Vector3();
+
+        lookAtTransform.getTranslation(lookAt);
+        positionTransform.getTranslation(position);
 
         cameraOpMode = cameraOpMode.getNext();
 
         if (FIXED_PERSPECTIVE == cameraOpMode) {
-            setCameraLocation(camSavePerspPos, camSavePerspDir); // load last settings
+            setCameraLocation(position, lookAt);
             isController = true;
         }
+
         return isController;
     }
 
-    /* this is basically just a hackinsh way to get the player chase node passed in, but
-       actually only matters if camera mode is transitioning to fixed perspective
-    */
-    public boolean nextOpMode(Vector3 position, Vector3 lookAt) {
-
-        camSavePerspPos.set(position);
-        camSavePerspDir.set(lookAt);
-        return nextOpMode();
-    }
 
     public void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
@@ -111,18 +106,9 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         cam.update();
     }
 
-    private void saveCameraLocation() {
-
-        camSavePerspPos.set(cam.position);
-        camSavePerspDir.set(cam.direction); // direction is cam.lookAt()
-    }
-
-
     public CameraSystem(PerspectiveCamera cam) {
-        this.cam = cam;
 
-        // save the location/vector of the perspective camera so we can switch back to it
-        saveCameraLocation();
+        this.cam = cam;
     }
 
     @Override

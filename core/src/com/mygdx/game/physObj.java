@@ -199,19 +199,16 @@ public class physObj {
     }
 
 
-    public static Entity createPlayerChaser(Engine engine, Vector3 chaseNode) {
-
+    /*
+    a character object that tracks the given "node" ...
+     */
+    public static Entity createChaser1(Engine engine, Vector3 node) {
         /*
-         visual marker for camera object:
           Right now we're moving (translating) it directly, according to a PI loop idea.
           ("Plant" output is simply an offset displacement added to present position).
           This is fine IF the "camera body" is not colliding into another phsics body!
-          BETTER would be to treat Plant output as a force magnitude applied to camera dynamic body
-          (WE're using/calculating PID error term in 3D, so we could normalize this value
-          into a unit vector that would provde appropriate direction vector for applied force!
-          (NOTE: the camera "body" should NOT exert foces on other phys objects, so I THINK that
-          this is achievable simply by using mass of 0?)
-          Thinking in terms of kinematic bodyies ...
+
+          Regarding kinematic bodyies ...
 
           "Such an object that does move, but does not respond to collisions, is called a kinematic
           body. In practice a kinematic body is very much like a static object, except that you can
@@ -221,37 +218,50 @@ public class physObj {
           camera to affect other phys objects (like the way the ground that does not respond to
           collisions but nonetheless influences objects with forces that can stop them falling
           or them bounce roll etc.)
+        */
 
-FOR RIGHT NOW I will continue to move this chase around by code but i'll leave it as physics object
-until I make it a full phsics object controlled by forces. As a full fledged dynamics object, I  can
+        Entity e = new GameObject(new Vector3(0.5f, 0.5f, 0.5f),
+                model, "sphere").create(new Vector3(0, 15f, -5f));
+
+        // static entity not use motion state so just set the scale on it once and for all
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+        mc.modelInst.transform.scl(mc.scale);
+        mc.modelInst.userData = 0xaa55;
+        e.add(new CharacterComponent(new PIDcontrol(node, 0.1f, 0, 0)));
+
+        engine.addEntity(e);
+        return e;
+    }
+
+/*
+    a character object that tracks the given "node" ...
+ */
+    public static Entity createChaser2(Engine engine, Vector3 node) {
+
+        /*
+          (WE're using/calculating PID error term in 3D, so we could normalize this value
+          into a unit vector that would provde appropriate direction vector for applied force!
+          (NOTE: the camera "body" should NOT exert foces on other phys objects, so I THINK that
+          this is achievable simply by using mass of 0?)
+
+I make it a full phsics object controlled by forces. As a full fledged dynamics object,
 have to deal with getting "caught" in other phys structures ... possibly build some "flotation" into
 camera and have it dragged along by player as a sort of tether. Or we could use raycast between
 player and camera, and if obstacle between, we "break" the tether, allow only force on camera to
 be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         */
 
-        Entity e;
-        if (true) {
-            e = new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
+        final float r = 4.0f;
+        Entity e = new GameObject(new Vector3(r, r, r), model, "sphere").create(
+                0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
-            // static entity not use motion state so just set the scale on it once and for all
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            mc.modelInst.transform.scl(mc.scale);
-            mc.modelInst.userData = 0xaa55;
-            e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
-        } else {
-            final float r = 4.0f;
-            e = new GameObject(new Vector3(r, r, r), model, "sphere").create(
-                            0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+        btRigidBody body = e.getComponent(BulletComponent.class).body;
+        e.add(new CharacterComponent(
+                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));
 
-            btRigidBody body = e.getComponent(BulletComponent.class).body;
-            e.add(new CharacterComponent(
-                    new PhysicsPIDcontrol(body, chaseNode, 0.1f, 0, 0)));
-        }
         engine.addEntity(e);
         return e;
     }
-
 
     public static Entity createPlayer(Engine engine) {
 
@@ -268,8 +278,8 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         Entity plyr = new GameObject(s, shipModel).create(
                 mass, new Vector3(0, 15f, -5f),
 //                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
-//                new btConeShape(0.75f, 0.25f));
-                new btCylinderShape(new Vector3(0.75f, 0.25f, 1.0f)));
+                new btConeShape(1.25f, 0.23f));
+//                new btCylinderShape(new Vector3(0.75f, 0.25f, 1.0f)));
 
         PlayerComponent comp = new PlayerComponent(mass);
         plyr.add(comp);

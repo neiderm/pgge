@@ -228,13 +228,14 @@ public class GameScreen implements Screen {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
 
-                Matrix4 tmpM = new Matrix4();
+                Matrix4 playerTransform = new Matrix4();
                 Vector3 tmpV = new Vector3();
-                player.getComponent(BulletComponent.class).body.getWorldTransform(tmpM);
-                PlayerSystem.updateChaseNode(tmpV, tmpM, 5.0f, 4.0f);
-                Vector3 lookAt = new Vector3();
-                tmpM.getTranslation(lookAt);
-                boolean isController = cameraSystem.nextOpMode(tmpV, lookAt);
+
+                player.getComponent(BulletComponent.class).body.getWorldTransform(playerTransform);
+                Matrix4 chaseNodeTransform =
+                        PlayerSystem.updateChaseNode(tmpV, playerTransform, 5.0f, 4.0f);
+
+                boolean isController = cameraSystem.nextOpMode(chaseNodeTransform, playerTransform);
 
                 if (isController)
                     multiplexer.addProcessor(camController);
@@ -272,7 +273,7 @@ public class GameScreen implements Screen {
 
         player = physObj.createPlayer(engine);
         PlayerComponent comp = player.getComponent(PlayerComponent.class);
-        playerChaser = physObj.createPlayerChaser(engine, comp.chaseNode);
+        playerChaser = physObj.createChaser1(engine, comp.chaseNode);
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
