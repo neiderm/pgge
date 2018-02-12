@@ -121,6 +121,7 @@ public class EntityFactory {
 
     /*
      * we might want lots of these ... islands in the sky, all made of mesh shapes
+     * see notes farther below about making this kinematic object so things don't get "stuck" on it
      */
     public static class LandscapeObject extends GameObject {
 
@@ -129,8 +130,18 @@ public class EntityFactory {
 
             Entity e = create();
 
-            e.add(new BulletComponent(
-                    new btBvhTriangleMeshShape(model.meshParts), transform));
+            BulletComponent bc =
+                    new BulletComponent(new btBvhTriangleMeshShape(model.meshParts), transform);
+
+            bc.body.setCollisionFlags(
+                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+
+            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+            bc.sFlag = true;
+
+
+            e.add(bc);
 
             e.add(new ModelComponent(model, transform));
 

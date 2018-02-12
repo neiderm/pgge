@@ -187,9 +187,8 @@ public class physObj {
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
 
-        if (false) {
+        if (true) { // this slows down bullet debug drawer considerably!
             // put the landscape at an angle so stuff falls of it...
-// TODO: ship is "sticking" to landscape
             Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
             transform.trn(0, 0 + yTrans, 0);
             engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
@@ -232,7 +231,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         */
 
         Entity e;
-        if (false) {
+        if (true) {
             e = new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
 
             // static entity not use motion state so just set the scale on it once and for all
@@ -241,9 +240,9 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
             mc.modelInst.userData = 0xaa55;
             e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
         } else {
-
-            e = new GameObject(new Vector3(2, 2, 2), model, "sphere").create(
-                            0.01f, new Vector3(0, 15f, -5f), new btSphereShape(1.0f));
+            final float r = 4.0f;
+            e = new GameObject(new Vector3(r, r, r), model, "sphere").create(
+                            0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
             btRigidBody body = e.getComponent(BulletComponent.class).body;
             e.add(new CharacterComponent(
@@ -268,9 +267,9 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 //        Entity plyr = new GameObject(s, ballTemplateModel).create(
         Entity plyr = new GameObject(s, shipModel).create(
                 mass, new Vector3(0, 15f, -5f),
-                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
+//                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
 //                new btConeShape(0.75f, 0.25f));
-//                new btCylinderShape(new Vector3(0.5f, 0.25f, 0.75f)));
+                new btCylinderShape(new Vector3(0.75f, 0.25f, 1.0f)));
 
         PlayerComponent comp = new PlayerComponent(mass);
         plyr.add(comp);
