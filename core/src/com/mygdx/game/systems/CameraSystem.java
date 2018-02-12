@@ -8,6 +8,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.Components.CameraComponent;
 
 import static com.mygdx.game.systems.CameraSystem.CameraOpMode.CHASE;
@@ -64,6 +65,32 @@ public class CameraSystem extends EntitySystem implements EntityListener {
                     : CameraOpMode.values()[0];
         }
     }
+
+    public class CameraNode{
+        private Matrix4 positionRef;
+        private Matrix4 lookAtRef;
+        public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
+            this.positionRef = positionRef;
+            this.lookAtRef = lookAtRef;
+        }
+    }
+
+    private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
+
+    void addCameraNode(String key, CameraNode cameraNode){
+        cameraNodes.put(key, cameraNode);
+    }
+
+    void setCameraNode(String key, CameraNode cameraNode) {
+        int index = cameraNodes.indexOfKey(key);
+        if (-1 != index) {
+            cameraNodes.setValue(index, cameraNode);
+        }
+        else addCameraNode(key, cameraNode);
+    }
+
+    // remove camera node
+
 
 
     private CameraOpMode cameraOpMode = FIXED_PERSPECTIVE;
