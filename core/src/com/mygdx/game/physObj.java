@@ -19,6 +19,9 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
+import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -104,8 +107,8 @@ public class physObj {
 
     public static void createEntities(Engine engine) {
 
-        final int N_ENTITIES = 1;
-        final int N_BOXES = 10;
+        final int N_ENTITIES = 5;
+        final int N_BOXES = 2;
 
         Vector3 tmpV = new Vector3(); // size
         Random rnd = new Random();
@@ -142,6 +145,11 @@ public class physObj {
             engine.addEntity(
                     new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+/*
+            engine.addEntity(
+                    new GameObject(s, model, "sphere").create(rnd.nextFloat() + 0.5f, t,
+                            new btSphereShape(0.5f)));
+                            */
         } //
 
 
@@ -221,15 +229,26 @@ have to deal with getting "caught" in other phys structures ... possibly build s
 camera and have it dragged along by player as a sort of tether. Or we could use raycast between
 player and camera, and if obstacle between, we "break" the tether, allow only force on camera to
 be it's "buoyancy", and let if "float up" until free of interposing obstacles .
-
         */
-        Entity e =
-                new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
-        // static entity not use motion state so just set the scale on it once and for all
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-        mc.modelInst.transform.scl(mc.scale);
-        mc.modelInst.userData = 0xaa55;
-        e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
+
+        Entity e;
+        if (false) {
+            e = new GameObject(new Vector3(0.25f, 0.5f, 0.6f), model, "cone").create(new Vector3(0, 15f, -5f));
+
+            // static entity not use motion state so just set the scale on it once and for all
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            mc.modelInst.transform.scl(mc.scale);
+            mc.modelInst.userData = 0xaa55;
+            e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
+        } else {
+
+            e = new GameObject(new Vector3(2, 2, 2), model, "sphere").create(
+                            0.01f, new Vector3(0, 15f, -5f), new btSphereShape(1.0f));
+
+            btRigidBody body = e.getComponent(BulletComponent.class).body;
+            e.add(new CharacterComponent(
+                    new PhysicsPIDcontrol(body, chaseNode, 0.1f, 0, 0)));
+        }
         engine.addEntity(e);
         return e;
     }

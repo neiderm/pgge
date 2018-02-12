@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
 /**
@@ -16,7 +17,10 @@ public class PIDcontrol {
     private float kI = 0;
     private float kD = 0;
 
-    private Vector3 setpoint;
+    protected Vector3 setpoint;
+
+    PIDcontrol(){
+    }
 
     private PIDcontrol(float kP, float kI, float kD) {
         this.kP = kP;
@@ -32,15 +36,22 @@ public class PIDcontrol {
 
 
     // working variables
-    private static Vector3 output = new Vector3();
-    private static Vector3 error = new Vector3();
+    protected static Vector3 output = new Vector3();
+    protected static Vector3 error = new Vector3();
+    protected static Vector3 translation = new Vector3();
 
 
-    public Vector3 doControl(Vector3 processVariable) {
+    public void doControl(Matrix4 transform) {
+
+        translation = transform.getTranslation(translation);
+        translation.add(doControl(translation));
+        transform.setTranslation(translation);
+    }
+
+    protected Vector3 doControl(Vector3 processVariable) {
 
         return doControl(this.setpoint, processVariable);
     }
-
 
     private Vector3 doControl(Vector3 setpoint, Vector3 processVariable) {
 

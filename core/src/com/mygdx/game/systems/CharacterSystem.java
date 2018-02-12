@@ -5,7 +5,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 
@@ -39,8 +38,6 @@ public class CharacterSystem extends EntitySystem implements EntityListener {
         engine.addEntityListener(Family.all(CharacterComponent.class).get(), this);
     }
 
-    private Vector3 translation = new Vector3(); // tmp working variable
-
     @Override
     public void update(float delta) {
 
@@ -49,9 +46,7 @@ public class CharacterSystem extends EntitySystem implements EntityListener {
         // in case there was another process out there manipulating the model transformation, then
         // our translation data could get out of sync.
 
-        translation = charComp.transform.getTranslation(translation);
-        translation.add(charComp.controller.doControl(translation));
-        charComp.transform.setTranslation(translation);
+        charComp.controller.doControl(charComp.transform);
     }
 }
 
