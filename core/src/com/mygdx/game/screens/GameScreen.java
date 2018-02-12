@@ -2,7 +2,6 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
@@ -34,6 +33,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.CharacterComponent;
+import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.physObj;
@@ -80,6 +81,10 @@ public class GameScreen implements Screen {
     private Touchpad touchpad;
 
 
+    InputMultiplexer multiplexer;
+
+
+
     public GameScreen(MyGdxGame game) {
 
         this.game = game;
@@ -91,12 +96,41 @@ public class GameScreen implements Screen {
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
 
-        addTouchPad();
+        cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
+        cam.position.set(3f, 7f, 10f);
+        cam.lookAt(0, 4, 0);
+        cam.near = 1f;
+        cam.far = 300f;
+        cam.update();
 
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
         addEntities();
+
+        cameraSystem.setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
+
+        cameraSystem.setChaser(
+                playerChaser.getComponent(CharacterComponent.class).transform,
+                player.getComponent(ModelComponent.class).modelInst.transform);
+
+        stage = addTouchPad();
+
+
+        camController = new CameraInputController(cam);
+//        camController = new FirstPersonCameraController(cam);
+
+//        InputMultiplexer
+                multiplexer = new InputMultiplexer();
+/*
+        MyInputAdapter inputAdapter = new MyInputAdapter();
+        inputAdapter.registerSystem(playerSystem);
+        multiplexer.addProcessor(inputAdapter);
+*/
+        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(camController);
+        Gdx.input.setInputProcessor(multiplexer);
+
 
 
         // Font files from ashley-superjumper
@@ -120,7 +154,7 @@ public class GameScreen implements Screen {
     /*
      * from "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    private void addTouchPad() {
+    private Stage addTouchPad() {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
@@ -194,7 +228,14 @@ public class GameScreen implements Screen {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-                cameraSystem.nextOpMode();
+
+                boolean isController = cameraSystem.nextOpMode();
+
+                if (isController)
+                    multiplexer.addProcessor(camController);
+                else
+                    multiplexer.removeProcessor(camController);
+
                 return true;
             }
 
@@ -213,42 +254,23 @@ public class GameScreen implements Screen {
         stage.addActor(buttonB);
 //        Gdx.input.setInputProcessor(stage);
 
-        cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
-        cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0);
-        cam.near = 1f;
-        cam.far = 300f;
-        cam.update();
-
-        camController = new CameraInputController(cam);
-//        camController = new FirstPersonCameraController(cam);
-
-        InputMultiplexer multiplexer = new InputMultiplexer();
-/*
-        MyInputAdapter inputAdapter = new MyInputAdapter();
-        inputAdapter.registerSystem(playerSystem);
-        multiplexer.addProcessor(inputAdapter);
-*/
-        multiplexer.addProcessor(stage);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
+        return stage;
     }
 
+
+    private Entity player;
+    private Entity playerChaser;
 
     void addEntities() {
 
         physObj.createEntities(engine);
 
-        physObj.createPlayer(engine);
+        player = physObj.createPlayer(engine);
+        PlayerComponent comp = player.getComponent(PlayerComponent.class);
+        playerChaser = physObj.createPlayerChaser(engine, comp.chaseNode);
 
-        // quick hack to get player comp for debug display
-        ImmutableArray<Entity> entities = engine.getEntities();
-        for (Entity e : entities) {
-            if (null != e.getComponent(PlayerComponent.class)) {
-                bulletComp = e.getComponent(BulletComponent.class);
-                break;
-            }
-        }
+// tmp
+        bulletComp = player.getComponent(BulletComponent.class);
     }
 
     private void addSystems() {
@@ -346,6 +368,8 @@ public class GameScreen implements Screen {
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
+
+        stage.dispose();
     }
 
     @Override

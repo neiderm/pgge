@@ -192,7 +192,7 @@ public class physObj {
     }
 
 
-    public static void createPlayerChaser(Engine engine, Vector3 chaseNode) {
+    public static Entity createPlayerChaser(Engine engine, Vector3 chaseNode) {
 
         /*
          visual marker for camera object:
@@ -231,6 +231,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         mc.modelInst.userData = 0xaa55;
         e.add(new CharacterComponent(new PIDcontrol(chaseNode, 0.1f, 0, 0)));
         engine.addEntity(e);
+        return e;
     }
 
 
@@ -269,9 +270,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 //        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
 
 //        body.setWorldTransform(tmpM); // setCenterOfMassTransform
-
-
-        createPlayerChaser(engine, comp.chaseNode);
 
         return plyr;
     }
