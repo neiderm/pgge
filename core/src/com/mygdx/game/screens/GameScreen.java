@@ -44,6 +44,9 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
+import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE;
+import static com.mygdx.game.systems.CameraSystem.FIXED;
+
 
 /**
  * Created by mango on 12/18/17.
@@ -108,11 +111,6 @@ public class GameScreen implements Screen {
         addSystems();
         addEntities();
 
-        cameraSystem.setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
-
-        cameraSystem.setChaser(
-                playerChaser.getComponent(CharacterComponent.class).transform,
-                player.getComponent(ModelComponent.class).modelInst.transform);
 
         stage = addTouchPad();
 
@@ -265,15 +263,44 @@ public class GameScreen implements Screen {
 
 
     private Entity player;
-    private Entity playerChaser;
 
     void addEntities() {
 
         physObj.createEntities(engine);
 
+        PlayerComponent comp;
+
         player = physObj.createPlayer(engine);
-        PlayerComponent comp = player.getComponent(PlayerComponent.class);
+        comp = player.getComponent(PlayerComponent.class);
+
+        Entity playerChaser;
+///*
+        playerChaser = physObj.createChaser2(engine, comp.chaseNode);
+
+//        cameraSystem.setCameraNode(new String("chaser2"),
+        cameraSystem.setCameraNode("chaser2",
+                new CameraSystem.CameraNode(
+                        playerChaser.getComponent(CharacterComponent.class).transform,
+                        player.getComponent(ModelComponent.class).modelInst.transform
+                ));
+//*/
         playerChaser = physObj.createChaser1(engine, comp.chaseNode);
+
+        cameraSystem.setCameraNode("chaser1",
+                new CameraSystem.CameraNode(
+                        playerChaser.getComponent(CharacterComponent.class).transform,
+                        player.getComponent(ModelComponent.class).modelInst.transform
+                ));
+
+
+        Matrix4 pos = new Matrix4();
+        Matrix4 look = new Matrix4();
+        pos.setToTranslation(new Vector3(3, 7, 10));
+        look.setToTranslation(new Vector3(0, 4, 0));
+        cameraSystem.setCameraNode("fixed", new CameraSystem.CameraNode(FIXED, pos, look));
+
+
+//        cameraSystem.setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);

@@ -28,9 +28,6 @@ import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE
  * ultimately, i should have a camera system that can be a listener on any entity
  * (having a transform) to lookat and track.
  * for now .... lookat player and track a position relative to it
- * Also that camera would have a positin that can be changed perspecitve by the input device .. i.e.
- * first-person in tank, behind tank, or above.
- * <p>
  * <p>
  * LATEST IDEA:
  * multiple camera system instances and types ...
@@ -66,10 +63,19 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         }
     }
 
-    public class CameraNode{
+    public static final int FIXED = 1; // idfk
+
+    public static class CameraNode{
         private Matrix4 positionRef;
         private Matrix4 lookAtRef;
+        private int flags; // e.g. FIXED_PERSPECTIVE
+
         public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
+            this(0, positionRef, lookAtRef);
+        }
+
+        public CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
+            this.flags = flags;
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
         }
@@ -77,11 +83,11 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
     private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
 
-    void addCameraNode(String key, CameraNode cameraNode){
+    public void addCameraNode(String key, CameraNode cameraNode){
         cameraNodes.put(key, cameraNode);
     }
 
-    void setCameraNode(String key, CameraNode cameraNode) {
+    public void setCameraNode(String key, CameraNode cameraNode) {
         int index = cameraNodes.indexOfKey(key);
         if (-1 != index) {
             cameraNodes.setValue(index, cameraNode);
@@ -96,9 +102,10 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     private CameraOpMode cameraOpMode = FIXED_PERSPECTIVE;
 
     // these reference whatever the camera is supposed to be chasing
-    private Matrix4 chasePositionRef;
-    private Matrix4 chaseLookAtRef;
+    private Matrix4 positionMatrixRef;
+    private Matrix4 lookAtMatrixRef;
 
+    private static int nodeIndex = 0;
 
 
     /*
@@ -108,18 +115,35 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
         boolean isController = false;
 
-        Vector3 lookAt = new Vector3();
-        Vector3 position = new Vector3();
+        if (++nodeIndex >= cameraNodes.size) {
+            nodeIndex = 0;
+        }
 
-        lookAtTransform.getTranslation(lookAt);
-        positionTransform.getTranslation(position);
+        CameraNode node = cameraNodes.getValueAt(nodeIndex);
 
-        cameraOpMode = cameraOpMode.getNext();
+        cameraOpMode = CHASE;
 
-        if (FIXED_PERSPECTIVE == cameraOpMode) {
-            setCameraLocation(position, lookAt);
+        if (node.flags == FIXED){
+
+            cameraOpMode = FIXED_PERSPECTIVE;
+
+            Vector3 lookAtV = new Vector3();
+            Vector3 positionV = new Vector3();
+
+            lookAtTransform.getTranslation(lookAtV);
+            positionTransform.getTranslation(positionV);
+
+            setCameraLocation(positionV, lookAtV);
+
+// we only set the fixed camera once, so it may not matter to save these values
+            node.positionRef.set(positionTransform);
+            node.lookAtRef.set(lookAtTransform);
+
             isController = true;
         }
+
+        positionMatrixRef = node.positionRef;
+        lookAtMatrixRef = node.lookAtRef;
 
         return isController;
     }
@@ -136,6 +160,16 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     public CameraSystem(PerspectiveCamera cam) {
 
         this.cam = cam;
+
+        // set some fixed default
+        setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
+
+
+// values will get overwritten ... this may be temporary
+//        positionMatrixRef = new Matrix4();
+//        positionMatrixRef.setToTranslation(position);
+//        lookAtMatrixRef = new Matrix4();
+//        lookAtMatrixRef.setToTranslation(lookAt);
     }
 
     @Override
@@ -155,8 +189,8 @@ public class CameraSystem extends EntitySystem implements EntityListener {
     }
 
 
-    private Vector3 pos = new Vector3();
-    private Vector3 lookAt = new Vector3();
+    private Vector3 tmpPpositionV = new Vector3();
+    private Vector3 tmpLookAtV = new Vector3();
 
     @Override
     public void update(float delta) {
@@ -164,17 +198,9 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         if (FIXED_PERSPECTIVE == cameraOpMode) {
 
         } else if (CHASE == cameraOpMode) {
-
-            chasePositionRef.getTranslation(pos);
-            chaseLookAtRef.getTranslation(lookAt);
-            setCameraLocation(pos, lookAt);
+            positionMatrixRef.getTranslation(tmpPpositionV);
+            lookAtMatrixRef.getTranslation(tmpLookAtV);
+            setCameraLocation(tmpPpositionV, tmpLookAtV);
         }
-    }
-
-
-    public void setChaser(Matrix4 positionRef, Matrix4 lookAtRef) {
-
-        chasePositionRef = positionRef;
-        chaseLookAtRef = lookAtRef;
     }
 }
