@@ -274,16 +274,16 @@ public class GameScreen implements Screen {
         comp = player.getComponent(PlayerComponent.class);
 
         Entity playerChaser;
-///*
+/*
         playerChaser = physObj.createChaser2(engine, comp.chaseNode);
 
-//        cameraSystem.setCameraNode(new String("chaser2"),
         cameraSystem.setCameraNode("chaser2",
                 new CameraSystem.CameraNode(
                         playerChaser.getComponent(CharacterComponent.class).transform,
                         player.getComponent(ModelComponent.class).modelInst.transform
                 ));
-//*/
+*/
+///*
         playerChaser = physObj.createChaser1(engine, comp.chaseNode);
 
         cameraSystem.setCameraNode("chaser1",
@@ -291,7 +291,7 @@ public class GameScreen implements Screen {
                         playerChaser.getComponent(CharacterComponent.class).transform,
                         player.getComponent(ModelComponent.class).modelInst.transform
                 ));
-
+//*/
 
         Matrix4 pos = new Matrix4();
         Matrix4 look = new Matrix4();
