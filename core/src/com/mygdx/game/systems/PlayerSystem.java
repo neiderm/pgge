@@ -154,45 +154,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
 
         plyrPhysBody.setWorldTransform(tmpM);
-
-
-        updateChaseNode(playerComp.chaseNode, tmpM, 2.0f, 3.0f);
-    }
-
-
-    private static Quaternion quat = new Quaternion();
-    private static Matrix4 transform = new Matrix4();
-
-    /*
-     * this should be eventually put in its own class, player isn't the only thing could use a chase node!
-     *
-     * target position vector is updated in place on the passed reference.
-     * identity matrix is set to the transform and returned.
-     */
-    public static Matrix4 updateChaseNode(
-            Vector3 targetPosition, Matrix4 actorTransform, float height, float dist) {
-
-//        Vector3 targetPosition = new Vector3();
-
-        targetPosition.set(actorTransform.getTranslation(tmpV));
-
-        // offset to maintain position above subject ...
-        targetPosition.y += height;
-
-        // ... and then determine a point slightly "behind"
-        // take negative of unit vector of players orientation
-        actorTransform.getRotation(quat);
-
-        // hackme ! this is not truly in 3D!
-        float yaw = quat.getYawRad();
-
-        float dX = sin(yaw);
-        float dZ = cos(yaw);
-        targetPosition.x += dX * dist;
-        targetPosition.z += dZ * dist;
-
-        transform.setToTranslation(targetPosition);
-        return transform;
     }
 
 

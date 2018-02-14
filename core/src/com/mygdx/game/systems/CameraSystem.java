@@ -109,9 +109,10 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
 
     /*
-    pass these in as matrix, so we don't care if they are stationary points, or "live" characters transforms
+TODO: setCameraLocation saves the lookAt and position is sets so that we can get them when/if opmode changes
+(lookAtTransform goes away )
      */
-    public boolean nextOpMode(Matrix4 positionTransform, Matrix4 lookAtTransform) {
+    public boolean nextOpMode(Matrix4 lookAtTransform) {
 
         boolean isController = false;
 
@@ -128,20 +129,15 @@ public class CameraSystem extends EntitySystem implements EntityListener {
             cameraOpMode = FIXED_PERSPECTIVE;
 
             Vector3 lookAtV = new Vector3();
-            Vector3 positionV = new Vector3();
-
             lookAtTransform.getTranslation(lookAtV);
-            positionTransform.getTranslation(positionV);
-
-            setCameraLocation(positionV, lookAtV);
-
-// we only set the fixed camera once, so it may not matter to save these values
-            node.positionRef.set(positionTransform);
-            node.lookAtRef.set(lookAtTransform);
+            Vector3 tmp = cam.position.cpy();
+            tmp.y += 1;
+            setCameraLocation(tmp, lookAtV);
 
             isController = true;
         }
 
+        // set working refs to the selected node (if node is a "fixed" type ... no point to set these, must not be null )
         positionMatrixRef = node.positionRef;
         lookAtMatrixRef = node.lookAtRef;
 

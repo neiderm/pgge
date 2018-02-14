@@ -21,5 +21,4 @@ public class CharacterComponent implements Component {
     }
 
     public PIDcontrol controller;
-    public Matrix4 transform = new Matrix4();
 }

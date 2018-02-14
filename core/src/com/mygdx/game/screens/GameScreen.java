@@ -35,7 +35,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.physObj;
 import com.mygdx.game.systems.BulletSystem;
@@ -44,7 +43,6 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
-import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE;
 import static com.mygdx.game.systems.CameraSystem.FIXED;
 
 
@@ -227,13 +225,9 @@ public class GameScreen implements Screen {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
 
                 Matrix4 playerTransform = new Matrix4();
-                Vector3 tmpV = new Vector3();
-
                 player.getComponent(BulletComponent.class).body.getWorldTransform(playerTransform);
-                Matrix4 chaseNodeTransform =
-                        PlayerSystem.updateChaseNode(tmpV, playerTransform, 5.0f, 4.0f);
 
-                boolean isController = cameraSystem.nextOpMode(chaseNodeTransform, playerTransform);
+                boolean isController = cameraSystem.nextOpMode(playerTransform);
 
                 if (isController)
                     multiplexer.addProcessor(camController);
@@ -268,10 +262,7 @@ public class GameScreen implements Screen {
 
         physObj.createEntities(engine);
 
-        PlayerComponent comp;
-
         player = physObj.createPlayer(engine);
-        comp = player.getComponent(PlayerComponent.class);
 
         Entity playerChaser;
 /*
@@ -284,11 +275,14 @@ public class GameScreen implements Screen {
                 ));
 */
 ///*
-        playerChaser = physObj.createChaser1(engine, comp.chaseNode);
+
+        Matrix4 plyrTransform = player.getComponent(ModelComponent.class).modelInst.transform;
+
+        playerChaser = physObj.createChaser1(engine, plyrTransform);
 
         cameraSystem.setCameraNode("chaser1",
                 new CameraSystem.CameraNode(
-                        playerChaser.getComponent(CharacterComponent.class).transform,
+                        playerChaser.getComponent(ModelComponent.class).modelInst.transform,
                         player.getComponent(ModelComponent.class).modelInst.transform
                 ));
 //*/

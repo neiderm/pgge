@@ -202,7 +202,7 @@ public class physObj {
     /*
     a character object that tracks the given "node" ...
      */
-    public static Entity createChaser1(Engine engine, Vector3 node) {
+    public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
         /*
           Right now we're moving (translating) it directly, according to a PI loop idea.
           ("Plant" output is simply an offset displacement added to present position).
@@ -227,7 +227,11 @@ public class physObj {
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
         mc.modelInst.userData = 0xaa55;
-        e.add(new CharacterComponent(new PIDcontrol(node, 0.1f, 0, 0)));
+        e.add(new CharacterComponent(
+                new PIDcontrol(tgtTransform,
+                        mc.modelInst.transform,
+                        new Vector3(0, 2, 3),
+                        0.1f, 0, 0)));
 
         engine.addEntity(e);
         return e;
@@ -256,8 +260,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
                 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
-        e.add(new CharacterComponent(
-                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));
+//        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));
 
         engine.addEntity(e);
         return e;

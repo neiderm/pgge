@@ -14,24 +14,24 @@ public class PhysicsPIDcontrol extends PIDcontrol {
     private Vector3 tmpV = new Vector3(0, 0, 0);
 
 
-    public PhysicsPIDcontrol(btRigidBody body, Vector3 setpoint, float kP, float kI, float kD) {
+    public PhysicsPIDcontrol(btRigidBody body, Matrix4 setpoint, float kP, float kI, float kD) {
 
-        super(setpoint, kP, kI, kD);
+//        super(setpoint, kP, kI, kD);
         this.body = body;
     }
 
-    @Override
+//    @Override
     public void doControl(Matrix4 transform) {
 
         translation = transform.getTranslation(translation);
 
-        output = super.doControl(translation);
+//        output = super.doControl(translation);
 
 // now take output vector and apply as a force
         body.applyCentralForce(output.cpy().scl(0.1f));
 
-
-        float setpY = setpoint.y + 2.0f; // copied height offset from playerSystem:updateChaseNode
+/*
+        float setpY = setpoint.y + 2.0f; // copied height offset from playerSystem:addSetpointOffset
         float myY = translation.y;
 
         if (myY < setpY){
@@ -40,5 +40,6 @@ public class PhysicsPIDcontrol extends PIDcontrol {
             // also, apply a force vector opposing  gravity
             body.applyCentralForce(tmpV);
         }
+*/
     }
 }
