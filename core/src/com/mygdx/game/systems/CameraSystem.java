@@ -63,15 +63,15 @@ public class CameraSystem extends EntitySystem implements EntityListener {
         }
     }
 
-    public static final int FIXED = 1; // idfk
+    private static final int FIXED = 1; // idfk
 
-    public static class CameraNode{
+    private static class CameraNode{
         private Matrix4 positionRef;
         private Matrix4 lookAtRef;
         private int flags; // e.g. FIXED_PERSPECTIVE
 
         public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
-            this(0, positionRef, lookAtRef);
+            this(FIXED, positionRef, lookAtRef);
         }
 
         public CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
@@ -83,16 +83,20 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
     private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
 
-    public void addCameraNode(String key, CameraNode cameraNode){
-        cameraNodes.put(key, cameraNode);
+    public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {
+
+        setCameraNode(key, posM, lookAtM, 0);
     }
 
-    public void setCameraNode(String key, CameraNode cameraNode) {
+    public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
+
+        CameraNode cameraNode = new CameraNode(flags, posM, lookAtM);
+
         int index = cameraNodes.indexOfKey(key);
         if (-1 != index) {
             cameraNodes.setValue(index, cameraNode);
-        }
-        else addCameraNode(key, cameraNode);
+        } else
+            cameraNodes.put(key, cameraNode);
     }
 
     // remove camera node
@@ -109,18 +113,33 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
 
     /*
-TODO: setCameraLocation saves the lookAt and position is sets so that we can get them when/if opmode changes
-(lookAtTransform goes away )
      */
-    public boolean nextOpMode() {
+    public boolean setOpModeByKey(String key) {
+        int index = cameraNodes.indexOfKey(key);
 
-        boolean isController = false;
+        if (index > -1) {
+
+            return setOpModeByIndex(index);
+        } else {
+             // we're doomed ... idfk
+        }
+        return false;
+    }
+
+
+    public boolean nextOpMode() {
 
         if (++nodeIndex >= cameraNodes.size) {
             nodeIndex = 0;
         }
+        return setOpModeByIndex(nodeIndex);
+    }
 
-        CameraNode node = cameraNodes.getValueAt(nodeIndex);
+    boolean setOpModeByIndex(int index){
+
+        boolean isController = false;
+
+        CameraNode node = cameraNodes.getValueAt(index);
 
         cameraOpMode = CHASE;
 
@@ -150,7 +169,7 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
         cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
         cam.update();
 
-        currentPpositionV.set(position);
+        currentPositionV.set(position);
         currentLookAtV.set(lookAt);
     }
 
@@ -158,8 +177,16 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
 
         this.cam = cam;
 
-        // set some fixed default
-        setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
+        Vector3 posV = new Vector3(3, 7, 10);
+        Vector3 lookAtV = new Vector3(0, 4, 0);
+// we don't really use the transform matrix for fixed camera
+//        Matrix4 pos = new Matrix4();
+//        Matrix4 look = new Matrix4();
+//        pos.setToTranslation(posV);
+//        look.setToTranslation(lookAtV);
+//        setCameraNode("fixed", pos, look, FIXED);
+        setCameraNode("fixed", null, null, FIXED);
+        setCameraLocation(posV, lookAtV);
     }
 
     @Override
@@ -179,7 +206,7 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
     }
 
 
-    private Vector3 currentPpositionV = new Vector3();
+    private Vector3 currentPositionV = new Vector3();
     private Vector3 currentLookAtV = new Vector3();
 
     @Override
@@ -188,9 +215,9 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
         if (FIXED_PERSPECTIVE == cameraOpMode) {
 
         } else if (CHASE == cameraOpMode) {
-            positionMatrixRef.getTranslation(currentPpositionV);
+            positionMatrixRef.getTranslation(currentPositionV);
             lookAtMatrixRef.getTranslation(currentLookAtV);
-            setCameraLocation(currentPpositionV, currentLookAtV);
+            setCameraLocation(currentPositionV, currentLookAtV);
         }
     }
 }

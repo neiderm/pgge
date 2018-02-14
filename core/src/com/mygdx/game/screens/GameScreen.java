@@ -33,7 +33,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.physObj;
@@ -42,8 +41,6 @@ import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
-
-import static com.mygdx.game.systems.CameraSystem.FIXED;
 
 
 /**
@@ -203,6 +200,8 @@ public class GameScreen implements Screen {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
+
+// TODO: call this thru a "wrapper" so we're not hard-tied to a handler!
                 playerSystem.onJumpButton();
                 return true;
             }
@@ -253,13 +252,11 @@ public class GameScreen implements Screen {
     }
 
 
-    private Entity player;
-
     void addEntities() {
 
         physObj.createEntities(engine);
 
-        player = physObj.createPlayer(engine);
+        Entity player = physObj.createPlayer(engine);
 
         Entity playerChaser;
 /*
@@ -278,20 +275,9 @@ public class GameScreen implements Screen {
         playerChaser = physObj.createChaser1(engine, plyrTransform);
 
         cameraSystem.setCameraNode("chaser1",
-                new CameraSystem.CameraNode(
-                        playerChaser.getComponent(ModelComponent.class).modelInst.transform,
-                        player.getComponent(ModelComponent.class).modelInst.transform
-                ));
-//*/
-
-        Matrix4 pos = new Matrix4();
-        Matrix4 look = new Matrix4();
-        pos.setToTranslation(new Vector3(3, 7, 10));
-        look.setToTranslation(new Vector3(0, 4, 0));
-        cameraSystem.setCameraNode("fixed", new CameraSystem.CameraNode(FIXED, pos, look));
-
-
-//        cameraSystem.setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
+                playerChaser.getComponent(ModelComponent.class).modelInst.transform,
+                player.getComponent(ModelComponent.class).modelInst.transform);
+        //*/
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
