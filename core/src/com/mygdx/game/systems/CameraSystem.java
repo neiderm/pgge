@@ -112,7 +112,7 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 TODO: setCameraLocation saves the lookAt and position is sets so that we can get them when/if opmode changes
 (lookAtTransform goes away )
      */
-    public boolean nextOpMode(Matrix4 lookAtTransform) {
+    public boolean nextOpMode() {
 
         boolean isController = false;
 
@@ -128,11 +128,9 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
 
             cameraOpMode = FIXED_PERSPECTIVE;
 
-            Vector3 lookAtV = new Vector3();
-            lookAtTransform.getTranslation(lookAtV);
             Vector3 tmp = cam.position.cpy();
             tmp.y += 1;
-            setCameraLocation(tmp, lookAtV);
+            setCameraLocation(tmp, currentLookAtV);
 
             isController = true;
         }
@@ -151,6 +149,9 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
         cam.lookAt(lookAt);
         cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
         cam.update();
+
+        currentPpositionV.set(position);
+        currentLookAtV.set(lookAt);
     }
 
     public CameraSystem(PerspectiveCamera cam) {
@@ -159,13 +160,6 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
 
         // set some fixed default
         setCameraLocation(new Vector3(3, 7, 10), new Vector3(0, 4, 0));
-
-
-// values will get overwritten ... this may be temporary
-//        positionMatrixRef = new Matrix4();
-//        positionMatrixRef.setToTranslation(position);
-//        lookAtMatrixRef = new Matrix4();
-//        lookAtMatrixRef.setToTranslation(lookAt);
     }
 
     @Override
@@ -185,8 +179,8 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
     }
 
 
-    private Vector3 tmpPpositionV = new Vector3();
-    private Vector3 tmpLookAtV = new Vector3();
+    private Vector3 currentPpositionV = new Vector3();
+    private Vector3 currentLookAtV = new Vector3();
 
     @Override
     public void update(float delta) {
@@ -194,9 +188,9 @@ TODO: setCameraLocation saves the lookAt and position is sets so that we can get
         if (FIXED_PERSPECTIVE == cameraOpMode) {
 
         } else if (CHASE == cameraOpMode) {
-            positionMatrixRef.getTranslation(tmpPpositionV);
-            lookAtMatrixRef.getTranslation(tmpLookAtV);
-            setCameraLocation(tmpPpositionV, tmpLookAtV);
+            positionMatrixRef.getTranslation(currentPpositionV);
+            lookAtMatrixRef.getTranslation(currentLookAtV);
+            setCameraLocation(currentPpositionV, currentLookAtV);
         }
     }
 }

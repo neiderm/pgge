@@ -224,10 +224,7 @@ public class GameScreen implements Screen {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
 
-                Matrix4 playerTransform = new Matrix4();
-                player.getComponent(BulletComponent.class).body.getWorldTransform(playerTransform);
-
-                boolean isController = cameraSystem.nextOpMode(playerTransform);
+                boolean isController = cameraSystem.nextOpMode();
 
                 if (isController)
                     multiplexer.addProcessor(camController);
