@@ -22,14 +22,12 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
@@ -76,7 +74,6 @@ public class GameScreen implements Screen {
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private Stage stage;
-    private Touchpad touchpad;
 
 
     InputMultiplexer multiplexer;
@@ -170,54 +167,26 @@ public class GameScreen implements Screen {
         //Apply the Drawables to the TouchPad Style
         touchpadStyle.background = touchBackground;
         touchpadStyle.knob = touchKnob;
+
         //Create new TouchPad with the created style
-        touchpad = new Touchpad(10, touchpadStyle);
+        Touchpad touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
         // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
-        touchpad.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                /*          -1.0
-                       -1.0   +   +1.0
-                            + 1.0        */
-                playerSystem.updateV(touchpad.getKnobPercentX(), -touchpad.getKnobPercentY());
-            }
-        });
+        touchpad.addListener(playerSystem.touchPadChangeListener);
 
 
-        //https://gamedev.stackexchange.com/questions/121115/libgdx-simple-button-with-image
         myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+
         ImageButton buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
         buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 6f);
-
-        /*
-         * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
-         */
-        buttonA.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-
-// TODO: call this thru a "wrapper" so we're not hard-tied to a handler!
-                playerSystem.onJumpButton();
-                return true;
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-
-            }
-        });
+        buttonA.addListener(playerSystem.actionButtonListener);
 
         ImageButton buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
         buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4f) - 100f, (Gdx.graphics.getHeight() / 6f) - 100f);
 
-        /*
-         * https://gamedev.stackexchange.com/questions/81781/how-can-i-create-a-button-with-an-image-in-libgdx
-         */
         buttonB.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {

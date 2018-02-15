@@ -7,12 +7,15 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.InputReceiverSystem;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.SliderForceControl;
 import com.mygdx.game.screens.MainMenuScreen;
@@ -34,7 +37,7 @@ be placed). "
  */
 
 
-public class PlayerSystem extends EntitySystem implements EntityListener, InputReceiverSystem {
+public class PlayerSystem extends EntitySystem implements EntityListener {
 
     // magnitude of force applied (property of "vehicle" type?)
     private static /* final */ float forceMag = 12.0f;
@@ -71,38 +74,41 @@ public class PlayerSystem extends EntitySystem implements EntityListener, InputR
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
 
-    public void updateV(float x, float y) {
-        playerComp.inpVect.x = x;
-        playerComp.inpVect.y = y;
-    }
+    public final ChangeListener touchPadChangeListener =
+            new ChangeListener() {
+                @Override
+                public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
-    public void onTouchDown(Vector2 xy) {
-        updateV(xy.x, xy.y);
-    }
+                /*          -1.0
+                       -1.0   +   +1.0
+                            + 1.0        */
 
-    public void onTouchUp(Vector2 xy) {
-        updateV(xy.x, xy.y);
-    }
+                    Touchpad t = (Touchpad) actor;
+                    playerComp.inpVect.x = t.getKnobPercentX();
+                    playerComp.inpVect.y = -t.getKnobPercentY();
+                }
+            };
 
-    public void onTouchDragged(Vector2 xy) {
-        updateV(xy.x, xy.y);
-    }
+    public final InputListener actionButtonListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
 
-    public void onButton() {
-        onJumpButton();
-    }
+            // random flip left or right
+            if (rnd.nextFloat() > 0.5f)
+                tmpV.set(0.1f, 0, 0);
+            else
+                tmpV.set(-0.1f, 0, 0);
 
+            plyrPhysBody.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
 
-    public void onJumpButton() {
+            return true;
+        }
 
-        // random flip left or right
-        if (rnd.nextFloat() > 0.5f)
-            tmpV.set(0.1f, 0, 0);
-        else
-            tmpV.set(-0.1f, 0, 0);
-
-        plyrPhysBody.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
-    }
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        }
+    };
 
 
     @Override
