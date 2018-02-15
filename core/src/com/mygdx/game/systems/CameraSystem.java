@@ -4,12 +4,10 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
-import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.game.Components.CameraComponent;
 
 import static com.mygdx.game.systems.CameraSystem.CameraOpMode.CHASE;
 import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE;
@@ -143,20 +141,32 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
         cameraOpMode = CHASE;
 
+        Vector3 tmp = cam.position.cpy();
+
         if (node.flags == FIXED){
 
             cameraOpMode = FIXED_PERSPECTIVE;
 
-            Vector3 tmp = cam.position.cpy();
             tmp.y += 1;
             setCameraLocation(tmp, currentLookAtV);
 
             isController = true;
-        }
 
-        // set working refs to the selected node (if node is a "fixed" type ... no point to set these, must not be null )
-        positionMatrixRef = node.positionRef;
-        lookAtMatrixRef = node.lookAtRef;
+            // they way it's setup right now, these don't matter for fixed camera
+            positionMatrixRef = null;
+            lookAtMatrixRef = null;
+
+        } else {
+
+            // set working refs to the selected node
+            positionMatrixRef = node.positionRef;
+            lookAtMatrixRef = node.lookAtRef;
+
+            // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
+            // this would be nicer if we could "un-stiffen" the control gain during this zoom!
+
+            positionMatrixRef.setToTranslation(tmp);
+        }
 
         return isController;
     }
@@ -202,7 +212,7 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 
 //        this.engine = engine;
 
-        engine.addEntityListener(Family.all(CameraComponent.class).get(), this);
+//        engine.addEntityListener(Family.all(CameraComponent.class).get(), this);
     }
 
 
