@@ -9,10 +9,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
@@ -25,13 +23,9 @@ import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.GamePad;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.physObj;
 import com.mygdx.game.systems.BulletSystem;
@@ -75,9 +69,7 @@ public class GameScreen implements Screen {
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private Stage stage;
 
-
     InputMultiplexer multiplexer;
-
 
 
     public GameScreen(MyGdxGame game) {
@@ -90,7 +82,6 @@ public class GameScreen implements Screen {
         environment.add(
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-
         cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
         cam.position.set(3f, 7f, 10f);
         cam.lookAt(0, 4, 0);
@@ -98,14 +89,14 @@ public class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
         addEntities();
 
-
-        stage = addTouchPad();
-
+        stage = new GamePad(
+                playerSystem.touchPadChangeListener,
+                playerSystem.actionButtonListener,
+                buttonBListener);
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -119,7 +110,6 @@ public class GameScreen implements Screen {
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
-
 
 
         // Font files from ashley-superjumper
@@ -140,85 +130,25 @@ public class GameScreen implements Screen {
     }
 
 
-    /*
-     * from "http://www.bigerstaff.com/libgdx-touchpad-example"
-     */
-    private Stage addTouchPad() {
+    public final InputListener buttonBListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-        Touchpad.TouchpadStyle touchpadStyle;
-        Skin touchpadSkin;
-        Drawable touchBackground;
-        Drawable touchKnob;
-        Texture myTexture;
-        TextureRegion myTextureRegion;
-        TextureRegionDrawable myTexRegionDrawable;
+            boolean isController = cameraSystem.nextOpMode();
 
-        //Create a touchpad skin
-        touchpadSkin = new Skin();
-        //Set background image
-        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
-        //Set knob image
-        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
-        //Create TouchPad Style
-        touchpadStyle = new Touchpad.TouchpadStyle();
-        //Create Drawable's from TouchPad skin
-        touchBackground = touchpadSkin.getDrawable("touchBackground");
-        touchKnob = touchpadSkin.getDrawable("touchKnob");
-        //Apply the Drawables to the TouchPad Style
-        touchpadStyle.background = touchBackground;
-        touchpadStyle.knob = touchKnob;
+            if (isController)
+                multiplexer.addProcessor(camController);
+            else
+                multiplexer.removeProcessor(camController);
 
-        //Create new TouchPad with the created style
-        Touchpad touchpad = new Touchpad(10, touchpadStyle);
-        //setBounds(x,y,width,height)
-        touchpad.setBounds(15, 15, 200, 200);
-        // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
-        touchpad.addListener(playerSystem.touchPadChangeListener);
+            return true;
+        }
 
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 
-        myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
-        myTextureRegion = new TextureRegion(myTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-        ImageButton buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 6f);
-        buttonA.addListener(playerSystem.actionButtonListener);
-
-        ImageButton buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4f) - 100f, (Gdx.graphics.getHeight() / 6f) - 100f);
-
-        buttonB.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-
-                boolean isController = cameraSystem.nextOpMode();
-
-                if (isController)
-                    multiplexer.addProcessor(camController);
-                else
-                    multiplexer.removeProcessor(camController);
-
-                return true;
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-
-            }
-        });
-
-        //Create a Stage and add TouchPad
-//		stage = new Stage(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true, batch);
-        stage = new Stage();
-        stage.clear();
-        stage.addActor(touchpad);
-        stage.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
-        stage.addActor(buttonB);
-//        Gdx.input.setInputProcessor(stage);
-
-        return stage;
-    }
+        }
+    };
 
 
     void addEntities() {
@@ -238,7 +168,6 @@ public class GameScreen implements Screen {
                 ));
 */
 ///*
-
         Matrix4 plyrTransform = player.getComponent(ModelComponent.class).modelInst.transform;
 
         playerChaser = physObj.createChaser1(engine, plyrTransform);
