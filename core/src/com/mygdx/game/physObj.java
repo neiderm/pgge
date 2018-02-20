@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -15,10 +16,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
+import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
+import com.badlogic.gdx.physics.bullet.collision.btShapeHull;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
@@ -78,10 +80,15 @@ public class physObj {
 
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
-        assets.load("data/ship.g3db", Model.class);
+//        assets.load("data/heightmap.g3db", Model.class);
+//        assets.load("data/ship.g3db", Model.class);
+        assets.load("data/panzerwagen.g3db", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        shipModel = assets.get("data/ship.g3db", Model.class);
+//        landscapeModel = assets.get("data/heightmap.g3db", Model.class);
+//        shipModel = assets.get("data/ship.g3db", Model.class);
+        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+// https://opengameart.org/content/tankcar
 
         mb.begin();
 
@@ -177,7 +184,7 @@ public class physObj {
 
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
-
+///*
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran));
 
@@ -186,10 +193,11 @@ public class physObj {
 
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
-
+//*/
         if (true) { // this slows down bullet debug drawer considerably!
             // put the landscape at an angle so stuff falls of it...
             Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
+//            Matrix4 transform = new Matrix4().idt();
             transform.trn(0, 0 + yTrans, 0);
             engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
         }
@@ -270,19 +278,11 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         Vector3 s = new Vector3(1, 1, 1);
 
-        /*
-        float mass = 1.0f;
-        Entity plyr = new GameObject(s, tankTemplateModel).create(
-                mass, t, new btBoxShape(tankSize.cpy().scl(0.5f)));
-        plyr.add(new PlayerComponent(mass));
-    */
         float mass = 5.1f; // can't go much more mass, ball way too fast!
-//        Entity plyr = new GameObject(s, ballTemplateModel).create(
+
         Entity plyr = new GameObject(s, shipModel).create(
                 mass, new Vector3(0, 15f, -5f),
-//                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)));
-                new btConeShape(1.25f, 0.23f));
-//                new btCylinderShape(new Vector3(0.75f, 0.25f, 1.0f)));
+                createConvexHullShape(shipModel, true));
 
         PlayerComponent comp = new PlayerComponent(mass);
         plyr.add(comp);
@@ -303,6 +303,23 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 //        body.setWorldTransform(tmpM); // setCenterOfMassTransform
 
         return plyr;
+    }
+
+/*
+  https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
+ */
+    public static btConvexHullShape createConvexHullShape (final Model model, boolean optimize) {
+        final Mesh mesh = model.meshes.get(0);
+        final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+        if (!optimize) return shape;
+        // now optimize the shape
+        final btShapeHull hull = new btShapeHull(shape);
+        hull.buildHull(shape.getMargin());
+        final btConvexHullShape result = new btConvexHullShape(hull);
+        // delete the temporary shape
+        shape.dispose();
+        hull.dispose();
+        return result;
     }
 
 
