@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -47,7 +48,6 @@ public class GamePad extends Stage {
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
         Drawable touchBackground;
-        Drawable touchKnob;
         Texture myTexture;
         TextureRegion myTextureRegion;
         TextureRegionDrawable myTexRegionDrawable;
@@ -62,29 +62,46 @@ public class GamePad extends Stage {
         touchpadStyle = new Touchpad.TouchpadStyle();
         //Create Drawable's from TouchPad skin
         touchBackground = touchpadSkin.getDrawable("touchBackground");
-        touchKnob = touchpadSkin.getDrawable("touchKnob");
+
+// https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap background = new Pixmap(200, 200, Pixmap.Format.RGBA8888);
+        background.setColor(1, 1, 1, .2f);
+        background.fillCircle(100, 100, 100);
+
         //Apply the Drawables to the TouchPad Style
-        touchpadStyle.background = touchBackground;
-        touchpadStyle.knob = touchKnob;
+//        touchpadStyle.background = touchBackground;
+        touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
+
+        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
 
         //Create new TouchPad with the created style
         this.touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
+
         // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
 
 
-        myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+
+
+//        myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
+        myTexture = new Texture(button);
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
         this.buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 6f);
+        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         buttonA.addListener(buttonAListener);
 
         this.buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
-        buttonB.setPosition((3 * Gdx.graphics.getWidth() / 4f) - 100f, (Gdx.graphics.getHeight() / 6f) - 100f);
+        buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
         buttonB.addListener(buttonBListener);
 
         this.clear();
