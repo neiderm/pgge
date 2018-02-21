@@ -8,6 +8,9 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -53,6 +56,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     //    private Engine engine;
     private PlayerComponent playerComp = null;
     private btRigidBody plyrPhysBody = null;
+    private btCollisionWorld plyrCollisionWorld = null;
+
     private MyGdxGame game;
 
     // working variables
@@ -142,11 +147,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
 
-        // TODO: check for contact w/ surface, only apply force if in contact, not falling
-        SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
-                plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
-
-
 // for dynamic object you should get world trans directly from rigid body!
         plyrPhysBody.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
@@ -156,10 +156,32 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
 
-// we should maybe be using torque for this to be consistent in dealing with our rigid body player!
-        tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
+        btCollisionObject rayPickObject;
+        Vector3 down = new Vector3(0, -1, 0); // TODO: no GC!
+        // get quat from world transfrom obtained above
+        tmpM.getRotation(r);
+
+        down.rotateRad(r.getPitchRad(), 1, 0, 0);
+        down.rotateRad(r.getRollRad(), 0, 0, 1);
+        down.rotateRad(r.getYawRad(), 0, 1, 0);
+
+        Ray ray = new Ray(tmpV, down);  // TODO: no GC!
+        rayPickObject = BulletSystem.rayTest(plyrCollisionWorld, ray);
+
+
+        // check for contact w/ surface, only apply force if in contact, not falling
+
+        if (null != rayPickObject) {
+
+            // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
+            tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
+
+            SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
+                    plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
+        }
 
         plyrPhysBody.setWorldTransform(tmpM);
+
     }
 
 
@@ -172,7 +194,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //        if (null != entity.getComponent(PlayerComponent.class))
         {
             playerComp = entity.getComponent(PlayerComponent.class);
-            plyrPhysBody = entity.getComponent(BulletComponent.class).body;
+            BulletComponent bc = entity.getComponent(BulletComponent.class);
+            plyrPhysBody = bc.body;
+            plyrCollisionWorld = bc.collisionWorld;
         }
     }
 

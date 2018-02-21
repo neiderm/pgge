@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 
@@ -36,6 +37,9 @@ public class BulletComponent implements Component {
     public final MotionState motionstate;
     public final btCollisionShape shape;
     public final btRigidBody body;
+
+    public btCollisionWorld collisionWorld;
+
 
     // idfk
 public boolean sFlag = false; // need to make component for static entity

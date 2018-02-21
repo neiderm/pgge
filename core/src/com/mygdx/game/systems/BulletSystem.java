@@ -9,10 +9,14 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
+import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
@@ -28,12 +32,12 @@ import java.util.Random;
 /**
  * Created by mango on 12/18/17.
  * a bullet and libgdx test from
- *  "from http://bedroomcoders.co.uk/libgdx-bullet-redux-2/"
+ * "from http://bedroomcoders.co.uk/libgdx-bullet-redux-2/"
  */
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    private final boolean useDdbugDraw = false;
+    private static final boolean useDdbugDraw = false;
 
     private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
@@ -46,7 +50,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
     private Random rnd = new Random();
 
-//    private Engine engine;
+    //    private Engine engine;
     private ImmutableArray<Entity> entities;
 
     private DebugDrawer debugDrawer;
@@ -90,10 +94,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
             if (null != bc
                     && null != bc.motionstate
-                    )
-            {
-                if (true /* body.isActive() */)
-                {
+                    ) {
+                if (true /* body.isActive() */) {
                     bc.motionstate.getWorldTransform(tmpM);
                     tmpM.getTranslation(tmpV);
 
@@ -151,6 +153,9 @@ public class BulletSystem extends EntitySystem implements EntityListener {
         if (null != bc) {
             if (null != bc.body) {
                 collisionWorld.addRigidBody(bc.body);
+
+                // link to collisionworld for other systems to pass in for ray testin
+                bc.collisionWorld = collisionWorld;
             }
         }
     }
@@ -158,4 +163,37 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void entityRemoved(Entity entity) {
     }
+
+
+    /*
+     this is here for access to collisionworld
+      https://stackoverflow.com/questions/24988852/raycasting-in-libgdx-3d
+     */
+    private static final Vector3 rayFrom = new Vector3();
+    private static final Vector3 rayTo = new Vector3();
+    private static final ClosestRayResultCallback callback = new ClosestRayResultCallback(rayFrom, rayTo);
+    private static final Vector3 outV = new Vector3();
+
+    public static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray) {
+        rayFrom.set(ray.origin);
+        // 50 meters max from the origin
+        rayTo.set(ray.direction).scl(50f).add(rayFrom);
+
+        // we reuse the ClosestRayResultCallback, thus we need to reset its values
+        callback.setCollisionObject(null);
+        callback.setClosestHitFraction(1f);
+        callback.getRayFromWorld(outV);
+        outV.set(rayFrom.x, rayFrom.y, rayFrom.z);
+        callback.getRayToWorld(outV);
+        outV.set(rayTo.x, rayTo.y, rayTo.z);
+
+        collisionWorld.rayTest(rayFrom, rayTo, callback);
+
+        if (callback.hasHit()) {
+            return callback.getCollisionObject();
+        }
+
+        return null;
+    }
+
 }
