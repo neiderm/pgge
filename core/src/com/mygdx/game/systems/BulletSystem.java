@@ -174,10 +174,10 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     private static final ClosestRayResultCallback callback = new ClosestRayResultCallback(rayFrom, rayTo);
     private static final Vector3 outV = new Vector3();
 
-    public static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray) {
+    public static btCollisionObject rayTest(
+            btCollisionWorld collisionWorld, Ray ray, float length) {
         rayFrom.set(ray.origin);
-        // 50 meters max from the origin
-        rayTo.set(ray.direction).scl(50f).add(rayFrom);
+        rayTo.set(ray.direction).scl(length).add(rayFrom);
 
         // we reuse the ClosestRayResultCallback, thus we need to reset its values
         callback.setCollisionObject(null);

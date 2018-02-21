@@ -103,7 +103,11 @@ This should become just a general case of vector addition (offset added to the p
 
         /* LATEST: this is screwy but workable. SEems more efficient if we take actor orientation
         vector, negative of that, then scale it by desired offset, and add 3d offset vector actor position
-         ... for now just add z and y of offset vector */
+         ... for now just add z and y of offset vector
+
+         Furthermore, it should track to the body actual dirction of movement, not it's orientation!
+         */
+
         float height = this.spOffset.y;
         float dist = this.spOffset.z;
 

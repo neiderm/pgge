@@ -166,8 +166,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         down.rotateRad(r.getYawRad(), 0, 1, 0);
 
         Ray ray = new Ray(tmpV, down);  // TODO: no GC!
-        rayPickObject = BulletSystem.rayTest(plyrCollisionWorld, ray);
-
+        // 1 meters max from the origin seems to work pretty good
+        rayPickObject = BulletSystem.rayTest(plyrCollisionWorld, ray, 1f);
 
         // check for contact w/ surface, only apply force if in contact, not falling
 
@@ -179,6 +179,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
                     plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
         }
+        else
+            degrees = 0; // tmp test
 
         plyrPhysBody.setWorldTransform(tmpM);
 

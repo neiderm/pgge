@@ -6,9 +6,15 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CameraComponent;
@@ -88,8 +94,27 @@ public class RenderSystem extends EntitySystem implements EntityListener {
             modelBatch.render(mc.modelInst, environment);
         }
 
+        ModelInstance lineInstance = line();
+        modelBatch.render(lineInstance , environment);
+
+
         modelBatch.end();
     }
+
+/*
+https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+ */
+    ModelInstance line(){
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
+        builder.setColor(Color.RED);
+        builder.line(0.0f, 5.0f, -5.0f, 0.0f, 5.0f, 5.0f);
+        Model lineModel = modelBuilder.end();
+        ModelInstance lineInstance = new ModelInstance(lineModel);
+return lineInstance;
+    }
+
 
     @Override
     public void entityAdded(Entity entity) {
