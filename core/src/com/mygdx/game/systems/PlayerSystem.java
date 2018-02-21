@@ -52,7 +52,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
       * velocity seems to be limited and constant ... go look up the math eventually */
     private static final float MU = 0.5f;
 
-
     //    private Engine engine;
     private PlayerComponent playerComp = null;
     private btRigidBody plyrPhysBody = null;
@@ -122,7 +121,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
         // rotate by a constant rate according to stick left or stick right.
-        // note: rotation in model space - rotate around the Z (need to fix model export-orientation!)
         float degrees = 0;
         if (playerComp.inpVect.x < -DZ) {
             degrees = 1;
@@ -133,7 +131,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         // use sin/cos to develop unit vector of force apply based on the ships heading
         Quaternion r = plyrPhysBody.getOrientation();
         float yaw = r.getYawRad();
-        //            tmpV.rotate(0, 1, 0, yaw);
+        //            forceVect.rotateRad(0, 0, 1, yaw);
         forceVect.x = -sin(yaw);
         forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
         forceVect.z = -cos(yaw);
@@ -146,7 +144,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             forceVect.set(0, 0, 0);
         }
 
-
 // for dynamic object you should get world trans directly from rigid body!
         plyrPhysBody.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
@@ -155,23 +152,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
         }
 
-
-        btCollisionObject rayPickObject;
-        Vector3 down = new Vector3(0, -1, 0); // TODO: no GC!
-        // get quat from world transfrom obtained above
-        tmpM.getRotation(r);
-
-        down.rotateRad(r.getPitchRad(), 1, 0, 0);
-        down.rotateRad(r.getRollRad(), 0, 0, 1);
-        down.rotateRad(r.getYawRad(), 0, 1, 0);
-
-        Ray ray = new Ray(tmpV, down);  // TODO: no GC!
-        // 1 meters max from the origin seems to work pretty good
-        rayPickObject = BulletSystem.rayTest(plyrCollisionWorld, ray, 1f);
-
         // check for contact w/ surface, only apply force if in contact, not falling
-
-        if (null != rayPickObject) {
+        if (surfaceContact(
+                plyrCollisionWorld, tmpV, plyrPhysBody.getOrientation())){
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -183,7 +166,36 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             degrees = 0; // tmp test
 
         plyrPhysBody.setWorldTransform(tmpM);
+    }
 
+
+    /*
+    make sure player is "upright" - this is so we don't apply motive force if e.g.
+    rolled over falling etc. or otherwise not in contact with some kind of
+    "tractionable" surface (would it belong in it's own system?)
+     */
+    private Ray ray = new Ray();
+    private Vector3 down = new Vector3();
+
+    boolean surfaceContact(
+            btCollisionWorld myCollisionWorld, Vector3 bodyTranslation, Quaternion bodyOrientation) {
+
+        btCollisionObject rayPickObject;
+
+        // get quat from world transfrom ... or not? seems equivalent to body.getOrientation()
+//        bodyWorldTransform.getRotation(bodyOrientation);
+// bodyOrientation = plyrPhysBody.getOrientation()
+
+        down.set(0, -1, 0);
+        down.rotateRad(bodyOrientation.getPitchRad(), 1, 0, 0);
+        down.rotateRad(bodyOrientation.getRollRad(), 0, 0, 1);
+        down.rotateRad(bodyOrientation.getYawRad(), 0, 1, 0);
+
+        ray.set(bodyTranslation, down);
+        // 1 meters max from the origin seems to work pretty good
+        rayPickObject = BulletSystem.rayTest(myCollisionWorld, ray, 1f);
+
+        return (null != rayPickObject);
     }
 
 
