@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.physObj;
@@ -62,6 +63,7 @@ public class GameScreen implements Screen {
     private ShapeRenderer shapeRenderer;
 
     private BulletComponent bulletComp; // tmp, debugging info
+private PlayerComponent playerComp; // tmp, debugging info
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -179,6 +181,7 @@ public class GameScreen implements Screen {
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
+playerComp = player.getComponent(PlayerComponent.class);
     }
 
     private void addSystems() {
@@ -229,7 +232,8 @@ public class GameScreen implements Screen {
                     forceVect.x, forceVect.y, forceVect.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f", 0f, 0f);
+            s = String.format("%+2.1f %+2.1f %+2.1f",
+                    playerComp.down.x, playerComp.down.y, playerComp.down.z);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
             Matrix4 mmm = bulletComp.motionstate.transform;

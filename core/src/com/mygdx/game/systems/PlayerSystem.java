@@ -160,7 +160,8 @@ if (false) {
 
         // check for contact w/ surface, only apply force if in contact, not falling
         if (surfaceContact(
-                plyrCollisionWorld, tmpV, plyrPhysBody.getOrientation())){
+                plyrCollisionWorld, playerComp,
+                tmpV, plyrPhysBody.getOrientation())){
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -181,10 +182,12 @@ if (false) {
     "tractionable" surface (would it belong in it's own system?)
      */
     private Ray ray = new Ray();
-    private Vector3 down = new Vector3();
+//    private Vector3 down = new Vector3();
 
     boolean surfaceContact(
-            btCollisionWorld myCollisionWorld, Vector3 bodyTranslation, Quaternion bodyOrientation) {
+            btCollisionWorld myCollisionWorld,
+            PlayerComponent pc,
+            Vector3 bodyTranslation, Quaternion bodyOrientation) {
 
         btCollisionObject rayPickObject;
 
@@ -192,6 +195,7 @@ if (false) {
 //        bodyWorldTransform.getRotation(bodyOrientation);
 // bodyOrientation = plyrPhysBody.getOrientation()
 
+        Vector3 down = pc.down;
         down.set(0, -1, 0);
         down.rotateRad(bodyOrientation.getPitchRad(), 1, 0, 0);
         down.rotateRad(bodyOrientation.getRollRad(), 0, 0, 1);

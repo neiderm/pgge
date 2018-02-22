@@ -16,9 +16,15 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Components.PlayerComponent;
+
+import javafx.print.PageLayout;
 
 /**
  * Created by mango on 12/18/17.
@@ -88,31 +94,70 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 //                        mc.modelInst.transform.scl(mc.scale); // nfg idfk, should be same but objects are skewed on 1 or more axis
                         }
                     }
+
+
+//*
+                    PlayerComponent pc = e.getComponent(PlayerComponent.class);
+if (null != pc) {
+    ModelInstance lineInstance = raytest(mc.modelInst, pc, bc.body);
+    modelBatch.render(lineInstance, environment);
+}
+//*/
                 }
             }
 
             modelBatch.render(mc.modelInst, environment);
         }
 
-        ModelInstance lineInstance = line();
-        modelBatch.render(lineInstance , environment);
-
 
         modelBatch.end();
     }
 
-/*
-https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
- */
-    ModelInstance line(){
+
+    private ModelInstance raytest(ModelInstance instance,
+                                  PlayerComponent pc,
+                                  btRigidBody body) {
+
+        Matrix4 transform = new Matrix4();
+        body.getWorldTransform(transform);
+
+        Quaternion rotation = new Quaternion();
+        Vector3 down = new Vector3();
+
+        rotation = body.getOrientation();
+//        instance.transform.getRotation(rotation);
+        down.set(0, -1, 0);
+        down.rotateRad(rotation.getPitchRad(), 1, 0, 0);
+        down.rotateRad(rotation.getRollRad(), 0, 0, 1);
+        down.rotateRad(rotation.getYawRad(), 0, 1, 0);
+
+        Vector3 position = new Vector3();
+//        instance.transform.getTranslation(tmp);
+        transform.getTranslation(position);
+
+//        line (new Vector3(0.0f, 5.0f, -5.0f), new Vector3( 0.0f, 5.0f, 5.0f));
+//        return line(position, down);
+//        return line(position, new Vector3(position.x, position.y + 1, position.z));
+        return line(position, pc.down);
+    }
+
+    /*
+    https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+     */
+    ModelInstance line(Vector3 a, Vector3 b) {
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
         MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
         builder.setColor(Color.RED);
-        builder.line(0.0f, 5.0f, -5.0f, 0.0f, 5.0f, 5.0f);
+
+        Vector3 from = new Vector3(a);
+Vector3 to = new Vector3(from.x + b.x, from.y + b.y, from.z - b.z); // idfk
+        builder.line(from, to);
+
         Model lineModel = modelBuilder.end();
         ModelInstance lineInstance = new ModelInstance(lineModel);
-return lineInstance;
+
+        return lineInstance;
     }
 
 
