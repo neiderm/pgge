@@ -130,11 +130,17 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         // use sin/cos to develop unit vector of force apply based on the ships heading
         Quaternion r = plyrPhysBody.getOrientation();
-        float yaw = r.getYawRad();
-        //            forceVect.rotateRad(0, 0, 1, yaw);
-        forceVect.x = -sin(yaw);
-        forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
-        forceVect.z = -cos(yaw);
+if (false) {
+    float yaw = r.getYawRad();
+    forceVect.x = -sin(yaw);
+    forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
+    forceVect.z = -cos(yaw);
+}else { // this one seems to climb a little better!
+    forceVect.set(0, 0, -1);
+    forceVect.rotateRad(r.getPitchRad(), 1, 0, 0);
+    forceVect.rotateRad(r.getRollRad(), 0, 0, 1);
+    forceVect.rotateRad(r.getYawRad(), 0, 1, 0);
+}
 
         if (playerComp.inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !
