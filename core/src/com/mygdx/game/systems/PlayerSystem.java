@@ -128,18 +128,18 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             degrees = -1;
         }
 
-        // use sin/cos to develop unit vector of force apply based on the ships heading
         Quaternion r = plyrPhysBody.getOrientation();
 if (false) {
+    // use sin/cos to develop unit vector of force apply based on the ships heading
+    // this one may actually be better due to limits on climbing
     float yaw = r.getYawRad();
     forceVect.x = -sin(yaw);
     forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
     forceVect.z = -cos(yaw);
-}else { // this one seems to climb a little better!
+}else { // this one seem to be not limited in climbing ability!
     forceVect.set(0, 0, -1);
-    forceVect.rotateRad(r.getPitchRad(), 1, 0, 0);
-    forceVect.rotateRad(r.getRollRad(), 0, 0, 1);
-    forceVect.rotateRad(r.getYawRad(), 0, 1, 0);
+    float rad = r.getAxisAngleRad(axis);
+    forceVect.rotateRad(axis, rad);
 }
 
         if (playerComp.inpVect.y > DZ) {
@@ -182,6 +182,7 @@ if (false) {
     "tractionable" surface (would it belong in it's own system?)
      */
     private Ray ray = new Ray();
+    private Vector3 axis = new Vector3();
 //    private Vector3 down = new Vector3();
 
     boolean surfaceContact(
@@ -197,9 +198,8 @@ if (false) {
 
         Vector3 down = pc.down;
         down.set(0, -1, 0);
-        down.rotateRad(bodyOrientation.getPitchRad(), 1, 0, 0);
-        down.rotateRad(bodyOrientation.getRollRad(), 0, 0, 1);
-        down.rotateRad(bodyOrientation.getYawRad(), 0, 1, 0);
+        float rad = bodyOrientation.getAxisAngleRad(axis);
+        down.rotateRad(axis, rad);
 
         ray.set(bodyTranslation, down);
         // 1 meters max from the origin seems to work pretty good

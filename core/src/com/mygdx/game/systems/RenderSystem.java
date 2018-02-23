@@ -20,11 +20,8 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.CameraComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
-
-import javafx.print.PageLayout;
 
 /**
  * Created by mango on 12/18/17.
@@ -76,10 +73,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
         for (Entity e : entities) {
 
-//            CameraComponent cc = e.getComponent(CameraComponent.class);
-//if (null != cc)
-//    cc.test = 1;
-
             ModelComponent mc = e.getComponent(ModelComponent.class);
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
@@ -94,64 +87,64 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 //                        mc.modelInst.transform.scl(mc.scale); // nfg idfk, should be same but objects are skewed on 1 or more axis
                         }
                     }
-
-
 //*
                     PlayerComponent pc = e.getComponent(PlayerComponent.class);
-if (null != pc) {
-    ModelInstance lineInstance = raytest(mc.modelInst, pc, bc.body);
+if (null != pc)
+{
+    ModelInstance lineInstance = raytest(mc.modelInst.transform, bc.body);
     modelBatch.render(lineInstance, environment);
 }
 //*/
                 }
             }
-
             modelBatch.render(mc.modelInst, environment);
         }
-
-
         modelBatch.end();
     }
 
 
-    private ModelInstance raytest(ModelInstance instance,
-                                  PlayerComponent pc,
+
+    private Vector3 axis = new Vector3();
+    private Vector3 down = new Vector3();
+    private Vector3 position = new Vector3();
+    Quaternion rotation = new Quaternion();
+
+    private ModelInstance raytest(
+                                  Matrix4 transform,
+//                                  PlayerComponent pc,
                                   btRigidBody body) {
-
-        Matrix4 transform = new Matrix4();
+/*
         body.getWorldTransform(transform);
-
-        Quaternion rotation = new Quaternion();
-        Vector3 down = new Vector3();
-
         rotation = body.getOrientation();
-//        instance.transform.getRotation(rotation);
+*/
+        transform.getRotation(rotation);
+
         down.set(0, -1, 0);
-        down.rotateRad(rotation.getPitchRad(), 1, 0, 0);
-        down.rotateRad(rotation.getRollRad(), 0, 0, 1);
-        down.rotateRad(rotation.getYawRad(), 0, 1, 0);
 
-        Vector3 position = new Vector3();
-//        instance.transform.getTranslation(tmp);
+        float rad = rotation.getAxisAngleRad(axis);
+        down.rotateRad(axis, rad);
+
         transform.getTranslation(position);
+//        transform.getTranslation(position);
 
-//        line (new Vector3(0.0f, 5.0f, -5.0f), new Vector3( 0.0f, 5.0f, 5.0f));
-//        return line(position, down);
-//        return line(position, new Vector3(position.x, position.y + 1, position.z));
-        return line(position, pc.down);
+        return line(position, down);
+//        return line(position, pc.down);
     }
 
+
+    private Vector3 to = new Vector3();
+    private ModelBuilder modelBuilder = new ModelBuilder();
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
-    ModelInstance line(Vector3 a, Vector3 b) {
-        ModelBuilder modelBuilder = new ModelBuilder();
+    ModelInstance line(Vector3 from, Vector3 b) {
+
         modelBuilder.begin();
         MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
         builder.setColor(Color.RED);
 
-        Vector3 from = new Vector3(a);
-Vector3 to = new Vector3(from.x + b.x, from.y + b.y, from.z - b.z); // idfk
+        to.set(from.x + b.x, from.y + b.y, from.z + b.z);
+
         builder.line(from, to);
 
         Model lineModel = modelBuilder.end();
