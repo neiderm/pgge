@@ -1,13 +1,17 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.GamePad;
 import com.mygdx.game.MyGdxGame;
 
 /**
@@ -23,25 +27,10 @@ public class MainMenuScreen implements Screen {
     OrthographicCamera guiCam;
     SpriteBatch batch;
     ShapeRenderer shapeRenderer;
+    GamePad stage;
 
     private static int touchBoxW = 20, touchBoxH = 10;
 
-    private class MyInputAdapter extends InputAdapter {
-        @Override
-        public boolean touchDown(int x, int y, int pointer, int button) {
-            // your touch down code here
-            return true; // return true to indicate the event was handled
-        }
-
-        @Override
-        public boolean touchUp(int x, int y, int pointer, int button) {
-            // your touch up code here
-
-            game.setScreen(new GameScreen(game));
-
-            return true; // return true to indicate the event was handled
-        }
-    }
 
     public MainMenuScreen(MyGdxGame game) {
 
@@ -58,9 +47,29 @@ public class MainMenuScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
+        stage = new GamePad(
+                new ChangeListener() {
+                    @Override
+                    public void changed(ChangeListener.ChangeEvent event, Actor actor) {}
+                },
+                new InputListener() {},
+                buttonBListener);
 
-        Gdx.input.setInputProcessor(new MyInputAdapter());
+        Gdx.input.setInputProcessor(stage);
     }
+
+
+    private final InputListener buttonBListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            return true;
+        }
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            game.setScreen(new GameScreen(game));
+        }
+    };
+
 
 
     @Override
@@ -82,10 +91,14 @@ public class MainMenuScreen implements Screen {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.rect(
-                (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2,
-                (float)Gdx.graphics.getHeight() / 2 - touchBoxH / 2,
+                (float)Gdx.graphics.getWidth() / 2 - touchBoxW / 2f,
+                (float)Gdx.graphics.getHeight() / 2 - touchBoxH / 2f,
                 touchBoxW, touchBoxH);
         shapeRenderer.end();
+
+
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
     }
 
     @Override

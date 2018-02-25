@@ -22,7 +22,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -69,7 +68,7 @@ private PlayerComponent playerComp; // tmp, debugging info
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private Stage stage;
+    private GamePad stage;
 
     InputMultiplexer multiplexer;
 
@@ -269,7 +268,10 @@ playerComp = player.getComponent(PlayerComponent.class);
 
     @Override
     public void dispose() {
+        trash();
+    }
 
+    void trash(){
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
 
@@ -294,5 +296,7 @@ playerComp = player.getComponent(PlayerComponent.class);
 
     @Override
     public void hide() {
+        // Game.dispose calls screen.hide()
+        trash();
     }
 }
