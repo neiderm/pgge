@@ -36,7 +36,7 @@ import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE
  * Chase type would be constructed with a reference to the chasee
  */
 
-public class CameraSystem extends EntitySystem implements EntityListener {
+public class CameraSystem extends EntitySystem {
 
     private PerspectiveCamera cam;
 
@@ -197,14 +197,6 @@ public class CameraSystem extends EntitySystem implements EntityListener {
 //        setCameraNode("fixed", pos, look, FIXED);
         setCameraNode("fixed", null, null, FIXED);
         setCameraLocation(posV, lookAtV);
-    }
-
-    @Override
-    public void entityAdded(Entity entity) {
-    }
-
-    @Override
-    public void entityRemoved(Entity entity) {
     }
 
     @Override
