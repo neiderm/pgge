@@ -2,7 +2,6 @@ package com.mygdx.game.systems;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
@@ -27,7 +26,7 @@ import com.mygdx.game.Components.PlayerComponent;
  * Created by mango on 12/18/17.
  */
 
-public class RenderSystem extends EntitySystem implements EntityListener {
+public class RenderSystem extends EntitySystem {
 
     private Matrix4 tmpM = new Matrix4();
 
@@ -55,9 +54,6 @@ public class RenderSystem extends EntitySystem implements EntityListener {
 
         // Grabs all entities with desired components
         entities = engine.getEntitiesFor(Family.all(ModelComponent.class).get());
-
-        // listener for these so that their bullet objects can be dispose'd
-        engine.addEntityListener(Family.all(ModelComponent.class).get(), this);
     }
 
     @Override
@@ -151,15 +147,5 @@ if (null != pc)
         ModelInstance lineInstance = new ModelInstance(lineModel);
 
         return lineInstance;
-    }
-
-
-    @Override
-    public void entityAdded(Entity entity) {
-
-    }
-
-    @Override
-    public void entityRemoved(Entity entity) {
     }
 }
