@@ -63,7 +63,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private static Matrix4 tmpM = new Matrix4();
     private static Vector3 tmpV = new Vector3();
     private static Random rnd = new Random();
-    public /* private */ static Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
+    public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
 
     public PlayerSystem(MyGdxGame game) {
@@ -77,6 +77,14 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         engine.addEntityListener(Family.all(PlayerComponent.class).get(), this);
     }
+
+    @Override
+    public void removedFromEngine(Engine engine) {
+
+        engine.removeEntityListener(this);
+    }
+
+
 
     public final ChangeListener touchPadChangeListener =
             new ChangeListener() {
@@ -156,6 +164,7 @@ if (false) {
 
         if (tmpV.y < -20) {
             game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
+            playerComp.died = true;
         }
 
         // check for contact w/ surface, only apply force if in contact, not falling
@@ -169,8 +178,6 @@ if (false) {
             SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
                     plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
         }
-        else
-            degrees = 0; // tmp test
 
         plyrPhysBody.setWorldTransform(tmpM);
     }

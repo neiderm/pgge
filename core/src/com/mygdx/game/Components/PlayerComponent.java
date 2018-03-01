@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector3;
 
 public class PlayerComponent implements Component {
 
+    public boolean died = false;
     public float mass = 5.0f;
     public Vector2 inpVect = new Vector2(0, 0); // control input vector
 

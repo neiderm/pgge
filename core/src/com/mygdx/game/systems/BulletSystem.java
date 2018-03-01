@@ -126,6 +126,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void removedFromEngine(Engine engine) {
 
+        engine.removeEntityListener(this);
+
         collisionWorld.dispose();
         solver.dispose();
         broadphase.dispose();
