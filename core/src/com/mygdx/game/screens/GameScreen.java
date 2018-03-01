@@ -268,14 +268,15 @@ playerComp = player.getComponent(PlayerComponent.class);
 
     @Override
     public void dispose() {
+
         trash();
+
+        physObj.dispose(); // static dispose models
     }
 
     void trash(){
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
-
-        physObj.dispose(); // static dispose models
 
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 

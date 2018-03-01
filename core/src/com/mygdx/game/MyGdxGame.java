@@ -13,21 +13,8 @@ public class MyGdxGame extends Game {
 	    setScreen(new MainMenuScreen(this));
 	}
 
-	// GN: copied from "com.badlogic.gdx.Game" ....
-	@Override
-	public void setScreen(Screen screen) {
-
-		if (this.screen != null) {
-			this.screen.hide();
-//            this.screen.dispose(); // .... except for this ?
-		}
-
-		this.screen = screen;
-
-		if (this.screen != null) {
-
-			this.screen.show();
-			this.screen.resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		}
-	}
+    @Override
+    public void dispose() {
+        this.screen.dispose();
+    }
 }
