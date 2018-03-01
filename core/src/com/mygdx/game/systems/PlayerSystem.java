@@ -19,9 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.MyGdxGame;
 import com.mygdx.game.SliderForceControl;
-import com.mygdx.game.screens.MainMenuScreen;
 
 import java.util.Random;
 
@@ -57,8 +55,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private btRigidBody plyrPhysBody = null;
     private btCollisionWorld plyrCollisionWorld = null;
 
-    private MyGdxGame game;
-
     // working variables
     private static Matrix4 tmpM = new Matrix4();
     private static Vector3 tmpV = new Vector3();
@@ -66,8 +62,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
 
-    public PlayerSystem(MyGdxGame game) {
-        this.game = game;
+    public PlayerSystem() {
     }
 
     @Override
@@ -162,8 +157,7 @@ if (false) {
         plyrPhysBody.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
 
-        if (tmpV.y < -20) {
-            game.setScreen(new MainMenuScreen(game)); // TODO: status.alive = false ...
+        if (tmpV.y < -19) {
             playerComp.died = true;
         }
 

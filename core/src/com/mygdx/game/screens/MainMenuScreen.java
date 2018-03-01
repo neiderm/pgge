@@ -20,7 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.mygdx.game.MyGdxGame;
+import com.mygdx.game.GameWorld;
 
 /**
  * Created by mango on 12/18/17.
@@ -30,18 +30,19 @@ import com.mygdx.game.MyGdxGame;
 
 public class MainMenuScreen implements Screen {
 
-    MyGdxGame game;
-    BitmapFont font;
-    Stage stage;
+    private GameWorld world;
+    private BitmapFont font;
+    private Stage stage;
 
 
-    public MainMenuScreen(MyGdxGame game) {
+    public MainMenuScreen(GameWorld world) {
+
+        this.world = world;
 
         int WWW = Gdx.graphics.getWidth() / 2;
         int HHH = Gdx.graphics.getHeight() / 2;
 
 //        Gdx.graphics.setWindowedMode(800,600);
-        this.game = game;
         font = new BitmapFont();
 
         //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
@@ -138,7 +139,7 @@ text.setText("Play___!");
         }
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            game.setScreen(new GameScreen(game));
+            world.game.setScreen(new GameScreen(world));
         }
     };
 

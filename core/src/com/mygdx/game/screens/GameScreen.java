@@ -26,7 +26,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
-import com.mygdx.game.MyGdxGame;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.physObj;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
@@ -40,8 +40,6 @@ import com.mygdx.game.systems.RenderSystem;
  */
 
 public class GameScreen implements Screen {
-
-    private MyGdxGame game;
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -73,9 +71,9 @@ private PlayerComponent playerComp; // tmp, debugging info
     InputMultiplexer multiplexer;
 
 
-    public GameScreen(MyGdxGame game) {
+    public GameScreen(GameWorld world) {
 
-        this.game = game;
+        this.engine = world.engine;
 
         environment = new Environment();
         environment.set(
@@ -181,17 +179,16 @@ private PlayerComponent playerComp; // tmp, debugging info
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
 playerComp = player.getComponent(PlayerComponent.class);
+// playerComp.died = false;
     }
 
     private void addSystems() {
 
         Bullet.init(); // must be done before any bullet object can be created
 
-        engine = new Engine();
-
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
-        engine.addSystem(playerSystem = new PlayerSystem(this.game));
+        engine.addSystem(playerSystem = new PlayerSystem());
         cameraSystem = new CameraSystem(cam);
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
