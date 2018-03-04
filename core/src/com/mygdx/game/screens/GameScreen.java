@@ -27,7 +27,7 @@ import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.physObj;
+import com.mygdx.game.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -41,6 +41,7 @@ import com.mygdx.game.systems.RenderSystem;
 
 public class GameScreen implements Screen {
 
+    private SceneLoader physObj = SceneLoader.instance;
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
@@ -53,14 +54,13 @@ public class GameScreen implements Screen {
     //    public FirstPersonCameraController camController;
     private Environment environment;
 
-    //    Sprite box;
     private BitmapFont font;
     private OrthographicCamera guiCam;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
 
     private BulletComponent bulletComp; // tmp, debugging info
-private PlayerComponent playerComp; // tmp, debugging info
+    private PlayerComponent playerComp; // tmp, debugging info
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -158,7 +158,7 @@ private PlayerComponent playerComp; // tmp, debugging info
 
         Entity playerChaser;
 /*
-        playerChaser = physObj.createChaser2(engine, comp.chaseNode);
+        playerChaser = SceneLoader.createChaser2(engine, comp.chaseNode);
 
         cameraSystem.setCameraNode("chaser2",
                 new CameraSystem.CameraNode(
@@ -207,7 +207,7 @@ playerComp = player.getComponent(PlayerComponent.class);
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
-        //         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+                 Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         engine.update(delta);
