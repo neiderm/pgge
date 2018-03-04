@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
+import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -34,6 +36,8 @@ public class RenderSystem extends EntitySystem {
     private PerspectiveCamera cam;
 
     private ModelBatch modelBatch;
+    private DirectionalShadowLight shadowLight;
+    private ModelBatch shadowBatch;
 
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
@@ -45,6 +49,13 @@ public class RenderSystem extends EntitySystem {
         this.cam = cam;
 
         modelBatch = new ModelBatch();
+///***
+        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, -1f, -.8f, -.2f);
+        environment.add(shadowLight);
+        environment.shadowMap = shadowLight;
+        shadowBatch = new ModelBatch(new DepthShaderProvider());
+//***/
     }
 
     @Override
@@ -60,6 +71,10 @@ public class RenderSystem extends EntitySystem {
     public void removedFromEngine(Engine engine) {
 
         modelBatch.dispose();
+///***
+        shadowBatch.dispose();
+        shadowLight.dispose();
+//***/
     }
 
     @Override
@@ -96,8 +111,23 @@ if (null != pc)
             modelBatch.render(mc.modelInst, environment);
         }
         modelBatch.end();
-    }
 
+
+        // now the modelinstance is (re)scaled, so do shadows now
+///***
+        shadowLight.begin(Vector3.Zero, cam.direction);
+        shadowBatch.begin(shadowLight.getCamera());
+
+        for (Entity e : entities) {
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            if (null != mc && null != mc.modelInst) {
+                shadowBatch.render(mc.modelInst);
+            }
+        }
+        shadowBatch.end();
+        shadowLight.end();
+//***/
+    }
 
 
     private Vector3 axis = new Vector3();
