@@ -30,6 +30,9 @@ import com.mygdx.game.Components.PlayerComponent;
 
 public class RenderSystem extends EntitySystem {
 
+    public int visibleCount;
+    public int renderableCount;
+    private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
 
     private Environment environment;
@@ -80,6 +83,9 @@ public class RenderSystem extends EntitySystem {
     @Override
     public void update(float deltaTime) {
 
+        renderableCount = 0;
+        visibleCount = 0;
+
         modelBatch.begin(cam);
 
         for (Entity e : entities) {
@@ -108,10 +114,18 @@ if (null != pc)
 //*/
                 }
             }
-            modelBatch.render(mc.modelInst, environment);
-        }
-        modelBatch.end();
+            renderableCount += 1;
 
+            mc.modelInst.transform.getTranslation(tmpV);
+            tmpV.add(mc.center);
+            if (true){
+//            if (cam.frustum.sphereInFrustum(mc.modelInst.transform.getTranslation(tmpV), mc.boundingRadius)) {
+//            if (cam.frustum.pointInFrustum(mc.modelInst.transform.getTranslation(tmpV))) {
+                visibleCount += 1;
+                modelBatch.render(mc.modelInst, environment);
+            }
+        } // for
+        modelBatch.end();
 
         // now the modelinstance is (re)scaled, so do shadows now
 ///***

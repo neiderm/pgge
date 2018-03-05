@@ -22,6 +22,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -41,7 +42,7 @@ import com.mygdx.game.systems.RenderSystem;
 
 public class GameScreen implements Screen {
 
-    private SceneLoader physObj = SceneLoader.instance;
+    private SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
@@ -68,7 +69,10 @@ public class GameScreen implements Screen {
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private GamePad stage;
 
-    InputMultiplexer multiplexer;
+    private InputMultiplexer multiplexer;
+
+    private StringBuilder stringBuilder = new StringBuilder();
+    private Label label;
 
 
     public GameScreen(GameWorld world) {
@@ -90,7 +94,7 @@ public class GameScreen implements Screen {
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
         addSystems();
-        addEntities();
+        addEntities(); // this takes a long time!
 
         stage = new GamePad(
                 playerSystem.touchPadChangeListener,
@@ -116,6 +120,10 @@ public class GameScreen implements Screen {
                 Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
+
+        label = new Label(" ", new Label.LabelStyle(font, Color.WHITE));
+        stage.addActor(label);
+
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -152,9 +160,9 @@ public class GameScreen implements Screen {
 
     void addEntities() {
 
-        physObj.createEntities(engine);
+        sceneLoader.createEntities(engine);
 
-        Entity player = physObj.createPlayer(engine);
+        Entity player = sceneLoader.createPlayer(engine);
 
         Entity playerChaser;
 /*
@@ -169,7 +177,7 @@ public class GameScreen implements Screen {
 ///*
         Matrix4 plyrTransform = player.getComponent(ModelComponent.class).modelInst.transform;
 
-        playerChaser = physObj.createChaser1(engine, plyrTransform);
+        playerChaser = sceneLoader.createChaser1(engine, plyrTransform);
 
         cameraSystem.setCameraNode("chaser1",
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
@@ -178,7 +186,7 @@ public class GameScreen implements Screen {
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
-playerComp = player.getComponent(PlayerComponent.class);
+        playerComp = player.getComponent(PlayerComponent.class);
 // playerComp.died = false;
     }
 
@@ -218,8 +226,6 @@ playerComp = player.getComponent(PlayerComponent.class);
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
 
-        font.draw(batch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 0, Gdx.graphics.getHeight());
-
         //if (null != playerBody)
         {
             Vector3 forceVect = PlayerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
@@ -239,7 +245,6 @@ playerComp = player.getComponent(PlayerComponent.class);
             s = String.format("%+2.1f %+2.1f %+2.1f", r.getPitch(), r.getYaw(), r.getRoll());
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
-//        box.draw(batch);
 
         batch.end();
 
@@ -255,6 +260,12 @@ playerComp = player.getComponent(PlayerComponent.class);
         shapeRenderer.end();
 
 
+        stringBuilder.setLength(0);
+        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
+        stringBuilder.append(" Visible: ").append(renderSystem.visibleCount);
+        stringBuilder.append(" / ").append(renderSystem.renderableCount);
+
+        label.setText(stringBuilder);
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
     }
@@ -268,7 +279,10 @@ playerComp = player.getComponent(PlayerComponent.class);
 
         trash();
 
-        physObj.dispose(); // static dispose models
+        // HACKME HACK HACK
+        if (!isPaused) {
+    sceneLoader.dispose(); // static dispose models
+}
     }
 
     void trash(){
@@ -284,12 +298,21 @@ playerComp = player.getComponent(PlayerComponent.class);
         stage.dispose();
     }
 
+
+    /*
+     * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
+     */
+    private boolean isPaused = false;
+
     @Override
     public void pause() {
+// android "home", "back", or "left" button all send ApplicationListener.pause() notifcation (called by Game.pause()
+        isPaused = true;
     }
 
     @Override
     public void resume() {
+        isPaused  = false; // android clicked app icon or from "left button"
     }
 
     @Override
