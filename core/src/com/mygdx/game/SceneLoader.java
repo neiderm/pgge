@@ -16,7 +16,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -50,6 +49,7 @@ public class SceneLoader implements Disposable {
     private static final AssetManager assets;
     private static final Model landscapeModel;
     private static final Model shipModel;
+    private static final Model sceneModel;
     private static Model boxTemplateModel;
     private static Model sphereTemplateModel;
     private static Model ballTemplateModel;
@@ -90,15 +90,16 @@ public class SceneLoader implements Disposable {
 
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
-//        assets.load("data/heightmap.g3db", Model.class);
-//        assets.load("data/ship.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class);
+        assets.load("data/panzerwagen.g3dj", Model.class);
+        assets.load("data/ship.g3dj", Model.class);
+        assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-//        landscapeModel = assets.get("data/heightmap.g3db", Model.class);
-//        shipModel = assets.get("data/ship.g3db", Model.class);
-        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
-// https://opengameart.org/content/tankcar
+//        shipModel = assets.get("data/panzerwagen.g3dj", Model.class);
+//        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+        shipModel = assets.get("data/ship.g3dj", Model.class);
+        sceneModel = assets.get("data/scene.g3dj", Model.class);
 
         mb.begin();
 
@@ -290,9 +291,20 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         float mass = 5.1f; // can't go much more mass, ball way too fast!
 
-        Entity plyr = new GameObject(s, shipModel).create(
+
+ Model model; // shipModel
+ String node = null;
+if (true){
+    model = shipModel; //
+    node = null;//null;
+}else{
+    model = sceneModel; //
+    node = "ship";
+}
+
+        Entity plyr = new GameObject(s, model, node).create(
                 mass, new Vector3(0, 15f, -5f),
-                createConvexHullShape(shipModel, true));
+                createConvexHullShape(model, node, true));
 //                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f))); // tmp test
 
         PlayerComponent comp = new PlayerComponent(mass);
@@ -318,8 +330,21 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
 /*
   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
+
+  ship model:
+    Blender "view front" ... looking into back of ship
+    Export to FBX with Y forward and Z up (and scale 0.01)
+    Export to OBJ with -Z forward and Y up
+    http://www.badlogicgames.com/forum/viewtopic.php?f=11&t=18948
+    fbx-conv-win32.exe -o G3DJ  -f ship.obj  data/ship.g3dj
+
+  panzer-wagen model:
+     https://opengameart.org/content/tankcar
+     Blender "view front" ... looking into front of vehicle
+    export to FBX with -Y forward and Z up (and scale 0.01)
  */
     public static btConvexHullShape createConvexHullShape (final Model model, boolean optimize) {
+
         final Mesh mesh = model.meshes.get(0);
         final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
         if (!optimize) return shape;
@@ -333,11 +358,55 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         return result;
     }
 
+
+    public static btConvexHullShape createConvexHullShape (
+            final Model model, final String node, boolean optimize) {
+
+        if (node == null ){
+            return createConvexHullShape(model, optimize);
+        }else {
+
+            int i;
+
+            if (null != node) {
+
+                String id;
+                for (i = 0; i < model.nodes.size; i++) {
+                    id = model.nodes.get(i).id;
+                    if (id.equals("ship")) {
+                        break;
+                    }
+                }
+
+                //        assert( id == "ship")
+                id = model.nodes.get(i).id;
+
+            } else {
+                i = 0;
+            }
+
+            // how the F do you get the mesh from a node
+            final Mesh mesh = model.meshes.get(0);
+
+            final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+            if (!optimize) return shape;
+            // now optimize the shape
+            final btShapeHull hull = new btShapeHull(shape);
+            hull.buildHull(shape.getMargin());
+            final btConvexHullShape result = new btConvexHullShape(hull);
+            // delete the temporary shape
+            shape.dispose();
+            hull.dispose();
+            return result;
+        }
+    }
+
     @Override
     public void dispose() {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
+        sceneModel.dispose();
         tankTemplateModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
