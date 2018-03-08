@@ -11,11 +11,14 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -33,6 +36,7 @@ import com.mygdx.game.Managers.EntityFactory.GameObject;
 import com.mygdx.game.Managers.EntityFactory.LandscapeObject;
 import com.mygdx.game.Managers.EntityFactory.SphereObject;
 import com.mygdx.game.Managers.EntityFactory.StaticEntiteeFactory;
+import com.mygdx.game.systems.BulletSystem;
 
 import java.util.Random;
 
@@ -91,12 +95,12 @@ public class SceneLoader implements Disposable {
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class);
-        assets.load("data/panzerwagen.g3dj", Model.class);
+        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
         assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-//        shipModel = assets.get("data/panzerwagen.g3dj", Model.class);
+//        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
 //        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
         shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
@@ -205,7 +209,7 @@ public class SceneLoader implements Disposable {
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
 //*/
-        if (true) { // this slows down bullet debug drawer considerably!
+        if (false) { // this slows down bullet debug drawer considerably!
             // put the landscape at an angle so stuff falls of it...
             Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
 //            Matrix4 transform = new Matrix4().idt();
@@ -291,21 +295,50 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         float mass = 5.1f; // can't go much more mass, ball way too fast!
 
+        Entity plyr;
 
- Model model; // shipModel
+
+        Model model; // shipModel
  String node = null;
 if (true){
     model = shipModel; //
     node = null;//null;
+    Matrix4 transform = new Matrix4().idt().trn(new Vector3(0, 15f, -5f));
+    plyr = new GameObject(s, model, node).create(transform);
+    btConvexHullShape shape = createConvexHullShape(model, node, true);
+    plyr.add(new BulletComponent(shape, transform, mass));
+//*/
+
 }else{
     model = sceneModel; //
     node = "ship";
+
+    Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f));
+    plyr = new GameObject(s, model, node).create(transform_);
+    ModelInstance instance = plyr.getComponent(ModelComponent.class).modelInst;
+    Matrix4 transform = instance.transform;
+    Node shipNode = instance.getNode(node);
+
+    instance.transform.set(shipNode.globalTransform);
+    shipNode.translation.set(0, 0, 0);
+    shipNode.scale.set(1,1,1);
+    shipNode.rotation.idt();
+    instance.calculateTransforms();
+
+//        Mesh mesh = shipNode.parts.items[0].meshPart.mesh;
+//    btConvexHullShape shape = createConvexHullShape(mesh, true);
+btBoxShape shape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
+    plyr.add(new BulletComponent(shape, transform, mass));
+
+
+//    btRigidBody body = plyr.getComponent(BulletComponent.class).body;
+//    body.setWorldTransform(transform);
 }
 
-        Entity plyr = new GameObject(s, model, node).create(
-                mass, new Vector3(0, 15f, -5f),
-                createConvexHullShape(model, node, true));
-//                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f))); // tmp test
+//        plyr = new GameObject(s, model, node).create(mass, new Vector3(0, 15f, -5f),createConvexHullShape(model, node, true));
+
+        //                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f))); // tmp test
+
 
         PlayerComponent comp = new PlayerComponent(mass);
         plyr.add(comp);
@@ -334,7 +367,7 @@ if (true){
   ship model:
     Blender "view front" ... looking into back of ship
     Export to FBX with Y forward and Z up (and scale 0.01)
-    Export to OBJ with -Z forward and Y up
+    Export to OBJ with -Z^H^H +Z forward and Y up
     http://www.badlogicgames.com/forum/viewtopic.php?f=11&t=18948
     fbx-conv-win32.exe -o G3DJ  -f ship.obj  data/ship.g3dj
 
@@ -358,6 +391,24 @@ if (true){
         return result;
     }
 
+    public static btConvexHullShape createConvexHullShape (Mesh mesh, boolean optimize) {
+        {
+            // how the F do you get the mesh from a node
+            //           final Mesh mesh = model.meshes.get(0);
+
+
+            final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+            if (!optimize) return shape;
+            // now optimize the shape
+            final btShapeHull hull = new btShapeHull(shape);
+            hull.buildHull(shape.getMargin());
+            final btConvexHullShape result = new btConvexHullShape(hull);
+            // delete the temporary shape
+            shape.dispose();
+            hull.dispose();
+            return result;
+        }
+    }
 
     public static btConvexHullShape createConvexHullShape (
             final Model model, final String node, boolean optimize) {
