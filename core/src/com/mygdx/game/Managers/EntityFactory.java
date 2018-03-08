@@ -63,6 +63,15 @@ public class EntityFactory {
             return e;
         }
 
+        public Entity create(Matrix4 transform) {
+
+            Entity e = create();
+
+            e.add(new ModelComponent(model, transform, size, rootNodeId));
+
+            return e;
+        }
+
         ///*
         public Entity create(float mass, Vector3 translation) {
 
