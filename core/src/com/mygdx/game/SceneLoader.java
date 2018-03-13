@@ -100,7 +100,7 @@ public class SceneLoader implements Disposable {
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class);
-        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
+//        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
         assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
@@ -330,19 +330,21 @@ shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
     Matrix4 transform = instance.transform;
     Node shipNode = instance.getNode(node);
 
+// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
     instance.transform.set(shipNode.globalTransform);
     shipNode.translation.set(0, 0, 0);
     shipNode.scale.set(1,1,1);
     shipNode.rotation.idt();
     instance.calculateTransforms();
 
-     Mesh mesh ; // = instance.model.meshes.get(1); // wrong!
-    btConvexHullShape shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
-btBoxShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
-if (true)
+if (false) {
+    btBoxShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
     plyr.add(new BulletComponent(boxshape, transform, mass));
-else
+}
+else {
+    btConvexHullShape shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
     plyr.add(new BulletComponent(shape, transform, mass));
+}
 
     // set to translation here if you don't want what the model gives you
     instance.transform.setToTranslation(new Vector3(0, 15, -1));
@@ -371,10 +373,10 @@ else
         int vertexSize = meshPart.mesh.getVertexSize();
 
         float[] nVerts;
-        nVerts = new float[numVertices * vertexSize / 4];
-        int size = nVerts.length; // nbr of floats
+//        nVerts = new float[numVertices * vertexSize / 4];
+        int size = numVertices * vertexSize; // nbr of floats
 
-  nVerts = getVertices(meshPart);
+        nVerts = getVertices(meshPart);
 
   //      meshPart.mesh.getVertices(meshPart.offset, size, nVerts);
 
@@ -386,32 +388,31 @@ else
         return shape;
     }
 
-    static float[] getVertices(MeshPart meshPart ){
+    /*
+     * going off script ... found no other way to properly get the vertices from an "indexed" object
+     */
+    private static float[] getVertices(MeshPart meshPart ){
 
         int numMeshVertices = meshPart.mesh.getNumVertices();
         int numPartIndices = meshPart.size;
-
-        int vertexSize = meshPart.mesh.getVertexSize();
-
         short[] meshPartIndices = new short[numPartIndices];
         meshPart.mesh.getIndices(meshPart.offset, numPartIndices, meshPartIndices, 0);
 
-        final int stride = vertexSize / 4;
-
-        float[] allVerts = new float[numMeshVertices  * vertexSize / 4];
+        final int stride = meshPart.mesh.getVertexSize() / 4;
+        float[] allVerts = new float[numMeshVertices  * stride];
         meshPart.mesh.getVertices(0, allVerts.length, allVerts);
 
-        float[] iVerts = new float[numPartIndices  * vertexSize / 4];
+        float[] iVerts = new float[numPartIndices  * stride];
 
-        int n = 0;
-        for (short index : meshPartIndices) {
+        for (short n = 0; n < numPartIndices; n++) {
 
-            // ..  gotta be a memcpy
+            short index = meshPartIndices[n];
+/*
             for (short bytes = 0 ; bytes < vertexSize / 4 ; bytes++){
-
-                iVerts[index * stride + bytes] = allVerts[index * stride + bytes];
+                iVerts[n * stride + bytes] = allVerts[index * stride + bytes];
             }
-
+*/
+            System.arraycopy(allVerts, index * stride, iVerts, n * stride, stride);
         }
         return iVerts;
     }
