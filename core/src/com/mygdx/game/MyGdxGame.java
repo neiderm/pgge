@@ -19,6 +19,6 @@ public class MyGdxGame extends Game {
 
     @Override
     public void dispose() {
-        world.destroy();
+        world.destroy(); // "back" button
     }
 }

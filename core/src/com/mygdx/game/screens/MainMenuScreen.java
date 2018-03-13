@@ -48,7 +48,6 @@ public class MainMenuScreen implements Screen {
         //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
         // create stage and set it as input processor
         stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
 
     // create table to layout items we will add
     Table table = new Table();
@@ -70,8 +69,8 @@ public class MainMenuScreen implements Screen {
 
 
         // GdxRuntimeException: No com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle registered with name: default
-        Label.LabelStyle textStyle = new Label.LabelStyle();
-        textStyle.font = font;
+        Label.LabelStyle textStyle = new Label.LabelStyle(font, Color.WHITE);
+//        textStyle.font = font;
         skin.add("default", textStyle);
 
         // Store the default libgdx font under the name "default".

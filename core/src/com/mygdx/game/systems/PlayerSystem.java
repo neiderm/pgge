@@ -19,6 +19,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.SceneLoader;
 import com.mygdx.game.SliderForceControl;
 
 import java.util.Random;
@@ -76,7 +77,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     @Override
     public void removedFromEngine(Engine engine) {
 
-        engine.removeEntityListener(this);
+        engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
     }
 
 
@@ -132,18 +133,11 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
         Quaternion r = plyrPhysBody.getOrientation();
-if (false) {
-    // use sin/cos to develop unit vector of force apply based on the ships heading
-    // this one may actually be better due to limits on climbing
-    float yaw = r.getYawRad();
-    forceVect.x = -sin(yaw);
-    forceVect.y = 0;     // note Y always 0 here, force always parallel to XZ plane ... for some reason  ;)
-    forceVect.z = -cos(yaw);
-}else { // this one seem to be not limited in climbing ability!
-    forceVect.set(0, 0, -1);
+
+        forceVect.set(0, 0, -1 * SceneLoader.fbxLoaderHack);
     float rad = r.getAxisAngleRad(axis);
     forceVect.rotateRad(axis, rad);
-}
+
 
         if (playerComp.inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !

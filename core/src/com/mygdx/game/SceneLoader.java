@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
@@ -26,6 +27,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btShapeHull;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
@@ -36,8 +38,9 @@ import com.mygdx.game.Managers.EntityFactory.GameObject;
 import com.mygdx.game.Managers.EntityFactory.LandscapeObject;
 import com.mygdx.game.Managers.EntityFactory.SphereObject;
 import com.mygdx.game.Managers.EntityFactory.StaticEntiteeFactory;
-import com.mygdx.game.systems.BulletSystem;
 
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Random;
 
 /**
@@ -45,6 +48,8 @@ import java.util.Random;
  */
 
 public class SceneLoader implements Disposable {
+
+    public static final float fbxLoaderHack = -1;
 
     public static final SceneLoader instance = new SceneLoader();
 
@@ -253,7 +258,7 @@ public class SceneLoader implements Disposable {
         e.add(new CharacterComponent(
                 new PIDcontrol(tgtTransform,
                         mc.modelInst.transform,
-                        new Vector3(0, 2, 3),
+                        new Vector3(0, 2, 3 * fbxLoaderHack),
                         0.1f, 0, 0)));
 
         engine.addEntity(e);
@@ -300,22 +305,28 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         Model model; // shipModel
  String node = null;
-if (true){
+        ModelInstance instance;
+
+if (false){
     model = shipModel; //
-    node = null;//null;
+//    model = sceneModel; // nope
+    node = "ship";
     Matrix4 transform = new Matrix4().idt().trn(new Vector3(0, 15f, -5f));
     plyr = new GameObject(s, model, node).create(transform);
-    btConvexHullShape shape = createConvexHullShape(model, node, true);
+    btConvexHullShape shape;
+    instance = plyr.getComponent(ModelComponent.class).modelInst;
+    Node shipNode = instance.getNode(node);
+shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
     plyr.add(new BulletComponent(shape, transform, mass));
 //*/
-
 }else{
     model = sceneModel; //
+    node = "wedge";
     node = "ship";
 
-    Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f));
+    Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
     plyr = new GameObject(s, model, node).create(transform_);
-    ModelInstance instance = plyr.getComponent(ModelComponent.class).modelInst;
+    instance = plyr.getComponent(ModelComponent.class).modelInst;
     Matrix4 transform = instance.transform;
     Node shipNode = instance.getNode(node);
 
@@ -325,15 +336,18 @@ if (true){
     shipNode.rotation.idt();
     instance.calculateTransforms();
 
-//        Mesh mesh = shipNode.parts.items[0].meshPart.mesh;
-//    btConvexHullShape shape = createConvexHullShape(mesh, true);
-btBoxShape shape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
+     Mesh mesh ; // = instance.model.meshes.get(1); // wrong!
+    btConvexHullShape shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
+btBoxShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
+if (true)
+    plyr.add(new BulletComponent(boxshape, transform, mass));
+else
     plyr.add(new BulletComponent(shape, transform, mass));
 
-
-//    btRigidBody body = plyr.getComponent(BulletComponent.class).body;
-//    body.setWorldTransform(transform);
-}
+    // set to translation here if you don't want what the model gives you
+    instance.transform.setToTranslation(new Vector3(0, 15, -1));
+    plyr.getComponent(BulletComponent.class).body.setWorldTransform(transform);
+ }
 
 //        plyr = new GameObject(s, model, node).create(mass, new Vector3(0, 15f, -5f),createConvexHullShape(model, node, true));
 
@@ -344,21 +358,77 @@ btBoxShape shape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
         plyr.add(comp);
         engine.addEntity(plyr);
 
-//        Matrix4 tmpM = new Matrix4();
-//        btRigidBody body = plyr.getComponent(BulletComponent.class).body;
-//        body.getWorldTransform(tmpM);
-
-        // these rotations are equivalent!!!
-//        tmpM.rotate(1, 0, 0, -90);
-//        tmpM.rotate(-1, 0, 0, 90);
-
-        //        tmpM.getTranslation(tmpV);
-//                tmpM.setFromEulerAngles(0, -90, 0);  // but this one clears translation!
-//        tmpM.setTranslation(tmpV.x, tmpV.y, tmpV.z);
-
-//        body.setWorldTransform(tmpM); // setCenterOfMassTransform
-
         return plyr;
+    }
+
+    /*
+    http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
+     */
+    private static btConvexHullShape createConvexHullShape(MeshPart meshPart ){
+
+//        int numVertices  = meshPart.mesh.getNumVertices();    // no only works where our subject is the only node in the mesh!
+        int numVertices  = meshPart.size; // ??????
+        int vertexSize = meshPart.mesh.getVertexSize();
+
+        float[] nVerts;
+        nVerts = new float[numVertices * vertexSize / 4];
+        int size = nVerts.length; // nbr of floats
+
+  nVerts = getVertices(meshPart);
+
+  //      meshPart.mesh.getVertices(meshPart.offset, size, nVerts);
+
+        FloatBuffer buffer = ByteBuffer.allocateDirect(size * 4).asFloatBuffer();
+        BufferUtils.copy(nVerts, 0, buffer, size);
+
+        btConvexHullShape shape = new btConvexHullShape(buffer, numVertices, vertexSize);
+
+        return shape;
+    }
+
+    static float[] getVertices(MeshPart meshPart ){
+
+        int numMeshVertices = meshPart.mesh.getNumVertices();
+        int numPartIndices = meshPart.size;
+
+        int vertexSize = meshPart.mesh.getVertexSize();
+
+        short[] meshPartIndices = new short[numPartIndices];
+        meshPart.mesh.getIndices(meshPart.offset, numPartIndices, meshPartIndices, 0);
+
+        final int stride = vertexSize / 4;
+
+        float[] allVerts = new float[numMeshVertices  * vertexSize / 4];
+        meshPart.mesh.getVertices(0, allVerts.length, allVerts);
+
+        float[] iVerts = new float[numPartIndices  * vertexSize / 4];
+
+        int n = 0;
+        for (short index : meshPartIndices) {
+
+            // ..  gotta be a memcpy
+            for (short bytes = 0 ; bytes < vertexSize / 4 ; bytes++){
+
+                iVerts[index * stride + bytes] = allVerts[index * stride + bytes];
+            }
+
+        }
+        return iVerts;
+    }
+
+    private static btConvexHullShape createConvexHullShape (final Mesh mesh, boolean optimize) {
+
+        final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+
+        if (!optimize) return shape;
+        // now optimize the shape
+        final btShapeHull hull = new btShapeHull(shape);
+        hull.buildHull(shape.getMargin());
+        final btConvexHullShape result = new btConvexHullShape(hull);
+        // delete the temporary shape
+        shape.dispose();
+        hull.dispose();
+        return result;
     }
 
 /*
@@ -376,81 +446,13 @@ btBoxShape shape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
      Blender "view front" ... looking into front of vehicle
     export to FBX with -Y forward and Z up (and scale 0.01)
  */
-    public static btConvexHullShape createConvexHullShape (final Model model, boolean optimize) {
+    private static btConvexHullShape createConvexHullShape (final Model model, boolean optimize) {
 
         final Mesh mesh = model.meshes.get(0);
-        final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
-        if (!optimize) return shape;
-        // now optimize the shape
-        final btShapeHull hull = new btShapeHull(shape);
-        hull.buildHull(shape.getMargin());
-        final btConvexHullShape result = new btConvexHullShape(hull);
-        // delete the temporary shape
-        shape.dispose();
-        hull.dispose();
-        return result;
+
+        return createConvexHullShape (mesh, optimize);
     }
 
-    public static btConvexHullShape createConvexHullShape (Mesh mesh, boolean optimize) {
-        {
-            // how the F do you get the mesh from a node
-            //           final Mesh mesh = model.meshes.get(0);
-
-
-            final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
-            if (!optimize) return shape;
-            // now optimize the shape
-            final btShapeHull hull = new btShapeHull(shape);
-            hull.buildHull(shape.getMargin());
-            final btConvexHullShape result = new btConvexHullShape(hull);
-            // delete the temporary shape
-            shape.dispose();
-            hull.dispose();
-            return result;
-        }
-    }
-
-    public static btConvexHullShape createConvexHullShape (
-            final Model model, final String node, boolean optimize) {
-
-        if (node == null ){
-            return createConvexHullShape(model, optimize);
-        }else {
-
-            int i;
-
-            if (null != node) {
-
-                String id;
-                for (i = 0; i < model.nodes.size; i++) {
-                    id = model.nodes.get(i).id;
-                    if (id.equals("ship")) {
-                        break;
-                    }
-                }
-
-                //        assert( id == "ship")
-                id = model.nodes.get(i).id;
-
-            } else {
-                i = 0;
-            }
-
-            // how the F do you get the mesh from a node
-            final Mesh mesh = model.meshes.get(0);
-
-            final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
-            if (!optimize) return shape;
-            // now optimize the shape
-            final btShapeHull hull = new btShapeHull(shape);
-            hull.buildHull(shape.getMargin());
-            final btConvexHullShape result = new btConvexHullShape(hull);
-            // delete the temporary shape
-            shape.dispose();
-            hull.dispose();
-            return result;
-        }
-    }
 
     @Override
     public void dispose() {

@@ -37,7 +37,7 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    private static final boolean useDdbugDraw = false;
+    private static final boolean useDdbugDraw = true;
 
     private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
@@ -126,7 +126,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void removedFromEngine(Engine engine) {
 
-        engine.removeEntityListener(this);
+        engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
 
         collisionWorld.dispose();
         solver.dispose();

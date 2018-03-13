@@ -7,3 +7,7 @@ Things to investigate:
 ComponentMapper
 IteratingSystem
 PooledEngine
+
+Notes:
+show its texture flipped horizontally,
+ https://blender.stackexchange.com/questions/63324/is-there-a-way-to-flip-a-uv-without-flipping-the-normals
