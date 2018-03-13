@@ -45,7 +45,7 @@ public class EntityFactory {
             this.rootNodeId = rootNodeId;
         }
 
-        protected Entity create() {
+        public Entity create() {
             return new Entity();
         }
 
@@ -77,8 +77,8 @@ public class EntityFactory {
 
             return new Entity();
         }
-
         //*/
+
         public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
             Entity e = create();

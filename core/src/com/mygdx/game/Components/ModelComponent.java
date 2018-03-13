@@ -68,4 +68,20 @@ public class ModelComponent implements Component {
         boundingBox.getDimensions(dimensions);
         boundingRadius = dimensions.len() / 2f;
     }
+
+    public ModelComponent(ModelInstance instance, Vector3 scale) {
+
+        this.modelInst = instance;
+
+        if (null != scale) {
+            this.scale = new Vector3(scale);
+        }
+        BoundingBox boundingBox = new BoundingBox();
+        center = new Vector3();
+        Vector3 dimensions = new Vector3();
+        this.modelInst.calculateBoundingBox(boundingBox);
+        boundingBox.getCenter(center);
+        boundingBox.getDimensions(dimensions);
+        boundingRadius = dimensions.len() / 2f;
+    }
 }

@@ -214,7 +214,7 @@ public class SceneLoader implements Disposable {
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
 //*/
-        if (false) { // this slows down bullet debug drawer considerably!
+        if (true) { // this slows down bullet debug drawer considerably!
             // put the landscape at an angle so stuff falls of it...
             Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
 //            Matrix4 transform = new Matrix4().idt();
@@ -297,58 +297,36 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     public static Entity createPlayer(Engine engine) {
 
         Vector3 s = new Vector3(1, 1, 1);
-
         float mass = 5.1f; // can't go much more mass, ball way too fast!
-
         Entity plyr;
 
+        Model model;
+        String node;
+        model = sceneModel; //
+        node = "ship";
 
-        Model model; // shipModel
- String node = null;
         ModelInstance instance;
 
-if (false){
-    model = shipModel; //
-//    model = sceneModel; // nope
-    node = "ship";
-    Matrix4 transform = new Matrix4().idt().trn(new Vector3(0, 15f, -5f));
-    plyr = new GameObject(s, model, node).create(transform);
-    btConvexHullShape shape;
-    instance = plyr.getComponent(ModelComponent.class).modelInst;
-    Node shipNode = instance.getNode(node);
-shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
-    plyr.add(new BulletComponent(shape, transform, mass));
-//*/
-}else{
-    model = sceneModel; //
-    node = "wedge";
-    node = "ship";
+        Matrix4 transform = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
+//        plyr = new GameObject(s, model, node).create(transform);
+        plyr = new GameObject(s, null, null).create();
 
-    Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
-    plyr = new GameObject(s, model, node).create(transform_);
-    instance = plyr.getComponent(ModelComponent.class).modelInst;
-    Matrix4 transform = instance.transform;
-    Node shipNode = instance.getNode(node);
-
-// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-    instance.transform.set(shipNode.globalTransform);
-    shipNode.translation.set(0, 0, 0);
-    shipNode.scale.set(1,1,1);
-    shipNode.rotation.idt();
-    instance.calculateTransforms();
+        instance = getModelInstance(model, node, transform);
+        plyr.add(new ModelComponent(instance, s));
 
 if (false) {
     btBoxShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
-    plyr.add(new BulletComponent(boxshape, transform, mass));
+    plyr.add(new BulletComponent(boxshape, instance.transform, mass));
 }
 else {
-    btConvexHullShape shape = createConvexHullShape(shipNode.parts.get(0).meshPart);
-    plyr.add(new BulletComponent(shape, transform, mass));
-}
+    btConvexHullShape shape = createConvexHullShape(
+            instance.getNode(node).parts.get(0).meshPart);
+    plyr.add(new BulletComponent(shape, instance.transform, mass));
+
 
     // set to translation here if you don't want what the model gives you
     instance.transform.setToTranslation(new Vector3(0, 15, -1));
-    plyr.getComponent(BulletComponent.class).body.setWorldTransform(transform);
+    plyr.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
  }
 
 //        plyr = new GameObject(s, model, node).create(mass, new Vector3(0, 15f, -5f),createConvexHullShape(model, node, true));
@@ -362,6 +340,37 @@ else {
 
         return plyr;
     }
+
+
+    /*
+     * IN:
+     *   Matrix4 transform: transform must be linked to Bullet Rigid Body
+     * RETURN:
+     *   ModelInstance ... which would be passed in to ModelComponent()
+     */
+    private static ModelInstance getModelInstance(Model model, String node, Matrix4 transform) {
+
+        ModelInstance instance;
+
+//        Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
+        instance = new ModelInstance(model, transform, node);
+        Node shipNode = instance.getNode(node);
+
+// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+        instance.transform.set(shipNode.globalTransform);
+        shipNode.translation.set(0, 0, 0);
+        shipNode.scale.set(1, 1, 1);
+        shipNode.rotation.idt();
+        instance.calculateTransforms();
+
+        // set to translation here if you don't want what the model gives you
+//            instance.transform.setToTranslation(new Vector3(0, 15, -1));
+
+        return instance;
+    }
+
+
+
 
     /*
     http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
