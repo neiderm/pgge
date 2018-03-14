@@ -40,6 +40,7 @@ public class BulletComponent implements Component {
 
     public btCollisionWorld collisionWorld;
 
+    public float mass;
 
     // idfk
 public boolean sFlag = false; // need to make component for static entity
@@ -54,7 +55,7 @@ public boolean sFlag = false; // need to make component for static entity
 
         this.id = cnt++;
         this.shape = shape;
-
+this.mass = mass;
 
         if (mass == 0) {
 //            modelInst.transform.scl(sz);

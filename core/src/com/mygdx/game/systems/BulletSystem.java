@@ -37,7 +37,7 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    private static final boolean useDdbugDraw = true;
+    private static final boolean useDdbugDraw = false;
 
     private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();

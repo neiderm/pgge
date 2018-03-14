@@ -11,7 +11,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -23,9 +22,6 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.SliderForceControl;
 
 import java.util.Random;
-
-import static com.badlogic.gdx.math.MathUtils.cos;
-import static com.badlogic.gdx.math.MathUtils.sin;
 
 /**
  * Created by mango on 1/23/18.
@@ -52,9 +48,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private static final float MU = 0.5f;
 
     //    private Engine engine;
-    private PlayerComponent playerComp = null;
-    private btRigidBody plyrPhysBody = null;
-    private btCollisionWorld plyrCollisionWorld = null;
+    private PlayerComponent playerComp;
+    private BulletComponent bc;
 
     // working variables
     private static Matrix4 tmpM = new Matrix4();
@@ -108,7 +103,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             else
                 tmpV.set(-0.1f, 0, 0);
 
-            plyrPhysBody.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+            bc.body.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
 
             return true;
         }
@@ -132,7 +127,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             degrees = -1;
         }
 
-        Quaternion r = plyrPhysBody.getOrientation();
+        Quaternion r = bc.body.getOrientation();
 
         forceVect.set(0, 0, -1 * SceneLoader.fbxLoaderHack);
     float rad = r.getAxisAngleRad(axis);
@@ -148,7 +143,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
 // for dynamic object you should get world trans directly from rigid body!
-        plyrPhysBody.getWorldTransform(tmpM);
+        bc.body.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
 
         if (tmpV.y < -19) {
@@ -157,17 +152,17 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         // check for contact w/ surface, only apply force if in contact, not falling
         if (surfaceContact(
-                plyrCollisionWorld, playerComp,
-                tmpV, plyrPhysBody.getOrientation())){
+                bc.collisionWorld, playerComp,
+                tmpV, bc.body.getOrientation())){
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
 
             SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
-                    plyrPhysBody, forceVect, forceMag, MU, playerComp.mass);
+                    bc.body, forceVect, forceMag, MU, bc.mass);
         }
 
-        plyrPhysBody.setWorldTransform(tmpM);
+        bc.body.setWorldTransform(tmpM);
     }
 
 
@@ -213,9 +208,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 //        if (null != entity.getComponent(PlayerComponent.class))
         {
             playerComp = entity.getComponent(PlayerComponent.class);
-            BulletComponent bc = entity.getComponent(BulletComponent.class);
-            plyrPhysBody = bc.body;
-            plyrCollisionWorld = bc.collisionWorld;
+            bc = entity.getComponent(BulletComponent.class);
         }
     }
 
