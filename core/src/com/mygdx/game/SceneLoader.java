@@ -49,7 +49,7 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    public static final float fbxLoaderHack = -1;
+    public static final float fbxLoaderHack = 1;
 
     public static final SceneLoader instance = new SceneLoader();
 
@@ -304,6 +304,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         String node;
         model = sceneModel; //
         node = "ship";
+//        node = "Crate";
 
         ModelInstance instance;
 
