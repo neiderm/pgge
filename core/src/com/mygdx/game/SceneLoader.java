@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
@@ -98,7 +99,7 @@ public class SceneLoader implements Disposable {
 
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
-        assets.load("data/panzerwagen.g3db", Model.class);
+        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
 //        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
         assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
@@ -179,7 +180,7 @@ public class SceneLoader implements Disposable {
         } //
 
 
-        if (useTestObjects) {
+        if (false) {
             BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
 
             engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
@@ -189,13 +190,6 @@ public class SceneLoader implements Disposable {
             engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
         } //
-        int wallW = 0;
-        int wallH = 0;
-        for (wallH = 0; wallH < 2; wallH++) {
-            for (wallW = 0; wallW < 3; wallW++) {
-
-            }
-        }
 
 
         StaticEntiteeFactory<GameObject> staticFactory =
@@ -293,6 +287,20 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         return e;
     }
 
+
+    public static void loadDynamicEntiesByName(Engine engine, String node, float mass){
+
+        btCollisionShape shape = new btBoxShape(new Vector3(1, 1, 1)); // tmp
+
+        for (int i = 0; i < sceneModel.nodes.size; i++) {
+            String id = sceneModel.nodes.get(i).id;
+            if (id.startsWith(node)){
+                loadDynamicEntity(engine, shape, id, mass, null);
+            }
+        }
+    }
+
+
     public static Entity loadDynamicEntity(
             Engine engine, btCollisionShape shape, String node, float mass, Vector3 translation) {
 
@@ -305,7 +313,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         ModelInstance instance = getModelInstance(sceneModel, node);
         e.add(new ModelComponent(instance, s));
 
-        if (null == shape) shape = createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);;
+        if (null == shape) shape = createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);
 
         e.add(new BulletComponent(shape, instance.transform, mass));
 
@@ -330,47 +338,36 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     private static ModelInstance getModelInstance(Model model, String node) {
 
         Matrix4 transform = new Matrix4();
-
         ModelInstance instance = new ModelInstance(model, transform, node);
-        Node shipNode = instance.getNode(node);
+        Node modelNode = instance.getNode(node);
 
 // https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-        instance.transform.set(shipNode.globalTransform);
-        shipNode.translation.set(0, 0, 0);
-        shipNode.scale.set(1, 1, 1);
-        shipNode.rotation.idt();
+        instance.transform.set(modelNode.globalTransform);
+        modelNode.translation.set(0, 0, 0);
+        modelNode.scale.set(1, 1, 1);
+        modelNode.rotation.idt();
         instance.calculateTransforms();
-
-        // set to translation here if you don't want what the model gives you
-//            instance.transform.setToTranslation(new Vector3(0, 15, -1));
 
         return instance;
     }
 
 
-
-
     /*
-    http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
+      http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
      */
     private static btConvexHullShape createConvexHullShape(MeshPart meshPart ){
 
 //        int numVertices  = meshPart.mesh.getNumVertices();    // no only works where our subject is the only node in the mesh!
-        int numVertices  = meshPart.size; // ??????
+        int numVertices  = meshPart.size;
         int vertexSize = meshPart.mesh.getVertexSize();
 
-        float[] nVerts;
-//        nVerts = new float[numVertices * vertexSize / 4];
+        float[] nVerts = getVertices(meshPart);
         int size = numVertices * vertexSize; // nbr of floats
-
-        nVerts = getVertices(meshPart);
-
-  //      meshPart.mesh.getVertices(meshPart.offset, size, nVerts);
 
         FloatBuffer buffer = ByteBuffer.allocateDirect(size * 4).asFloatBuffer();
         BufferUtils.copy(nVerts, 0, buffer, size);
 
-        btConvexHullShape shape = new btConvexHullShape(buffer, numVertices, vertexSize);
+        btConvexHullShape shape = createConvexHullShape(buffer, numVertices, vertexSize, true);
 
         return shape;
     }
@@ -392,21 +389,18 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         float[] iVerts = new float[numPartIndices  * stride];
 
         for (short n = 0; n < numPartIndices; n++) {
-
-            short index = meshPartIndices[n];
-/*
-            for (short bytes = 0 ; bytes < vertexSize / 4 ; bytes++){
-                iVerts[n * stride + bytes] = allVerts[index * stride + bytes];
-            }
-*/
-            System.arraycopy(allVerts, index * stride, iVerts, n * stride, stride);
+            System.arraycopy(allVerts, meshPartIndices[n] * stride, iVerts, n * stride, stride);
         }
         return iVerts;
     }
 
-    private static btConvexHullShape createConvexHullShape (final Mesh mesh, boolean optimize) {
+    /*
+      https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
+     */
+    private static btConvexHullShape createConvexHullShape(
+            FloatBuffer points, int numPoints, int stride, boolean optimize) {
 
-        final btConvexHullShape shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+        final btConvexHullShape shape = new btConvexHullShape(points, numPoints, stride);
 
         if (!optimize) return shape;
         // now optimize the shape
@@ -417,28 +411,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         shape.dispose();
         hull.dispose();
         return result;
-    }
-
-/*
-  https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
-
-  ship model:
-    Blender "view front" ... looking into back of ship
-    Export to FBX with Y forward and Z up (and scale 0.01)
-    Export to OBJ with -Z^H^H +Z forward and Y up
-    http://www.badlogicgames.com/forum/viewtopic.php?f=11&t=18948
-    fbx-conv-win32.exe -o G3DJ  -f ship.obj  data/ship.g3dj
-
-  panzer-wagen model:
-     https://opengameart.org/content/tankcar
-     Blender "view front" ... looking into front of vehicle
-    export to FBX with -Y forward and Z up (and scale 0.01)
- */
-    private static btConvexHullShape createConvexHullShape (final Model model, boolean optimize) {
-
-        final Mesh mesh = model.meshes.get(0);
-
-        return createConvexHullShape (mesh, optimize);
     }
 
 

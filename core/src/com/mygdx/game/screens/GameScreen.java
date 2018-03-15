@@ -164,12 +164,11 @@ public class GameScreen implements Screen {
 
         sceneLoader.createEntities(engine);
 
-        btCollisionShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-boxshape = null;
-        Entity player = sceneLoader.loadDynamicEntity(
-                engine, boxshape, "ship", 5.1f, new Vector3(0, 15, -1));
+        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+        Entity player = sceneLoader.loadDynamicEntity(engine, boxshape, "ship", 5.1f,null);
         player.add(new PlayerComponent());
 
+        sceneLoader.loadDynamicEntiesByName(engine, "Crate", 0.1f);
 
         Entity playerChaser;
 /*
