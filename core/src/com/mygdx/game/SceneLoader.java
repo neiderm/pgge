@@ -19,8 +19,8 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
@@ -32,7 +32,6 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
 import com.mygdx.game.Managers.EntityFactory.LandscapeObject;
@@ -294,52 +293,31 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         return e;
     }
 
-    public static Entity createPlayer(Engine engine) {
+    public static Entity loadDynamicEntity(
+            Engine engine, btCollisionShape shape, String node, float mass, Vector3 translation) {
 
         Vector3 s = new Vector3(1, 1, 1);
-        float mass = 5.1f; // can't go much more mass, ball way too fast!
-        Entity plyr;
+//        float mass = 5.1f; // can't go much more mass, ball way too fast!
 
-        Model model;
-        String node;
-        model = sceneModel; //
-        node = "ship";
-//        node = "Crate";
-
-        ModelInstance instance;
-
-        Matrix4 transform = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
 //        plyr = new GameObject(s, model, node).create(transform);
-        plyr = new GameObject(s, null, null).create();
+        Entity e = new GameObject(s, null, null).create();
 
-        instance = getModelInstance(model, node, transform);
-        plyr.add(new ModelComponent(instance, s));
+        ModelInstance instance = getModelInstance(sceneModel, node);
+        e.add(new ModelComponent(instance, s));
 
-if (false) {
-    btBoxShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f));
-    plyr.add(new BulletComponent(boxshape, instance.transform, mass));
-}
-else {
-    btConvexHullShape shape = createConvexHullShape(
-            instance.getNode(node).parts.get(0).meshPart);
-    plyr.add(new BulletComponent(shape, instance.transform, mass));
+        if (null == shape) shape = createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);;
 
+        e.add(new BulletComponent(shape, instance.transform, mass));
 
-    // set to translation here if you don't want what the model gives you
-    instance.transform.setToTranslation(new Vector3(0, 15, -1));
-    plyr.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
- }
+        // set to translation here if you don't want what the model gives you
+        if (null != translation) {
+            instance.transform.setToTranslation(translation);
+            e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
+        }
 
-//        plyr = new GameObject(s, model, node).create(mass, new Vector3(0, 15f, -5f),createConvexHullShape(model, node, true));
+        engine.addEntity(e);
 
-        //                new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f))); // tmp test
-
-
-        PlayerComponent comp = new PlayerComponent(mass);
-        plyr.add(comp);
-        engine.addEntity(plyr);
-
-        return plyr;
+        return e;
     }
 
 
@@ -349,12 +327,11 @@ else {
      * RETURN:
      *   ModelInstance ... which would be passed in to ModelComponent()
      */
-    private static ModelInstance getModelInstance(Model model, String node, Matrix4 transform) {
+    private static ModelInstance getModelInstance(Model model, String node) {
 
-        ModelInstance instance;
+        Matrix4 transform = new Matrix4();
 
-//        Matrix4 transform_ = new Matrix4().idt().trn(new Vector3(0, 15f, -5f)); // this translation irrevelent
-        instance = new ModelInstance(model, transform, node);
+        ModelInstance instance = new ModelInstance(model, transform, node);
         Node shipNode = instance.getNode(node);
 
 // https://xoppa.github.io/blog/loading-a-scene-with-libgdx/

@@ -20,6 +20,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -162,7 +164,12 @@ public class GameScreen implements Screen {
 
         sceneLoader.createEntities(engine);
 
-        Entity player = sceneLoader.createPlayer(engine);
+        btCollisionShape boxshape = new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+boxshape = null;
+        Entity player = sceneLoader.loadDynamicEntity(
+                engine, boxshape, "ship", 5.1f, new Vector3(0, 15, -1));
+        player.add(new PlayerComponent());
+
 
         Entity playerChaser;
 /*

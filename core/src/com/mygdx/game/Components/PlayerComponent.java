@@ -14,7 +14,6 @@ public class PlayerComponent implements Component {
     public Vector2 inpVect = new Vector2(0, 0); // control input vector
     public Vector3 down = new Vector3();
 
-    public PlayerComponent(float mass) {
-//        this.mass = mass;
+    public PlayerComponent() {
     }
 }
