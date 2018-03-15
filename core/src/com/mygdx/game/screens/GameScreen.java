@@ -20,7 +20,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -169,6 +168,10 @@ public class GameScreen implements Screen {
         player.add(new PlayerComponent());
 
         sceneLoader.loadDynamicEntiesByName(engine, "Crate", 0.1f);
+
+        Entity skybox = sceneLoader.loadStaticEntity(engine, "space");
+        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+
 
         Entity playerChaser;
 /*

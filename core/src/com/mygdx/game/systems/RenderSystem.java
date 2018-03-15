@@ -135,7 +135,8 @@ if (null != pc)
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
             if (null != mc && null != mc.modelInst) {
-                shadowBatch.render(mc.modelInst);
+                if (mc.isShadowed)
+                    shadowBatch.render(mc.modelInst);
             }
         }
         shadowBatch.end();

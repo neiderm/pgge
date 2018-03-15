@@ -18,6 +18,7 @@ public class ModelComponent implements Component {
     public Vector3 scale;
     public float boundingRadius = 0;
     public Vector3 center;
+    public boolean isShadowed = true;
 
 
     /*

@@ -6,7 +6,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -301,17 +300,33 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     }
 
 
-    public static Entity loadDynamicEntity(
-            Engine engine, btCollisionShape shape, String node, float mass, Vector3 translation) {
+    public static Entity loadStaticEntity(Engine engine, String node){
 
         Vector3 s = new Vector3(1, 1, 1);
-//        float mass = 5.1f; // can't go much more mass, ball way too fast!
 
 //        plyr = new GameObject(s, model, node).create(transform);
         Entity e = new GameObject(s, null, null).create();
 
         ModelInstance instance = getModelInstance(sceneModel, node);
         e.add(new ModelComponent(instance, s));
+
+        engine.addEntity(e);
+
+        return e;
+    }
+
+
+    public static Entity loadDynamicEntity(
+            Engine engine, btCollisionShape shape, String node, float mass, Vector3 translation) {
+
+        Vector3 s = new Vector3(1, 1, 1);
+
+//        plyr = new GameObject(s, model, node).create(transform);
+        Entity e = new GameObject(s, null, null).create();
+
+        ModelInstance instance = getModelInstance(sceneModel, node);
+        e.add(new ModelComponent(instance, s));
+
 
         if (null == shape) shape = createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);
 
