@@ -18,8 +18,9 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -53,15 +54,16 @@ public class SceneLoader implements Disposable {
     public static final SceneLoader instance = new SceneLoader();
 
     private static boolean useTestObjects = true;
-    private static Model model;
+    private static Model primitivesModel;
     private static final AssetManager assets;
     private static final Model landscapeModel;
     private static final Model shipModel;
-    private static final Model sceneModel;
+    public static final Model sceneModel;
     private static Model boxTemplateModel;
     private static Model sphereTemplateModel;
     private static Model ballTemplateModel;
     private static Model tankTemplateModel;
+    public static final Model testCubeModel;
 
     private SceneLoader() {
         //super();
@@ -97,6 +99,7 @@ public class SceneLoader implements Disposable {
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         assets = new AssetManager();
+        assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
 //        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
@@ -108,6 +111,7 @@ public class SceneLoader implements Disposable {
 //        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
         shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
+        testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 
         mb.begin();
 
@@ -127,22 +131,22 @@ public class SceneLoader implements Disposable {
         mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 2f, 1f, 10);
 
-        model = mb.end();
+        primitivesModel = mb.end();
     }
 
 
     public static void createEntities(Engine engine) {
 
-        final int N_ENTITIES = 5;
+        int N_ENTITIES = 5;
         final int N_BOXES = 2;
-
+if (!useTestObjects) N_ENTITIES = 0;
         Vector3 tmpV = new Vector3(); // size
         Random rnd = new Random();
 
         for (int i = 0; i < N_ENTITIES; i++) {
 
             tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            tmpV.scl(2.0f); // this keeps object "same" size relative to previous model size was 2x
+            tmpV.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
 
             Vector3 translation =
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
@@ -161,34 +165,33 @@ public class SceneLoader implements Disposable {
         Vector3 s = new Vector3(1, 1, 1);
         if (useTestObjects) {
             engine.addEntity(
-                    new GameObject(s, model, "cone").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(s, primitivesModel, "cone").create(rnd.nextFloat() + 0.5f, t,
                             new btConeShape(0.5f, 2.0f)));
 
             engine.addEntity(
-                    new GameObject(s, model, "capsule").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(s, primitivesModel, "capsule").create(rnd.nextFloat() + 0.5f, t,
                             new btCapsuleShape(0.5f, 0.5f * 2.0f)));
 
             engine.addEntity(
-                    new GameObject(s, model, "cylinder").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(s, primitivesModel, "cylinder").create(rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 /*
             engine.addEntity(
-                    new GameObject(s, model, "sphere").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(s, primitivesModel, "sphere").create(rnd.nextFloat() + 0.5f, t,
                             new btSphereShape(0.5f)));
                             */
         } //
 
-
+/*
         if (false) {
             BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
-
             engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
             engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-        } //
+        } */
 
 
         StaticEntiteeFactory<GameObject> staticFactory =
@@ -196,16 +199,22 @@ public class SceneLoader implements Disposable {
 
         float yTrans = -10.0f;
         Vector3 tran = new Vector3(0, -4 + yTrans, 0);
-///*
+
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran));
 
         engine.addEntity(staticFactory.create(
                 new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)));
-
+/*
         engine.addEntity(staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), model, "box"), new Vector3(-15, 1, -20)));
-//*/
+                new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
+*/
+/*
+        Vector3 size = new Vector3(40, 2, 40);
+        engine.addEntity(new LandscapeObject().create(sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f))));
+*/
+
+
         if (true) { // this slows down bullet debug drawer considerably!
             // put the landscape at an angle so stuff falls of it...
             Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
@@ -241,7 +250,7 @@ public class SceneLoader implements Disposable {
         */
 
         Entity e = new GameObject(new Vector3(0.5f, 0.5f, 0.5f),
-                model, "sphere").create(new Vector3(0, 15f, -5f));
+                primitivesModel, "sphere").create(new Vector3(0, 15f, -5f));
 
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -257,9 +266,9 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-/*
-    a character object that tracks the given "node" ...
- */
+    /*
+        a character object that tracks the given "node" ...
+     */
     public static Entity createChaser2(Engine engine, Vector3 node) {
 
         /*
@@ -276,7 +285,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         */
 
         final float r = 4.0f;
-        Entity e = new GameObject(new Vector3(r, r, r), model, "sphere").create(
+        Entity e = new GameObject(new Vector3(r, r, r), primitivesModel, "sphere").create(
                 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
@@ -287,58 +296,82 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     }
 
 
-    public static void loadDynamicEntiesByName(Engine engine, String node, float mass){
+    public static void loadDynamicEntiesByName(
+            Engine engine, Model model, String node, float mass, btCollisionShape shape ) {
 
-        btCollisionShape shape = new btBoxShape(new Vector3(1, 1, 1)); // tmp
-
-        for (int i = 0; i < sceneModel.nodes.size; i++) {
-            String id = sceneModel.nodes.get(i).id;
-            if (id.startsWith(node)){
-                loadDynamicEntity(engine, shape, id, mass, null);
+        for (int i = 0; i < model.nodes.size; i++) {
+            String id = model.nodes.get(i).id;
+            if (id.startsWith(node)) {
+                loadDynamicEntity(engine, model, shape, id, mass, null);
             }
         }
     }
 
+    public static Entity loadStaticEntity(Engine engine, Model model, String node) {
 
-    public static Entity loadStaticEntity(Engine engine, String node){
+        Entity e = new GameObject(null, null, null).create();
 
-        Vector3 s = new Vector3(1, 1, 1);
+        ModelInstance instance = getModelInstance(model, node);
 
-//        plyr = new GameObject(s, model, node).create(transform);
-        Entity e = new GameObject(s, null, null).create();
+        Vector3 trans = new Vector3();
+        instance.transform.getTranslation(trans);
+//        Matrix4 transform = new Matrix4().idt().translate(trans);
+//        instance.transform.idt().translate(trans);
 
-        ModelInstance instance = getModelInstance(sceneModel, node);
-        e.add(new ModelComponent(instance, s));
+        e.add(new ModelComponent(instance, null));
 
         engine.addEntity(e);
 
         return e;
     }
 
+    public static Entity loadKinematicEntity(
+            Engine engine, Model model, String nodeID, btCollisionShape shape) {
+
+        BulletComponent bc;
+        // TODO: how to get size from modelinstance
+        Entity entity;
+if (false) {
+    entity = loadDynamicEntity(engine, model, shape, nodeID, 0, null);
+
+    bc = entity.getComponent(BulletComponent.class);
+}else {
+    entity = loadStaticEntity(engine, model, nodeID);
+
+    // get translation and set it in the transform for bullet comp
+    ModelComponent mc = entity.getComponent(ModelComponent.class);
+    Vector3 trans = new Vector3();
+    mc.modelInst.transform.getTranslation(trans);
+    Matrix4 transform = new Matrix4().idt().translate(trans);
+
+    bc = new BulletComponent(shape, transform);
+}
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        bc.sFlag = true;
+        entity.add(bc);
+
+        return entity;
+    }
+
 
     public static Entity loadDynamicEntity(
-            Engine engine, btCollisionShape shape, String node, float mass, Vector3 translation) {
+            Engine engine, Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation) {
 
-        Vector3 s = new Vector3(1, 1, 1);
+        Entity e = loadStaticEntity(engine, model, nodeID);
+        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-//        plyr = new GameObject(s, model, node).create(transform);
-        Entity e = new GameObject(s, null, null).create();
-
-        ModelInstance instance = getModelInstance(sceneModel, node);
-        e.add(new ModelComponent(instance, s));
-
-
-        if (null == shape) shape = createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);
+        if (null == shape)
+            shape = createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
 
         e.add(new BulletComponent(shape, instance.transform, mass));
 
-        // set to translation here if you don't want what the model gives you
+        // set to translation here if you don't want what the primitivesModel gives you
         if (null != translation) {
             instance.transform.setToTranslation(translation);
             e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
         }
-
-        engine.addEntity(e);
 
         return e;
     }
@@ -370,10 +403,10 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     /*
       http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
      */
-    private static btConvexHullShape createConvexHullShape(MeshPart meshPart ){
+    private static btConvexHullShape createConvexHullShape(MeshPart meshPart) {
 
 //        int numVertices  = meshPart.mesh.getNumVertices();    // no only works where our subject is the only node in the mesh!
-        int numVertices  = meshPart.size;
+        int numVertices = meshPart.size;
         int vertexSize = meshPart.mesh.getVertexSize();
 
         float[] nVerts = getVertices(meshPart);
@@ -390,7 +423,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     /*
      * going off script ... found no other way to properly get the vertices from an "indexed" object
      */
-    private static float[] getVertices(MeshPart meshPart ){
+    private static float[] getVertices(MeshPart meshPart) {
 
         int numMeshVertices = meshPart.mesh.getNumVertices();
         int numPartIndices = meshPart.size;
@@ -398,10 +431,10 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         meshPart.mesh.getIndices(meshPart.offset, numPartIndices, meshPartIndices, 0);
 
         final int stride = meshPart.mesh.getVertexSize() / 4;
-        float[] allVerts = new float[numMeshVertices  * stride];
+        float[] allVerts = new float[numMeshVertices * stride];
         meshPart.mesh.getVertices(0, allVerts.length, allVerts);
 
-        float[] iVerts = new float[numPartIndices  * stride];
+        float[] iVerts = new float[numPartIndices * stride];
 
         for (short n = 0; n < numPartIndices; n++) {
             System.arraycopy(allVerts, meshPartIndices[n] * stride, iVerts, n * stride, stride);
@@ -433,13 +466,13 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
     public void dispose() {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-//  Disposing the model will automatically make all instances invalid!
+//  Disposing the primitivesModel will automatically make all instances invalid!
         sceneModel.dispose();
         tankTemplateModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
         ballTemplateModel.dispose();
-        model.dispose();
+        primitivesModel.dispose();
         assets.dispose();
     }
 }

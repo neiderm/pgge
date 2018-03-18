@@ -20,6 +20,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -161,16 +162,27 @@ public class GameScreen implements Screen {
 
     void addEntities() {
 
+        Vector3 size;
+
         sceneLoader.createEntities(engine);
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-        Entity player = sceneLoader.loadDynamicEntity(engine, boxshape, "ship", 5.1f,null);
+        Entity player = sceneLoader.loadDynamicEntity(engine, sceneLoader.sceneModel, boxshape, "ship", 5.1f, null);
         player.add(new PlayerComponent());
 
-        sceneLoader.loadDynamicEntiesByName(engine, "Crate", 0.1f);
+        // TODO: how to get size from modelinstance
+        size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
+        sceneLoader.loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, new btBoxShape(size.cpy().scl(0.5f)));
 
-        Entity skybox = sceneLoader.loadStaticEntity(engine, "space");
+        Entity skybox = sceneLoader.loadStaticEntity(engine, sceneLoader.sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+
+
+        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
+//        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
+        sceneLoader.loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", new btBoxShape(size.cpy().scl(0.5f)));
+
+       sceneLoader.loadStaticEntity(engine, sceneLoader.testCubeModel, "Cube");
 
 
         Entity playerChaser;

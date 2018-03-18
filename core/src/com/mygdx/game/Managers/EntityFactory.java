@@ -142,6 +142,7 @@ public class EntityFactory {
             BulletComponent bc =
                     new BulletComponent(new btBvhTriangleMeshShape(model.meshParts), transform);
 
+
             bc.body.setCollisionFlags(
                     bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 
@@ -156,7 +157,32 @@ public class EntityFactory {
 
             return e;
         }
+
+        // TODO: refactor this crap
+        public Entity create(Model model, String nodeID, btCollisionShape shape) {
+
+Matrix4 transform = new Matrix4().idt();
+
+            Entity e = create();
+
+            BulletComponent bc = new BulletComponent(shape, transform);
+
+            bc.body.setCollisionFlags(
+                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+
+            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+            bc.sFlag = true;
+
+
+            e.add(bc);
+
+            e.add(new ModelComponent(model, transform, null, nodeID));
+
+            return e;
+        }
     }
+
 
 
     /*
