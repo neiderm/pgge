@@ -53,7 +53,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = true;
+    private static boolean useTestObjects = false;
     private static Model primitivesModel;
     private static final AssetManager assets;
     private static final Model landscapeModel;
@@ -315,8 +315,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         Vector3 trans = new Vector3();
         instance.transform.getTranslation(trans);
-//        Matrix4 transform = new Matrix4().idt().translate(trans);
-//        instance.transform.idt().translate(trans);
 
         e.add(new ModelComponent(instance, null));
 
@@ -331,26 +329,31 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         BulletComponent bc;
         // TODO: how to get size from modelinstance
         Entity entity;
-if (false) {
+if (true) {
+shape = null; // tmp test try convex hull shape ;)
     entity = loadDynamicEntity(engine, model, shape, nodeID, 0, null);
-
     bc = entity.getComponent(BulletComponent.class);
+
+    // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
+    // want for this object) so we do need to update the bc.body with the location vector we got from the model
+    Vector3 tmp = new Vector3();
+    entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
+    bc.body.translate(tmp);
+
 }else {
     entity = loadStaticEntity(engine, model, nodeID);
 
     // get translation and set it in the transform for bullet comp
-    ModelComponent mc = entity.getComponent(ModelComponent.class);
-    Vector3 trans = new Vector3();
-    mc.modelInst.transform.getTranslation(trans);
-    Matrix4 transform = new Matrix4().idt().translate(trans);
-
-    bc = new BulletComponent(shape, transform);
+    ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
+    bc = new BulletComponent(shape, instance.transform); // note: dynamic uses "BulletCompoent(shape, transform, mass)" and if I use that w/ mass==0 it will not give me a motionState
+    entity.add(bc);
 }
+
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
         bc.sFlag = true;
-        entity.add(bc);
+//        entity.add(bc);
 
         return entity;
     }
