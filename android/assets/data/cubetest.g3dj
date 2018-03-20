@@ -136,8 +136,8 @@
 			"shininess":  9.607843, 
 			"textures": [
 				{
-					"id": "Diffuse Color.001", 
-					"filename": "crateimg.png", 
+					"id": "Diffuse Color.004", 
+					"filename": "platformimg.png", 
 					"type": "DIFFUSE"
 				}
 			]
