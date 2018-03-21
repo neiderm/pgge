@@ -172,15 +172,17 @@ public class GameScreen implements Screen {
 
         // TODO: how to get size from modelinstance
         size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
-        sceneLoader.loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, new btBoxShape(size.cpy().scl(0.5f)));
+        boxshape = null; // new btBoxShape(size.cpy().scl(0.5f));
+        sceneLoader.loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, boxshape);
 
         Entity skybox = sceneLoader.loadStaticEntity(engine, sceneLoader.sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
 
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
+        boxshape = null; // new btBoxShape(size.cpy().scl(0.5f))
 //        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
-        sceneLoader.loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", new btBoxShape(size.cpy().scl(0.5f)));
+        sceneLoader.loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", boxshape);
 
        sceneLoader.loadStaticEntity(engine, sceneLoader.testCubeModel, "Cube");
 

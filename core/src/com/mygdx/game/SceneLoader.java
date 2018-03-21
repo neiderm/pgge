@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -53,7 +54,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = false;
+    private static boolean useTestObjects = true;
     private static Model primitivesModel;
     private static final AssetManager assets;
     private static final Model landscapeModel;
@@ -216,11 +217,16 @@ if (!useTestObjects) N_ENTITIES = 0;
 
 
         if (true) { // this slows down bullet debug drawer considerably!
+
+            //          Entity e = loadKinematicEntity(
+            //                engine, landscapeModel, null, new btBvhTriangleMeshShape(landscapeModel.meshParts));
+
+            Entity e = new LandscapeObject().create(landscapeModel, new Matrix4());
+            engine.addEntity(e);
+
             // put the landscape at an angle so stuff falls of it...
-            Matrix4 transform = new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f);
-//            Matrix4 transform = new Matrix4().idt();
-            transform.trn(0, 0 + yTrans, 0);
-            engine.addEntity(new LandscapeObject().create(landscapeModel, transform));
+            Matrix4 trns = e.getComponent(ModelComponent.class).modelInst.transform;
+            trns.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
         }
 
 
@@ -311,13 +317,13 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         Entity e = new GameObject(null, null, null).create();
 
-        ModelInstance instance = getModelInstance(model, node);
-
-        Vector3 trans = new Vector3();
-        instance.transform.getTranslation(trans);
-
-        e.add(new ModelComponent(instance, null));
-
+if (null != node) {
+    ModelInstance instance;
+    instance = getModelInstance(model, node);
+    e.add(new ModelComponent(instance, null));
+}else {
+    e.add(new ModelComponent(model, new Matrix4()));
+}
         engine.addEntity(e);
 
         return e;
@@ -327,27 +333,14 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
             Engine engine, Model model, String nodeID, btCollisionShape shape) {
 
         BulletComponent bc;
-        // TODO: how to get size from modelinstance
-        Entity entity;
-if (true) {
-shape = null; // tmp test try convex hull shape ;)
-    entity = loadDynamicEntity(engine, model, shape, nodeID, 0, null);
-    bc = entity.getComponent(BulletComponent.class);
+        Entity entity = loadDynamicEntity(engine, model, shape, nodeID, 0, null);
 
-    // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
-    // want for this object) so we do need to update the bc.body with the location vector we got from the model
-    Vector3 tmp = new Vector3();
-    entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
-    bc.body.translate(tmp);
-
-}else {
-    entity = loadStaticEntity(engine, model, nodeID);
-
-    // get translation and set it in the transform for bullet comp
-    ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
-    bc = new BulletComponent(shape, instance.transform); // note: dynamic uses "BulletCompoent(shape, transform, mass)" and if I use that w/ mass==0 it will not give me a motionState
-    entity.add(bc);
-}
+        // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
+        // want for this object) so we do need to update the bc.body with the location vector we got from the model
+        Vector3 tmp = new Vector3();
+        entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
+        bc = entity.getComponent(BulletComponent.class);
+        bc.body.translate(tmp);
 
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -381,7 +374,7 @@ shape = null; // tmp test try convex hull shape ;)
 
 
     /*
-     * IN:
+         * IN:
      *   Matrix4 transform: transform must be linked to Bullet Rigid Body
      * RETURN:
      *   ModelInstance ... which would be passed in to ModelComponent()
