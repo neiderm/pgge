@@ -36,7 +36,6 @@ import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
-import com.mygdx.game.Managers.EntityFactory.LandscapeObject;
 import com.mygdx.game.Managers.EntityFactory.SphereObject;
 import com.mygdx.game.Managers.EntityFactory.StaticEntiteeFactory;
 
@@ -218,15 +217,14 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         if (true) { // this slows down bullet debug drawer considerably!
 
-            //          Entity e = loadKinematicEntity(
-            //                engine, landscapeModel, null, new btBvhTriangleMeshShape(landscapeModel.meshParts));
-
-            Entity e = new LandscapeObject().create(landscapeModel, new Matrix4());
-            engine.addEntity(e);
+                      Entity e = loadKinematicEntity(
+                            engine, landscapeModel, null, new btBvhTriangleMeshShape(landscapeModel.meshParts));
 
             // put the landscape at an angle so stuff falls of it...
-            Matrix4 trns = e.getComponent(ModelComponent.class).modelInst.transform;
-            trns.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+
+            e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
         }
 
 
