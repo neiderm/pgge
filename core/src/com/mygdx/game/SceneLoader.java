@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -19,6 +20,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
@@ -34,6 +36,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
 import com.mygdx.game.Managers.EntityFactory.SphereObject;
@@ -53,14 +56,14 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = true;
+    private static boolean useTestObjects = false;
     private static Model primitivesModel;
     private static final AssetManager assets;
-    private static final Model landscapeModel;
+    public static final Model landscapeModel;
     private static final Model shipModel;
     public static final Model sceneModel;
-    private static Model boxTemplateModel;
-    private static Model sphereTemplateModel;
+    public static Model boxTemplateModel;
+    public static Model sphereTemplateModel;
     private static Model ballTemplateModel;
     private static Model tankTemplateModel;
     public static final Model testCubeModel;
@@ -179,46 +182,48 @@ if (!useTestObjects) N_ENTITIES = 0;
             engine.addEntity(
                     new GameObject(s, primitivesModel, "sphere").create(rnd.nextFloat() + 0.5f, t,
                             new btSphereShape(0.5f)));
-                            */
-        } //
+*/
+        }
+    }
 
-/*
-        if (false) {
-            BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
-            engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
-            engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
-            engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
-            engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
-            engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
-            engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
-        } */
+    public static void createTestObjects(Engine engine){
 
+        BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
+
+        Entity e;
+        float yTrans = -10.0f;
 
         StaticEntiteeFactory<GameObject> staticFactory =
                 new StaticEntiteeFactory<GameObject>();
 
-        float yTrans = -10.0f;
-        Vector3 tran = new Vector3(0, -4 + yTrans, 0);
+        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
 
         engine.addEntity(staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), tran));
+                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), trans));
 
         engine.addEntity(staticFactory.create(
                 new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)));
-/*
+///*
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
-*/
+//*/
 /*
         Vector3 size = new Vector3(40, 2, 40);
-        engine.addEntity(new LandscapeObject().create(sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f))));
+        engine.addEntity(new EntityFactory.LandscapeObject().create(sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f))));
 */
-
-
         if (true) { // this slows down bullet debug drawer considerably!
-
-                      Entity e = loadKinematicEntity(
-                            engine, landscapeModel, null, new btBvhTriangleMeshShape(landscapeModel.meshParts));
+/*
+            e = loadKinematicEntity(
+                    engine, landscapeModel, null, new btBvhTriangleMeshShape(landscapeModel.meshParts), null, null);
+*/
+            e = new EntityFactory.LandscapeObject().create(landscapeModel, new Matrix4());
+            engine.addEntity(e);
 
             // put the landscape at an angle so stuff falls of it...
             ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
@@ -306,7 +311,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(node)) {
-                loadDynamicEntity(engine, model, shape, id, mass, null);
+                loadDynamicEntity(engine, model, shape, id, mass, null, null);
             }
         }
     }
@@ -315,30 +320,33 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         Entity e = new GameObject(null, null, null).create();
 
-if (null != node) {
-    ModelInstance instance;
-    instance = getModelInstance(model, node);
-    e.add(new ModelComponent(instance, null));
-}else {
-    e.add(new ModelComponent(model, new Matrix4()));
-}
+        if (null != node) {
+            ModelInstance instance;
+            instance = getModelInstance(model, node);
+            e.add(new ModelComponent(instance, null));
+        } else {
+            e.add(new ModelComponent(model, new Matrix4()));
+        }
         engine.addEntity(e);
 
         return e;
     }
 
     public static Entity loadKinematicEntity(
-            Engine engine, Model model, String nodeID, btCollisionShape shape) {
+            Engine engine, Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size) {
 
-        BulletComponent bc;
-        Entity entity = loadDynamicEntity(engine, model, shape, nodeID, 0, null);
+        Entity entity = loadDynamicEntity(engine, model, shape, nodeID, 0, trans, size);
 
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
         // want for this object) so we do need to update the bc.body with the location vector we got from the model
         Vector3 tmp = new Vector3();
         entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
-        bc = entity.getComponent(BulletComponent.class);
-        bc.body.translate(tmp);
+        BulletComponent bc = entity.getComponent(BulletComponent.class);
+
+if (null == trans)
+{
+    bc.body.translate(tmp); // if translation param not given, need to sync body /w mesh instance
+}
 
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -351,21 +359,38 @@ if (null != node) {
 
 
     public static Entity loadDynamicEntity(
-            Engine engine, Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation) {
+            Engine engine, Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation, Vector3 size) {
 
         Entity e = loadStaticEntity(engine, model, nodeID);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-        if (null == shape)
-            shape = createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
+//        if (null != size){
+//            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
+//        }
+
+        if (null == shape) {
+            if (null != nodeID) {
+                shape = createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
+            }else{
+                final Mesh mesh = model.meshes.get(0);
+                shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+//                shape = createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+            }
+        }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
 
         // set to translation here if you don't want what the primitivesModel gives you
         if (null != translation) {
-            instance.transform.setToTranslation(translation);
+            instance.transform.trn(translation);
             e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
         }
+
+
+        if (null != size){
+            instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
+        }
+
 
         return e;
     }

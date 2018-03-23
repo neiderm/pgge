@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
@@ -21,7 +22,9 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -37,6 +40,10 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
+import static com.mygdx.game.SceneLoader.loadDynamicEntiesByName;
+import static com.mygdx.game.SceneLoader.loadDynamicEntity;
+import static com.mygdx.game.SceneLoader.loadKinematicEntity;
+import static com.mygdx.game.SceneLoader.loadStaticEntity;
 
 /**
  * Created by mango on 12/18/17.
@@ -160,32 +167,70 @@ public class GameScreen implements Screen {
     };
 
 
-    void addEntities() {
+    private void createTestObjects(){
 
         Vector3 size;
+        float yTrans = -10.0f;
+        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
+        Entity e;
 
-        sceneLoader.createEntities(engine);
+        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
+        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f));
 
-        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-        Entity player = sceneLoader.loadDynamicEntity(engine, sceneLoader.sceneModel, boxshape, "ship", 5.1f, null);
-        player.add(new PlayerComponent());
+        e = loadKinematicEntity(engine, sceneLoader.boxTemplateModel, null, shape, trans, size);
+
+        float radius = 16;
+        trans = new Vector3(10, 5 + yTrans, 0);
+        shape = new btSphereShape(radius * 0.5f);
+        size.set(radius, radius, radius);
+        e = loadKinematicEntity(engine, sceneLoader.sphereTemplateModel, null, shape, trans, size);
+
+
+        if (true) { // this slows down bullet debug drawer considerably!
+
+            e = loadKinematicEntity(
+                    engine, sceneLoader.landscapeModel, null,
+                    new btBvhTriangleMeshShape(sceneLoader.landscapeModel.meshParts), null, null);
+
+            // put the landscape at an angle so stuff falls of it...
+            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+
+            e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+        }
 
         // TODO: how to get size from modelinstance
         size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
-        boxshape = null; // new btBoxShape(size.cpy().scl(0.5f));
-        sceneLoader.loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, boxshape);
+        shape = null; // new btBoxShape(size.cpy().scl(0.5f));
+        loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, shape);
 
-        Entity skybox = sceneLoader.loadStaticEntity(engine, sceneLoader.sceneModel, "space");
+
+        Entity skybox = loadStaticEntity(engine, sceneLoader.sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
 
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        boxshape = null; // new btBoxShape(size.cpy().scl(0.5f))
+        shape = null; // new btBoxShape(size.cpy().scl(0.5f))
 //        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
-        sceneLoader.loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", boxshape);
+        loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", shape, null, null);
 
-       sceneLoader.loadStaticEntity(engine, sceneLoader.testCubeModel, "Cube");
+        loadStaticEntity(engine, sceneLoader.testCubeModel, "Cube");
+    }
 
+
+    private void addEntities() {
+
+
+        sceneLoader.createEntities(engine);
+
+        createTestObjects();
+//        sceneLoader.createTestObjects(engine);
+
+
+        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+        Entity player =
+                loadDynamicEntity(engine, sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
+        player.add(new PlayerComponent());
 
         Entity playerChaser;
 /*
