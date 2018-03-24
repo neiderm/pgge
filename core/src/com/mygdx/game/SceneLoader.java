@@ -56,7 +56,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = false;
+    private static boolean useTestObjects = true;
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
@@ -232,7 +232,6 @@ if (!useTestObjects) N_ENTITIES = 0;
             e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
         }
 
-
 // TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
     }
 
@@ -311,12 +310,12 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(node)) {
-                loadDynamicEntity(engine, model, shape, id, mass, null, null);
+                engine.addEntity(loadDynamicEntity(model, shape, id, mass, null, null));
             }
         }
     }
 
-    public static Entity loadStaticEntity(Engine engine, Model model, String node) {
+    public static Entity loadStaticEntity(Model model, String node) {
 
         Entity e = new GameObject(null, null, null).create();
 
@@ -327,15 +326,14 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         } else {
             e.add(new ModelComponent(model, new Matrix4()));
         }
-        engine.addEntity(e);
 
         return e;
     }
 
     public static Entity loadKinematicEntity(
-            Engine engine, Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size) {
+            Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size) {
 
-        Entity entity = loadDynamicEntity(engine, model, shape, nodeID, 0, trans, size);
+        Entity entity = loadDynamicEntity(model, shape, nodeID, 0, trans, size);
 
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
         // want for this object) so we do need to update the bc.body with the location vector we got from the model
@@ -352,16 +350,15 @@ if (null == trans)
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
         bc.sFlag = true;
-//        entity.add(bc);
 
         return entity;
     }
 
 
     public static Entity loadDynamicEntity(
-            Engine engine, Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation, Vector3 size) {
+            Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation, Vector3 size) {
 
-        Entity e = loadStaticEntity(engine, model, nodeID);
+        Entity e = loadStaticEntity(model, nodeID);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
 //        if (null != size){
@@ -386,11 +383,9 @@ if (null == trans)
             e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
         }
 
-
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
         }
-
 
         return e;
     }

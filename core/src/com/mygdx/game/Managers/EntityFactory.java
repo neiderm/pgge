@@ -116,11 +116,11 @@ public class EntityFactory {
         public BoxObject(Vector3 size, Model model) {
             super(size, model);
         }
-/*
+///*
         public BoxObject(Vector3 size, Model model, final String rootNodeId) {
             super(size, model, rootNodeId);
         }
-*/
+//*/
         @Override
         public Entity create(/* Model model, */ float mass, Vector3 translation) {
 

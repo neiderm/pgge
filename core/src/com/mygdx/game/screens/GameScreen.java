@@ -175,21 +175,21 @@ public class GameScreen implements Screen {
         Entity e;
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f));
-
-        e = loadKinematicEntity(engine, sceneLoader.boxTemplateModel, null, shape, trans, size);
+        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f)); // convex hull NOT working with scale right now
+        e = loadKinematicEntity(sceneLoader.boxTemplateModel, null, shape, trans, size);
+        engine.addEntity(e);
 
         float radius = 16;
         trans = new Vector3(10, 5 + yTrans, 0);
         shape = new btSphereShape(radius * 0.5f);
         size.set(radius, radius, radius);
-        e = loadKinematicEntity(engine, sceneLoader.sphereTemplateModel, null, shape, trans, size);
-
+        e = loadKinematicEntity(sceneLoader.sphereTemplateModel, null, shape, trans, size);
+        engine.addEntity(e);
 
         if (true) { // this slows down bullet debug drawer considerably!
 
             e = loadKinematicEntity(
-                    engine, sceneLoader.landscapeModel, null,
+                    sceneLoader.landscapeModel, null,
                     new btBvhTriangleMeshShape(sceneLoader.landscapeModel.meshParts), null, null);
 
             // put the landscape at an angle so stuff falls of it...
@@ -197,6 +197,7 @@ public class GameScreen implements Screen {
             inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
 
             e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+            engine.addEntity(e);
         }
 
         // TODO: how to get size from modelinstance
@@ -205,16 +206,16 @@ public class GameScreen implements Screen {
         loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, shape);
 
 
-        Entity skybox = loadStaticEntity(engine, sceneLoader.sceneModel, "space");
+        Entity skybox = loadStaticEntity(sceneLoader.sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
-
+        engine.addEntity(skybox);
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f))
 //        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
-        loadKinematicEntity(engine, sceneLoader.testCubeModel, "Platform001", shape, null, null);
+        engine.addEntity(loadKinematicEntity(sceneLoader.testCubeModel, "Platform001", shape, null, null));
 
-        loadStaticEntity(engine, sceneLoader.testCubeModel, "Cube");
+        engine.addEntity(loadStaticEntity(sceneLoader.testCubeModel, "Cube"));
     }
 
 
@@ -228,9 +229,9 @@ public class GameScreen implements Screen {
 
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-        Entity player =
-                loadDynamicEntity(engine, sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
+        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
         player.add(new PlayerComponent());
+        engine.addEntity(player);
 
         Entity playerChaser;
 /*
