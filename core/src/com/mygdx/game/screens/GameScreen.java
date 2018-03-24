@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
@@ -40,10 +41,9 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
-import static com.mygdx.game.SceneLoader.loadDynamicEntiesByName;
-import static com.mygdx.game.SceneLoader.loadDynamicEntity;
-import static com.mygdx.game.SceneLoader.loadKinematicEntity;
-import static com.mygdx.game.SceneLoader.loadStaticEntity;
+import static com.mygdx.game.EntityBuilder.loadDynamicEntity;
+import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
+import static com.mygdx.game.EntityBuilder.loadStaticEntity;
 
 /**
  * Created by mango on 12/18/17.
@@ -167,6 +167,17 @@ public class GameScreen implements Screen {
     };
 
 
+    public static void loadDynamicEntiesByName(
+            Engine engine, Model model, String node, float mass, btCollisionShape shape ) {
+
+        for (int i = 0; i < model.nodes.size; i++) {
+            String id = model.nodes.get(i).id;
+            if (id.startsWith(node)) {
+                engine.addEntity(loadDynamicEntity(model, shape, id, mass, null, null));
+            }
+        }
+    }
+
     private void createTestObjects(){
 
         Vector3 size;
@@ -221,11 +232,10 @@ public class GameScreen implements Screen {
 
     private void addEntities() {
 
-
         sceneLoader.createEntities(engine);
 
-        createTestObjects();
-//        sceneLoader.createTestObjects(engine);
+if (true)                createTestObjects();
+else        sceneLoader.createTestObjects(engine);
 
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)

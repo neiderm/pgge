@@ -12,6 +12,9 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.SceneLoader;
+
+import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
 
 
 /**
@@ -133,6 +136,16 @@ public class EntityFactory {
      * see notes farther below about making this kinematic object so things don't get "stuck" on it
      */
     public static class LandscapeObject extends GameObject {
+
+        public Entity create(Model model) {
+
+            Entity e = loadKinematicEntity(
+                    model, null,
+                    new btBvhTriangleMeshShape(SceneLoader.instance.landscapeModel.meshParts), null, null);
+
+            return e;
+        }
+
 
         //         Entity create(final Array<T> meshParts, Matrix4 transform){ ??????
         public Entity create(Model model, Matrix4 transform) {
