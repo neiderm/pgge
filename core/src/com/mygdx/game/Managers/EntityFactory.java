@@ -66,15 +66,13 @@ public class EntityFactory {
             return e;
         }
 
-        ///*
         public Entity create(float mass, Vector3 translation) {
 
             if (null == this.shape)
-            return new Entity();
+                return new Entity();
 
             return create(mass, translation, this.shape);
         }
-        //*/
 
         public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
@@ -91,53 +89,44 @@ public class EntityFactory {
         }
     }
 
+    /*
+     * extended objects ... these would probably be implemented  by the "consumer" to meet specific needs
+     */
     public static class SphereObject extends GameObject {
 
-        private float radius;
+//        private float radius;
 
         public SphereObject(float radius, Model model) {
 
             super(new Vector3(radius, radius, radius), model);
-            this.radius = radius;
+//            this.radius = radius;
+            this.shape = new btSphereShape(radius * 0.5f);
         }
 
-        @Override
-        public Entity create(/* Model model, */ float mass, Vector3 translation) {
+/*        @Override
+        public Entity create(float mass, Vector3 translation) {
 
             return super.create(mass, translation, new btSphereShape(radius * 0.5f));
-        }
+        }*/
     }
 
     public static class BoxObject extends GameObject {
 
         public BoxObject(Vector3 size, Model model) {
             super(size, model);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
-///*
+
         public BoxObject(Vector3 size, Model model, final String rootNodeId) {
             super(size, model, rootNodeId);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
-        //*/
-        @Override
-        public Entity create(/* Model model, */ float mass, Vector3 translation) {
+
+/*        @Override
+        public Entity create(float mass, Vector3 translation) {
 
             return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
-        }
-    }
-
-    /*
-     */
-    public static class LandscapeObject extends GameObject {
-
-        public Entity create(Model model) {
-
-            Entity e = loadKinematicEntity(
-                    model, null,
-                    new btBvhTriangleMeshShape(SceneLoader.instance.landscapeModel.meshParts), null, null);
-
-            return e;
-        }
-
+        }*/
     }
 
 
