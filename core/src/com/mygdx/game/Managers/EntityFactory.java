@@ -33,6 +33,7 @@ public class EntityFactory {
         protected Model model;
         protected Vector3 size;
         protected String rootNodeId = null;
+        protected btCollisionShape shape = null;
 
         private GameObject() {
         }
@@ -43,8 +44,7 @@ public class EntityFactory {
         }
 
         public GameObject(Vector3 size, Model model, String rootNodeId) {
-            this.model = model;
-            this.size = size;
+            this(size, model);
             this.rootNodeId = rootNodeId;
         }
 
@@ -65,20 +65,14 @@ public class EntityFactory {
 
             return e;
         }
-/*
-        public Entity create(Matrix4 transform) {
 
-            Entity e = create();
-
-            e.add(new ModelComponent(model, transform, size, rootNodeId));
-
-            return e;
-        }
-*/
         ///*
         public Entity create(float mass, Vector3 translation) {
 
+            if (null == this.shape)
             return new Entity();
+
+            return create(mass, translation, this.shape);
         }
         //*/
 
@@ -123,7 +117,7 @@ public class EntityFactory {
         public BoxObject(Vector3 size, Model model, final String rootNodeId) {
             super(size, model, rootNodeId);
         }
-//*/
+        //*/
         @Override
         public Entity create(/* Model model, */ float mass, Vector3 translation) {
 
@@ -132,8 +126,6 @@ public class EntityFactory {
     }
 
     /*
-     * we might want lots of these ... islands in the sky, all made of mesh shapes
-     * see notes farther below about making this kinematic object so things don't get "stuck" on it
      */
     public static class LandscapeObject extends GameObject {
 
@@ -146,62 +138,14 @@ public class EntityFactory {
             return e;
         }
 
-
-        //         Entity create(final Array<T> meshParts, Matrix4 transform){ ??????
-        public Entity create(Model model, Matrix4 transform) {
-
-            Entity e = create();
-
-            BulletComponent bc =
-                    new BulletComponent(new btBvhTriangleMeshShape(model.meshParts), transform);
-
-
-            bc.body.setCollisionFlags(
-                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-
-            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-            bc.sFlag = true;
-
-
-            e.add(bc);
-
-            e.add(new ModelComponent(model, transform));
-
-            return e;
-        }
-
-        // TODO: refactor this crap
-        public Entity create(Model model, String nodeID, btCollisionShape shape) {
-
-Matrix4 transform = new Matrix4().idt();
-
-            Entity e = create();
-
-            BulletComponent bc = new BulletComponent(shape, transform);
-
-            bc.body.setCollisionFlags(
-                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-
-            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-            bc.sFlag = true;
-
-
-            e.add(bc);
-
-            e.add(new ModelComponent(model, transform, null, nodeID));
-
-            return e;
-        }
     }
 
 
-
     /*
-     derived factories do special sauce for static vs dynamic entities:
      */
     private abstract static class EntiteeFactory<T extends GameObject> {
+
+        // model? not sure what other instance data
 
 //        T object;
 
@@ -210,11 +154,6 @@ Matrix4 transform = new Matrix4().idt();
 /*
         EntiteeFactory(T object){
             this.object = object;
-        }
-*/
-/*
-        Entity create() {
-            return create(0, new Vector3(0, 0, 0));
         }
 */
 /*
@@ -258,6 +197,9 @@ Matrix4 transform = new Matrix4().idt();
 
             // static entity not use motion state so just set the scale on it once and for all
             mc.modelInst.transform.scl(mc.scale);
+
+
+//            loadKinematicEntity(object.model, object.rootNodeId, object.shape, translation, object.size);
 
             return e;
         }
