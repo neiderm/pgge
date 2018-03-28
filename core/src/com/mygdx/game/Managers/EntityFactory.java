@@ -12,6 +12,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.EntityBuilder;
 import com.mygdx.game.SceneLoader;
 
 import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
@@ -129,6 +130,17 @@ public class EntityFactory {
         }*/
     }
 
+    public static class StaticObject extends GameObject {
+
+        public StaticObject(Model model, String rootNodeId) {
+            super(new Vector3(1, 1, 1), model, rootNodeId);
+        }
+
+        @Override
+        public Entity create() {
+            return EntityBuilder.loadStaticEntity(this.model, this.rootNodeId);
+        }
+    }
 
     /*
      */

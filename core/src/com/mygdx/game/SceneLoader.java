@@ -141,13 +141,13 @@ if (!useTestObjects) N_ENTITIES = 0;
             Vector3 translation =
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
+            GameObject o;
             if (i < N_BOXES) {
-                engine.addEntity(
-                        new BoxObject(tmpV, boxTemplateModel).create(tmpV.x, translation));
+                o = new BoxObject(tmpV, boxTemplateModel);
             } else {
-                engine.addEntity(
-                        new SphereObject(tmpV.x, sphereTemplateModel).create(tmpV.x, translation));
+                o = new SphereObject(tmpV.x, sphereTemplateModel);
             }
+            engine.addEntity(o.create(tmpV.x, translation));
         }
 
 
@@ -200,22 +200,13 @@ if (!useTestObjects) N_ENTITIES = 0;
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
 //*/
-/*
-        Vector3 size = new Vector3(40, 2, 40);
-        engine.addEntity(new EntityFactory.LandscapeObject().create(sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f))));
-*/
-        if (true) { // this slows down bullet debug drawer considerably!
-            e = new EntityFactory.LandscapeObject().create(landscapeModel);
-            engine.addEntity(e);
 
-            // put the landscape at an angle so stuff falls of it...
-            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
-            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
 
-            e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
-        }
+GameObject skyboxObject = new EntityFactory.StaticObject(sceneModel, "space");
+        Entity skybox = skyboxObject.create();
+        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+        engine.addEntity(skybox);
 
-// TODO: intatiate object as dynamic, let it fall, then let it rest as static (take out of dynamics world)
     }
 
 
