@@ -4,18 +4,12 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.EntityBuilder;
-import com.mygdx.game.SceneLoader;
-
-import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
 
 
 /**
@@ -118,12 +112,12 @@ public class EntityFactory {
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
-        public BoxObject(Vector3 size, Model model, final String rootNodeId) {
+/*        public BoxObject(Vector3 size, Model model, final String rootNodeId) {
             super(size, model, rootNodeId);
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
-/*        @Override
+        @Override
         public Entity create(float mass, Vector3 translation) {
 
             return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
@@ -142,68 +136,39 @@ public class EntityFactory {
         }
     }
 
-    /*
-     */
-    private abstract static class EntiteeFactory<T extends GameObject> {
+    public static class KinematicObject extends GameObject {
 
-        // model? not sure what other instance data
-
-//        T object;
-
-        private EntiteeFactory() {
+        public KinematicObject(Model model) {
+            this.model = model;
         }
-/*
-        EntiteeFactory(T object){
-            this.object = object;
+
+        public KinematicObject(Model model, Vector3 size){
+            this.model = model;
+            this.size = size;
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
-*/
-/*
-        private Entity create(T object, float mass, Vector3 translation) {
-            return object.create(mass, translation);
+
+        public KinematicObject(Model model, String rootNodeId, Vector3 size) {
+            this(model, size);
+            this.rootNodeId = rootNodeId;
         }
-*/
-    }
 
-    public static class StaticEntiteeFactory<T extends GameObject> extends EntiteeFactory {
-        /*
-                StaticEntiteeFactory(T object){
-                    super(object);
-                }
-        */
-        public Entity create(T object, Vector3 translation) {
+        public KinematicObject(Model model, float radius){
+            super(new Vector3(radius, radius, radius), model);
+            this.shape = new btSphereShape(radius * 0.5f);
+        }
 
-            Entity e = object.create(0f, translation);
+        @Override
+        public Entity create(Vector3 trans) {
+            return EntityBuilder.loadKinematicEntity(
+                    this.model, this.rootNodeId, this.shape, trans, this.size);
+        }
 
-            // special sauce here for static entity
-            Vector3 tmp = new Vector3();
-            BulletComponent bc = e.getComponent(BulletComponent.class);
-            ModelComponent mc = e.getComponent(ModelComponent.class);
+        @Override
+        public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
-            // bc.body.translate(tmp.set(modelInst.transform.val[12], modelInst.transform.val[13], modelInst.transform.val[14]));
-            bc.body.translate(mc.modelInst.transform.getTranslation(tmp));
-
-            /* need ground & landscape objects to be kinematic: once the player ball stopped and was
-            deactivated by the bullet dynamics, it would no longer move around under the applied force.
-            ONe small complication is the renderer has to know which are the active dynamic objects
-            that it has to "refresh" the scaling in the transform (because goofy bullet messes with
-            the scaling!). So here we set a flag to tell renderer that it doesn't have to re-scale
-            the kinematic object (need to do a "kinematic" component to deal w/ this).
-             */
-            bc.body.setCollisionFlags(
-                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-
-            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-            bc.sFlag = true;
-
-            // static entity not use motion state so just set the scale on it once and for all
-            mc.modelInst.transform.scl(mc.scale);
-
-
-//            loadKinematicEntity(object.model, object.rootNodeId, object.shape, translation, object.size);
-
-            return e;
+            return EntityBuilder.loadKinematicEntity(
+                    this.model, this.rootNodeId, shape, translation, this.size);
         }
     }
-
 }

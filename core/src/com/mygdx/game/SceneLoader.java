@@ -16,6 +16,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
@@ -29,7 +31,7 @@ import com.mygdx.game.Managers.EntityFactory;
 import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
 import com.mygdx.game.Managers.EntityFactory.SphereObject;
-import com.mygdx.game.Managers.EntityFactory.StaticEntiteeFactory;
+
 
 import java.util.Random;
 
@@ -183,30 +185,46 @@ if (!useTestObjects) N_ENTITIES = 0;
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
 
-        Entity e;
-        float yTrans = -10.0f;
+        final float yTrans = -10.0f;
 
-        StaticEntiteeFactory<GameObject> staticFactory =
-                new StaticEntiteeFactory<GameObject>();
+        //StaticEntiteeFactory<GameObject> staticFactory = new StaticEntiteeFactory<GameObject>();
 
         Vector3 trans = new Vector3(0, -4 + yTrans, 0);
 
-        engine.addEntity(staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), boxTemplateModel), trans));
+        engine.addEntity(
+                (new EntityFactory.KinematicObject(boxTemplateModel, new Vector3(40f, 2f, 40f))).create(trans));
 
-        engine.addEntity(staticFactory.create(
-                new SphereObject(16, sphereTemplateModel), new Vector3(10, 5 + yTrans, 0)));
-///*
+        engine.addEntity(
+                (new EntityFactory.KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
+
+/*
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
-//*/
+*/
+        Vector3 size = new Vector3(40f, 2f, 40f);
+        engine.addEntity(
+                new EntityFactory.KinematicObject(primitivesModel, "box",
+                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20),
+                        new btBoxShape(size.cpy().scl(0.5f))));
 
 
-GameObject skyboxObject = new EntityFactory.StaticObject(sceneModel, "space");
-        Entity skybox = skyboxObject.create();
+
+        if (true) { // this slows down bullet debug drawer considerably!
+
+            Entity ls = new EntityFactory.KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
+                    new btBvhTriangleMeshShape(landscapeModel.meshParts));
+            engine.addEntity(ls);
+
+            // put the landscape at an angle so stuff falls of it...
+            ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
+            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+
+            ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+        }
+
+        Entity skybox = (new EntityFactory.StaticObject(sceneModel, "space")).create();
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
-
     }
 
 
