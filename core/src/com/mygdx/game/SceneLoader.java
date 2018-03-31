@@ -147,7 +147,7 @@ if (!useTestObjects) N_ENTITIES = 0;
             if (i < N_BOXES) {
                 o = new BoxObject(tmpV, boxTemplateModel);
             } else {
-                o = new SphereObject(tmpV.x, sphereTemplateModel);
+                o = new SphereObject(sphereTemplateModel, tmpV.x);
             }
             engine.addEntity(o.create(tmpV.x, translation));
         }
@@ -157,15 +157,15 @@ if (!useTestObjects) N_ENTITIES = 0;
         Vector3 s = new Vector3(1, 1, 1);
         if (useTestObjects) {
             engine.addEntity(
-                    new GameObject(s, primitivesModel, "cone").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(primitivesModel, "cone", s).create(rnd.nextFloat() + 0.5f, t,
                             new btConeShape(0.5f, 2.0f)));
 
             engine.addEntity(
-                    new GameObject(s, primitivesModel, "capsule").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(primitivesModel, "capsule", s).create(rnd.nextFloat() + 0.5f, t,
                             new btCapsuleShape(0.5f, 0.5f * 2.0f)));
 
             engine.addEntity(
-                    new GameObject(s, primitivesModel, "cylinder").create(rnd.nextFloat() + 0.5f, t,
+                    new GameObject(primitivesModel, "cylinder", s).create(rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
 /*
             engine.addEntity(
@@ -201,12 +201,16 @@ if (!useTestObjects) N_ENTITIES = 0;
         engine.addEntity(staticFactory.create(
                 new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
 */
+//        default shape instantiation not built into "factory":
         Vector3 size = new Vector3(40f, 2f, 40f);
-        engine.addEntity(
-                new EntityFactory.KinematicObject(primitivesModel, "box",
-                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20),
-                        new btBoxShape(size.cpy().scl(0.5f))));
+        engine.addEntity(new EntityFactory.KinematicObject(primitivesModel, "box", size).create(0,
+                new Vector3(-15, 11, -20), new btBoxShape(size.cpy().scl(0.5f))));
 
+///*
+       engine.addEntity(
+                new EntityFactory.KinematicObject(primitivesModel, "box",
+                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20)));
+//*/
 
 
         if (true) { // this slows down bullet debug drawer considerably!
@@ -249,8 +253,8 @@ if (!useTestObjects) N_ENTITIES = 0;
           or them bounce roll etc.)
         */
 
-        Entity e = new GameObject(new Vector3(0.5f, 0.5f, 0.5f),
-                primitivesModel, "sphere").create(new Vector3(0, 15f, -5f));
+        Entity e = new GameObject(primitivesModel, "sphere",
+                new Vector3(0.5f, 0.5f, 0.5f)).create(new Vector3(0, 15f, -5f));
 
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -285,8 +289,8 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         */
 
         final float r = 4.0f;
-        Entity e = new GameObject(new Vector3(r, r, r), primitivesModel, "sphere").create(
-                0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+        Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r))
+                .create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
 //        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));

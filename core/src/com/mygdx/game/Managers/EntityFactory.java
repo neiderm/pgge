@@ -33,13 +33,13 @@ public class EntityFactory {
         private GameObject() {
         }
 
-        public GameObject(Vector3 size, Model model) {
+        public GameObject(Model model, Vector3 size) {
             this.model = model;
             this.size = size;
         }
 
-        public GameObject(Vector3 size, Model model, String rootNodeId) {
-            this(size, model);
+        public GameObject(Model model, String rootNodeId, Vector3 size) {
+            this(model, size);
             this.rootNodeId = rootNodeId;
         }
 
@@ -48,7 +48,7 @@ public class EntityFactory {
         }
 
         /*
-         * static entity
+         * static^H^H^H^H^H^H non-bullet entity, will be static or moved about by other impetus (e.g. cam chaser)
          */
         public Entity create(Vector3 translation) {
 
@@ -61,10 +61,14 @@ public class EntityFactory {
             return e;
         }
 
+        /*
+         falling boxes and globes
+         */
         public Entity create(float mass, Vector3 translation) {
 
-            if (null == this.shape)
-                return new Entity();
+            if (null == this.shape) {
+                return new Entity(); // nfi
+            }
 
             return create(mass, translation, this.shape);
         }
@@ -91,9 +95,9 @@ public class EntityFactory {
 
 //        private float radius;
 
-        public SphereObject(float radius, Model model) {
+        public SphereObject(Model model, float radius) {
 
-            super(new Vector3(radius, radius, radius), model);
+            super(model, new Vector3(radius, radius, radius));
 //            this.radius = radius;
             this.shape = new btSphereShape(radius * 0.5f);
         }
@@ -108,7 +112,7 @@ public class EntityFactory {
     public static class BoxObject extends GameObject {
 
         public BoxObject(Vector3 size, Model model) {
-            super(size, model);
+            super(model, size);
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
@@ -127,7 +131,7 @@ public class EntityFactory {
     public static class StaticObject extends GameObject {
 
         public StaticObject(Model model, String rootNodeId) {
-            super(new Vector3(1, 1, 1), model, rootNodeId);
+            super(model, rootNodeId, new Vector3(1, 1, 1));
         }
 
         @Override
@@ -143,25 +147,24 @@ public class EntityFactory {
         }
 
         public KinematicObject(Model model, Vector3 size){
-            this.model = model;
-            this.size = size;
+            super(model, size);
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
         public KinematicObject(Model model, String rootNodeId, Vector3 size) {
-            this(model, size);
-            this.rootNodeId = rootNodeId;
+            super(model, rootNodeId, size);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
         public KinematicObject(Model model, float radius){
-            super(new Vector3(radius, radius, radius), model);
+            super(model, new Vector3(radius, radius, radius));
             this.shape = new btSphereShape(radius * 0.5f);
         }
 
         @Override
-        public Entity create(Vector3 trans) {
+        public Entity create(Vector3 translation) {
             return EntityBuilder.loadKinematicEntity(
-                    this.model, this.rootNodeId, this.shape, trans, this.size);
+                    this.model, this.rootNodeId, this.shape, translation, this.size);
         }
 
         @Override
