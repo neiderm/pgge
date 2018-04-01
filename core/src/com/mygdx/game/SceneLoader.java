@@ -19,6 +19,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
@@ -28,9 +29,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Managers.EntityFactory;
-import com.mygdx.game.Managers.EntityFactory.BoxObject;
 import com.mygdx.game.Managers.EntityFactory.GameObject;
-import com.mygdx.game.Managers.EntityFactory.SphereObject;
 
 
 import java.util.Random;
@@ -192,10 +191,10 @@ if (!useTestObjects) N_ENTITIES = 0;
         Vector3 trans = new Vector3(0, -4 + yTrans, 0);
 
         engine.addEntity(
-                (new EntityFactory.KinematicObject(boxTemplateModel, new Vector3(40f, 2f, 40f))).create(trans));
+                (new KinematicObject(boxTemplateModel, null, new Vector3(40f, 2f, 40f))).create(trans));
 
         engine.addEntity(
-                (new EntityFactory.KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
+                (new KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
 
 /*
         engine.addEntity(staticFactory.create(
@@ -203,19 +202,17 @@ if (!useTestObjects) N_ENTITIES = 0;
 */
 //        default shape instantiation not built into "factory":
         Vector3 size = new Vector3(40f, 2f, 40f);
-        engine.addEntity(new EntityFactory.KinematicObject(primitivesModel, "box", size).create(0,
-                new Vector3(-15, 11, -20), new btBoxShape(size.cpy().scl(0.5f))));
+        engine.addEntity(new KinematicObject(primitivesModel, "box", size).create(0,
+                new Vector3(-15, 1, -20), new btBoxShape(size.cpy().scl(0.5f))));
 
-///*
-       engine.addEntity(
-                new EntityFactory.KinematicObject(primitivesModel, "box",
-                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20)));
-//*/
+/*       engine.addEntity(
+                new KinematicObject(primitivesModel, "box",
+                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20)));*/
 
 
         if (true) { // this slows down bullet debug drawer considerably!
 
-            Entity ls = new EntityFactory.KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
+            Entity ls = new KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
                     new btBvhTriangleMeshShape(landscapeModel.meshParts));
             engine.addEntity(ls);
 
@@ -226,7 +223,7 @@ if (!useTestObjects) N_ENTITIES = 0;
             ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
         }
 
-        Entity skybox = (new EntityFactory.StaticObject(sceneModel, "space")).create();
+        Entity skybox = (new StaticObject(sceneModel, "space")).create();
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
     }
@@ -297,6 +294,95 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         engine.addEntity(e);
         return e;
+    }
+
+
+/*
+ * extended objects ... these would probably be implemented  by the "consumer" to meet specific needs
+ */
+    public static class SphereObject extends GameObject {
+
+//        private float radius;
+
+        public SphereObject(Model model, float radius) {
+
+            super(model, new Vector3(radius, radius, radius));
+//            this.radius = radius;
+            this.shape = new btSphereShape(radius * 0.5f);
+        }
+
+/*        @Override
+        public Entity create(float mass, Vector3 translation) {
+
+            return super.create(mass, translation, new btSphereShape(radius * 0.5f));
+        }*/
+    }
+
+    public static class BoxObject extends GameObject {
+
+        public BoxObject(Vector3 size, Model model) {
+            super(model, size);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
+        }
+
+/*        public BoxObject(Vector3 size, Model model, final String rootNodeId) {
+            super(size, model, rootNodeId);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
+        }
+
+        @Override
+        public Entity create(float mass, Vector3 translation) {
+
+            return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
+        }*/
+    }
+
+
+    public static class StaticObject extends GameObject {
+
+        public StaticObject(Model model, String rootNodeId) {
+            super(model, rootNodeId, new Vector3(1, 1, 1));
+        }
+
+        @Override
+        public Entity create() {
+            return EntityBuilder.loadStaticEntity(this.model, this.rootNodeId);
+        }
+    }
+
+    public static class KinematicObject extends GameObject {
+
+        public KinematicObject(Model model) {
+            this.model = model;
+        }
+
+/*        public KinematicObject(Model model, Vector3 size){
+            super(model, size);
+            this.shape = new btBoxShape(size.cpy().scl(0.5f));
+        }*/
+
+        public KinematicObject(Model model, String rootNodeId, Vector3 size) {
+            super(model, rootNodeId, size);
+//            this.shape = new btBoxShape(size.cpy().scl(0.5f));
+        }
+
+        public KinematicObject(Model model, float radius){
+            super(model, new Vector3(radius, radius, radius));
+            this.shape = new btSphereShape(radius * 0.5f);
+        }
+
+        @Override
+        public Entity create(Vector3 translation) {
+            return EntityBuilder.loadKinematicEntity(
+                    this.model, this.rootNodeId, this.shape, translation, this.size);
+        }
+
+        @Override
+        public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
+
+            return EntityBuilder.loadKinematicEntity(
+                    this.model, this.rootNodeId, shape, translation, this.size);
+        }
     }
 
 
