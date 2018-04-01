@@ -29,7 +29,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Managers.EntityFactory;
-import com.mygdx.game.Managers.EntityFactory.GameObject;
 
 
 import java.util.Random;
@@ -144,7 +143,7 @@ if (!useTestObjects) N_ENTITIES = 0;
 
             GameObject o;
             if (i < N_BOXES) {
-                o = new BoxObject(tmpV, boxTemplateModel);
+                o = new BoxObject(boxTemplateModel, tmpV);
             } else {
                 o = new SphereObject(sphereTemplateModel, tmpV.x);
             }
@@ -176,7 +175,7 @@ if (!useTestObjects) N_ENTITIES = 0;
 
     public static void createTestObjects(Engine engine){
 
-        BoxObject bo = new BoxObject(new Vector3(2, 2, 2), boxTemplateModel);
+        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
@@ -186,28 +185,21 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         final float yTrans = -10.0f;
 
-        //StaticEntiteeFactory<GameObject> staticFactory = new StaticEntiteeFactory<GameObject>();
+        EntityFactory<GameObject> dynFactory = new EntityFactory<GameObject>();
 
         Vector3 trans = new Vector3(0, -4 + yTrans, 0);
 
-        engine.addEntity(
-                (new KinematicObject(boxTemplateModel, null, new Vector3(40f, 2f, 40f))).create(trans));
+//        engine.addEntity((new KinematicObject(boxTemplateModel, null, new Vector3(40f, 2f, 40f))).create(trans));
+//        engine.addEntity((new KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
 
-        engine.addEntity(
-                (new KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
+        engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
+        engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
+        engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(40f, 2f, 40f)), new Vector3(-15, 1, -20)));
 
-/*
-        engine.addEntity(staticFactory.create(
-                new BoxObject(new Vector3(40f, 2f, 40f), primitivesModel, "box"), new Vector3(-15, 1, -20)));
-*/
 //        default shape instantiation not built into "factory":
-        Vector3 size = new Vector3(40f, 2f, 40f);
+/*        Vector3 size = new Vector3(40f, 2f, 40f);
         engine.addEntity(new KinematicObject(primitivesModel, "box", size).create(0,
-                new Vector3(-15, 1, -20), new btBoxShape(size.cpy().scl(0.5f))));
-
-/*       engine.addEntity(
-                new KinematicObject(primitivesModel, "box",
-                        new Vector3(40f, 2f, 40f)).create(0, new Vector3(-15, 1, -20)));*/
+                new Vector3(-15, 1, -20), new btBoxShape(size.cpy().scl(0.5f))));*/
 
 
         if (true) { // this slows down bullet debug drawer considerably!
@@ -320,17 +312,17 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
     public static class BoxObject extends GameObject {
 
-        public BoxObject(Vector3 size, Model model) {
+        public BoxObject(Model model, Vector3 size) {
             super(model, size);
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
-/*        public BoxObject(Vector3 size, Model model, final String rootNodeId) {
-            super(size, model, rootNodeId);
+        public BoxObject(Model model, final String rootNodeId, Vector3 size) {
+            super(model, rootNodeId, size);
             this.shape = new btBoxShape(size.cpy().scl(0.5f));
         }
 
-        @Override
+/*        @Override
         public Entity create(float mass, Vector3 translation) {
 
             return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
