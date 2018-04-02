@@ -40,7 +40,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = true;
+    private static boolean useTestObjects = false;
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
@@ -88,14 +88,14 @@ public class SceneLoader implements Disposable {
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
-        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-//        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
+//        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
+        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
         assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-//        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
-        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
+//        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
 //        shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
@@ -186,23 +186,12 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         Vector3 trans = new Vector3(0, -4 + yTrans, 0);
 
-//        engine.addEntity((new KinematicObject(boxTemplateModel, null, new Vector3(40f, 2f, 40f))).create(trans));
-//        engine.addEntity((new KinematicObject(sphereTemplateModel, 16.0f)).create(new Vector3(10, 5 + yTrans, 0)));
-
         engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
         engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(40f, 2f, 40f)), new Vector3(-15, 1, -20)));
 
-//        default shape instantiation not built into "factory":
-/*        Vector3 size = new Vector3(40f, 2f, 40f);
-        engine.addEntity(new KinematicObject(primitivesModel, "box", size).create(0,
-                new Vector3(-15, 1, -20), new btBoxShape(size.cpy().scl(0.5f))));*/
+        if (useTestObjects) { // this slows down bullet debug drawer considerably!
 
-
-        if (true) { // this slows down bullet debug drawer considerably!
-
-/*            Entity ls = new KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
-                    new btBvhTriangleMeshShape(landscapeModel.meshParts));*/
             Entity ls = EntityBuilder.loadTriangleMesh(landscapeModel, new Vector3(0, 0, 0));
             engine.addEntity(ls);
 
@@ -212,10 +201,6 @@ if (!useTestObjects) N_ENTITIES = 0;
 
             ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
         }
-
-        Entity skybox = (new StaticObject(sceneModel, "space")).create();
-        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
-        engine.addEntity(skybox);
     }
 
 
@@ -325,19 +310,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
             return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
         }*/
-    }
-
-
-    public static class StaticObject extends GameObject {
-
-        public StaticObject(Model model, String rootNodeId) {
-            super(model, rootNodeId, new Vector3(1, 1, 1));
-        }
-
-        @Override
-        public Entity create() {
-            return EntityBuilder.loadStaticEntity(this.model, this.rootNodeId);
-        }
     }
 
 

@@ -197,7 +197,7 @@ public class GameScreen implements Screen {
         e = loadKinematicEntity(sceneLoader.sphereTemplateModel, null, shape, trans, size);
         engine.addEntity(e);
 
-        if (true) { // this slows down bullet debug drawer considerably!
+        if (false) { // this slows down bullet debug drawer considerably!
 
             e = loadKinematicEntity(
                     sceneLoader.landscapeModel, null,
@@ -217,9 +217,6 @@ public class GameScreen implements Screen {
         loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, shape);
 
 
-        Entity skybox = loadStaticEntity(sceneLoader.sceneModel, "space");
-        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
-        engine.addEntity(skybox);
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f))
@@ -244,6 +241,11 @@ else        sceneLoader.createTestObjects(engine);
                 sceneLoader.shipModel, boxshape, null, 5.1f, new Vector3(0, 15f, -5f), null);
         player.add(new PlayerComponent());
         engine.addEntity(player);
+
+        Entity skybox = loadStaticEntity(sceneLoader.sceneModel, "space");
+        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+        engine.addEntity(skybox);
+
 
         Entity playerChaser;
 /*
