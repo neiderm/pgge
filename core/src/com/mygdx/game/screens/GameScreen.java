@@ -239,7 +239,9 @@ else        sceneLoader.createTestObjects(engine);
 
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
+//        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
+        Entity player = loadDynamicEntity(
+                sceneLoader.shipModel, boxshape, null, 5.1f, new Vector3(0, 15f, -5f), null);
         player.add(new PlayerComponent());
         engine.addEntity(player);
 

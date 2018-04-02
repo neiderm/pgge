@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -26,7 +27,14 @@ import java.nio.FloatBuffer;
 
 public class EntityBuilder {
 
-    private EntityBuilder(){}
+    private EntityBuilder() {
+    }
+
+    public static Entity loadTriangleMesh(Model model, Vector3 trans) {
+
+        return loadKinematicEntity(
+                model, null, new btBvhTriangleMeshShape(model.meshParts), trans, null);
+    }
 
     public static Entity loadStaticEntity(Model model, String node) {
 
@@ -114,7 +122,7 @@ public class EntityBuilder {
 
 
     /*
-         * IN:
+     * IN:
      *   Matrix4 transform: transform must be linked to Bullet Rigid Body
      * RETURN:
      *   ModelInstance ... which would be passed in to ModelComponent()

@@ -17,9 +17,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
@@ -29,7 +27,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Managers.EntityFactory;
-
 
 import java.util.Random;
 
@@ -47,7 +44,7 @@ public class SceneLoader implements Disposable {
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
-    private static final Model shipModel;
+    public static final Model shipModel;
     public static final Model sceneModel;
     public static Model boxTemplateModel;
     public static Model sphereTemplateModel;
@@ -98,8 +95,8 @@ public class SceneLoader implements Disposable {
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
 //        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
-//        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
-        shipModel = assets.get("data/ship.g3dj", Model.class);
+        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+//        shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 
@@ -204,8 +201,9 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         if (true) { // this slows down bullet debug drawer considerably!
 
-            Entity ls = new KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
-                    new btBvhTriangleMeshShape(landscapeModel.meshParts));
+/*            Entity ls = new KinematicObject(landscapeModel).create(0, new Vector3(0, 0, 0),
+                    new btBvhTriangleMeshShape(landscapeModel.meshParts));*/
+            Entity ls = EntityBuilder.loadTriangleMesh(landscapeModel, new Vector3(0, 0, 0));
             engine.addEntity(ls);
 
             // put the landscape at an angle so stuff falls of it...
@@ -339,41 +337,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         @Override
         public Entity create() {
             return EntityBuilder.loadStaticEntity(this.model, this.rootNodeId);
-        }
-    }
-
-    public static class KinematicObject extends GameObject {
-
-        public KinematicObject(Model model) {
-            this.model = model;
-        }
-
-/*        public KinematicObject(Model model, Vector3 size){
-            super(model, size);
-            this.shape = new btBoxShape(size.cpy().scl(0.5f));
-        }*/
-
-        public KinematicObject(Model model, String rootNodeId, Vector3 size) {
-            super(model, rootNodeId, size);
-//            this.shape = new btBoxShape(size.cpy().scl(0.5f));
-        }
-
-        public KinematicObject(Model model, float radius){
-            super(model, new Vector3(radius, radius, radius));
-            this.shape = new btSphereShape(radius * 0.5f);
-        }
-
-        @Override
-        public Entity create(Vector3 translation) {
-            return EntityBuilder.loadKinematicEntity(
-                    this.model, this.rootNodeId, this.shape, translation, this.size);
-        }
-
-        @Override
-        public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
-
-            return EntityBuilder.loadKinematicEntity(
-                    this.model, this.rootNodeId, shape, translation, this.size);
         }
     }
 
