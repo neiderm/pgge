@@ -18,6 +18,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
@@ -26,6 +27,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.Managers.EntityFactory;
 
 import java.util.Random;
@@ -159,6 +161,38 @@ if (!useTestObjects) N_ENTITIES = 0;
                     GameObject.create(primitivesModel, "cylinder", s, rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
         }
+
+
+        Entity skybox = GameObject.loadStaticEntity(sceneModel, "space");
+        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+        engine.addEntity(skybox);
+
+
+        final float yTrans = -10.0f;
+
+        if (useTestObjects) { // this slows down bullet debug drawer considerably!
+
+            Entity ls = GameObject.loadTriangleMesh(landscapeModel);
+            engine.addEntity(ls);
+
+            // put the landscape at an angle so stuff falls of it...
+            ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
+            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+
+            ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+        }
+
+    }
+
+    public static Entity createPlayer(){
+
+        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+//        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
+        Entity player = GameObject.loadDynamicEntity(shipModel, boxshape, null, 5.1f, new Vector3(0, 15f, -5f), null);
+
+        player.add(new PlayerComponent());
+
+        return player;
     }
 
     public static void createTestObjects(Engine engine){
@@ -180,17 +214,19 @@ if (!useTestObjects) N_ENTITIES = 0;
         engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
         engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(40f, 2f, 40f)), new Vector3(-15, 1, -20)));
+        engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube"));
 
-        if (useTestObjects) { // this slows down bullet debug drawer considerably!
 
-            Entity ls = GameObject.loadTriangleMesh(landscapeModel);
-            engine.addEntity(ls);
+    }
 
-            // put the landscape at an angle so stuff falls of it...
-            ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
-            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+    public static void loadDynamicEntiesByName(
+            Engine engine, Model model, String node, float mass, btCollisionShape shape ) {
 
-            ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+        for (int i = 0; i < model.nodes.size; i++) {
+            String id = model.nodes.get(i).id;
+            if (id.startsWith(node)) {
+                engine.addEntity(GameObject.loadDynamicEntity(model, shape, id, mass, null, null));
+            }
         }
     }
 

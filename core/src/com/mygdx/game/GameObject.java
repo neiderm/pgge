@@ -84,6 +84,16 @@ public class GameObject {
         return e;
     }
 
+    public static Entity loadStaticEntity(Model model, String rootNodeId)
+    {
+        return EntityBuilder.loadStaticEntity(model, rootNodeId);
+    }
+
+    public static Entity loadDynamicEntity(
+            Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation, Vector3 size) {
+
+        return EntityBuilder.loadDynamicEntity(model, shape, nodeID, mass, translation, size);
+    }
 
     public static Entity loadTriangleMesh(Model model) {
 
