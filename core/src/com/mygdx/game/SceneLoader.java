@@ -90,14 +90,14 @@ public class SceneLoader implements Disposable {
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
-//        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
+        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
+//        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
         assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
-//        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+//        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
+        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
 //        shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);

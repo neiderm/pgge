@@ -5,6 +5,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.EntityBuilder;
 import com.mygdx.game.GameObject;
 
+import static com.mygdx.game.GameObject.loadKinematicEntity;
+
 /**
  * Created by neiderm on 12/21/2017.
  */
@@ -29,7 +31,7 @@ public /* abstract */ class EntityFactory<T extends GameObject> {
 */
     public Entity create(T object, Vector3 translation) {
 //        object.create();
-        return EntityBuilder.loadKinematicEntity(
+        return loadKinematicEntity(
                 object.model, object.rootNodeId, object.shape, translation, object.size);
 //        return new Entity();
     }
