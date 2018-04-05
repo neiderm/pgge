@@ -32,6 +32,8 @@ import com.mygdx.game.Managers.EntityFactory;
 
 import java.util.Random;
 
+import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
+
 /**
  * Created by mango on 12/18/17.
  */
@@ -198,12 +200,12 @@ if (!useTestObjects) N_ENTITIES = 0;
     public static void createTestObjects(Engine engine){
 
         BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 5f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 5f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
 
         final float yTrans = -10.0f;
 
@@ -213,11 +215,43 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
         engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
-        engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(40f, 2f, 40f)), new Vector3(-15, 1, -20)));
+        engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)), new Vector3(0, 10, -5)));
         engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube"));
-
-
     }
+
+
+    public void createTestObjects2(Engine engine){
+
+        btCollisionShape shape;
+        Vector3 size;
+        float yTrans = -10.0f;
+        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
+        Entity e;
+
+/*        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
+        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f)); // convex hull NOT working with scale right now
+        e = loadKinematicEntity(boxTemplateModel, null, shape, trans, size);
+        engine.addEntity(e);
+
+        float radius = 16;
+        trans = new Vector3(10, 5 + yTrans, 0);
+        shape = new btSphereShape(radius * 0.5f);
+        size.set(radius, radius, radius);
+        e = loadKinematicEntity(sphereTemplateModel, null, shape, trans, size);
+        engine.addEntity(e);*/
+
+
+        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
+        shape = null; // new btBoxShape(size.cpy().scl(0.5f))
+//        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
+        engine.addEntity(loadKinematicEntity(testCubeModel, "Platform001", shape, null, null));
+
+
+        size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
+        shape = null; // new btBoxShape(size.cpy().scl(0.5f));
+        SceneLoader.loadDynamicEntiesByName(engine, testCubeModel, "Crate", 0.1f, shape);
+    }
+
 
     public static void loadDynamicEntiesByName(
             Engine engine, Model model, String node, float mass, btCollisionShape shape ) {

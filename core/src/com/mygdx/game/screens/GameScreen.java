@@ -20,9 +20,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -37,8 +34,6 @@ import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
-
-import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
 
 /**
  * Created by mango on 12/18/17.
@@ -162,49 +157,11 @@ public class GameScreen implements Screen {
     };
 
 
-    private void createTestObjects(){
-
-        Vector3 size;
-        float yTrans = -10.0f;
-        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
-        Entity e;
-
-        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f)); // convex hull NOT working with scale right now
-        e = loadKinematicEntity(sceneLoader.boxTemplateModel, null, shape, trans, size);
-        engine.addEntity(e);
-
-        float radius = 16;
-        trans = new Vector3(10, 5 + yTrans, 0);
-        shape = new btSphereShape(radius * 0.5f);
-        size.set(radius, radius, radius);
-        e = loadKinematicEntity(sceneLoader.sphereTemplateModel, null, shape, trans, size);
-        engine.addEntity(e);
-
-
-        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        shape = null; // new btBoxShape(size.cpy().scl(0.5f))
-//        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
-        engine.addEntity(loadKinematicEntity(sceneLoader.testCubeModel, "Platform001", shape, null, null));
-    }
-
-
-
     private void addEntities() {
 
         sceneLoader.createEntities(engine);
-
-if (false){
-    createTestObjects();
-
-    Vector3 size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
-    btCollisionShape shape = null; // new btBoxShape(size.cpy().scl(0.5f));
-    SceneLoader.loadDynamicEntiesByName(engine, sceneLoader.testCubeModel, "Crate", 0.1f, shape);
-}
-else        {sceneLoader.createTestObjects(engine);}
-
-
-
+        sceneLoader.createTestObjects(engine);
+        sceneLoader.createTestObjects2(engine);
 
         Entity player = sceneLoader.createPlayer();
         engine.addEntity(player);
