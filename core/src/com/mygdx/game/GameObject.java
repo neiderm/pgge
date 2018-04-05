@@ -37,77 +37,46 @@ public class GameObject {
         this(model, size);
         this.rootNodeId = rootNodeId;
     }
-
-    public Entity create() {
-        return new Entity();
-    }
+private final static boolean asdf = false;
 
     /*
-     * static^H^H^H^H^H^H non-bullet entity, will be static or moved about by other impetus (e.g. cam chaser)
+     * Load a static^H^H^H^H^H^H non-bullet entity from object (will be static or moved about by
+     * other impetus (e.g. cam chaser)
+     * TODO: add transform argument to loadStaticEntity
      */
     public Entity create(Vector3 translation) {
 
-        Entity e = create();
-
-        Matrix4 transform = new Matrix4().idt().trn(translation);
-
-        e.add(new ModelComponent(model, transform, size, rootNodeId));
-
+        Entity e = loadStaticEntity(this.model, this.rootNodeId, this.size, null);
+if (asdf) {
+    Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+    transform.idt().trn(translation);
+}
         return e;
-    }
-
-    /*
-     falling boxes and globes
-     */
-    public Entity create(float mass, Vector3 translation) {
-
-        if (null == this.shape) {
-            return new Entity(); // nfi
-        }
-
-        return create(mass, translation, this.shape);
     }
 
     public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
-        return (create(
-                model, rootNodeId, size, mass, translation, shape));
+        return (loadDynamicEntity(model, this.rootNodeId, size, mass, translation, shape));
     }
 
-    public static Entity create(
-            Model model, String rootNodeId, Vector3 size, float mass, Vector3 translation, btCollisionShape shape){
-
-        Entity e = new Entity();
-
-        // really? this will be bullet comp motion state linked to same copy of instance transform?
-        // defensive copy, must NOT assume caller made a new instance!
-        Matrix4 transform = new Matrix4().idt().trn(translation);
-
-        e.add(new ModelComponent(model, transform, size, rootNodeId));
-        e.add(new BulletComponent(shape, transform, mass));
-
-        return e;
-    }
-
-    public static Entity loadStaticEntity(Model model, String rootNodeId)
+    public static Entity loadStaticEntity(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
     {
         Entity e = new Entity();
 
         if (null != rootNodeId) {
-            ModelInstance instance;
-            instance = EntityBuilder.getModelInstance(model, rootNodeId);
-            e.add(new ModelComponent(instance, null));
+            ModelInstance instance = EntityBuilder.getModelInstance(model, rootNodeId);
+            e.add(new ModelComponent(instance, scale));
         } else {
-            e.add(new ModelComponent(model, new Matrix4()));
+            e.add(new ModelComponent(model, new Matrix4(), scale, null));
         }
 
         return e;
     }
 
     public static Entity loadDynamicEntity(
-            Model model, btCollisionShape shape, String nodeID, float mass, Vector3 translation, Vector3 size) {
+            Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = loadStaticEntity(model, nodeID);
+        Entity e = loadStaticEntity(model, nodeID, size, null);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
 //        if (null != size){
@@ -127,10 +96,12 @@ public class GameObject {
         e.add(new BulletComponent(shape, instance.transform, mass));
 
         // set to translation here if you don't want what the primitivesModel gives you
-        if (null != translation) {
-            instance.transform.trn(translation);
-            e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
-        }
+if (!asdf) {
+    if (null != translation) {
+        instance.transform.trn(translation);
+        e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
+    }
+}
 
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
@@ -142,7 +113,7 @@ public class GameObject {
     public static Entity loadKinematicEntity(
             Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size){
 
-        Entity entity = loadDynamicEntity(model, shape, nodeID, 0, trans, size);
+        Entity entity = loadDynamicEntity(model, nodeID, size, 0, trans, shape);
 
         // special sauce here for static entity
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we

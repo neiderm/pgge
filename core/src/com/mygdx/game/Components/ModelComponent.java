@@ -20,43 +20,20 @@ public class ModelComponent implements Component {
     public Vector3 center;
     public boolean isShadowed = true;
 
-
     /*
-    public ModelComponent(Model model, Matrix4 transform, final String... rootNodeIds) {
-
-        this.modelInst = new ModelInstance(model, transform, rootNodeIds);
-    }
-*/
-    public ModelComponent(Model model, Matrix4 transform) {
-
-        /*
-         * note: ModelInstance will link it's instance member transform to the one we pass in ....
-         * which is what we want, because we should also be linking it to the transform in the
-         * bullet motion state!
-         */
-//        this.modelInst = new ModelInstance(model, transform);
-        this(model, transform, null, null);
-
-        // must link to the passed arg, it must be linked to bullet motion state i.e. ....
-        //        this.modelInst.transform = transform;
-    }
-
-/*
-    public ModelComponent(Model model, Matrix4 transform, Vector3 scale) {
-
-        this(model, transform);
-        this.scale = new Vector3(scale);
-    }
-*/
-
-
+     * IN: transform
+     *    caller passes their own transform so that it can be linked to the bullet component motion
+     *    state transform
+     */
     public ModelComponent(Model model, Matrix4 transform, Vector3 scale, String rootNodeId) {
-
-        // ?????? 	public ModelInstance (final Model model, final Matrix4 transform, final String... rootNodeIds) {
+        /* ??????
+          thought I could get away with not checking rootNodeId==null here ... but alas not so.
+         	public ModelInstance (final Model model, final Matrix4 transform, final String... rootNodeIds) {
+        */
         if (null != rootNodeId)
             this.modelInst = new ModelInstance(model, transform, rootNodeId);
         else
-            this.modelInst = new ModelInstance(model, transform);
+            this.modelInst = new ModelInstance(model, transform, (String[])null);
 
         if (null != scale) {
             this.scale = new Vector3(scale);

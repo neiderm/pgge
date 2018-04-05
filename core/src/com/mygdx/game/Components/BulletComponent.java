@@ -55,10 +55,9 @@ public boolean sFlag = false; // need to make component for static entity
 
         this.id = cnt++;
         this.shape = shape;
-this.mass = mass;
+        this.mass = mass;
 
         if (mass == 0) {
-//            modelInst.transform.scl(sz);
             tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
             this.motionstate = null;
         } else {
@@ -75,7 +74,6 @@ this.mass = mass;
         bodyInfo.dispose();
     }
 
-
     public BulletComponent(btCollisionShape shape, Matrix4 transform) {
 
         this.id = cnt++;
@@ -84,5 +82,4 @@ this.mass = mass;
         this.body = new btRigidBody(0, this.motionstate, shape);
         this.shape = shape;
     }
-
 }

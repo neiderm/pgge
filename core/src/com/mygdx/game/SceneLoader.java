@@ -128,7 +128,7 @@ public class SceneLoader implements Disposable {
 
         int N_ENTITIES = 5;
         final int N_BOXES = 2;
-if (!useTestObjects) N_ENTITIES = 0;
+        if (!useTestObjects) N_ENTITIES = 0;
         Vector3 tmpV = new Vector3(); // size
         Random rnd = new Random();
 
@@ -146,24 +146,25 @@ if (!useTestObjects) N_ENTITIES = 0;
             } else {
                 o = new SphereObject(sphereTemplateModel, tmpV.x);
             }
-            engine.addEntity(o.create(tmpV.x, translation));
+            engine.addEntity(o.create(tmpV.x, translation, null));
         }
 
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1);
         if (useTestObjects) {
+            // GameObject primitiveObject = new GameObject(primitivesModel, new Vector3(1, 1, 1));
             engine.addEntity(
-                    GameObject.create(primitivesModel, "cone", s, rnd.nextFloat() + 0.5f, t, new btConeShape(0.5f, 2.0f)));
+                    GameObject.loadDynamicEntity(primitivesModel, "cone", s, rnd.nextFloat() + 0.5f, t, new btConeShape(0.5f, 2.0f)));
             engine.addEntity(
-                    GameObject.create(primitivesModel, "capsule", s, rnd.nextFloat() + 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+                    GameObject.loadDynamicEntity(primitivesModel, "capsule", s, rnd.nextFloat() + 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
             engine.addEntity(
-                    GameObject.create(primitivesModel, "cylinder", s, rnd.nextFloat() + 0.5f, t,
+                    GameObject.loadDynamicEntity(primitivesModel, "cylinder", s, rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
         }
 
 
-        Entity skybox = GameObject.loadStaticEntity(sceneModel, "space");
+        Entity skybox = GameObject.loadStaticEntity(sceneModel, "space", null, null);
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
@@ -188,7 +189,8 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
 //        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
-        Entity player = GameObject.loadDynamicEntity(shipModel, boxshape, null, 5.1f, new Vector3(0, 15f, -5f), null);
+        Entity player = GameObject.loadDynamicEntity(
+                shipModel, null, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
 
         player.add(new PlayerComponent());
 
@@ -198,12 +200,12 @@ if (!useTestObjects) N_ENTITIES = 0;
     public static void createTestObjects(Engine engine){
 
         BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f), null));
 
         final float yTrans = -10.0f;
 
@@ -214,7 +216,7 @@ if (!useTestObjects) N_ENTITIES = 0;
         engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
         engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)), new Vector3(0, 10, -5)));
-        engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube"));
+        engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube", null, null));
     }
 
 
@@ -257,7 +259,7 @@ if (!useTestObjects) N_ENTITIES = 0;
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(node)) {
-                engine.addEntity(GameObject.loadDynamicEntity(model, shape, id, mass, null, null));
+                engine.addEntity(GameObject.loadDynamicEntity(model, id, null, mass, null, shape));
             }
         }
     }
