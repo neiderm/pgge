@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -28,12 +27,6 @@ import java.nio.FloatBuffer;
 public class EntityBuilder {
 
     private EntityBuilder() {
-    }
-
-    public static Entity loadTriangleMesh(Model model, Vector3 trans) {
-
-        return loadKinematicEntity(
-                model, null, new btBvhTriangleMeshShape(model.meshParts), trans, null);
     }
 
     public static Entity loadStaticEntity(Model model, String node) {
@@ -59,15 +52,16 @@ public class EntityBuilder {
         // special sauce here for static entity
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
         // want for this object) so we do need to update the bc.body with the location vector we got from the model
-        Vector3 tmp = new Vector3();
-        entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
         if (null == trans)
         {
+            Vector3 tmp = new Vector3();
+            entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
             bc.body.translate(tmp); // if translation param not given, need to sync body /w mesh instance
         }
 
+// set these flags in bullet comp?
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);

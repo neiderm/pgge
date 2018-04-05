@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -64,7 +65,14 @@ public class GameObject {
 
     public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = create();
+        return (create(
+                model, rootNodeId, size, mass, translation, shape));
+    }
+
+    public static Entity create(
+            Model model, String rootNodeId, Vector3 size, float mass, Vector3 translation, btCollisionShape shape){
+
+        Entity e = new Entity();
 
         // really? this will be bullet comp motion state linked to same copy of instance transform?
         // defensive copy, must NOT assume caller made a new instance!
@@ -74,5 +82,12 @@ public class GameObject {
         e.add(new BulletComponent(shape, transform, mass));
 
         return e;
+    }
+
+
+    public static Entity loadTriangleMesh(Model model) {
+
+        return EntityBuilder.loadKinematicEntity(
+                model, null, new btBvhTriangleMeshShape(model.meshParts), new Vector3(0, 0, 0), null);
     }
 }

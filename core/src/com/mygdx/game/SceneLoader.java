@@ -40,7 +40,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = false;
+    private static boolean useTestObjects = true;
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
@@ -152,21 +152,12 @@ if (!useTestObjects) N_ENTITIES = 0;
         Vector3 s = new Vector3(1, 1, 1);
         if (useTestObjects) {
             engine.addEntity(
-                    new GameObject(primitivesModel, "cone", s).create(rnd.nextFloat() + 0.5f, t,
-                            new btConeShape(0.5f, 2.0f)));
-
+                    GameObject.create(primitivesModel, "cone", s, rnd.nextFloat() + 0.5f, t, new btConeShape(0.5f, 2.0f)));
             engine.addEntity(
-                    new GameObject(primitivesModel, "capsule", s).create(rnd.nextFloat() + 0.5f, t,
-                            new btCapsuleShape(0.5f, 0.5f * 2.0f)));
-
+                    GameObject.create(primitivesModel, "capsule", s, rnd.nextFloat() + 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
             engine.addEntity(
-                    new GameObject(primitivesModel, "cylinder", s).create(rnd.nextFloat() + 0.5f, t,
+                    GameObject.create(primitivesModel, "cylinder", s, rnd.nextFloat() + 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
-/*
-            engine.addEntity(
-                    new GameObject(s, primitivesModel, "sphere").create(rnd.nextFloat() + 0.5f, t,
-                            new btSphereShape(0.5f)));
-*/
         }
     }
 
@@ -192,7 +183,7 @@ if (!useTestObjects) N_ENTITIES = 0;
 
         if (useTestObjects) { // this slows down bullet debug drawer considerably!
 
-            Entity ls = EntityBuilder.loadTriangleMesh(landscapeModel, new Vector3(0, 0, 0));
+            Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
 
             // put the landscape at an angle so stuff falls of it...
