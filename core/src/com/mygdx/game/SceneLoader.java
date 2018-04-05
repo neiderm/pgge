@@ -32,8 +32,6 @@ import com.mygdx.game.Managers.EntityFactory;
 
 import java.util.Random;
 
-import static com.mygdx.game.EntityBuilder.loadKinematicEntity;
-
 /**
  * Created by mango on 12/18/17.
  */
@@ -244,7 +242,7 @@ if (!useTestObjects) N_ENTITIES = 0;
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f))
 //        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
-        engine.addEntity(loadKinematicEntity(testCubeModel, "Platform001", shape, null, null));
+        engine.addEntity(GameObject.loadKinematicEntity(testCubeModel, "Platform001", shape, null, null));
 
 
         size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance

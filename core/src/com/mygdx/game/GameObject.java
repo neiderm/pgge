@@ -95,9 +95,15 @@ public class GameObject {
         return EntityBuilder.loadDynamicEntity(model, shape, nodeID, mass, translation, size);
     }
 
+    public static Entity loadKinematicEntity(
+            Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size){
+
+        return EntityBuilder.loadKinematicEntity(model, nodeID, shape, trans, size);
+    }
+
     public static Entity loadTriangleMesh(Model model) {
 
-        return EntityBuilder.loadKinematicEntity(
+        return loadKinematicEntity(
                 model, null, new btBvhTriangleMeshShape(model.meshParts), new Vector3(0, 0, 0), null);
     }
 }
