@@ -146,7 +146,7 @@ public class SceneLoader implements Disposable {
             } else {
                 o = new SphereObject(sphereTemplateModel, tmpV.x);
             }
-            engine.addEntity(o.create(tmpV.x, translation, null));
+            engine.addEntity(o.create(tmpV.x, translation));
         }
 
 
@@ -200,12 +200,12 @@ public class SceneLoader implements Disposable {
     public static void createTestObjects(Engine engine){
 
         BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f), null));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f), null));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f), null));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f), null));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f), null));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f), null));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
 
         final float yTrans = -10.0f;
 

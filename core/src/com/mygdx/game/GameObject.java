@@ -37,21 +37,24 @@ public class GameObject {
         this(model, size);
         this.rootNodeId = rootNodeId;
     }
-private final static boolean asdf = false;
 
     /*
      * Load a static^H^H^H^H^H^H non-bullet entity from object (will be static or moved about by
      * other impetus (e.g. cam chaser)
-     * TODO: add transform argument to loadStaticEntity
+     * TODO: add translation argument to loadStaticEntity
      */
     public Entity create(Vector3 translation) {
 
         Entity e = loadStaticEntity(this.model, this.rootNodeId, this.size, null);
-if (asdf) {
-    Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-    transform.idt().trn(translation);
-}
+        Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+        transform.idt().trn(translation);
         return e;
+    }
+
+
+    public Entity create(float mass, Vector3 translation) {
+
+        return create(mass, translation, this.shape);
     }
 
     public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
@@ -96,12 +99,10 @@ if (asdf) {
         e.add(new BulletComponent(shape, instance.transform, mass));
 
         // set to translation here if you don't want what the primitivesModel gives you
-if (!asdf) {
     if (null != translation) {
         instance.transform.trn(translation);
         e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
     }
-}
 
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
