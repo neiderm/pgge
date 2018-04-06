@@ -129,7 +129,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         Quaternion r = bc.body.getOrientation();
 
-        forceVect.set(0, 0, -1 * SceneLoader.fbxLoaderHack);
+        forceVect.set(0, 0, -1);
     float rad = r.getAxisAngleRad(axis);
     forceVect.rotateRad(axis, rad);
 

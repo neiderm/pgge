@@ -38,8 +38,6 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    public static final float fbxLoaderHack = 1;
-
     public static final SceneLoader instance = new SceneLoader();
 
     private static boolean useTestObjects = true;
@@ -217,29 +215,11 @@ public class SceneLoader implements Disposable {
         engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)), new Vector3(0, 10, -5)));
         engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube", null, null));
-    }
 
-
-    public void createTestObjects2(Engine engine){
 
         btCollisionShape shape;
         Vector3 size;
-        float yTrans = -10.0f;
-        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
         Entity e;
-
-/*        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        btCollisionShape shape =  new btBoxShape(size.cpy().scl(0.5f)); // convex hull NOT working with scale right now
-        e = loadKinematicEntity(boxTemplateModel, null, shape, trans, size);
-        engine.addEntity(e);
-
-        float radius = 16;
-        trans = new Vector3(10, 5 + yTrans, 0);
-        shape = new btSphereShape(radius * 0.5f);
-        size.set(radius, radius, radius);
-        e = loadKinematicEntity(sphereTemplateModel, null, shape, trans, size);
-        engine.addEntity(e);*/
-
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f))
@@ -296,7 +276,7 @@ public class SceneLoader implements Disposable {
         e.add(new CharacterComponent(
                 new PIDcontrol(tgtTransform,
                         mc.modelInst.transform,
-                        new Vector3(0, 2, 3 * fbxLoaderHack),
+                        new Vector3(0, 2, 3),
                         0.1f, 0, 0)));
 
         engine.addEntity(e);

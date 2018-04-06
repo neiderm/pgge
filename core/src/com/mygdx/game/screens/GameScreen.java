@@ -161,7 +161,6 @@ public class GameScreen implements Screen {
 
         sceneLoader.createEntities(engine);
         sceneLoader.createTestObjects(engine);
-        sceneLoader.createTestObjects2(engine);
 
         Entity player = sceneLoader.createPlayer();
         engine.addEntity(player);
