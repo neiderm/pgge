@@ -89,10 +89,11 @@ public class SceneLoader implements Disposable {
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-//        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
-        assets.load("data/ship.g3dj", Model.class);
+        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
+//        assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
+
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
 //        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
         shipModel = assets.get("data/panzerwagen.g3db", Model.class);
@@ -186,9 +187,11 @@ public class SceneLoader implements Disposable {
     public static Entity createPlayer(){
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-//        Entity player = loadDynamicEntity(sceneLoader.sceneModel, boxshape, "ship", 5.1f, null, null);
-        Entity player = GameObject.loadDynamicEntity(
-                shipModel, null, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+        Entity player;
+if (false)
+        player = GameObject.loadDynamicEntity(sceneModel, "ship", null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+else
+        player = GameObject.loadDynamicEntity(shipModel, null, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
 
         player.add(new PlayerComponent());
 
@@ -314,7 +317,8 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
 
 /*
- * extended objects ... these would probably be implemented  by the "consumer" to meet specific needs
+ * extended objects ... if same shape instance could be used for multiple entities, then we need
+ * the shape to be instanced in the constructor
  */
     public static class SphereObject extends GameObject {
 
@@ -336,10 +340,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
     public static class BoxObject extends GameObject {
 
-        public BoxObject(Model model, Vector3 size) {
-            super(model, size);
-            this.shape = new btBoxShape(size.cpy().scl(0.5f));
-        }
+        public BoxObject(Model model, Vector3 size) { this(model, null, size); }
 
         public BoxObject(Model model, final String rootNodeId, Vector3 size) {
             super(model, rootNodeId, size);
