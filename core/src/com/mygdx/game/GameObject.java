@@ -73,13 +73,19 @@ public class GameObject {
             e.add(new ModelComponent(model, new Matrix4(), scale, null));
         }
 
+        // set to translation here if you don't want what the primitivesModel gives you
+        if (null != translation) {
+            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+            instance.transform.trn(translation);
+        }
+
         return e;
     }
 
     public static Entity loadDynamicEntity(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = loadStaticEntity(model, nodeID, size, null);
+        Entity e = loadStaticEntity(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
 //        if (null != size){
@@ -97,13 +103,6 @@ public class GameObject {
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
-
-        // set to translation here if you don't want what the primitivesModel gives you
-        if (null != translation) {
-            instance.transform.trn(translation);
-//            e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
-        }
-        e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
 
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????

@@ -72,6 +72,8 @@ public boolean sFlag = false; // need to make component for static entity
         this.body.setFriction(0.8f); // doesn't make a difference for static/kinematic objects?
 
         bodyInfo.dispose();
+
+        this.body.setWorldTransform(transform);
     }
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform) {
