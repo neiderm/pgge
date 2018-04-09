@@ -99,10 +99,11 @@ public class GameObject {
         e.add(new BulletComponent(shape, instance.transform, mass));
 
         // set to translation here if you don't want what the primitivesModel gives you
-    if (null != translation) {
-        instance.transform.trn(translation);
+        if (null != translation) {
+            instance.transform.trn(translation);
+//            e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
+        }
         e.getComponent(BulletComponent.class).body.setWorldTransform(instance.transform);
-    }
 
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
@@ -120,13 +121,6 @@ public class GameObject {
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
         // want for this object) so we do need to update the bc.body with the location vector we got from the model
         BulletComponent bc = entity.getComponent(BulletComponent.class);
-
-        if (null == trans)
-        {
-            Vector3 tmp = new Vector3();
-            entity.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmp);
-            bc.body.translate(tmp); // if translation param not given, need to sync body /w mesh instance
-        }
 
 // set these flags in bullet comp?
         bc.body.setCollisionFlags(
