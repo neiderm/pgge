@@ -43,7 +43,7 @@ public class GameObject {
      * other impetus (e.g. cam chaser)
      * TODO: add translation argument to loadStaticEntity
      */
-    public Entity create(Vector3 translation) {
+    public Entity createS(Vector3 translation) {
 
         Entity e = loadStaticEntity(this.model, this.rootNodeId, this.size, null);
         Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
@@ -51,15 +51,24 @@ public class GameObject {
         return e;
     }
 
-
-    public Entity create(float mass, Vector3 translation) {
-
-        return create(mass, translation, this.shape);
+    public Entity createK(Vector3 translation) {
+        return loadKinematicEntity(
+                this.model, this.rootNodeId, this.shape, translation, this.size);
     }
 
-    public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
+    public Entity createD(float mass, Vector3 translation) {
 
-        return (loadDynamicEntity(model, this.rootNodeId, size, mass, translation, shape));
+        return createD(mass, translation, this.shape);
+    }
+
+    public Entity createD(float mass, Vector3 translation, btCollisionShape shape) {
+
+        return (loadDynamicEntity(this.model, this.rootNodeId, this.size, mass, translation, shape));
+    }
+
+    public Entity createD(float mass, Vector3 translation, String rootNodeId, btCollisionShape shape) {
+
+        return (loadDynamicEntity(this.model, rootNodeId, this.size, mass, translation, shape));
     }
 
     public static Entity loadStaticEntity(Model model, String rootNodeId, Vector3 scale, Vector3 translation)

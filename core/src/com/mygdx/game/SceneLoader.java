@@ -28,7 +28,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.Managers.EntityFactory;
 
 import java.util.Random;
 
@@ -40,7 +39,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = true;
+    private static boolean useTestObjects = false;
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
@@ -89,7 +88,7 @@ public class SceneLoader implements Disposable {
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
         assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
+//        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
 //        assets.load("data/ship.g3dj", Model.class);
         assets.load("data/scene.g3dj", Model.class);
         assets.finishLoading();
@@ -145,7 +144,7 @@ public class SceneLoader implements Disposable {
             } else {
                 o = new SphereObject(sphereTemplateModel, tmpV.x);
             }
-            engine.addEntity(o.create(tmpV.x, translation));
+            engine.addEntity(o.createD(tmpV.x, translation));
         }
 
 
@@ -200,39 +199,39 @@ else
 
     public static void createTestObjects(Engine engine){
 
-        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
-
-        final float yTrans = -10.0f;
-
-        EntityFactory<GameObject> dynFactory = new EntityFactory<GameObject>();
-
-        Vector3 trans = new Vector3(0, -4 + yTrans, 0);
-
-        engine.addEntity(dynFactory.create(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)), trans));
-        engine.addEntity(dynFactory.create(new SphereObject(sphereTemplateModel, 16), new Vector3(10, 5 + yTrans, 0)));
-        engine.addEntity(dynFactory.create(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)), new Vector3(0, 10, -5)));
-        engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube", null, null));
-
-
         btCollisionShape shape;
         Vector3 size;
         Entity e;
 
         size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f))
-//        sceneLoader.loadKinematicEntity(engine, sceneLoader.sceneModel, "Platform", new btBoxShape(size.cpy().scl(0.5f)));
+//        engine.addEntity(GameObject.loadKinematicEntity(sceneModel, "Platform", shape, null, null));
         engine.addEntity(GameObject.loadKinematicEntity(testCubeModel, "Platform001", shape, null, null));
 
 
         size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f));
         SceneLoader.loadDynamicEntiesByName(engine, testCubeModel, "Crate", 0.1f, shape);
+//        SceneLoader.loadDynamicEntiesByName(engine, new GameObject(testCubeModel, "Crate", size));
+
+
+        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
+        engine.addEntity(bo.createD(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.createD(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.createD(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
+        engine.addEntity(bo.createD(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.createD(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
+        engine.addEntity(bo.createD(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
+
+        final float yTrans = -10.0f;
+
+        engine.addEntity(GameObject.loadStaticEntity(testCubeModel, "Cube", null, null));
+///*
+        engine.addEntity(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)).createK(new Vector3(0, -4 + yTrans, 0)));
+        engine.addEntity(new SphereObject(sphereTemplateModel, 16).createK(new Vector3(10, 5 + yTrans, 0)));
+        engine.addEntity(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)).createK(new Vector3(0, 10, -5)));
+//*/
+
     }
 
 
@@ -246,7 +245,16 @@ else
             }
         }
     }
+    public static void loadDynamicEntiesByName(
+            Engine engine, GameObject object) {
 
+        for (int i = 0; i < object.model.nodes.size; i++) {
+            String id = object.model.nodes.get(i).id;
+            if (id.startsWith(object.rootNodeId)) {
+                engine.addEntity(object.createD(0.1f /* object.mass */, null, id, object.shape));
+            }
+        }
+    }
 
     /*
     a character object that tracks the given "node" ...
@@ -270,7 +278,7 @@ else
         */
 
         Entity e = new GameObject(primitivesModel, "sphere",
-                new Vector3(0.5f, 0.5f, 0.5f)).create(new Vector3(0, 15f, -5f));
+                new Vector3(0.5f, 0.5f, 0.5f)).createS(new Vector3(0, 15f, -5f));
 
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -306,7 +314,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 
         final float r = 4.0f;
         Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r))
-                .create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+                .createD(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
 //        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));
