@@ -211,8 +211,7 @@ else
 
         size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
         shape = null; // new btBoxShape(size.cpy().scl(0.5f));
-        SceneLoader.loadDynamicEntiesByName(engine, testCubeModel, "Crate", 0.1f, shape);
-//        SceneLoader.loadDynamicEntiesByName(engine, new GameObject(testCubeModel, "Crate", size));
+        SceneLoader.loadDynamicEntiesByName(engine, new GameObject(testCubeModel, "Crate", null));
 
 
         BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
@@ -231,11 +230,10 @@ else
         engine.addEntity(new SphereObject(sphereTemplateModel, 16).createK(new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)).createK(new Vector3(0, 10, -5)));
 //*/
-
     }
 
 
-    public static void loadDynamicEntiesByName(
+/*    public static void loadDynamicEntiesByName(
             Engine engine, Model model, String node, float mass, btCollisionShape shape ) {
 
         for (int i = 0; i < model.nodes.size; i++) {
@@ -244,7 +242,7 @@ else
                 engine.addEntity(GameObject.loadDynamicEntity(model, id, null, mass, null, shape));
             }
         }
-    }
+    }*/
     public static void loadDynamicEntiesByName(
             Engine engine, GameObject object) {
 

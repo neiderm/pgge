@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
@@ -96,18 +97,26 @@ public class GameObject {
 
         Entity e = loadStaticEntity(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+/*
+        BoundingBox boundingBox = new BoundingBox();
+        Vector3 center = new Vector3();
+        Vector3 dimensions = new Vector3();
+        instance.calculateBoundingBox(boundingBox);
+        boundingBox.getCenter(center);
+        boundingBox.getDimensions(dimensions);
+*/
 
 //        if (null != size){
 //            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
 //        }
 
         if (null == shape) {
-            if (null != nodeID) {
+            if (null != nodeID) { // "Platform001" "Crate.005"
                 shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
-            }else{
+            }else{ // player tank
                 final Mesh mesh = model.meshes.get(0);
-                shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
-//                shape = createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+//                shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
+                shape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
             }
         }
 
