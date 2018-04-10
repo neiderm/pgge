@@ -6,6 +6,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -39,7 +40,7 @@ public class SceneLoader implements Disposable {
 
     public static final SceneLoader instance = new SceneLoader();
 
-    private static boolean useTestObjects = false;
+    private static boolean useTestObjects = true;
     private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
@@ -180,17 +181,24 @@ public class SceneLoader implements Disposable {
 
             ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
         }
-
     }
 
     public static Entity createPlayer(){
 
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Entity player;
-if (false)
-        player = GameObject.loadDynamicEntity(sceneModel, "ship", null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
-else
-        player = GameObject.loadDynamicEntity(shipModel, null, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+
+        Model model = sceneModel;
+        String node = "ship";
+if (false) {
+    model = shipModel;
+    node = null;
+    final Mesh mesh = model.meshes.get(0);
+    boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+}else {
+//  shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
+}
+        player = GameObject.loadDynamicEntity(model, node, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
 
         player.add(new PlayerComponent());
 
@@ -233,16 +241,6 @@ else
     }
 
 
-/*    public static void loadDynamicEntiesByName(
-            Engine engine, Model model, String node, float mass, btCollisionShape shape ) {
-
-        for (int i = 0; i < model.nodes.size; i++) {
-            String id = model.nodes.get(i).id;
-            if (id.startsWith(node)) {
-                engine.addEntity(GameObject.loadDynamicEntity(model, id, null, mass, null, shape));
-            }
-        }
-    }*/
     public static void loadDynamicEntiesByName(
             Engine engine, GameObject object) {
 

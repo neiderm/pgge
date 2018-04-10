@@ -89,7 +89,7 @@ public class EntityBuilder {
     /*
       https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
      */
-    private static btConvexHullShape createConvexHullShape(
+    public static btConvexHullShape createConvexHullShape(
             FloatBuffer points, int numPoints, int stride, boolean optimize) {
 
         final btConvexHullShape shape = new btConvexHullShape(points, numPoints, stride);

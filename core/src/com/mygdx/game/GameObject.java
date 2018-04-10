@@ -1,7 +1,6 @@
 package com.mygdx.game;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
@@ -11,7 +10,6 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 
@@ -92,6 +90,14 @@ public class GameObject {
         return e;
     }
 
+/*
+    public static Entity loadDynamicEntity(
+            Model model, String nodeID, Vector3 size, float mass, Vector3 translation, BoundingBox boundingBox) {
+
+              shape = new btBoxShape(dimensions.cpy().scl(0.5f)); // work around for "gaps" around cubes :(
+            }
+  ... maybe ???
+    */
     public static Entity loadDynamicEntity(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
@@ -110,13 +116,10 @@ public class GameObject {
 //            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
 //        }
 
-        if (null == shape) {
-            if (null != nodeID) { // "Platform001" "Crate.005"
+        if (null == shape) { // "Platform001" "Crate.005" "ship"
+            if (null != nodeID) { // if (true) {// if (null != nodeID) {
                 shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
-            }else{ // player tank
-                final Mesh mesh = model.meshes.get(0);
-//                shape = new btConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize());
-                shape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+//                shape = new btBoxShape(dimensions.cpy().scl(0.5f)); // work around for "gaps" around cubes :(
             }
         }
 
