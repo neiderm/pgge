@@ -66,10 +66,6 @@ public class GameObject {
         return (loadDynamicEntity(this.model, this.rootNodeId, this.size, mass, translation, shape));
     }
 
-    public Entity createD(float mass, Vector3 translation, String rootNodeId, btCollisionShape shape) {
-
-        return (loadDynamicEntity(this.model, rootNodeId, this.size, mass, translation, shape));
-    }
 
     public static Entity loadStaticEntity(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
     {
@@ -125,10 +121,10 @@ public class GameObject {
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();
-        Vector3 center = new Vector3();
+//        Vector3 center = new Vector3();
         Vector3 dimensions = new Vector3();
         instance.calculateBoundingBox(boundingBox);
-        boundingBox.getCenter(center);
+//        boundingBox.getCenter(center);
         boundingBox.getDimensions(dimensions);
 
         e.add(new BulletComponent(new btBoxShape(dimensions.cpy().scl(0.5f)), instance.transform, mass));
@@ -139,7 +135,16 @@ public class GameObject {
     public static Entity loadKinematicEntity(
             Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size){
 
-        Entity entity = loadDynamicEntity(model, nodeID, size, 0, trans, shape);
+        Entity entity;
+
+        if (null != size || null != shape) {
+			// if size specified e.g. (1, 1, 1 would do) then you could also leave shape null and force
+			// the convex hull to be used.
+            entity = loadDynamicEntity(model, nodeID, size, 0, trans, shape);
+        } else {
+            // if shape not given then defaults to simple bounding box shape
+            entity = loadDynamicEntity(model, nodeID, 0, trans);
+        }
 
         // special sauce here for static entity
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
