@@ -46,8 +46,8 @@ public class SceneLoader implements Disposable {
     public static final Model landscapeModel;
     public static final Model shipModel;
     public static final Model sceneModel;
-    public static Model boxTemplateModel;
-    public static Model sphereTemplateModel;
+    public static final Model boxTemplateModel;
+    public static final Model sphereTemplateModel;
     private static Model ballTemplateModel;
     private static Model tankTemplateModel;
     public static final Model testCubeModel;
@@ -185,42 +185,35 @@ public class SceneLoader implements Disposable {
 
     public static Entity createPlayer(){
 
-        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Entity player;
-
+        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
-if (false) {
+if (true) {
     model = shipModel;
     node = null;
     final Mesh mesh = model.meshes.get(0);
     boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+    player = GameObject.loadStaticEntity(model, node, null, new Vector3(0, 15f, -5f));
+    Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
+    player.add(new BulletComponent(boxshape, transform, 5.1f));
+
 }else {
-//  shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
-}
+//    boxshape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
         player = GameObject.loadDynamicEntity(model, node, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
-
+}
         player.add(new PlayerComponent());
-
         return player;
     }
 
     public static void createTestObjects(Engine engine){
 
-        btCollisionShape shape;
-        Vector3 size;
-        Entity e;
-
-        size = new Vector3(40, 2, 40); // TODO: how to get size from modelinstance
-        shape = null; // new btBoxShape(size.cpy().scl(0.5f))
+        btCollisionShape shape = null; // new btBoxShape(size.cpy().scl(0.5f))
+        Vector3 size = null; // new Vector3(40, 2, 40);
 //        engine.addEntity(GameObject.loadKinematicEntity(sceneModel, "Platform", shape, null, null));
-        engine.addEntity(GameObject.loadKinematicEntity(testCubeModel, "Platform001", shape, null, null));
+        engine.addEntity(GameObject.loadKinematicEntity(testCubeModel, "Platform001", shape, null, size)); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
-
-        size = new Vector3(2f, 1f, 1.5f); // TODO: how to get size from modelinstance
-        shape = null; // new btBoxShape(size.cpy().scl(0.5f));
-        SceneLoader.loadDynamicEntiesByName(engine, new GameObject(testCubeModel, "Crate", null));
-
+        loadDynamicEntiesByName(engine, testCubeModel, "Crate");
 
         BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
         engine.addEntity(bo.createD(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
@@ -241,13 +234,17 @@ if (false) {
     }
 
 
-    public static void loadDynamicEntiesByName(
-            Engine engine, GameObject object) {
+    /*
+     Model nodes loaded by name - can't assume they are same size, but fair to say they
+     are all e.g. "cube00x" etc., so safe to assume all cube shapes. Thus, by default we
+     create a cube shape sized by taking the bounding box of the mesh.
+     */
+    private static void loadDynamicEntiesByName(Engine engine, Model model, String rootNodeId) {
 
-        for (int i = 0; i < object.model.nodes.size; i++) {
-            String id = object.model.nodes.get(i).id;
-            if (id.startsWith(object.rootNodeId)) {
-                engine.addEntity(object.createD(0.1f /* object.mass */, null, id, object.shape));
+        for (int i = 0; i < model.nodes.size; i++) {
+            String id = model.nodes.get(i).id;
+            if (id.startsWith(rootNodeId)) {
+                engine.addEntity(GameObject.loadDynamicEntity(model, id, 0.1f, null));
             }
         }
     }

@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -81,7 +82,7 @@ public class GameObject {
             e.add(new ModelComponent(model, new Matrix4(), scale, null));
         }
 
-        // set to translation here if you don't want what the primitivesModel gives you
+        // leave translation null if using translation from the model layout 
         if (null != translation) {
             ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
             instance.transform.trn(translation);
@@ -90,37 +91,19 @@ public class GameObject {
         return e;
     }
 
-/*
-    public static Entity loadDynamicEntity(
-            Model model, String nodeID, Vector3 size, float mass, Vector3 translation, BoundingBox boundingBox) {
 
-              shape = new btBoxShape(dimensions.cpy().scl(0.5f)); // work around for "gaps" around cubes :(
-            }
-  ... maybe ???
-    */
     public static Entity loadDynamicEntity(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
         Entity e = loadStaticEntity(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-/*
-        BoundingBox boundingBox = new BoundingBox();
-        Vector3 center = new Vector3();
-        Vector3 dimensions = new Vector3();
-        instance.calculateBoundingBox(boundingBox);
-        boundingBox.getCenter(center);
-        boundingBox.getDimensions(dimensions);
-*/
 
 //        if (null != size){
 //            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
 //        }
 
-        if (null == shape) { // "Platform001" "Crate.005" "ship"
-            if (null != nodeID) { // if (true) {// if (null != nodeID) {
+        if (null == shape) { // "Platform001"
                 shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
-//                shape = new btBoxShape(dimensions.cpy().scl(0.5f)); // work around for "gaps" around cubes :(
-            }
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
@@ -128,6 +111,27 @@ public class GameObject {
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
         }
+
+        return e;
+    }
+
+    /*
+       work around for "gaps" around convex hull cube shapes created from mesh :(
+    */
+    public static Entity loadDynamicEntity(
+            Model model, String nodeID, float mass, Vector3 translation) {
+
+        Entity e = loadStaticEntity(model, nodeID, null, translation);
+        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+
+        BoundingBox boundingBox = new BoundingBox();
+        Vector3 center = new Vector3();
+        Vector3 dimensions = new Vector3();
+        instance.calculateBoundingBox(boundingBox);
+        boundingBox.getCenter(center);
+        boundingBox.getDimensions(dimensions);
+
+        e.add(new BulletComponent(new btBoxShape(dimensions.cpy().scl(0.5f)), instance.transform, mass));
 
         return e;
     }
