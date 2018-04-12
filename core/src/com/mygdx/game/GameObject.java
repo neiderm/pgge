@@ -38,23 +38,23 @@ public class GameObject {
         this.rootNodeId = rootNodeId;
     }
 
-    public Entity createK(Vector3 translation) {
-        return loadKinematicEntity(
+    public Entity create(Vector3 translation) {
+        return load(
                 this.model, this.rootNodeId, this.shape, translation, this.size);
     }
 
-    public Entity createD(float mass, Vector3 translation) {
+    public Entity create(float mass, Vector3 translation) {
 
-        return createD(mass, translation, this.shape);
+        return create(mass, translation, this.shape);
     }
 
-    public Entity createD(float mass, Vector3 translation, btCollisionShape shape) {
+    public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
-        return (loadDynamicEntity(this.model, this.rootNodeId, this.size, mass, translation, shape));
+        return (load(this.model, this.rootNodeId, this.size, mass, translation, shape));
     }
 
 
-    public static Entity loadStaticEntity(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
+    public static Entity load(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
     {
         Entity e = new Entity();
 
@@ -75,10 +75,10 @@ public class GameObject {
     }
 
 
-    public static Entity loadDynamicEntity(
+    public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = loadStaticEntity(model, nodeID, size, translation);
+        Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
 //        if (null != size){
@@ -101,10 +101,10 @@ public class GameObject {
     /*
        work around for "gaps" around convex hull cube shapes created from mesh :(
     */
-    public static Entity loadDynamicEntity(
+    public static Entity load(
             Model model, String nodeID, float mass, Vector3 translation) {
 
-        Entity e = loadStaticEntity(model, nodeID, null, translation);
+        Entity e = load(model, nodeID, null, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();
@@ -119,7 +119,7 @@ public class GameObject {
         return e;
     }
 
-    public static Entity loadKinematicEntity(
+    public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size){
 
         Entity entity;
@@ -127,10 +127,10 @@ public class GameObject {
         if (null != size || null != shape) {
 			// if size specified e.g. (1, 1, 1 would do) then you could also leave shape null and force
 			// the convex hull to be used.
-            entity = loadDynamicEntity(model, nodeID, size, 0, trans, shape);
+            entity = load(model, nodeID, size, 0, trans, shape);
         } else {
             // if shape not given then defaults to simple bounding box shape
-            entity = loadDynamicEntity(model, nodeID, 0, trans);
+            entity = load(model, nodeID, 0, trans);
         }
 
         // special sauce here for static entity
@@ -157,7 +157,7 @@ public class GameObject {
 
     public static Entity loadTriangleMesh(Model model) {
 
-        return loadKinematicEntity(
+        return load(
                 model, null, new btBvhTriangleMeshShape(model.meshParts), new Vector3(0, 0, 0), null);
     }
 }
