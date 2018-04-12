@@ -38,19 +38,6 @@ public class GameObject {
         this.rootNodeId = rootNodeId;
     }
 
-    /*
-     * Load a static^H^H^H^H^H^H non-bullet entity from object (will be static or moved about by
-     * other impetus (e.g. cam chaser)
-     * TODO: add translation argument to loadStaticEntity
-     */
-    public Entity createS(Vector3 translation) {
-
-        Entity e = loadStaticEntity(this.model, this.rootNodeId, this.size, null);
-        Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-        transform.idt().trn(translation);
-        return e;
-    }
-
     public Entity createK(Vector3 translation) {
         return loadKinematicEntity(
                 this.model, this.rootNodeId, this.shape, translation, this.size);

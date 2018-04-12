@@ -270,9 +270,8 @@ if (true) {
           or them bounce roll etc.)
         */
 
-        Entity e = new GameObject(primitivesModel, "sphere",
-                new Vector3(0.5f, 0.5f, 0.5f)).createS(new Vector3(0, 15f, -5f));
-
+        Entity e = GameObject.loadStaticEntity(primitivesModel, "sphere",
+                new Vector3(1.5f, 1.5f, 1.5f), new Vector3(0, 15f, -5f));
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
