@@ -150,27 +150,27 @@ public class SceneLoader implements Disposable {
 
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
-        Vector3 s = new Vector3(1, 1, 1);
+        Vector3 s = new Vector3(1, 1, 1); // scale
         if (useTestObjects) {
             // GameObject primitiveObject = new GameObject(primitivesModel, new Vector3(1, 1, 1));
             engine.addEntity(
-                    GameObject.load(primitivesModel, "cone", s, rnd.nextFloat() + 0.5f, t, new btConeShape(0.5f, 2.0f)));
+                    GameObject.load(primitivesModel, "cone", s, 0.5f, t, new btConeShape(0.5f, 2.0f)));
             engine.addEntity(
-                    GameObject.load(primitivesModel, "capsule", s, rnd.nextFloat() + 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+                    GameObject.load(primitivesModel, "capsule", s, 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
             engine.addEntity(
-                    GameObject.load(primitivesModel, "cylinder", s, rnd.nextFloat() + 0.5f, t,
+                    GameObject.load(primitivesModel, "cylinder", s, 0.5f, t,
                             new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
         }
 
 
-        Entity skybox = GameObject.load(sceneModel, "space", null, null);
+        Entity skybox = GameObject.load(sceneModel, "space", null);
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
 
         final float yTrans = -10.0f;
 
-        if (useTestObjects) { // this slows down bullet debug drawer considerably!
+        if (false) { // this slows down bullet debug drawer considerably!
 
             Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
@@ -225,6 +225,7 @@ if (true) {
 
         final float yTrans = -10.0f;
 
+//        engine.addEntity(GameObject.load(testCubeModel, "Cube", null));
         engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null));
 ///*
         engine.addEntity(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)).create(new Vector3(0, -4 + yTrans, 0)));
@@ -338,6 +339,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         }*/
     }
 
+// TODOO: dono't need, default is to get the bounds and create a box shape from that
     public static class BoxObject extends GameObject {
 
         public BoxObject(Model model, Vector3 size) { this(model, null, size); }

@@ -54,6 +54,12 @@ public class GameObject {
     }
 
 
+    public static Entity load(Model model, String rootNodeId, Vector3 scale){
+//        return load(model, rootNodeId, scale, null);
+// note: to do-no-harm here, the translation of 0,0,0 would need to be an offset (as opposed to absolute)
+        return load(model, rootNodeId, scale, new Vector3(0, 0, 0));
+    }
+
     public static Entity load(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
     {
         Entity e = new Entity();
@@ -70,6 +76,8 @@ public class GameObject {
             ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
             instance.transform.trn(translation);
         }
+        else
+            translation = null; // GN: tmp
 
         return e;
     }
