@@ -33,6 +33,12 @@ public class GameObject {
         this.size = size;
     }
 
+    public GameObject(Model model, Vector3 size, btCollisionShape shape) {
+        this.model = model;
+        this.size = size;
+        this.shape = shape;
+    }
+
     public GameObject(Model model, String rootNodeId, Vector3 size) {
         this(model, size);
         this.rootNodeId = rootNodeId;
@@ -45,12 +51,13 @@ public class GameObject {
 
     public Entity create(float mass, Vector3 translation) {
 
+//             Model model, String nodeID, Vector3 size, float mass, Vector3 translation)
         return create(mass, translation, this.shape);
     }
 
     public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
-        return (load(this.model, this.rootNodeId, this.size, mass, translation, shape));
+        return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
 
@@ -93,8 +100,12 @@ public class GameObject {
 //            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
 //        }
 
-        if (null == shape) { // "Platform001"
+        if (null != nodeID) {
+            if (null == shape) { // "Platform001"
                 shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
+            }
+        }else{
+            nodeID = null; // does it?
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
@@ -111,8 +122,13 @@ public class GameObject {
     */
     public static Entity load(
             Model model, String nodeID, float mass, Vector3 translation) {
+        return load(model, nodeID, null, mass, translation);
+    }
 
-        Entity e = load(model, nodeID, null, translation);
+    public static Entity load(
+            Model model, String nodeID, Vector3 size, float mass, Vector3 translation) {
+
+        Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();
@@ -123,6 +139,10 @@ public class GameObject {
         boundingBox.getDimensions(dimensions);
 
         e.add(new BulletComponent(new btBoxShape(dimensions.cpy().scl(0.5f)), instance.transform, mass));
+
+//        if (null != size){
+//            instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
+//        }
 
         return e;
     }

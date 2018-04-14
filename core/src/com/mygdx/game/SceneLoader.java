@@ -128,24 +128,28 @@ public class SceneLoader implements Disposable {
         int N_ENTITIES = 5;
         final int N_BOXES = 2;
         if (!useTestObjects) N_ENTITIES = 0;
-        Vector3 tmpV = new Vector3(); // size
+        Vector3 size = new Vector3();
         Random rnd = new Random();
 
         for (int i = 0; i < N_ENTITIES; i++) {
 
-            tmpV.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            tmpV.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
+            size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
+            size.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
 
             Vector3 translation =
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             GameObject o;
             if (i < N_BOXES) {
-                o = new BoxObject(boxTemplateModel, tmpV);
+                engine.addEntity( GameObject.load( // TODO: make it use auto- boxShape
+                        boxTemplateModel, null, size, size.x, translation, new btBoxShape(size.cpy().scl(0.5f))));
+//                engine.addEntity( GameObject.load(boxTemplateModel, null, size, size.x, translation));
             } else {
-                o = new SphereObject(sphereTemplateModel, tmpV.x);
+                o = new SphereObject(sphereTemplateModel, size.x);
+//                engine.addEntity(o.create(size.x, translation));
+                engine.addEntity(o.create(size.x, translation, new btSphereShape(size.x * 0.5f)));
+                //                engine.addEntity( GameObject.load(sphereTemplateModel, null, size, size.x, translation, new btSphereShape(size.x * 0.5f)));
             }
-            engine.addEntity(o.create(tmpV.x, translation));
         }
 
 
@@ -170,7 +174,7 @@ public class SceneLoader implements Disposable {
 
         final float yTrans = -10.0f;
 
-        if (true) { // this slows down bullet debug drawer considerably!
+        if (false) { // this slows down bullet debug drawer considerably!
 
             Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
@@ -217,7 +221,10 @@ if (true) {
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate");
 
-        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
+        // these are same size so this will allow them to share a collision shape
+//        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
+        Vector3 sz = new Vector3(2, 2, 2);
+        GameObject bo = new GameObject(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
