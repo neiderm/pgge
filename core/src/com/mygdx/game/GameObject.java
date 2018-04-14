@@ -191,6 +191,10 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
              */
         bc.sFlag = true;
 
+        ModelComponent mc = entity.getComponent(ModelComponent.class);
+        if (null != mc.scale)
+            mc.modelInst.transform.scl(mc.scale);
+
         return entity;
     }
 

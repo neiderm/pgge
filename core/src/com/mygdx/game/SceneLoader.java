@@ -263,25 +263,12 @@ if (true) {
     }
 
     /*
-    a character object that tracks the given "node" ...
+    a character object that tracks the given "node" ... a position (transform) plus offset for the
+    PID control to track. So if it is handed the the world transform of the camera, it makes for a
+    crude camera controller. "Plant" output is simply an offset displacement added to present position
+    The sphere is just eye candy.
      */
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
-        /*
-          Right now we're moving (translating) it directly, according to a PI loop idea.
-          ("Plant" output is simply an offset displacement added to present position).
-          This is fine IF the "camera body" is not colliding into another phsics body!
-
-          Regarding kinematic bodyies ...
-
-          "Such an object that does move, but does not respond to collisions, is called a kinematic
-          body. In practice a kinematic body is very much like a static object, except that you can
-          change its location and rotation through code."
-
-          BUT I don't think kinematc is exactly right thing for my camera, because I don't want the
-          camera to affect other phys objects (like the way the ground that does not respond to
-          collisions but nonetheless influences objects with forces that can stop them falling
-          or them bounce roll etc.)
-        */
 
         Entity e = GameObject.load(primitivesModel, "sphere",
                 new Vector3(1.5f, 1.5f, 1.5f), new Vector3(0, 15f, -5f));
@@ -346,11 +333,7 @@ public static class BoxObject extends GameObject {
 /* loader for "kinematic" box */
     public static Entity load(Model model, String nodeID, Vector3 trans, Vector3 size) {
 
-        Entity e = load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
-
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-        mc.modelInst.transform.scl(mc.scale);
-        return e;
+        return load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
     }
 }
 
