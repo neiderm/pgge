@@ -68,7 +68,7 @@ public class GameObject {
             ModelInstance instance = EntityBuilder.getModelInstance(model, rootNodeId);
             e.add(new ModelComponent(instance, scale));
         } else {
-            e.add(new ModelComponent(model, new Matrix4(), scale, null));
+            e.add(new ModelComponent(model, scale)); // cleaned this up
         }
 
         // leave translation null if using translation from the model layout 
@@ -125,6 +125,12 @@ public class GameObject {
         e.add(new BulletComponent(new btBoxShape(dimensions.cpy().scl(0.5f)), instance.transform, mass));
 
         return e;
+    }
+
+
+    public static Entity load(Model model, String nodeID) {
+
+        return load(model, nodeID, null, null, null);
     }
 
     public static Entity load(

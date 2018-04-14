@@ -170,7 +170,7 @@ public class SceneLoader implements Disposable {
 
         final float yTrans = -10.0f;
 
-        if (false) { // this slows down bullet debug drawer considerably!
+        if (true) { // this slows down bullet debug drawer considerably!
 
             Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
@@ -208,10 +208,12 @@ if (true) {
 
     public static void createTestObjects(Engine engine){
 
-        btCollisionShape shape = null; // new btBoxShape(size.cpy().scl(0.5f))
-        Vector3 size = null; // new Vector3(40, 2, 40);
+//        btCollisionShape shape = null; // new btBoxShape(size.cpy().scl(0.5f))
+//        Vector3 size = null; // new Vector3(40, 2, 40);
 //        engine.addEntity(GameObject.loadKinematicEntity(sceneModel, "Platform", shape, null, null));
-        engine.addEntity(GameObject.load(testCubeModel, "Platform001", shape, null, size)); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+//        engine.addEntity(GameObject.load(testCubeModel, "Platform001", shape, null, size)); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+//        engine.addEntity(GameObject.load(testCubeModel, "Platform001")); // this works
+        engine.addEntity(GameObject.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate");
 
@@ -227,11 +229,12 @@ if (true) {
 
 //        engine.addEntity(GameObject.load(testCubeModel, "Cube", null));
         engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null));
-///*
+
         engine.addEntity(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)).create(new Vector3(0, -4 + yTrans, 0)));
         engine.addEntity(new SphereObject(sphereTemplateModel, 16).create(new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)).create(new Vector3(0, 10, -5)));
-//*/
+//        GameObject.load(                primitivesModel, "box", null, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+
     }
 
 
@@ -277,6 +280,7 @@ if (true) {
         ModelComponent mc = e.getComponent(ModelComponent.class);
         mc.modelInst.transform.scl(mc.scale);
         mc.modelInst.userData = 0xaa55;
+
         e.add(new CharacterComponent(
                 new PIDcontrol(tgtTransform,
                         mc.modelInst.transform,
