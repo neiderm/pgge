@@ -234,16 +234,17 @@ if (true) {
         final float yTrans = -10.0f;
 
 //        engine.addEntity(GameObject.load(testCubeModel, "Cube", null));
-        engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null));
-
-        engine.addEntity(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)).create(new Vector3(0, -4 + yTrans, 0)));
-//        engine.addEntity(new SphereObject(sphereTemplateModel, 16).create(new Vector3(10, 5 + yTrans, 0)));
-        engine.addEntity(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)).create(new Vector3(0, 10, -5)));
-//        GameObject.load(                primitivesModel, "box", null, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+        engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null)); // "static" cube
 
         float r = 16;
         engine.addEntity(GameObject.load(sphereTemplateModel, null, new btSphereShape(r * 0.5f),
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
+
+        engine.addEntity(BoxObject.load(boxTemplateModel, null,
+                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
+
+        engine.addEntity(BoxObject.load(primitivesModel, "box",
+                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
     }
 
 
@@ -336,21 +337,18 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
  */
 
 // TODOO: dono't need, default is to get the bounds and create a box shape from that
-    public static class BoxObject extends GameObject {
+public static class BoxObject extends GameObject {
 
-        public BoxObject(Model model, Vector3 size) { this(model, null, size); }
+/*    public BoxObject(Model model, final String rootNodeId, Vector3 size) {
+        super(model, rootNodeId, size);
+        this.shape = new btBoxShape(size.cpy().scl(0.5f));
+    }*/
 
-        public BoxObject(Model model, final String rootNodeId, Vector3 size) {
-            super(model, rootNodeId, size);
-            this.shape = new btBoxShape(size.cpy().scl(0.5f));
-        }
+    public static Entity load(Model model, String nodeID, Vector3 trans, Vector3 size) {
 
-/*        @Override
-        public Entity create(float mass, Vector3 translation) {
-
-            return super.create(mass, translation, new btBoxShape(size.cpy().scl(0.5f)));
-        }*/
+        return load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
     }
+}
 
 
     @Override
