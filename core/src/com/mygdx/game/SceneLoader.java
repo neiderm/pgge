@@ -125,7 +125,7 @@ public class SceneLoader implements Disposable {
 
     public static void createEntities(Engine engine) {
 
-        int N_ENTITIES = 5;
+        int N_ENTITIES = 10;
         final int N_BOXES = 2;
         if (!useTestObjects) N_ENTITIES = 0;
         Vector3 size = new Vector3();
@@ -139,16 +139,15 @@ public class SceneLoader implements Disposable {
             Vector3 translation =
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
-            GameObject o;
             if (i < N_BOXES) {
                 engine.addEntity( GameObject.load( // TODO: make it use auto- boxShape
                         boxTemplateModel, null, size, size.x, translation, new btBoxShape(size.cpy().scl(0.5f))));
 //                engine.addEntity( GameObject.load(boxTemplateModel, null, size, size.x, translation));
             } else {
-                o = new SphereObject(sphereTemplateModel, size.x);
-//                engine.addEntity(o.create(size.x, translation));
-                engine.addEntity(o.create(size.x, translation, new btSphereShape(size.x * 0.5f)));
-                //                engine.addEntity( GameObject.load(sphereTemplateModel, null, size, size.x, translation, new btSphereShape(size.x * 0.5f)));
+
+//                engine.addEntity((new GameObject(sphereTemplateModel, new Vector3(size.x, size.x, size.x), new btSphereShape(size.x * 0.5f))).create(size.x, translation));
+                engine.addEntity(GameObject.load(sphereTemplateModel, null, new Vector3(size.x, size.x, size.x),
+                        size.x, translation, new btSphereShape(size.x * 0.5f)));
             }
         }
 
@@ -158,12 +157,12 @@ public class SceneLoader implements Disposable {
         if (useTestObjects) {
             // GameObject primitiveObject = new GameObject(primitivesModel, new Vector3(1, 1, 1));
             engine.addEntity(
-                    GameObject.load(primitivesModel, "cone", s, 0.5f, t, new btConeShape(0.5f, 2.0f)));
+                    GameObject.load(primitivesModel, "cone", s, 0.5f, t, new btConeShape(0.5f, 2.0f))); // 1f, 2f, 1f
             engine.addEntity(
-                    GameObject.load(primitivesModel, "capsule", s, 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f)));
+                    GameObject.load(primitivesModel, "capsule", s, 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f))); // 0.5f, 2f
             engine.addEntity(
                     GameObject.load(primitivesModel, "cylinder", s, 0.5f, t,
-                            new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f))));
+                            new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f)))); // 1f, 2f, 1f
         }
 
 
@@ -174,7 +173,7 @@ public class SceneLoader implements Disposable {
 
         final float yTrans = -10.0f;
 
-        if (false) { // this slows down bullet debug drawer considerably!
+        if (true) { // this slows down bullet debug drawer considerably!
 
             Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
@@ -238,10 +237,13 @@ if (true) {
         engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null));
 
         engine.addEntity(new BoxObject(boxTemplateModel, new Vector3(40f, 2f, 40f)).create(new Vector3(0, -4 + yTrans, 0)));
-        engine.addEntity(new SphereObject(sphereTemplateModel, 16).create(new Vector3(10, 5 + yTrans, 0)));
+//        engine.addEntity(new SphereObject(sphereTemplateModel, 16).create(new Vector3(10, 5 + yTrans, 0)));
         engine.addEntity(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)).create(new Vector3(0, 10, -5)));
 //        GameObject.load(                primitivesModel, "box", null, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
 
+        float r = 16;
+        engine.addEntity(GameObject.load(sphereTemplateModel, null, new btSphereShape(r * 0.5f),
+                new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
     }
 
 
@@ -332,23 +334,6 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
  * extended objects ... if same shape instance could be used for multiple entities, then we need
  * the shape to be instanced in the constructor
  */
-    public static class SphereObject extends GameObject {
-
-//        private float radius;
-
-        public SphereObject(Model model, float radius) {
-
-            super(model, new Vector3(radius, radius, radius));
-//            this.radius = radius;
-            this.shape = new btSphereShape(radius * 0.5f);
-        }
-
-/*        @Override
-        public Entity create(float mass, Vector3 translation) {
-
-            return super.create(mass, translation, new btSphereShape(radius * 0.5f));
-        }*/
-    }
 
 // TODOO: dono't need, default is to get the bounds and create a box shape from that
     public static class BoxObject extends GameObject {
