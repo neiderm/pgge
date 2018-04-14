@@ -221,7 +221,6 @@ if (true) {
         loadDynamicEntiesByName(engine, testCubeModel, "Crate");
 
         // these are same size so this will allow them to share a collision shape
-//        BoxObject bo = new BoxObject(boxTemplateModel, new Vector3(2, 2, 2));
         Vector3 sz = new Vector3(2, 2, 2);
         GameObject bo = new GameObject(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
@@ -344,9 +343,14 @@ public static class BoxObject extends GameObject {
         this.shape = new btBoxShape(size.cpy().scl(0.5f));
     }*/
 
+/* loader for "kinematic" box */
     public static Entity load(Model model, String nodeID, Vector3 trans, Vector3 size) {
 
-        return load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
+        Entity e = load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
+
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+        mc.modelInst.transform.scl(mc.scale);
+        return e;
     }
 }
 

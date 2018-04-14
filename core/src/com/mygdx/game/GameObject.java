@@ -3,7 +3,6 @@ package com.mygdx.game;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -44,10 +43,10 @@ public class GameObject {
         this.rootNodeId = rootNodeId;
     }
 
-    public Entity create(Vector3 translation) {
+/*    public Entity create(Vector3 translation) {
         return load(
                 this.model, this.rootNodeId, this.shape, translation, this.size);
-    }
+    }*/
 
     public Entity create(float mass, Vector3 translation) {
 
@@ -61,21 +60,21 @@ public class GameObject {
     }
 
 
-    public static Entity load(Model model, String rootNodeId, Vector3 scale){
+    public static Entity load(Model model, String rootNodeId, Vector3 size){
 //        return load(model, rootNodeId, scale, null);
 // note: to do-no-harm here, the translation of 0,0,0 would need to be an offset (as opposed to absolute)
-        return load(model, rootNodeId, scale, new Vector3(0, 0, 0));
+        return load(model, rootNodeId, size, new Vector3(0, 0, 0));
     }
 
-    public static Entity load(Model model, String rootNodeId, Vector3 scale, Vector3 translation)
+    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
         Entity e = new Entity();
 
         if (null != rootNodeId) {
             ModelInstance instance = EntityBuilder.getModelInstance(model, rootNodeId);
-            e.add(new ModelComponent(instance, scale));
+            e.add(new ModelComponent(instance, size));
         } else {
-            e.add(new ModelComponent(model, scale)); // cleaned this up
+            e.add(new ModelComponent(model, size)); // cleaned this up
         }
 
         // leave translation null if using translation from the model layout 
@@ -96,9 +95,9 @@ public class GameObject {
         Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-//        if (null != size){
-//            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
-//        }
+/*        if (null != size){
+            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
+        }*/
 
         if (null != nodeID) {
             if (null == shape) { // "Platform001"
@@ -109,10 +108,16 @@ public class GameObject {
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
-
+/*
         if (null != size){
             instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
         }
+*/
+/*
+I don't need to scale the dynamic object instances here, because they are dynamic they have to be
+re-scaled continuously anyway! But the non-dynamic, have to be scaled someone where at least once ... hmmm ..
+ */
+
 
         return e;
     }
@@ -148,23 +153,23 @@ public class GameObject {
     }
 
 
-    public static Entity load(Model model, String nodeID) {
+/*    public static Entity load(Model model, String nodeID) {
 
         return load(model, nodeID, null, null, null);
-    }
+    }*/
 
     public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size){
+            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
 
         Entity entity;
 
         if (null != size || null != shape) {
 			// if size specified e.g. (1, 1, 1 would do) then you could also leave shape null and force
 			// the convex hull to be used.
-            entity = load(model, nodeID, size, 0, trans, shape);
+            entity = load(model, nodeID, size, 0, translation, shape);
         } else {
             // if shape not given then defaults to simple bounding box shape
-            entity = load(model, nodeID, 0, trans);
+            entity = load(model, nodeID, 0, translation);
         }
 
         // special sauce here for static entity
