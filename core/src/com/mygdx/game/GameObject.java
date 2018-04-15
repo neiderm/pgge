@@ -130,7 +130,7 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
         return load(model, nodeID, null, mass, translation);
     }
 
-    public static Entity load(
+    private static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation) {
 
         Entity e = load(model, nodeID, size, translation);
@@ -163,7 +163,7 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
 
         Entity entity;
 
-        if (null != size || null != shape) {
+        if (/*null != size || */ null != shape) {
 			// if size specified e.g. (1, 1, 1 would do) then you could also leave shape null and force
 			// the convex hull to be used.
             entity = load(model, nodeID, size, 0, translation, shape);
@@ -191,9 +191,9 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
              */
         bc.sFlag = true;
 
-        ModelComponent mc = entity.getComponent(ModelComponent.class);
+/*        ModelComponent mc = entity.getComponent(ModelComponent.class);
         if (null != mc.scale)
-            mc.modelInst.transform.scl(mc.scale);
+            mc.modelInst.transform.scl(mc.scale);*/
 
         return entity;
     }

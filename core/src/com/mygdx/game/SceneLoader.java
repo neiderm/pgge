@@ -101,6 +101,9 @@ public class SceneLoader implements Disposable {
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 
+        // TODO: enumerate the primitives and struct their "id" along with the base unit dimensions of each.
+        // array of GameObject, and then insert into the array an instance of each (anonymous sub-class) object
+        // then push all over to GameObject or somewhere else suitable
         mb.begin();
 
         mb.node().id = "sphere";
@@ -192,7 +195,7 @@ public class SceneLoader implements Disposable {
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
-if (true) {
+if (false) {
     model = shipModel;
     node = null;
     final Mesh mesh = model.meshes.get(0);
@@ -320,9 +323,9 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
 /*
  * extended objects ... if same shape instance could be used for multiple entities, then we need
  * the shape to be instanced in the constructor
+ * Bounding box only works on mesh and doesn't work if we are scaling the mesh :(
  */
 
-// TODOO: dono't need, default is to get the bounds and create a box shape from that
 public static class BoxObject extends GameObject {
 
 /*    public BoxObject(Model model, final String rootNodeId, Vector3 size) {
@@ -330,13 +333,24 @@ public static class BoxObject extends GameObject {
         this.shape = new btBoxShape(size.cpy().scl(0.5f));
     }*/
 
-/* loader for "kinematic" box */
+/* convenience method, loader for "kinematic" box */
     public static Entity load(Model model, String nodeID, Vector3 trans, Vector3 size) {
 
-        return load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
+//nope
+//         return load(model, nodeID, size, 0f, new Vector3(1, 1, 1));
+
+
+        Entity e = load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
+
+        // we need to scale the model transform for scaled "kinematic" object (but only need to scl it once)
+
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+        if (null != mc.scale)
+            mc.modelInst.transform.scl(mc.scale);
+
+        return e;
     }
 }
-
 
     @Override
     public void dispose() {
