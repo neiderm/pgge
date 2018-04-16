@@ -143,7 +143,7 @@ public class SceneLoader implements Disposable {
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity( GameObject.load( // TODO: make it use auto- boxShape
+                engine.addEntity( GameObject.load(
                         boxTemplateModel, null, size, size.x, translation, new btBoxShape(size.cpy().scl(0.5f))));
 //                engine.addEntity( GameObject.load(boxTemplateModel, null, size, size.x, translation));
             } else {
@@ -169,7 +169,7 @@ public class SceneLoader implements Disposable {
         }
 
 
-        Entity skybox = GameObject.load(sceneModel, "space", null);
+        Entity skybox = GameObject.load(sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
@@ -194,19 +194,19 @@ public class SceneLoader implements Disposable {
         Entity player;
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
-        String node = "ship";
+
 if (false) {
     model = shipModel;
-    node = null;
     final Mesh mesh = model.meshes.get(0);
     boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
-    player = GameObject.load(model, node, null, new Vector3(0, 15f, -5f));
+    player = GameObject.load(model, new Vector3(0, 15f, -5f));
     Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
     player.add(new BulletComponent(boxshape, transform, 5.1f));
 
 }else {
-//    boxshape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
-        player = GameObject.load(model, node, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+    String node = "ship";
+    //    boxshape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
+    player = GameObject.load(model, node, 5.1f, new Vector3(0, 15f, -5f), boxshape);
 }
         player.add(new PlayerComponent());
         return player;
@@ -235,8 +235,7 @@ if (false) {
 
         final float yTrans = -10.0f;
 
-//        engine.addEntity(GameObject.load(testCubeModel, "Cube", null));
-        engine.addEntity(GameObject.load(testCubeModel, "Cube", null, null)); // "static" cube
+        engine.addEntity(GameObject.load(testCubeModel, "Cube"));  // "static" cube
 
         float r = 16;
         engine.addEntity(GameObject.load(sphereTemplateModel, null, new btSphereShape(r * 0.5f),
@@ -260,7 +259,7 @@ if (false) {
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(rootNodeId)) {
-                engine.addEntity(GameObject.load(model, id, 0.1f, null));
+                engine.addEntity(GameObject.load(model, id, 0.1f));
             }
         }
     }
@@ -309,8 +308,9 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         */
 
         final float r = 4.0f;
-        Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r))
-                .create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+//        Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r)).create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+
+        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
 //        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));

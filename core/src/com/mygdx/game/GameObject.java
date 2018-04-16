@@ -27,18 +27,17 @@ public class GameObject {
     public GameObject() {
     }
 
-    public GameObject(Model model, Vector3 size) {
+    private GameObject(Model model, Vector3 size) {
         this.model = model;
         this.size = size;
     }
 
     public GameObject(Model model, Vector3 size, btCollisionShape shape) {
-        this.model = model;
-        this.size = size;
+        this(model, size);
         this.shape = shape;
     }
 
-    public GameObject(Model model, String rootNodeId, Vector3 size) {
+    private GameObject(Model model, String rootNodeId, Vector3 size) {
         this(model, size);
         this.rootNodeId = rootNodeId;
     }
@@ -54,17 +53,27 @@ public class GameObject {
         return create(mass, translation, this.shape);
     }
 
-    public Entity create(float mass, Vector3 translation, btCollisionShape shape) {
+    private Entity create(float mass, Vector3 translation, btCollisionShape shape) {
 
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
+    public static Entity load(Model model, Vector3 translation)
+    {
+        return load(model, null, null, translation);
+    }
 
-    public static Entity load(Model model, String rootNodeId, Vector3 size){
+    public static Entity load(Model model, String rootNodeId){
+        //return load(model, rootNodeId, null);
+        // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
+        return load(model, rootNodeId, null, new Vector3(0, 0, 0));
+    }
+
+/*    private static Entity load(Model model, String rootNodeId, Vector3 size){
 //        return load(model, rootNodeId, scale, null);
 // note: to do-no-harm here, the translation of 0,0,0 would need to be an offset (as opposed to absolute)
         return load(model, rootNodeId, size, new Vector3(0, 0, 0));
-    }
+    }*/
 
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
@@ -83,11 +92,15 @@ public class GameObject {
             instance.transform.trn(translation);
         }
         else
-            translation = null; // GN: tmp
+            translation = null; // GN: tmp  // throw new GdxRuntimeException("?");
 
         return e;
     }
 
+    public static Entity load(
+            Model model, String nodeID, float mass, Vector3 translation, btCollisionShape shape) {
+        return load(model, nodeID, null, mass, translation, shape);
+    }
 
     public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
@@ -118,15 +131,17 @@ I don't need to scale the dynamic object instances here, because they are dynami
 re-scaled continuously anyway! But the non-dynamic, have to be scaled someone where at least once ... hmmm ..
  */
 
-
         return e;
     }
 
     /*
        work around for "gaps" around convex hull cube shapes created from mesh :(
     */
-    public static Entity load(
-            Model model, String nodeID, float mass, Vector3 translation) {
+    public static Entity load(Model model, String nodeID, float mass) {
+        return load(model, nodeID, null, mass, null);
+    }
+
+    private static Entity load(Model model, String nodeID, float mass, Vector3 translation) {
         return load(model, nodeID, null, mass, translation);
     }
 
