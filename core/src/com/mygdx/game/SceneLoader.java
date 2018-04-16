@@ -343,11 +343,11 @@ public static class BoxObject extends GameObject {
         Entity e = load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
 
         // we need to scale the model transform for scaled "kinematic" object (but only need to scl it once)
-
+/*
         ModelComponent mc = e.getComponent(ModelComponent.class);
         if (null != mc.scale)
             mc.modelInst.transform.scl(mc.scale);
-
+*/
         return e;
     }
 }

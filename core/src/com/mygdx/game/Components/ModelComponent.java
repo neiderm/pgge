@@ -31,6 +31,9 @@ public class ModelComponent implements Component {
         if (null != scale) {
             this.scale = new Vector3(scale);
         }
+        else{
+//            this.scale = new Vector3(1, 1, 1); // I wonder if this has any ramification?
+        }
 /*
         BoundingBox boundingBox = new BoundingBox();
         center = new Vector3();
