@@ -24,6 +24,7 @@ import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
@@ -126,6 +127,26 @@ public class SceneLoader implements Disposable {
     }
 
 
+    private static void setMaterialColor(Entity e){
+        Random rnd = new Random();
+        Array<Color> colors = new Array<Color>();
+
+        colors.add(Color.WHITE);
+        colors.add(Color.BLUE);
+        colors.add(Color.RED);
+        colors.add(Color.GREEN);
+        colors.add(Color.YELLOW);
+        colors.add(Color.PURPLE);
+
+        int i = rnd.nextInt(colors.size - 1);
+
+        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+        Material mat = inst.materials.get(0);
+        if (null == mat)
+            return; // throw new GdxRuntimeException("not found");
+        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
+    }
+
     public static void createEntities(Engine engine) {
 
         int N_ENTITIES = 10;
@@ -194,20 +215,14 @@ public class SceneLoader implements Disposable {
         Entity player;
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
-
-if (false) {
+        String node = "ship";
+if (true) {
+    node = null;
     model = shipModel;
-    final Mesh mesh = model.meshes.get(0);
+    final Mesh mesh = shipModel.meshes.get(0);
     boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
-    player = GameObject.load(model, new Vector3(0, 15f, -5f));
-    Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
-    player.add(new BulletComponent(boxshape, transform, 5.1f));
-
-}else {
-    String node = "ship";
-    //    boxshape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart); //  hmmm ... needs model.instance :(
-    player = GameObject.load(model, node, 5.1f, new Vector3(0, 15f, -5f), boxshape);
 }
+        player = GameObject.load(model, node, 5.1f, new Vector3(0, 15f, -5f), boxshape);
         player.add(new PlayerComponent());
         return player;
     }

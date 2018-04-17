@@ -21,8 +21,8 @@ public class GameObject {
 
     public Model model;
     public Vector3 size;
-    public String rootNodeId = null;
-    public btCollisionShape shape = null;
+    public String rootNodeId;
+    public btCollisionShape shape;
 
     public GameObject() {
     }
@@ -37,15 +37,6 @@ public class GameObject {
         this.shape = shape;
     }
 
-    private GameObject(Model model, String rootNodeId, Vector3 size) {
-        this(model, size);
-        this.rootNodeId = rootNodeId;
-    }
-
-/*    public Entity create(Vector3 translation) {
-        return load(
-                this.model, this.rootNodeId, this.shape, translation, this.size);
-    }*/
 
     public Entity create(float mass, Vector3 translation) {
 
@@ -58,10 +49,6 @@ public class GameObject {
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
-    public static Entity load(Model model, Vector3 translation)
-    {
-        return load(model, null, null, translation);
-    }
 
     public static Entity load(Model model, String rootNodeId){
         //return load(model, rootNodeId, null);
@@ -74,6 +61,26 @@ public class GameObject {
 // note: to do-no-harm here, the translation of 0,0,0 would need to be an offset (as opposed to absolute)
         return load(model, rootNodeId, size, new Vector3(0, 0, 0));
     }*/
+
+////////////// TODO:
+    // this should only be called with size argument for entities having resized (primitive) shapes,
+    // and FWIW may only need for kinematic, as they are not affected by bullet since they don't have motion state
+    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation, int tmp) {
+
+        Entity e = load(model, rootNodeId, translation);
+///*
+        ModelComponent mc = e.getComponent(ModelComponent.class);
+        if (null != mc.scale)
+            mc.modelInst.transform.scl(mc.scale);
+//*/
+        return e;
+    }
+
+    public static Entity load(Model model, String rootNodeId, Vector3 translation){
+
+        return load(model, rootNodeId, new Vector3(1, 1, 1), translation);
+    }
+////////////
 
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
@@ -167,11 +174,6 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
         return e;
     }
 
-
-/*    public static Entity load(Model model, String nodeID) {
-
-        return load(model, nodeID, null, null, null);
-    }*/
 
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){

@@ -15,7 +15,7 @@ import static com.badlogic.gdx.math.MathUtils.sin;
   a bit of a misnomer, this is not truly generic since the process variable and
   setpoints are 3d vectors ... could it be done with generics?
  */
-public class PIDcontrol {
+public class PIDcontrol implements CharacterController {
 
     private float kP = 0.1f;
     private float kI = 0;
@@ -54,6 +54,7 @@ public class PIDcontrol {
 
     private static Vector3 vec3 = new Vector3();
 
+    @Override
     public void update() {
 
         Matrix4 currentPositionTransform = this.process;
