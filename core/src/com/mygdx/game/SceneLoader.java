@@ -288,12 +288,15 @@ if (true) {
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
         Entity e = GameObject.load(primitivesModel, "sphere",
-                new Vector3(1.5f, 1.5f, 1.5f), new Vector3(0, 15f, -5f));
+                new Vector3(10, 10, 10), new Vector3(0, 15f, -5f),
+                0);
+
         // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
-        mc.modelInst.transform.scl(mc.scale);
-        mc.modelInst.userData = 0xaa55;
 
+//        mc.modelInst.transform.scl(mc.scale);
+
+        mc.modelInst.userData = 0xaa55;
         e.add(new CharacterComponent(
                 new PIDcontrol(tgtTransform,
                         mc.modelInst.transform,

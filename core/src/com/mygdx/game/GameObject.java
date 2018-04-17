@@ -39,13 +39,10 @@ public class GameObject {
 
 
     public Entity create(float mass, Vector3 translation) {
-
-//             Model model, String nodeID, Vector3 size, float mass, Vector3 translation)
         return create(mass, translation, this.shape);
     }
 
     private Entity create(float mass, Vector3 translation, btCollisionShape shape) {
-
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
@@ -53,7 +50,9 @@ public class GameObject {
     public static Entity load(Model model, String rootNodeId){
         //return load(model, rootNodeId, null);
         // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
-        return load(model, rootNodeId, null, new Vector3(0, 0, 0));
+//        return load(model, rootNodeId, new Vector3(0, 0, 0));
+// return load(model, rootNodeId, null, new Vector3(0, 0, 0)); // where ..............
+        return load(model, rootNodeId, new Vector3(0, 0, 0)); // where ..............
     }
 
 /*    private static Entity load(Model model, String rootNodeId, Vector3 size){
@@ -65,24 +64,25 @@ public class GameObject {
 ////////////// TODO:
     // this should only be called with size argument for entities having resized (primitive) shapes,
     // and FWIW may only need for kinematic, as they are not affected by bullet since they don't have motion state
+//////////////
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation, int tmp) {
 
         Entity e = load(model, rootNodeId, translation);
-///*
+
         ModelComponent mc = e.getComponent(ModelComponent.class);
-        if (null != mc.scale)
-            mc.modelInst.transform.scl(mc.scale);
-//*/
+        if (null != size)
+            mc.modelInst.transform.scl(size);
+
         return e;
     }
 
-    public static Entity load(Model model, String rootNodeId, Vector3 translation){
+    private static Entity load(Model model, String rootNodeId, Vector3 translation){
 
         return load(model, rootNodeId, new Vector3(1, 1, 1), translation);
     }
 ////////////
 
-    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
+    private static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
         Entity e = new Entity();
 
@@ -175,6 +175,9 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
     }
 
 
+    /*
+     * @size: can work with "primitive" objects
+     */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
 
@@ -206,8 +209,7 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
             the scaling!). So here we set a flag to tell renderer that it doesn't have to re-scale
             the kinematic object (need to do a "kinematic" component to deal w/ this).
              */
-        bc.sFlag = true;
-
+        bc.sFlag = true; // no motion state, so inhibit "refresh" of mesh scaling, just do once here
 ///*
         ModelComponent mc = entity.getComponent(ModelComponent.class);
         if (null != mc.scale)
