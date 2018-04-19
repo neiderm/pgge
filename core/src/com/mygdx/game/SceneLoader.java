@@ -25,6 +25,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
@@ -52,6 +53,7 @@ public class SceneLoader implements Disposable {
     private static Model ballTemplateModel;
     private static Model tankTemplateModel;
     public static final Model testCubeModel;
+    public static final ArrayMap<String, GameObject> primitiveModels;
 
     private SceneLoader() {
         //super();
@@ -102,6 +104,16 @@ public class SceneLoader implements Disposable {
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 
+
+        /*
+          each anonymous game object element will implement
+           load(Vector3 trans, Vector3 size)
+          which will in turn correctly call
+           load(Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size)
+         */
+        primitiveModels = new ArrayMap<String, GameObject>(String.class, GameObject.class);
+
+
         // TODO: enumerate the primitives and struct their "id" along with the base unit dimensions of each.
         // array of GameObject, and then insert into the array an instance of each (anonymous sub-class) object
         // then push all over to GameObject or somewhere else suitable
@@ -124,6 +136,24 @@ public class SceneLoader implements Disposable {
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 2f, 1f, 10);
 
         primitivesModel = mb.end();
+
+
+        /* might need to settle for making these static instances in a singleton class to provide
+        the templates for the scale-able primitive shapes (they can't be tied to a single model)
+         */
+        primitiveModels.put("sphere", new GameObject(primitivesModel, "sphere") {
+            @Override
+            public Entity create(Vector3 trans, Vector3 size) {
+                return load(this.model, this.rootNodeId, new btSphereShape(size.x * 0.5f), trans, size);
+            }
+        });
+        primitiveModels.put("box", new GameObject(primitivesModel, "box") {
+            @Override
+            public Entity create(Vector3 trans, Vector3 size) {
+                return load(this.model, this.rootNodeId, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
+            }
+        });
+
     }
 
 
@@ -164,7 +194,7 @@ public class SceneLoader implements Disposable {
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity( GameObject.load(
+                engine.addEntity(GameObject.load(
                         boxTemplateModel, null, size, size.x, translation, new btBoxShape(size.cpy().scl(0.5f))));
 //                engine.addEntity( GameObject.load(boxTemplateModel, null, size, size.x, translation));
             } else {
@@ -259,8 +289,8 @@ if (true) {
         engine.addEntity(BoxObject.load(boxTemplateModel, null,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
 
-        engine.addEntity(BoxObject.load(primitivesModel, "box",
-                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
+        //        engine.addEntity(BoxObject.load(primitivesModel, "box",                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
+        engine.addEntity(primitiveModels.get("box").create(new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
     }
 
 
@@ -328,7 +358,7 @@ be it's "buoyancy", and let if "float up" until free of interposing obstacles .
         final float r = 4.0f;
 //        Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r)).create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
 
-        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
+        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r * 0.5f));
 
         btRigidBody body = e.getComponent(BulletComponent.class).body;
 //        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));

@@ -27,6 +27,11 @@ public class GameObject {
     public GameObject() {
     }
 
+    public GameObject(Model model, String nodeID) {
+        this.model = model;
+        this.rootNodeId = nodeID;
+    }
+
     private GameObject(Model model, Vector3 size) {
         this.model = model;
         this.size = size;
@@ -37,6 +42,11 @@ public class GameObject {
         this.shape = shape;
     }
 
+
+    // needed for method override (make this class from an interface)
+    public Entity create(Vector3 trans, Vector3 size) {
+        return null;
+    }
 
     public Entity create(float mass, Vector3 translation) {
         return create(mass, translation, this.shape);
@@ -70,8 +80,10 @@ public class GameObject {
         Entity e = load(model, rootNodeId, translation);
 
         ModelComponent mc = e.getComponent(ModelComponent.class);
-        if (null != size)
+        if (null != size) {
             mc.modelInst.transform.scl(size);
+//            mc.scale = size;
+        }
 
         return e;
     }
@@ -90,7 +102,7 @@ public class GameObject {
             ModelInstance instance = EntityBuilder.getModelInstance(model, rootNodeId);
             e.add(new ModelComponent(instance, size));
         } else {
-            e.add(new ModelComponent(model, size)); // cleaned this up
+            e.add(new ModelComponent(model, size));
         }
 
         // leave translation null if using translation from the model layout 
@@ -212,9 +224,11 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
         bc.sFlag = true; // no motion state, so inhibit "refresh" of mesh scaling, just do once here
 ///*
         ModelComponent mc = entity.getComponent(ModelComponent.class);
-        if (null != mc.scale)
-            mc.modelInst.transform.scl(mc.scale);
-//*/
+        if (null != size) {
+            mc.modelInst.transform.scl(size);
+//            mc.scale = size;
+        }
+        //*/
 
         return entity;
     }
