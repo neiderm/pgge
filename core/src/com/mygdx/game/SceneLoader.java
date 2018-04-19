@@ -23,7 +23,6 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
@@ -54,6 +53,12 @@ public class SceneLoader implements Disposable {
     private static Model tankTemplateModel;
     public static final Model testCubeModel;
     public static final ArrayMap<String, GameObject> primitiveModels;
+
+    public static SizeableObject sphereTemplate;
+    public static SizeableObject boxTemplate;
+    public static SizeableObject coneTemplate;
+    public static SizeableObject capsuleTemplate;
+    public static SizeableObject cylinderTemplate;
 
     private SceneLoader() {
         //super();
@@ -141,6 +146,7 @@ public class SceneLoader implements Disposable {
         /* might need to settle for making these static instances in a singleton class to provide
         the templates for the scale-able primitive shapes (they can't be tied to a single model)
          */
+/*
         primitiveModels.put("sphere", new GameObject(primitivesModel, "sphere") {
             @Override
             public Entity create(Vector3 trans, Vector3 size) {
@@ -153,7 +159,37 @@ public class SceneLoader implements Disposable {
                 return load(this.model, this.rootNodeId, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
             }
         });
-
+*/
+        sphereTemplate = new SizeableObject() {
+            @Override
+            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+                return load(model, rootNode, new btSphereShape(size.x * 0.5f), size, mass, trans);
+            }
+        };
+        boxTemplate = new SizeableObject() {
+            @Override
+            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+                return load(model, rootNode, new btBoxShape(size.cpy().scl(0.5f)), size, mass, trans);
+            }
+        };
+        coneTemplate = new SizeableObject() {
+            @Override
+            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+                return load(model, rootNode, new btConeShape(0.5f, 2.0f), size, mass, trans);
+            }
+        };
+        capsuleTemplate = new SizeableObject() {
+            @Override
+            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+                return load(model, rootNode, new btCapsuleShape(0.5f, 0.5f * 2.0f), size, mass, trans);
+            }
+        };
+        cylinderTemplate = new SizeableObject() {
+            @Override
+            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+                return load(model, rootNode, new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f)), size, mass, trans);
+            }
+        };
     }
 
 
@@ -180,7 +216,7 @@ public class SceneLoader implements Disposable {
     public static void createEntities(Engine engine) {
 
         int N_ENTITIES = 10;
-        final int N_BOXES = 2;
+        final int N_BOXES = 4;
         if (!useTestObjects) N_ENTITIES = 0;
         Vector3 size = new Vector3();
         Random rnd = new Random();
@@ -194,14 +230,10 @@ public class SceneLoader implements Disposable {
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(GameObject.load(
-                        boxTemplateModel, null, size, size.x, translation, new btBoxShape(size.cpy().scl(0.5f))));
-//                engine.addEntity( GameObject.load(boxTemplateModel, null, size, size.x, translation));
+                engine.addEntity(boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
             } else {
-
-//                engine.addEntity((new GameObject(sphereTemplateModel, new Vector3(size.x, size.x, size.x), new btSphereShape(size.x * 0.5f))).create(size.x, translation));
-                engine.addEntity(GameObject.load(sphereTemplateModel, null, new Vector3(size.x, size.x, size.x),
-                        size.x, translation, new btSphereShape(size.x * 0.5f)));
+                engine.addEntity(boxTemplate.create(sphereTemplateModel,
+                        null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
 
@@ -209,14 +241,9 @@ public class SceneLoader implements Disposable {
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
         Vector3 s = new Vector3(1, 1, 1); // scale
         if (useTestObjects) {
-            // GameObject primitiveObject = new GameObject(primitivesModel, new Vector3(1, 1, 1));
-            engine.addEntity(
-                    GameObject.load(primitivesModel, "cone", s, 0.5f, t, new btConeShape(0.5f, 2.0f))); // 1f, 2f, 1f
-            engine.addEntity(
-                    GameObject.load(primitivesModel, "capsule", s, 0.5f, t, new btCapsuleShape(0.5f, 0.5f * 2.0f))); // 0.5f, 2f
-            engine.addEntity(
-                    GameObject.load(primitivesModel, "cylinder", s, 0.5f, t,
-                            new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f)))); // 1f, 2f, 1f
+            engine.addEntity(coneTemplate.create(primitivesModel, "cone",0.5f, t, s));
+            engine.addEntity(capsuleTemplate.create(primitivesModel, "capsule", 0.5f, t, s));
+            engine.addEntity(cylinderTemplate.create(primitivesModel, "cylinder", 0.5f, t, s));
         }
 
 
@@ -259,11 +286,7 @@ if (true) {
 
     public static void createTestObjects(Engine engine){
 
-//        btCollisionShape shape = null; // new btBoxShape(size.cpy().scl(0.5f))
-//        Vector3 size = null; // new Vector3(40, 2, 40);
-//        engine.addEntity(GameObject.loadKinematicEntity(sceneModel, "Platform", shape, null, null));
-//        engine.addEntity(GameObject.load(testCubeModel, "Platform001", shape, null, size)); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
-//        engine.addEntity(GameObject.load(testCubeModel, "Platform001")); // this works
+        engine.addEntity(GameObject.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(GameObject.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate");
@@ -277,20 +300,22 @@ if (true) {
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
-
-        final float yTrans = -10.0f;
-
-        engine.addEntity(GameObject.load(testCubeModel, "Cube"));  // "static" cube
-
+/* this works, but it could share a single size Shape which it does not
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(0, 0 + 4, 0 - 15f), sz));
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-2, 0 + 4, 0 - 15f), sz));
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-4, 0 + 4, 0 - 15f), sz));
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(0, 0 + 6, 0 - 15f), sz));
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-2, 0 + 6, 0 - 15f), sz));
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-4, 0 + 6, 0 - 15f), sz));
+*/
         float r = 16;
-        engine.addEntity(GameObject.load(sphereTemplateModel, null, new btSphereShape(r * 0.5f),
+        final float yTrans = -10.0f;
+        engine.addEntity(sphereTemplate.create(sphereTemplateModel, null,0,
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
-
-        engine.addEntity(BoxObject.load(boxTemplateModel, null,
+        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
-
-        //        engine.addEntity(BoxObject.load(primitivesModel, "box",                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
-        engine.addEntity(primitiveModels.get("box").create(new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
+        engine.addEntity(boxTemplate.create(primitivesModel, "box",0,
+                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
     }
 
 
@@ -337,65 +362,35 @@ if (true) {
         return e;
     }
 
-    /*
-        a character object that tracks the given "node" ...
-     */
-    public static Entity createChaser2(Engine engine, Vector3 node) {
-
-        /*
-          (WE're using/calculating PID error term in 3D, so we could normalize this value
-          into a unit vector that would provde appropriate direction vector for applied force!
-          (NOTE: the camera "body" should NOT exert foces on other phys objects, so I THINK that
-          this is achievable simply by using mass of 0?)
-
-I make it a full phsics object controlled by forces. As a full fledged dynamics object,
-have to deal with getting "caught" in other phys structures ... possibly build some "flotation" into
-camera and have it dragged along by player as a sort of tether. Or we could use raycast between
-player and camera, and if obstacle between, we "break" the tether, allow only force on camera to
-be it's "buoyancy", and let if "float up" until free of interposing obstacles .
-        */
-
-        final float r = 4.0f;
-//        Entity e = new GameObject(primitivesModel, "sphere", new Vector3(r, r, r)).create(0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r / 2f));
-
-        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), 0.01f, new Vector3(0, 15f, -5f), new btSphereShape(r * 0.5f));
-
-        btRigidBody body = e.getComponent(BulletComponent.class).body;
-//        e.add(new CharacterComponent(                new PhysicsPIDcontrol(body, node, 0.1f, 0, 0)));
-
-        engine.addEntity(e);
-        return e;
-    }
-
-
 /*
  * extended objects ... if same shape instance could be used for multiple entities, then we need
  * the shape to be instanced in the constructor
  * Bounding box only works on mesh and doesn't work if we are scaling the mesh :(
  */
+public static class SizeableObject extends GameObject {
 
-public static class BoxObject extends GameObject {
+    // needed for method override (make this class from an interface, derived GameObject?)
+    public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+        return null;
+    }
 
-/*    public BoxObject(Model model, final String rootNodeId, Vector3 size) {
-        super(model, rootNodeId, size);
-        this.shape = new btBoxShape(size.cpy().scl(0.5f));
+/*
+ // @IN: material - call this only for objects that are colored by the material (not textured)
+
+    public static Entity load(
+            Model model, String nodeID, Material material, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+        Entity e = load(model, nodeID, shape, size, mass, translation);
+        setMaterialColor(e); // tmp test
+        return e;
     }*/
 
-/* convenience method, loader for "kinematic" box */
-    public static Entity load(Model model, String nodeID, Vector3 trans, Vector3 size) {
-
-//nope
-//         return load(model, nodeID, size, 0f, new Vector3(1, 1, 1));
-
-
-        Entity e = load(model, nodeID, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
-
-        // we need to scale the model transform for scaled "kinematic" object (but only need to scl it once)
-/*
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-        if (null != mc.scale)
-            mc.modelInst.transform.scl(mc.scale);
-*/
+    public static Entity load(
+            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+        Entity e;
+        if (0 != mass)
+            e = load(model, nodeID, size, mass, translation, shape);
+        else
+           e = load(model, nodeID, shape, translation, size);
         return e;
     }
 }
