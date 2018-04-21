@@ -13,11 +13,15 @@ import com.badlogic.gdx.math.Vector3;
 public class ModelComponent implements Component {
 
     public ModelInstance modelInst;
-    public Vector3 scale;
     public float boundingRadius = 0;
     public Vector3 center = new Vector3(); // idfk
     public boolean isShadowed = true;
 
+
+/*    public ModelComponent(Model model) {
+
+        this(new ModelInstance(model), new Vector3(1, 1, 1));
+    }*/
 
     public ModelComponent(Model model, Vector3 scale) {
 
@@ -29,10 +33,9 @@ public class ModelComponent implements Component {
         this.modelInst = instance;
 
         if (null != scale) {
-            this.scale = new Vector3(scale);
-        }
-        else{
-//            this.scale = new Vector3(1, 1, 1); // I wonder if this has any ramification?
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+            instance.nodes.get(0).scale.set(scale);
+            instance.calculateTransforms();
         }
 /*
         BoundingBox boundingBox = new BoundingBox();

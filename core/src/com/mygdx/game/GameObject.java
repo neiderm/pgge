@@ -27,11 +27,6 @@ public class GameObject {
     public GameObject() {
     }
 
-    public GameObject(Model model, String nodeID) {
-        this.model = model;
-        this.rootNodeId = nodeID;
-    }
-
     private GameObject(Model model, Vector3 size) {
         this.model = model;
         this.size = size;
@@ -43,10 +38,6 @@ public class GameObject {
     }
 
 
-    // needed for method override (make this class from an interface)
-    public Entity create(Vector3 trans, Vector3 size) {
-        return null;
-    }
 
     public Entity create(float mass, Vector3 translation) {
         return create(mass, translation, this.shape);
@@ -71,30 +62,12 @@ public class GameObject {
         return load(model, rootNodeId, size, new Vector3(0, 0, 0));
     }*/
 
-////////////// TODO:
-    // this should only be called with size argument for entities having resized (primitive) shapes,
-    // and FWIW may only need for kinematic, as they are not affected by bullet since they don't have motion state
-//////////////
-    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation, int tmp) {
-
-        Entity e = load(model, rootNodeId, translation);
-
-        ModelComponent mc = e.getComponent(ModelComponent.class);
-        if (null != size) {
-            mc.modelInst.transform.scl(size);
-//            mc.scale = size;
-        }
-
-        return e;
-    }
-
     private static Entity load(Model model, String rootNodeId, Vector3 translation){
 
         return load(model, rootNodeId, new Vector3(1, 1, 1), translation);
     }
-////////////
 
-    private static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
+    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
         Entity e = new Entity();
 
@@ -127,10 +100,6 @@ public class GameObject {
         Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-/*        if (null != size){
-            instance.transform.scl(size); // if mesh must be scaled, do it before creating the hull shape
-        }*/
-
         if (null != nodeID) {
             if (null == shape) { // "Platform001"
                 shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
@@ -140,15 +109,6 @@ public class GameObject {
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
-/*
-        if (null != size){
-            instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
-        }
-*/
-/*
-I don't need to scale the dynamic object instances here, because they are dynamic they have to be
-re-scaled continuously anyway! But the non-dynamic, have to be scaled someone where at least once ... hmmm ..
- */
 
         return e;
     }
@@ -175,13 +135,9 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
         Vector3 dimensions = new Vector3();
         instance.calculateBoundingBox(boundingBox);
 //        boundingBox.getCenter(center);
-        boundingBox.getDimensions(dimensions);
-
-        e.add(new BulletComponent(new btBoxShape(dimensions.cpy().scl(0.5f)), instance.transform, mass));
-
-//        if (null != size){
-//            instance.transform.scl(size); // if mesh must be scaled, do it before^H^H^H^H^H^H  ?????
-//        }
+//        boundingBox.getDimensions(dimensions);
+        e.add(new BulletComponent(
+                new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f)), instance.transform, mass));
 
         return e;
     }
@@ -189,6 +145,7 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
 
     /*
      * @size: can work with "primitive" objects
+     *  https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
@@ -221,14 +178,6 @@ re-scaled continuously anyway! But the non-dynamic, have to be scaled someone wh
             the scaling!). So here we set a flag to tell renderer that it doesn't have to re-scale
             the kinematic object (need to do a "kinematic" component to deal w/ this).
              */
-        bc.sFlag = true; // no motion state, so inhibit "refresh" of mesh scaling, just do once here
-///*
-        ModelComponent mc = entity.getComponent(ModelComponent.class);
-        if (null != size) {
-            mc.modelInst.transform.scl(size);
-//            mc.scale = size;
-        }
-        //*/
 
         return entity;
     }
