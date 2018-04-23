@@ -118,10 +118,11 @@ public class SceneLoader implements Disposable {
          */
         primitiveModels = new ArrayMap<String, GameObject>(String.class, GameObject.class);
 
+        // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
+        final float primUnit = 1.0f;
+        final float primHE = 1f / 2f; // primitives half extent constant
+        final float primCapsuleHt = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
-        // TODO: enumerate the primitives and struct their "id" along with the base unit dimensions of each.
-        // array of GameObject, and then insert into the array an instance of each (anonymous sub-class) object
-        // then push all over to GameObject or somewhere else suitable
         mb.begin();
 
         mb.node().id = "sphere";
@@ -132,13 +133,13 @@ public class SceneLoader implements Disposable {
                 new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
         mb.node().id = "cone";
         mb.part("cone", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 2f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 1f, 1f, 10);
         mb.node().id = "capsule";
         mb.part("capsule", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(0.5f, 2f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * primHE, primCapsuleHt, 10); // note radius and height vs. bullet
         mb.node().id = "cylinder";
         mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 2f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
         primitivesModel = mb.end();
 
@@ -156,36 +157,49 @@ public class SceneLoader implements Disposable {
             }
         });
 */
+/* 
+  Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh. 
+  primitive meshes should use unit value (1.0) for the extent dimensions, thus those base dimensions don't have to be multiplied in explicitly in the shape sizing calculation below.
+  In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
+  Constant "primHE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
+ */
         sphereTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btSphereShape(size.x * 0.5f), size, mass, trans);
+                return load(model, rootNode, new btSphereShape(size.x * primHE), size, mass, trans);
             }
         };
         boxTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btBoxShape(size.cpy().scl(0.5f)), size, mass, trans);
+                return load(model, rootNode, new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
         coneTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btConeShape(size.x * 0.5f, size.y), size, mass, trans);
-//                return load(model, rootNode, new btConeShape(0.5f, 2.0f), size, mass, trans);
+                return load(model, rootNode, new btConeShape(size.x * primHE, size.y), size, mass, trans);
             }
         };
         capsuleTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-//                return load(model, rootNode, new btCapsuleShape(size.x, 0.5f * size.y), size, mass, trans);
-                return load(model, rootNode, new btCapsuleShape(0.5f, 0.5f * 2.0f), size, mass, trans);
+                // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
+                //  so we apply half extent factor to our size.x here.
+                float radius = size.x * primHE;
+                // btcapsuleShape total height is height+2*radius (unlike gdx capsule mesh where height specifies TOTAL height!
+                //  (http://bulletphysics.org/Bullet/BulletFull/classbtCapsuleShape.html#details)
+                // determine the equivalent bullet-compatible height parameter by explicitly scaling
+                // the base mesh height and then subtracting the (scaled) end radii
+                float height = primCapsuleHt * size.y - size.x * primHE - size.x * primHE;
+                return load(model, rootNode, new btCapsuleShape(radius, height), size, mass, trans);
             }
         };
         cylinderTemplate = new SizeableObject() {
             @Override
+            // cylinder shape apparently allow both width (x) and height (y) to be specified
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btCylinderShape(size.cpy().scl(0.5f)), size, mass, trans);
+                return load(model, rootNode, new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
     }
@@ -230,15 +244,16 @@ public class SceneLoader implements Disposable {
             if (i < N_BOXES) {
                 engine.addEntity(boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
             } else {
-                engine.addEntity(boxTemplate.create(sphereTemplateModel,
+                engine.addEntity(sphereTemplate.create(sphereTemplateModel,
                         null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
 
 
         Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
-        Vector3 s = new Vector3(1, 1, 1); // scale
+        Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
+            // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
             engine.addEntity(coneTemplate.create(primitivesModel, "cone",0.5f, t, s));
             engine.addEntity(capsuleTemplate.create(primitivesModel, "capsule", 0.5f, t, s));
             engine.addEntity(cylinderTemplate.create(primitivesModel, "cylinder", 0.5f, t, s));
@@ -250,14 +265,12 @@ public class SceneLoader implements Disposable {
         engine.addEntity(skybox);
 
 
-        final float yTrans = -10.0f;
-
         if (true) { // this slows down bullet debug drawer considerably!
-
             Entity ls = GameObject.loadTriangleMesh(landscapeModel);
             engine.addEntity(ls);
 
             // put the landscape at an angle so stuff falls of it...
+            final float yTrans = -10.0f;
             ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
             inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
 
@@ -292,12 +305,14 @@ if (true) {
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
         GameObject bo = new GameObject(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
+
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
+
 /* this works, but it could share a single size Shape which it does not
         engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(0, 0 + 4, 0 - 15f), sz));
         engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-2, 0 + 4, 0 - 15f), sz));
