@@ -142,10 +142,6 @@ public class SceneLoader implements Disposable {
 
         primitivesModel = mb.end();
 
-
-        /* might need to settle for making these static instances in a singleton class to provide
-        the templates for the scale-able primitive shapes (they can't be tied to a single model)
-         */
 /*
         primitiveModels.put("sphere", new GameObject(primitivesModel, "sphere") {
             @Override
@@ -175,19 +171,21 @@ public class SceneLoader implements Disposable {
         coneTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btConeShape(0.5f, 2.0f), size, mass, trans);
+                return load(model, rootNode, new btConeShape(size.x * 0.5f, size.y), size, mass, trans);
+//                return load(model, rootNode, new btConeShape(0.5f, 2.0f), size, mass, trans);
             }
         };
         capsuleTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+//                return load(model, rootNode, new btCapsuleShape(size.x, 0.5f * size.y), size, mass, trans);
                 return load(model, rootNode, new btCapsuleShape(0.5f, 0.5f * 2.0f), size, mass, trans);
             }
         };
         cylinderTemplate = new SizeableObject() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btCylinderShape(new Vector3(0.5f * 1.0f, 0.5f * 2.0f, 0.5f * 1.0f)), size, mass, trans);
+                return load(model, rootNode, new btCylinderShape(size.cpy().scl(0.5f)), size, mass, trans);
             }
         };
     }
@@ -342,29 +340,26 @@ if (true) {
      */
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
-        Entity e = GameObject.load(primitivesModel, "sphere",
-                new Vector3(10, 10, 10), new Vector3(0, 15f, -5f),
-                0);
+        float r = 0.5f;
+        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
 
-        // static entity not use motion state so just set the scale on it once and for all
         ModelComponent mc = e.getComponent(ModelComponent.class);
-
-//        mc.modelInst.transform.scl(mc.scale);
 
         mc.modelInst.userData = 0xaa55;
         e.add(new CharacterComponent(
-                new PIDcontrol(tgtTransform,
-                        mc.modelInst.transform,
-                        new Vector3(0, 2, 3),
-                        0.1f, 0, 0)));
+                new PIDcontrol(tgtTransform, mc.modelInst.transform, new Vector3(0, 2, 3), 0.1f, 0, 0)));
 
         engine.addEntity(e);
         return e;
     }
 
 /*
- * extended objects ... if same shape instance could be used for multiple entities, then we need
- * the shape to be instanced in the constructor
+ * extended objects ... a bullet object, optionally a "kinematic" body.
+ * primitive object templates have an appropriately sized basic bullet shape bound to them automatically
+ * by the overloaded create() method.
+ * You would want to be able set a custom material color/texture on them.
+ * if same shape instance to be used for multiple entities, then shape would need to be instanced only
+ * once in the constructor so you would need to do it a different way/ ???? investigate?.
  * Bounding box only works on mesh and doesn't work if we are scaling the mesh :(
  */
 public static class SizeableObject extends GameObject {
@@ -373,16 +368,6 @@ public static class SizeableObject extends GameObject {
     public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
         return null;
     }
-
-/*
- // @IN: material - call this only for objects that are colored by the material (not textured)
-
-    public static Entity load(
-            Model model, String nodeID, Material material, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
-        Entity e = load(model, nodeID, shape, size, mass, translation);
-        setMaterialColor(e); // tmp test
-        return e;
-    }*/
 
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {

@@ -42,8 +42,6 @@ public class BulletComponent implements Component {
 
     public float mass;
 
-    // idfk
-public boolean sFlag = false; // need to make component for static entity
     public final int id;
     public static int cnt = 0;
 

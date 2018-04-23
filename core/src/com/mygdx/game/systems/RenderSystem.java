@@ -94,24 +94,14 @@ public class RenderSystem extends EntitySystem {
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
             if (null != mc && null != bc) {
-                if (null != mc.modelInst
-                        && null != mc.scale // landscape mesh has no scale
-                        && null != bc.body) {
-                    if (bc.body.isActive()) {  // gdx bullet used to leave scaling alone which was rather useful...
+                if (null != mc.modelInst && null != bc.body) {
 
-                        if (!bc.sFlag) {
-                            mc.modelInst.transform.mul(tmpM.setToScaling(mc.scale));
-//                        mc.modelInst.transform.scl(mc.scale); // nfg idfk, should be same but objects are skewed on 1 or more axis
-                        }
-                    }
-//*
+                    // tmp, hack
                     PlayerComponent pc = e.getComponent(PlayerComponent.class);
-if (null != pc)
-{
-    ModelInstance lineInstance = raytest(mc.modelInst.transform, bc.body);
-    modelBatch.render(lineInstance, environment);
-}
-//*/
+                    if (null != pc) {
+                        ModelInstance lineInstance = raytest(mc.modelInst.transform, bc.body);
+                        modelBatch.render(lineInstance, environment);
+                    }
                 }
             }
             renderableCount += 1;
@@ -178,7 +168,7 @@ if (null != pc)
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
-    ModelInstance line(Vector3 from, Vector3 b) {
+    private ModelInstance line(Vector3 from, Vector3 b) {
 
         modelBuilder.begin();
         MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());

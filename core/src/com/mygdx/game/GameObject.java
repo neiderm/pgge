@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
@@ -159,7 +160,12 @@ public class GameObject {
         } else {
             // if shape not given then defaults to simple bounding box shape
             entity = load(model, nodeID, 0, translation);
+
+//            shape = Bullet.obtainStaticNodeShape(model.nodes); // not working for landscape platform
         }
+
+//        entity = load(model, nodeID, size, 0, translation, shape);
+
 
         // special sauce here for static entity
         // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
