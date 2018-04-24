@@ -266,7 +266,7 @@ public class SceneLoader implements Disposable {
 
 
         if (true) { // this slows down bullet debug drawer considerably!
-            Entity ls = GameObject.loadTriangleMesh(landscapeModel);
+            Entity ls = GameObject.load(landscapeModel);
             engine.addEntity(ls);
 
             // put the landscape at an angle so stuff falls of it...

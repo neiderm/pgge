@@ -121,8 +121,10 @@ public class GameObject {
         return load(model, nodeID, null, mass, null);
     }
 
-    private static Entity load(Model model, String nodeID, float mass, Vector3 translation) {
-        return load(model, nodeID, null, mass, translation);
+    public static Entity load(Model model) {
+        btBvhTriangleMeshShape shape = null;
+        //shape = new btBvhTriangleMeshShape(model.meshParts);
+        return load(model, null, shape, new Vector3(0, 0, 0), null);
     }
 
     private static Entity load(
@@ -143,33 +145,31 @@ public class GameObject {
         return e;
     }
 
-
     /*
-     * @size: can work with "primitive" objects
      *  https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
+     *  For the case of a static model, the Bullet wrapper provides a convenient method to create a collision shape of it:
+     *  But it's not exactly the right thing here
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
 
-        Entity entity;
+        if (null != shape) {
+            // have a shape so use it
+        } else if (null != size) {
+            // Convex Hull
+        } else if (null == size && null == shape) {
+//            shape = new btBvhTriangleMeshShape(model.meshParts);
+            // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill.
+            // In other situations causes issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
+            shape = Bullet.obtainStaticNodeShape(model.nodes);
 
-        if (/*null != size || */ null != shape) {
-			// if size specified e.g. (1, 1, 1 would do) then you could also leave shape null and force
-			// the convex hull to be used.
-            entity = load(model, nodeID, size, 0, translation, shape);
-        } else {
-            // if shape not given then defaults to simple bounding box shape
-            entity = load(model, nodeID, 0, translation);
-
-//            shape = Bullet.obtainStaticNodeShape(model.nodes); // not working for landscape platform
+            //TODO: check conditions and validity of obtain static shape, last resort, bounding box
+            //entity = load(model, nodeID, size, 0, translation);
         }
 
-//        entity = load(model, nodeID, size, 0, translation, shape);
-
+        Entity entity = load(model, nodeID, size, 0, translation, shape);
 
         // special sauce here for static entity
-        // called loadDynamicEntity w/ mass==0, so it's BC will NOT have a motionState (which is what we
-        // want for this object) so we do need to update the bc.body with the location vector we got from the model
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
 // set these flags in bullet comp?
@@ -177,20 +177,6 @@ public class GameObject {
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
 
-            /* need ground & landscape objects to be kinematic: once the player ball stopped and was
-            deactivated by the bullet dynamics, it would no longer move around under the applied force.
-            ONe small complication is the renderer has to know which are the active dynamic objects
-            that it has to "refresh" the scaling in the transform (because goofy bullet messes with
-            the scaling!). So here we set a flag to tell renderer that it doesn't have to re-scale
-            the kinematic object (need to do a "kinematic" component to deal w/ this).
-             */
-
         return entity;
-    }
-
-    public static Entity loadTriangleMesh(Model model) {
-
-        return load(
-                model, null, new btBvhTriangleMeshShape(model.meshParts), new Vector3(0, 0, 0), null);
     }
 }
