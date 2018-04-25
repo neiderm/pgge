@@ -290,7 +290,7 @@ if (true) {
     final Mesh mesh = shipModel.meshes.get(0);
     boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
 }
-        player = GameObject.load(model, node, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+        player = GameObject.load(model, node, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
         player.add(new PlayerComponent());
         return player;
     }

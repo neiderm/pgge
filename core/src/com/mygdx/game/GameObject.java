@@ -28,44 +28,21 @@ public class GameObject {
     public GameObject() {
     }
 
-    private GameObject(Model model, Vector3 size) {
+    public GameObject(Model model, Vector3 size, btCollisionShape shape) {
         this.model = model;
         this.size = size;
-    }
-
-    public GameObject(Model model, Vector3 size, btCollisionShape shape) {
-        this(model, size);
         this.shape = shape;
     }
 
 
-
     public Entity create(float mass, Vector3 translation) {
-        return create(mass, translation, this.shape);
-    }
-
-    private Entity create(float mass, Vector3 translation, btCollisionShape shape) {
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
 
     public static Entity load(Model model, String rootNodeId){
-        //return load(model, rootNodeId, null);
         // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
-//        return load(model, rootNodeId, new Vector3(0, 0, 0));
-// return load(model, rootNodeId, null, new Vector3(0, 0, 0)); // where ..............
-        return load(model, rootNodeId, new Vector3(0, 0, 0)); // where ..............
-    }
-
-/*    private static Entity load(Model model, String rootNodeId, Vector3 size){
-//        return load(model, rootNodeId, scale, null);
-// note: to do-no-harm here, the translation of 0,0,0 would need to be an offset (as opposed to absolute)
-        return load(model, rootNodeId, size, new Vector3(0, 0, 0));
-    }*/
-
-    private static Entity load(Model model, String rootNodeId, Vector3 translation){
-
-        return load(model, rootNodeId, new Vector3(1, 1, 1), translation);
+        return load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
     }
 
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
@@ -81,8 +58,7 @@ public class GameObject {
 
         // leave translation null if using translation from the model layout 
         if (null != translation) {
-            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-            instance.transform.trn(translation);
+            e.getComponent(ModelComponent.class).modelInst.transform.trn(translation);
         }
         else
             translation = null; // GN: tmp  // throw new GdxRuntimeException("?");
@@ -90,10 +66,6 @@ public class GameObject {
         return e;
     }
 
-    public static Entity load(
-            Model model, String nodeID, float mass, Vector3 translation, btCollisionShape shape) {
-        return load(model, nodeID, null, mass, translation, shape);
-    }
 
     public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
@@ -114,23 +86,13 @@ public class GameObject {
         return e;
     }
 
+    // call this method last resort
+// private static void eMakeBulletComp(Entity e, Model model, String nodeID, Vector3 size, float mass, Vector3 translation)
     /*
        work around for "gaps" around convex hull cube shapes created from mesh :(
     */
     public static Entity load(Model model, String nodeID, float mass) {
-        return load(model, nodeID, null, mass, null);
-    }
-
-    public static Entity load(Model model) {
-        btBvhTriangleMeshShape shape = null;
-        //shape = new btBvhTriangleMeshShape(model.meshParts);
-        return load(model, null, shape, new Vector3(0, 0, 0), null);
-    }
-
-    private static Entity load(
-            Model model, String nodeID, Vector3 size, float mass, Vector3 translation) {
-
-        Entity e = load(model, nodeID, size, translation);
+        Entity e = load(model, nodeID, null, null);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();
@@ -145,10 +107,18 @@ public class GameObject {
         return e;
     }
 
+
+    public static Entity load(Model model) {
+        btCollisionShape shape = null;
+        //shape = new btBvhTriangleMeshShape(model.meshParts);
+        return load(model, null, shape, new Vector3(0, 0, 0), null);
+    }
+
     /*
-     *  https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
-     *  For the case of a static model, the Bullet wrapper provides a convenient method to create a collision shape of it:
-     *  But it's not exactly the right thing here
+     *  For the case of a static model, the Bullet wrapper provides a convenient method to create a
+     *  collision shape of it:
+     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
+     *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
@@ -160,7 +130,6 @@ public class GameObject {
         } else if (null == size && null == shape) {
 //            shape = new btBvhTriangleMeshShape(model.meshParts);
             // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill.
-            // In other situations causes issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
             shape = Bullet.obtainStaticNodeShape(model.nodes);
 
             //TODO: check conditions and validity of obtain static shape, last resort, bounding box
