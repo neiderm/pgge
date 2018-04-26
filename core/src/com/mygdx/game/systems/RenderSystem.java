@@ -19,7 +19,6 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -32,8 +31,6 @@ public class RenderSystem extends EntitySystem {
 
     public int visibleCount;
     public int renderableCount;
-    private Vector3 tmpV = new Vector3();
-    private Matrix4 tmpM = new Matrix4();
 
     private Environment environment;
     private PerspectiveCamera cam;
@@ -92,27 +89,23 @@ public class RenderSystem extends EntitySystem {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
             BulletComponent bc = e.getComponent(BulletComponent.class);
-
-            if (null != mc && null != bc) {
-                if (null != mc.modelInst && null != bc.body) {
+            if (null != mc) {
+                if (null != bc && null != mc.modelInst && null != bc.body) {
 
                     // tmp, hack
                     PlayerComponent pc = e.getComponent(PlayerComponent.class);
                     if (null != pc) {
-                        ModelInstance lineInstance = raytest(mc.modelInst.transform, bc.body);
+
+                        ModelInstance lineInstance = raytest(mc.modelInst.transform);
                         modelBatch.render(lineInstance, environment);
                     }
                 }
-            }
-            renderableCount += 1;
+                renderableCount += 1;
 
-            mc.modelInst.transform.getTranslation(tmpV);
-            tmpV.add(mc.center);
-            if (true){
-//            if (cam.frustum.sphereInFrustum(mc.modelInst.transform.getTranslation(tmpV), mc.boundingRadius)) {
-//            if (cam.frustum.pointInFrustum(mc.modelInst.transform.getTranslation(tmpV))) {
-                visibleCount += 1;
-                modelBatch.render(mc.modelInst, environment);
+                if (isVisible(cam, mc)) {
+                    visibleCount += 1;
+                    modelBatch.render(mc.modelInst, environment);
+                }
             }
         } // for
         modelBatch.end();
@@ -124,9 +117,8 @@ public class RenderSystem extends EntitySystem {
 
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            if (null != mc && null != mc.modelInst) {
-                if (mc.isShadowed)
-                    shadowBatch.render(mc.modelInst);
+            if (null != mc && null != mc.modelInst && mc.isShadowed) {
+                shadowBatch.render(mc.modelInst);
             }
         }
         shadowBatch.end();
@@ -134,20 +126,18 @@ public class RenderSystem extends EntitySystem {
 //***/
     }
 
+    private boolean isVisible(PerspectiveCamera cam, ModelComponent  mc) {
+        mc.modelInst.transform.getTranslation(position);
+        return cam.frustum.boundsInFrustum(position, mc.dimensions);
+    }
 
     private Vector3 axis = new Vector3();
     private Vector3 down = new Vector3();
     private Vector3 position = new Vector3();
     Quaternion rotation = new Quaternion();
 
-    private ModelInstance raytest(
-                                  Matrix4 transform,
-//                                  PlayerComponent pc,
-                                  btRigidBody body) {
-/*
-        body.getWorldTransform(transform);
-        rotation = body.getOrientation();
-*/
+    private ModelInstance raytest(Matrix4 transform) {
+
         transform.getRotation(rotation);
 
         down.set(0, -1, 0);
@@ -156,7 +146,6 @@ public class RenderSystem extends EntitySystem {
         down.rotateRad(axis, rad);
 
         transform.getTranslation(position);
-//        transform.getTranslation(position);
 
         return line(position, down);
 //        return line(position, pc.down);

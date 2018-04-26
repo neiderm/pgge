@@ -18,7 +18,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.SceneLoader;
 import com.mygdx.game.SliderForceControl;
 
 import java.util.Random;
@@ -43,8 +42,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     /* kinetic friction? ... ground/landscape is not dynamic and doesn't provide friction!
      * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
      * passed as parameter to the friction computation .
-      * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
-      * velocity seems to be limited and constant ... go look up the math eventually */
+     * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
+     * velocity seems to be limited and constant ... go look up the math eventually */
     private static final float MU = 0.5f;
 
     //    private Engine engine;
@@ -74,7 +73,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
     }
-
 
 
     public final ChangeListener touchPadChangeListener =
@@ -130,8 +128,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         Quaternion r = bc.body.getOrientation();
 
         forceVect.set(0, 0, -1);
-    float rad = r.getAxisAngleRad(axis);
-    forceVect.rotateRad(axis, rad);
+        float rad = r.getAxisAngleRad(axis);
+        forceVect.rotateRad(axis, rad);
 
 
         if (playerComp.inpVect.y > DZ) {
@@ -153,7 +151,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         // check for contact w/ surface, only apply force if in contact, not falling
         if (surfaceContact(
                 bc.collisionWorld, playerComp,
-                tmpV, bc.body.getOrientation())){
+                tmpV, bc.body.getOrientation())) {
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -175,10 +173,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private Vector3 axis = new Vector3();
 //    private Vector3 down = new Vector3();
 
-    boolean surfaceContact(
-            btCollisionWorld myCollisionWorld,
-            PlayerComponent pc,
-            Vector3 bodyTranslation, Quaternion bodyOrientation) {
+    private boolean surfaceContact(btCollisionWorld myCollisionWorld,
+                                   PlayerComponent pc, Vector3 bodyTranslation, Quaternion bodyOrientation) {
 
         btCollisionObject rayPickObject;
 
