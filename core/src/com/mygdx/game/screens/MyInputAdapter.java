@@ -2,9 +2,9 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.InputReceiverSystem;
 
 
@@ -20,11 +20,19 @@ import com.mygdx.game.InputReceiverSystem;
      *   inputSystem:update() would handle (what would presumably) be one certain entity that should
      *   respond to inputs (note: input response not necessarily limited to the player, as maybe we
      *   would want to also drive inputs to e.g. guided missile ;)
+     *
+     *
+     *   Each inputAdapter can be a specific input fucntionality ... e.g. this one is to be
+     *   "Touch aiming viewport action" .... maybe it could be generalized for touch presses on
+     *   game screen in general.
      */
 class MyInputAdapter extends InputAdapter {
+//class MyInputAdapter extends Stage {
 
-    public static final int TOUCH_BOX_W = Gdx.graphics.getWidth() / 4;
-    public static final int TOUCH_BOX_H = TOUCH_BOX_W; // Gdx.graphics.getHeight() / 4;
+//    public static final int TOUCH_BOX_W = Gdx.graphics.getWidth() / 4;
+//    public static final int TOUCH_BOX_H = TOUCH_BOX_W; // Gdx.graphics.getHeight() / 4;
+    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
+    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     // TODO: multiple input receiver systems
     private InputReceiverSystem registeredSystem;
@@ -33,17 +41,11 @@ class MyInputAdapter extends InputAdapter {
     private int touchUpCt = 0;
     private boolean isTouchInPad = false;
 
-    // create a location rectangle for touchbox (in terms of screen coordinates!)
-    private Rectangle touchBoxRect = new Rectangle(
-            Gdx.graphics.getWidth() / 2 - TOUCH_BOX_W / 2,
-            Gdx.graphics.getHeight() - TOUCH_BOX_H,
-            TOUCH_BOX_W, TOUCH_BOX_H);
+    // create a location rectangle for touch ara (in terms of screen coordinates!)
+    private Rectangle touchBoxRect =
+            new Rectangle(0, GAME_BOX_H / 4.0f, GAME_BOX_W, (GAME_BOX_H / 4) * 3);
 
-    private Circle touchBoxCircle =
-            new Circle(Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() - TOUCH_BOX_H /2, 10);
-
-
-    private Vector2 ctr = new Vector2();
+    private Vector2 xy = new Vector2();
 
 
     public void registerSystem(InputReceiverSystem system){
@@ -53,71 +55,20 @@ class MyInputAdapter extends InputAdapter {
 
     Vector2 tmpV2 = new Vector2();
 
-    private Vector2 setVector(int screenX, int screenY) {
-
-        float normalize = (TOUCH_BOX_H / 2);
-        touchBoxRect.getCenter(ctr);
-
-        tmpV2.x = (screenX - ctr.x) / normalize;
-        tmpV2.y = (screenY - ctr.y) / normalize;
-        return tmpV2;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-        if (touchBoxRect.contains(screenX, screenY)) {
-
-
-            if (touchBoxCircle.contains(screenX, screenY)) {
-                registeredSystem.onButton();
-            }
-
-
-            Gdx.app.log(this.getClass().getName(),
-                    String.format("touchDown%d x = %d y = %d", touchDownCt++, screenX, screenY));
-
-            isTouchInPad = true;
-            registeredSystem.onTouchDown(setVector(screenX, screenY));
-
-            return true;
-        }
-        else {
-//            cameraSystem.isActive = false;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-
-        if (touchBoxRect.contains(screenX, screenY)) {
-
-//                Gdx.app.log(this.g0etClass().getName(), String.format("x = %d y = %d", screenX, screenY));
-            isTouchInPad = true;
-
-            registeredSystem.onTouchDragged(setVector(screenX, screenY));
-
-            return true;
-
-        } else if (isTouchInPad) {
-            // still touching, but out of bounds, so escape it
-//                isTouchInPad = false; // keep handling the touch, but no movement, and no transition to camera movement until touch is released
-//                playerComp.vvv = new Vector3(0,0,0); // let motion continue while touch down?
-            return true;
-        }
-        return false;
-    }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 
-        Gdx.app.log(this.getClass().getName(),
-                String.format("touch up %d x = %d y = %d", touchUpCt++, screenX, screenY));
+        if (touchBoxRect.contains(screenX, screenY)) {
 
-        if (isTouchInPad) {
-            isTouchInPad = false;
-            registeredSystem.onTouchUp(new Vector2(0, 0));
+            Gdx.app.log(this.getClass().getName(),
+                    String.format("touchDown x = %d y = %d", screenX, screenY));
+//            Ray ray = cam.getPickRay(screenX, screenY);
+            //GameObject.applyPickRay(ray); // objects register themselves with Gameobject:objectsArray at creation
+
+            if (null != registeredSystem)
+                registeredSystem.onTouchUp(xy.set(screenX, screenY));
+
             return true;
         }
         return false;

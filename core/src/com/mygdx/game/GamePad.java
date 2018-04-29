@@ -22,28 +22,39 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class GamePad extends Stage {
 
+    // copy ....
+    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
+    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
+
     private ImageButton buttonA;
     private ImageButton buttonB;
     private ImageButton buttonX;
     private ImageButton buttonY;
     private ImageButton buttonL;
     private ImageButton buttonR;
+    private ImageButton buttonGS;
     Touchpad touchpad;
 
     public GamePad (
             ChangeListener touchPadChangeListener,
             InputListener buttonAListener,
-            InputListener buttonBListener) {
+            InputListener buttonBListener
+    ,            InputListener buttonGSListener
+    ) {
 
         createGamePad(touchPadChangeListener,
                 buttonAListener,
-                buttonBListener);
+                buttonBListener,
+         buttonGSListener
+        );
     }
 
     private void createGamePad(
             ChangeListener touchPadChangeListener,
             InputListener buttonAListener,
-            InputListener buttonBListener) {
+            InputListener buttonBListener,
+            InputListener buttonGSListener
+    ) {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
@@ -96,17 +107,25 @@ public class GamePad extends Stage {
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
-        this.buttonA = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        this.buttonA = new ImageButton(myTexRegionDrawable);
         buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         buttonA.addListener(buttonAListener);
 
-        this.buttonB = new ImageButton(myTexRegionDrawable); //Set the buttonA up
+        this.buttonB = new ImageButton(myTexRegionDrawable);
         buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
         buttonB.addListener(buttonBListener);
+
+///*
+//       this.buttonGS = new ImageButton(touchBackground);
+       this.buttonGS = new ImageButton(myTexRegionDrawable);
+        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) , (Gdx.graphics.getHeight() / 2f));
+        buttonGS.addListener(buttonGSListener);
+        //*/
 
         this.clear();
         this.addActor(touchpad);
         this.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
         this.addActor(buttonB);
+        this.addActor(buttonGS);
     }
 }

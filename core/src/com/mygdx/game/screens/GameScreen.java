@@ -98,17 +98,19 @@ public class GameScreen implements Screen {
         stage = new GamePad(
                 playerSystem.touchPadChangeListener,
                 playerSystem.actionButtonListener,
-                buttonBListener);
+                buttonBListener,
+                buttonGSListener
+        );
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
         multiplexer = new InputMultiplexer();
-/*
+///*
         MyInputAdapter inputAdapter = new MyInputAdapter();
-        inputAdapter.registerSystem(playerSystem);
-        multiplexer.addProcessor(inputAdapter);
-*/
+        inputAdapter.registerSystem(null ); // playerSystem
+//        multiplexer.addProcessor(inputAdapter);
+//*/
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
@@ -120,7 +122,9 @@ public class GameScreen implements Screen {
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
 
-        label = new Label(" ", new Label.LabelStyle(font, Color.WHITE));
+
+        // ok so you can add a label to the stage
+        label = new Label("", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
 
 
@@ -134,6 +138,17 @@ public class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
     }
+
+
+    public final InputListener buttonGSListener = new InputListener() {
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            Gdx.app.log(this.getClass().getName(),
+                    String.format("touchDown x = %d y = %d", x, y));
+//            Ray ray = cam.getPickRay(screenX, screenY);
+            //GameObject.applyPickRay(ray); // objects register themselves with Gameobject:objectsArray at creation
+        }
+    };
 
 
     public final InputListener buttonBListener = new InputListener() {
@@ -283,8 +298,8 @@ public class GameScreen implements Screen {
 
         // HACKME HACK HACK
         if (!isPaused) {
-    sceneLoader.dispose(); // static dispose models
-}
+            sceneLoader.dispose(); // static dispose models
+        }
     }
 
     void trash(){
