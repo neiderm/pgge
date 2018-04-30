@@ -140,13 +140,22 @@ public class GameScreen implements Screen {
     }
 
 
+    private boolean camCtrlrActive = false;
+
     public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            Gdx.app.log(this.getClass().getName(),
-                    String.format("touchDown x = %d y = %d", x, y));
-//            Ray ray = cam.getPickRay(screenX, screenY);
-            //GameObject.applyPickRay(ray); // objects register themselves with Gameobject:objectsArray at creation
+        }
+
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+            // only do this if FPV mode (i.e. cam controller is not handling game window input)
+            if (!camCtrlrActive) {
+                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
+                sceneLoader.applyPickRay(cam.getPickRay(x, y));
+            }
+            return true;
         }
     };
 
@@ -155,9 +164,9 @@ public class GameScreen implements Screen {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            boolean isController = cameraSystem.nextOpMode();
+            camCtrlrActive = cameraSystem.nextOpMode();
 
-            if (isController)
+            if (camCtrlrActive)
                 multiplexer.addProcessor(camController);
             else
                 multiplexer.removeProcessor(camController);
@@ -167,7 +176,6 @@ public class GameScreen implements Screen {
 
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-
         }
     };
 

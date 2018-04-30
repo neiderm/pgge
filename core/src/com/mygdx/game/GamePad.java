@@ -23,8 +23,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 public class GamePad extends Stage {
 
     // copy ....
-    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
-    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
+    //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
+    //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private ImageButton buttonA;
     private ImageButton buttonB;
@@ -115,12 +115,20 @@ public class GamePad extends Stage {
         buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
         buttonB.addListener(buttonBListener);
 
-///*
-//       this.buttonGS = new ImageButton(touchBackground);
+
+
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);
+
+        //       this.buttonGS = new ImageButton(touchBackground);
+        myTexture = new Texture(button);
+        myTextureRegion = new TextureRegion(myTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+
        this.buttonGS = new ImageButton(myTexRegionDrawable);
-        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) , (Gdx.graphics.getHeight() / 2f));
+        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) - 75 /* bottom left */, (Gdx.graphics.getHeight() / 2f) + 25);
         buttonGS.addListener(buttonGSListener);
-        //*/
 
         this.clear();
         this.addActor(touchpad);

@@ -17,6 +17,7 @@ public class ModelComponent implements Component {
     public Vector3 center = new Vector3(); // idfk
     public boolean isShadowed = true;
     public Vector3 dimensions = new Vector3();
+    public BoundingBox boundingBox;
 
 /*    public ModelComponent(Model model) {
 
@@ -38,7 +39,7 @@ public class ModelComponent implements Component {
             instance.calculateTransforms();
         }
 
-        BoundingBox boundingBox = instance.calculateBoundingBox(new BoundingBox());
+        boundingBox = instance.calculateBoundingBox(new BoundingBox());
         boundingBox.getDimensions(this.dimensions);
         boundingBox.getCenter(this.center);
         boundingRadius = this.dimensions.len() / 2f;

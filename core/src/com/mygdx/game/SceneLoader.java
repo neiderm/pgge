@@ -15,8 +15,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -128,6 +130,7 @@ public class SceneLoader implements Disposable {
         mb.node().id = "sphere";
         mb.part("sphere", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
+//                new Material(ColorAttribute.createDiffuse(Color.GREEN), IntAttribute.createCullFace(GL_BACK))).sphere(1f, 1f, 1f, 10, 10);
         mb.node().id = "box";
         mb.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
@@ -205,7 +208,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void setMaterialColor(Entity e){
+    private static void setMaterialColor(Entity e, Color c){
         Random rnd = new Random();
         Array<Color> colors = new Array<Color>();
 
@@ -222,7 +225,9 @@ public class SceneLoader implements Disposable {
         Material mat = inst.materials.get(0);
         if (null == mat)
             return; // throw new GdxRuntimeException("not found");
-        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
+//        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
+
+        mat.set(ColorAttribute.createDiffuse(c));
     }
 
     public static void createEntities(Engine engine) {
@@ -254,9 +259,9 @@ public class SceneLoader implements Disposable {
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            engine.addEntity(coneTemplate.create(primitivesModel, "cone",0.5f, t, s));
-            engine.addEntity(capsuleTemplate.create(primitivesModel, "capsule", 0.5f, t, s));
-            engine.addEntity(cylinderTemplate.create(primitivesModel, "cylinder", 0.5f, t, s));
+            addPickObject(engine, coneTemplate.create(primitivesModel, "cone", 0.5f, t, s));
+            addPickObject(engine, capsuleTemplate.create(primitivesModel, "capsule", 0.5f, t, s));
+            addPickObject(engine, cylinderTemplate.create(primitivesModel, "cylinder", 0.5f, t, s));
         }
 
 
@@ -380,6 +385,7 @@ if (true) {
 public static class SizeableObject extends GameObject {
 
     // needed for method override (make this class from an interface, derived GameObject?)
+    // can't override declare static method in anonymous inner class
     public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
         return null;
     }
@@ -407,5 +413,31 @@ public static class SizeableObject extends GameObject {
         ballTemplateModel.dispose();
         primitivesModel.dispose();
         assets.dispose();
+    }
+
+    // tmp tmp hack hack
+    public static final Array<Entity> pickObjects = new Array<Entity>();
+
+    private static void addPickObject(Engine engine, Entity e) {
+        engine.addEntity(e);
+        pickObjects.add(e);
+    }
+
+    private static Vector3 position = new Vector3();
+    private static Vector3 dimensions = new Vector3();
+
+    public void applyPickRay(Ray ray) {
+        for (Entity e : pickObjects) {
+
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+
+            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+            instance.transform.getTranslation(position);
+            if (Intersector.intersectRayBoundsFast(
+                    ray, position, mc.boundingBox.getDimensions(dimensions))) {
+
+                setMaterialColor(e, Color.RED);
+            }
+        }
     }
 }
