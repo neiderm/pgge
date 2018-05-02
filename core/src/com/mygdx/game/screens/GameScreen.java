@@ -85,8 +85,8 @@ public class GameScreen implements Screen {
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
         cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
-        cam.position.set(3f, 7f, 10f);
-        cam.lookAt(0, 4, 0);
+//        cam.position.set(3f, 7f, 10f);
+//        cam.lookAt(0, 4, 0);
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
@@ -153,7 +153,14 @@ public class GameScreen implements Screen {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!camCtrlrActive) {
                 Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
-                sceneLoader.applyPickRay(cam.getPickRay(x, y));
+
+// tmp hack: offset button x,y to screen x,y (button origin on bottom left) 
+float xx = (Gdx.graphics.getWidth() / 2f) - 75 ;
+float yy = (Gdx.graphics.getHeight() / 2f) + 25;
+float nX = xx + x;
+float nY = yy + y;
+
+                sceneLoader.applyPickRay(cam.getPickRay(nX, nY));
             }
             return true;
         }
@@ -222,7 +229,7 @@ public class GameScreen implements Screen {
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
         engine.addSystem(playerSystem = new PlayerSystem());
-        cameraSystem = new CameraSystem(cam);
+        cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
     }

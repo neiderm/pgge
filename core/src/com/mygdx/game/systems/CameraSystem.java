@@ -183,12 +183,12 @@ public class CameraSystem extends EntitySystem {
         currentLookAtV.set(lookAt);
     }
 
-    public CameraSystem(PerspectiveCamera cam) {
+    public CameraSystem(PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
 
         this.cam = cam;
 
-        Vector3 posV = new Vector3(3, 7, 10);
-        Vector3 lookAtV = new Vector3(0, 4, 0);
+        Vector3 posV = new Vector3(pos);
+        Vector3 lookAtV = new Vector3(lookAt);
 // we don't really use the transform matrix for fixed camera
 //        Matrix4 pos = new Matrix4();
 //        Matrix4 look = new Matrix4();
