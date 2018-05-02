@@ -51,8 +51,6 @@ public class SceneLoader implements Disposable {
     public static final Model sceneModel;
     public static final Model boxTemplateModel;
     public static final Model sphereTemplateModel;
-    private static Model ballTemplateModel;
-    private static Model tankTemplateModel;
     public static final Model testCubeModel;
     public static final ArrayMap<String, GameObject> primitiveModels;
 
@@ -84,15 +82,6 @@ public class SceneLoader implements Disposable {
         Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
         sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
-        Texture ballTex = new Texture(Gdx.files.internal("data/Ball8.jpg"), false);
-        ballTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(ballTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
-        tankTemplateModel = mb.createBox(tankSize.x, tankSize.y, tankSize.z,
-                new Material(TextureAttribute.createDiffuse(ballTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         assets = new AssetManager();
@@ -207,6 +196,7 @@ public class SceneLoader implements Disposable {
         };
     }
 
+static int nextColor = 0;
 
     private static void setMaterialColor(Entity e, Color c){
         Random rnd = new Random();
@@ -227,7 +217,18 @@ public class SceneLoader implements Disposable {
             return; // throw new GdxRuntimeException("not found");
 //        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
 
-        mat.set(ColorAttribute.createDiffuse(c));
+nextColor += 1;
+if (nextColor >= colors.size) {nextColor = 0;}
+mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
+
+        ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
+
+        for (Color color : colors) {
+            if (ca.color != color) {
+                //mat.set(ColorAttribute.createDiffuse(color));
+                break;
+            }
+        }
     }
 
     public static void createEntities(Engine engine) {
@@ -255,7 +256,7 @@ public class SceneLoader implements Disposable {
         }
 
 
-        Vector3 t = new Vector3(0, 0 + 25f, 0 - 5f);
+        Vector3 t = new Vector3(-10, +15f, -15f);
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
@@ -295,7 +296,7 @@ if (true) {
     final Mesh mesh = shipModel.meshes.get(0);
     boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
 }
-        player = GameObject.load(model, node, null, 5.1f, new Vector3(0, 15f, -5f), boxshape);
+        player = GameObject.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
         player.add(new PlayerComponent());
         return player;
     }
@@ -407,10 +408,8 @@ public static class SizeableObject extends GameObject {
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
         sceneModel.dispose();
-        tankTemplateModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
-        ballTemplateModel.dispose();
         primitivesModel.dispose();
         assets.dispose();
     }
@@ -424,18 +423,30 @@ public static class SizeableObject extends GameObject {
     }
 
     private static Vector3 position = new Vector3();
-    private static Vector3 dimensions = new Vector3();
 
+    public float intersects(ModelComponent mc, Ray ray) {
+
+        float radius = mc.boundingRadius;
+        mc.modelInst.transform.getTranslation(position).add(mc.center);
+        final float len = ray.direction.dot(position.x-ray.origin.x, position.y-ray.origin.y, position.z-ray.origin.z);
+        if (len < 0f)
+            return -1f;
+        float dist2 = position.dst2(ray.origin.x+ray.direction.x*len, ray.origin.y+ray.direction.y*len, ray.origin.z+ray.direction.z*len);
+        return (dist2 <= radius * radius) ? dist2 : -1f;
+    }
+
+    float crap;
     public void applyPickRay(Ray ray) {
+
         for (Entity e : pickObjects) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-
             ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
             instance.transform.getTranslation(position);
-            if (Intersector.intersectRayBoundsFast(
-                    ray, position, mc.boundingBox.getDimensions(dimensions))) {
 
+            crap = intersects(mc, ray);
+//            if (Intersector.intersectRayBoundsFast(ray, position, mc.dimensions)) {
+            if ((crap) > 0f){
                 setMaterialColor(e, Color.RED);
             }
         }
