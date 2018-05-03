@@ -99,6 +99,8 @@ public class RenderSystem extends EntitySystem {
                         ModelInstance lineInstance = raytest(mc.modelInst.transform);
                         modelBatch.render(lineInstance, environment);
                     }
+                    if (null != testRayLine) // tmp hack
+                        modelBatch.render(testRayLine, environment);
                 }
                 renderableCount += 1;
 
@@ -126,6 +128,12 @@ public class RenderSystem extends EntitySystem {
 //***/
     }
 
+    /*
+       https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+         to use radius:
+          mc.modelInst.transform.getTranslation(position);
+          cam.frustum.sphereInFrustum(position, mc.boundingRadius );
+    */
     private boolean isVisible(PerspectiveCamera cam, ModelComponent  mc) {
         mc.modelInst.transform.getTranslation(position);
         return cam.frustum.boundsInFrustum(position, mc.dimensions);
@@ -147,29 +155,28 @@ public class RenderSystem extends EntitySystem {
 
         transform.getTranslation(position);
 
-        return line(position, down);
-//        return line(position, pc.down);
+        return line(position, down, Color.RED);
     }
 
-
-    private Vector3 to = new Vector3();
-    private ModelBuilder modelBuilder = new ModelBuilder();
+    public static ModelInstance testRayLine;
+    private static Vector3 to = new Vector3();
+    private static ModelBuilder modelBuilder = new ModelBuilder();
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
-    private ModelInstance line(Vector3 from, Vector3 b) {
-
-        modelBuilder.begin();
-        MeshPartBuilder builder = modelBuilder.part("line", 1, 3, new Material());
-        builder.setColor(Color.RED);
+    private static ModelInstance line(Vector3 from, Vector3 b, Color c) {
 
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
+        return lineTo(from, to, c);
+    }
 
-        builder.line(from, to);
+    public static ModelInstance lineTo(Vector3 from, Vector3 too, Color c) {
 
+        modelBuilder.begin();
+        MeshPartBuilder lineBuilder = modelBuilder.part("line", 1, 3, new Material());
+        lineBuilder.setColor(c);
+        lineBuilder.line(from, too);
         Model lineModel = modelBuilder.end();
-        ModelInstance lineInstance = new ModelInstance(lineModel);
-
-        return lineInstance;
+        return  new ModelInstance(lineModel);
     }
 }

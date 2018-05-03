@@ -32,6 +32,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.systems.RenderSystem;
 
 import java.util.Random;
 
@@ -231,6 +232,9 @@ mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
         }
     }
 
+
+    public static Entity pickObject;
+
     public static void createEntities(Engine engine) {
 
         int N_ENTITIES = 10;
@@ -257,12 +261,17 @@ mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
 
 
         Vector3 t = new Vector3(-10, +15f, -15f);
-        Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
+        Vector3 s = new Vector3(1, 1.5f, 1); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            addPickObject(engine, coneTemplate.create(primitivesModel, "cone", 0.5f, t, s));
-            addPickObject(engine, capsuleTemplate.create(primitivesModel, "capsule", 0.5f, t, s));
-            addPickObject(engine, cylinderTemplate.create(primitivesModel, "cylinder", 0.5f, t, s));
+            addPickObject(engine, coneTemplate.create(primitivesModel, "cone", 5f, t, s));
+            addPickObject(engine, capsuleTemplate.create(primitivesModel, "capsule", 5f, t, s));
+            addPickObject(engine, cylinderTemplate.create(primitivesModel, "cylinder", 5f, t, s));
+            pickObject =
+                    addPickObject(engine, boxTemplate.create(primitivesModel, "box", 5f, t, s));
+
+            ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
+            tmp.id = 65535;
         }
 
 
@@ -417,23 +426,37 @@ public static class SizeableObject extends GameObject {
     // tmp tmp hack hack
     public static final Array<Entity> pickObjects = new Array<Entity>();
 
-    private static void addPickObject(Engine engine, Entity e) {
+    private static Entity addPickObject(Engine engine, Entity e) {
         engine.addEntity(e);
         pickObjects.add(e);
+        return e; // for method call chaining
     }
 
     private static Vector3 position = new Vector3();
 
-    public float intersects(ModelComponent mc, Ray ray) {
+    public static float intersects(ModelComponent mc, Ray ray) {
 
         float radius = mc.boundingRadius;
-        mc.modelInst.transform.getTranslation(position).add(mc.center);
-        final float len = ray.direction.dot(position.x-ray.origin.x, position.y-ray.origin.y, position.z-ray.origin.z);
-        if (len < 0f)
-            return -1f;
-        float dist2 = position.dst2(ray.origin.x+ray.direction.x*len, ray.origin.y+ray.direction.y*len, ray.origin.z+ray.direction.z*len);
-        return (dist2 <= radius * radius) ? dist2 : -1f;
+//        mc.modelInst.transform.getTranslation(position).add(mc.center);
+        mc.modelInst.transform.getTranslation(position);
+
+        if (mc.id == 65535) {
+            RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
+//            RenderSystem.testRayLine = RenderSystem.line(new Vector3(0,-10,-20), new Vector3(0,10,-20), Color.LIME);
+        }
+
+        float distance = -1f;
+        float dist2;
+
+        dist2 = ray.origin.dst2(position);
+
+        if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
+            //result = i;
+            distance = dist2;
+        }
+        return distance;
     }
+
 
     float crap;
     public void applyPickRay(Ray ray) {
@@ -441,11 +464,15 @@ public static class SizeableObject extends GameObject {
         for (Entity e : pickObjects) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-            instance.transform.getTranslation(position);
+            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+            inst.transform.getTranslation(position);
 
             crap = intersects(mc, ray);
 //            if (Intersector.intersectRayBoundsFast(ray, position, mc.dimensions)) {
+
+            Gdx.app.log(this.getClass().getName(),
+                    String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)", mc.id, crap, position.x, position.y, position.z ));
+
             if ((crap) > 0f){
                 setMaterialColor(e, Color.RED);
             }
