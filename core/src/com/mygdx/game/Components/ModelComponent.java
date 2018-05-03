@@ -18,6 +18,8 @@ public class ModelComponent implements Component {
     public boolean isShadowed = true;
     public Vector3 dimensions = new Vector3();
     public BoundingBox boundingBox;
+    public int id = 0;
+    public static int instcnt = 0;
 
 /*    public ModelComponent(Model model) {
 
@@ -31,6 +33,8 @@ public class ModelComponent implements Component {
 
     public ModelComponent(ModelInstance instance, Vector3 scale) {
 
+        this.id = ++instcnt;
+
         this.modelInst = instance;
 
         if (null != scale) {
@@ -43,10 +47,5 @@ public class ModelComponent implements Component {
         boundingBox.getDimensions(this.dimensions);
         boundingBox.getCenter(this.center);
         boundingRadius = this.dimensions.len() / 2f;
-        /*
-         to use radius:
-          mc.modelInst.transform.getTranslation(position);
-          cam.frustum.sphereInFrustum(position, mc.boundingRadius );
-*/
     }
 }
