@@ -152,7 +152,7 @@ public class GameScreen implements Screen {
 
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!camCtrlrActive) {
-                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
+//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
 
 // tmp hack: offset button x,y to screen x,y (button origin on bottom left) 
 float xx = (Gdx.graphics.getWidth() / 2f) - 75 ;
@@ -189,10 +189,10 @@ float nY = yy + y;
 
     private void addEntities() {
 
-        sceneLoader.createEntities(engine);
-        sceneLoader.createTestObjects(engine);
+        SceneLoader.createEntities(engine);
+        SceneLoader.createTestObjects(engine);
 
-        Entity player = sceneLoader.createPlayer();
+        Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
 
 
@@ -209,7 +209,7 @@ float nY = yy + y;
 ///*
         Matrix4 plyrTransform = player.getComponent(ModelComponent.class).modelInst.transform;
 
-        playerChaser = sceneLoader.createChaser1(engine, plyrTransform);
+        playerChaser = SceneLoader.createChaser1(engine, plyrTransform);
 
         cameraSystem.setCameraNode("chaser1",
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
@@ -243,6 +243,8 @@ float nY = yy + y;
     @Override
     public void render(float delta) {
 
+        String s;
+
         camController.update();
 
         // game box viewport
@@ -261,7 +263,6 @@ float nY = yy + y;
         //if (null != playerBody)
         {
             Vector3 forceVect = PlayerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
-            String s;
             s = String.format("%+2.1f %+2.1f %+2.1f",
                     forceVect.x, forceVect.y, forceVect.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
@@ -278,6 +279,14 @@ float nY = yy + y;
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
 
+        //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
+        stringBuilder.setLength(0);
+        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
+        stringBuilder.append(" Visible: ").append(renderSystem.visibleCount);
+        stringBuilder.append(" / ").append(renderSystem.renderableCount);
+        //label.setText(stringBuilder);
+        font.draw(batch, stringBuilder, 0, 10);
+
         batch.end();
 
 //        shapeRenderer.setProjectionMatrix ????
@@ -291,13 +300,6 @@ float nY = yy + y;
         shapeRenderer.end();
         shapeRenderer.end();
 
-
-        stringBuilder.setLength(0);
-        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
-        stringBuilder.append(" Visible: ").append(renderSystem.visibleCount);
-        stringBuilder.append(" / ").append(renderSystem.renderableCount);
-
-        label.setText(stringBuilder);
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
     }
