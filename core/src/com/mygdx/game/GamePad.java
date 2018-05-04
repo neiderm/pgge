@@ -126,8 +126,9 @@ public class GamePad extends Stage {
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
-       this.buttonGS = new ImageButton(myTexRegionDrawable);
-        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) - 75 /* bottom left */, (Gdx.graphics.getHeight() / 2f) + 25);
+        this.buttonGS = new ImageButton(myTexRegionDrawable);
+        /* bottom left */
+        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         buttonGS.addListener(buttonGSListener);
 
         this.clear();

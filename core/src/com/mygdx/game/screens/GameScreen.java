@@ -154,11 +154,9 @@ public class GameScreen implements Screen {
             if (!camCtrlrActive) {
 //                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
 
-// tmp hack: offset button x,y to screen x,y (button origin on bottom left) 
-float xx = (Gdx.graphics.getWidth() / 2f) - 75 ;
-float yy = (Gdx.graphics.getHeight() / 2f) + 25;
-float nX = xx + x;
-float nY = yy + y;
+// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
                 sceneLoader.applyPickRay(cam.getPickRay(nX, nY));
             }
