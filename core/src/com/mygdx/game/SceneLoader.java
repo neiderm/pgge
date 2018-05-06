@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -197,7 +198,7 @@ public class SceneLoader implements Disposable {
         };
     }
 
-static int nextColor = 0;
+private static int nextColor = 0;
 
     private static void setMaterialColor(Entity e, Color c){
         Random rnd = new Random();
@@ -218,9 +219,17 @@ static int nextColor = 0;
             return; // throw new GdxRuntimeException("not found");
 //        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
 
-nextColor += 1;
-if (nextColor >= colors.size) {nextColor = 0;}
-mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
+        nextColor += 1;
+        if (nextColor >= colors.size) {
+            nextColor = 0;
+        }
+        mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
+
+
+        BlendingAttribute blendingAttribute =
+                new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, 0.5f);
+        mat.set(blendingAttribute);
+
 
         ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
 
@@ -261,7 +270,7 @@ mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
 
 
         Vector3 t = new Vector3(-10, +15f, -15f);
-        Vector3 s = new Vector3(1, 1.5f, 1); // scale (w, h, d, but usually should w==d )
+        Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
             addPickObject(engine, coneTemplate.create(primitivesModel, "cone", 5f, t, s));
@@ -437,8 +446,7 @@ public static class SizeableObject extends GameObject {
     public static float intersects(ModelComponent mc, Ray ray) {
 
         float radius = mc.boundingRadius;
-//        mc.modelInst.transform.getTranslation(position).add(mc.center);
-        mc.modelInst.transform.getTranslation(position);
+        mc.modelInst.transform.getTranslation(position).add(mc.center);
 
         if (mc.id == 65535) {
             RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
