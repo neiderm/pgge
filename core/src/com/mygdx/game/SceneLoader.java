@@ -29,6 +29,7 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -224,7 +225,13 @@ private static int nextColor = 0;
         colors.add(Color.YELLOW);
         colors.add(Color.PURPLE);
 
+        // hmmm, w/ alt. pick test, now getting null somtimes?
+        if (null == e){
+            return; //  throw new GdxRuntimeException("e == null ");
+        }
+
         ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+
         Material mat = inst.materials.get(0);
         if (null == mat)
             return; // throw new GdxRuntimeException("not found");
@@ -474,18 +481,40 @@ public static class SizeableObject extends GameObject {
                 RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
             }
 
-            float dist2 = ray.origin.dst2(position);
+if (false) {
+    float dist2 = ray.origin.dst2(position);
 
-/*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
+    if (distance >= 0f && dist2 > distance)
+        continue;
+
+    if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
+        picked = e;
+        distance = dist2;
+    }
+}else{
+    final float len = ray.direction.dot(
+            position.x - ray.origin.x,
+            position.y - ray.origin.y,
+            position.z - ray.origin.z);
+
+    if (len < 0f)
+        continue;
+
+    float dist2 = position.dst2(
+            ray.origin.x + ray.direction.x * len,
+            ray.origin.y + ray.direction.y * len,
+            ray.origin.z + ray.direction.z * len);
+
+    if (distance >= 0f && dist2 > distance)
+        continue;
+
+    if (dist2 <= mc.boundingRadius * mc.boundingRadius) {
+        picked = e;
+        distance = dist2;
+    }
+}
+            /*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
                     mc.id, distance, position.x, position.y, position.z ));*/
-
-            if (distance >= 0f && dist2 > distance)
-                continue;
-
-            if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
-                picked = e;
-                distance = dist2;
-            }
         }
         setMaterialColor(picked, Color.RED);
     }
