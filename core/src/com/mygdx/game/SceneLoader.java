@@ -198,12 +198,25 @@ public class SceneLoader implements Disposable {
         };
     }
 
+
+    private static void setObjectMaterial(ModelInstance inst, Color c, float alpha){
+
+        Material mat = inst.materials.get(0);
+        if (null == mat)
+            return; // throw new GdxRuntimeException("not found");
+
+        mat.set(ColorAttribute.createDiffuse(c));
+
+        BlendingAttribute blendingAttribute =
+                new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alpha);
+        mat.set(blendingAttribute);
+    }
+
 private static int nextColor = 0;
 
     private static void setMaterialColor(Entity e, Color c){
-        Random rnd = new Random();
-        Array<Color> colors = new Array<Color>();
 
+        Array<Color> colors = new Array<Color>();
         colors.add(Color.WHITE);
         colors.add(Color.BLUE);
         colors.add(Color.RED);
@@ -211,34 +224,27 @@ private static int nextColor = 0;
         colors.add(Color.YELLOW);
         colors.add(Color.PURPLE);
 
-        int i = rnd.nextInt(colors.size - 1);
-
         ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
         Material mat = inst.materials.get(0);
         if (null == mat)
             return; // throw new GdxRuntimeException("not found");
-//        mat.set(ColorAttribute.createDiffuse(colors.get(i)));
 
         nextColor += 1;
         if (nextColor >= colors.size) {
             nextColor = 0;
         }
-        mat.set(ColorAttribute.createDiffuse(colors.get(nextColor)));
-
-
-        BlendingAttribute blendingAttribute =
-                new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, 0.5f);
-        mat.set(blendingAttribute);
-
 
         ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
 
         for (Color color : colors) {
             if (ca.color != color) {
-                //mat.set(ColorAttribute.createDiffuse(color));
+                mat.set(ColorAttribute.createDiffuse(color));
                 break;
             }
         }
+
+        setObjectMaterial(
+                e.getComponent(ModelComponent.class).modelInst, colors.get(nextColor), 0.5f);
     }
 
 
@@ -351,8 +357,12 @@ if (true) {
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
         engine.addEntity(boxTemplate.create(boxTemplateModel, null,0,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
-        engine.addEntity(boxTemplate.create(primitivesModel, "box",0,
-                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f)));
+
+        Entity e = boxTemplate.create(primitivesModel, "box",0,
+                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+        setObjectMaterial(
+                e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
+        engine.addEntity(e);
     }
 
 
@@ -411,11 +421,14 @@ public static class SizeableObject extends GameObject {
 
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+
         Entity e;
+
         if (0 != mass)
             e = load(model, nodeID, size, mass, translation, shape);
         else
            e = load(model, nodeID, shape, translation, size);
+
         return e;
     }
 }
@@ -424,7 +437,7 @@ public static class SizeableObject extends GameObject {
     public void dispose() {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-//  Disposing the primitivesModel will automatically make all instances invalid!
+//  Disposing the model will automatically make all instances invalid!
         sceneModel.dispose();
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
@@ -433,7 +446,7 @@ public static class SizeableObject extends GameObject {
     }
 
     // tmp tmp hack hack
-    public static final Array<Entity> pickObjects = new Array<Entity>();
+    private static final Array<Entity> pickObjects = new Array<Entity>();
 
     private static Entity addPickObject(Engine engine, Entity e) {
         engine.addEntity(e);
@@ -443,43 +456,37 @@ public static class SizeableObject extends GameObject {
 
     private static Vector3 position = new Vector3();
 
-    public static float intersects(ModelComponent mc, Ray ray) {
+    /*
+     * https://xoppa.github.io/blog/interacting-with-3d-objects/
+     */
+    private static float intersects(ModelComponent mc, Ray ray) {
 
         float radius = mc.boundingRadius;
         mc.modelInst.transform.getTranslation(position).add(mc.center);
 
         if (mc.id == 65535) {
             RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
-//            RenderSystem.testRayLine = RenderSystem.line(new Vector3(0,-10,-20), new Vector3(0,10,-20), Color.LIME);
         }
 
         float distance = -1f;
-        float dist2;
-
-        dist2 = ray.origin.dst2(position);
+        float dist2 = ray.origin.dst2(position);
 
         if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
-            //result = i;
             distance = dist2;
         }
+
+        Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
+                mc.id, distance, position.x, position.y, position.z ));
+
         return distance;
     }
 
 
-    float crap;
     public void applyPickRay(Ray ray) {
 
         for (Entity e : pickObjects) {
 
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
-            inst.transform.getTranslation(position);
-
-            crap = intersects(mc, ray);
-//            if (Intersector.intersectRayBoundsFast(ray, position, mc.dimensions)) {
-
-            Gdx.app.log(this.getClass().getName(),
-                    String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)", mc.id, crap, position.x, position.y, position.z ));
+            float crap = intersects(e.getComponent(ModelComponent.class), ray);
 
             if ((crap) > 0f){
                 setMaterialColor(e, Color.RED);
