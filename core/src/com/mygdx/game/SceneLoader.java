@@ -459,38 +459,34 @@ public static class SizeableObject extends GameObject {
     /*
      * https://xoppa.github.io/blog/interacting-with-3d-objects/
      */
-    private static float intersects(ModelComponent mc, Ray ray) {
-
-        float radius = mc.boundingRadius;
-        mc.modelInst.transform.getTranslation(position).add(mc.center);
-
-        if (mc.id == 65535) {
-            RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
-        }
-
-        float distance = -1f;
-        float dist2 = ray.origin.dst2(position);
-
-        if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
-            distance = dist2;
-        }
-
-        Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
-                mc.id, distance, position.x, position.y, position.z ));
-
-        return distance;
-    }
-
-
     public void applyPickRay(Ray ray) {
+
+        Entity picked = null;
+        float distance = -1f;
 
         for (Entity e : pickObjects) {
 
-            float crap = intersects(e.getComponent(ModelComponent.class), ray);
+            ModelComponent mc = e.getComponent(ModelComponent.class);
 
-            if ((crap) > 0f){
-                setMaterialColor(e, Color.RED);
+            mc.modelInst.transform.getTranslation(position).add(mc.center);
+
+            if (mc.id == 65535) {
+                RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
+            }
+
+            float dist2 = ray.origin.dst2(position);
+
+/*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
+                    mc.id, distance, position.x, position.y, position.z ));*/
+
+            if (distance >= 0f && dist2 > distance)
+                continue;
+
+            if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
+                picked = e;
+                distance = dist2;
             }
         }
+        setMaterialColor(picked, Color.RED);
     }
 }
