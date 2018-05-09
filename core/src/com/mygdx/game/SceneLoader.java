@@ -29,7 +29,6 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -325,7 +324,7 @@ if (true) {
     node = null;
     model = shipModel;
     final Mesh mesh = shipModel.meshes.get(0);
-    boxshape = EntityBuilder.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+    boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
 }
         player = GameObject.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
         player.add(new PlayerComponent());
@@ -512,7 +511,7 @@ if (false) {
         picked = e;
         distance = dist2;
     }
-}
+} // if ....
             /*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
                     mc.id, distance, position.x, position.y, position.z ));*/
         }

@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.Components.BulletComponent;
@@ -50,7 +49,7 @@ public class GameObject {
         Entity e = new Entity();
 
         if (null != rootNodeId) {
-            ModelInstance instance = EntityBuilder.getModelInstance(model, rootNodeId);
+            ModelInstance instance = MeshHelper.getModelInstance(model, rootNodeId);
             e.add(new ModelComponent(instance, size));
         } else {
             e.add(new ModelComponent(model, size));
@@ -75,7 +74,7 @@ public class GameObject {
 
         if (null != nodeID) {
             if (null == shape) { // "Platform001"
-                shape = EntityBuilder.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
+                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
             }
         }else{
             nodeID = null; // does it?
@@ -92,6 +91,7 @@ public class GameObject {
        work around for "gaps" around convex hull cube shapes created from mesh :(
     */
     public static Entity load(Model model, String nodeID, float mass) {
+
         Entity e = load(model, nodeID, null, null);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 

@@ -16,9 +16,9 @@ import java.nio.FloatBuffer;
  * Created by mango on 3/24/18.
  */
 
-public class EntityBuilder {
+public class MeshHelper {
 
-    private EntityBuilder() {
+    private MeshHelper() {
     }
 
     /*
