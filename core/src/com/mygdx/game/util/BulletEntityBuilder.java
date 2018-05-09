@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.util;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -17,19 +17,15 @@ import com.mygdx.game.Components.ModelComponent;
  * Created by mango on 4/1/18.
  */
 
-public class GameObject {
+public class BulletEntityBuilder extends BaseEntityBuilder {
 
-    public Model model;
-    public Vector3 size;
-    public String rootNodeId;
-    public btCollisionShape shape;
+    private btCollisionShape shape;
 
-    public GameObject() {
+    public BulletEntityBuilder() {
     }
 
-    public GameObject(Model model, Vector3 size, btCollisionShape shape) {
-        this.model = model;
-        this.size = size;
+    public BulletEntityBuilder(Model model, Vector3 size, btCollisionShape shape) {
+        super(model, size);
         this.shape = shape;
     }
 
@@ -37,34 +33,6 @@ public class GameObject {
     public Entity create(float mass, Vector3 translation) {
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
-
-
-    public static Entity load(Model model, String rootNodeId){
-        // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
-        return load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
-    }
-
-    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
-    {
-        Entity e = new Entity();
-
-        if (null != rootNodeId) {
-            ModelInstance instance = MeshHelper.getModelInstance(model, rootNodeId);
-            e.add(new ModelComponent(instance, size));
-        } else {
-            e.add(new ModelComponent(model, size));
-        }
-
-        // leave translation null if using translation from the model layout 
-        if (null != translation) {
-            e.getComponent(ModelComponent.class).modelInst.transform.trn(translation);
-        }
-        else
-            translation = null; // GN: tmp  // throw new GdxRuntimeException("?");
-
-        return e;
-    }
-
 
     public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {

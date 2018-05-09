@@ -33,7 +33,11 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.util.BaseEntityBuilder;
+import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.EntityBuilder;
+import com.mygdx.game.util.MeshHelper;
 
 import java.util.Random;
 
@@ -54,7 +58,7 @@ public class SceneLoader implements Disposable {
     public static final Model boxTemplateModel;
     public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
-    public static final ArrayMap<String, GameObject> primitiveModels;
+    public static final ArrayMap<String, EntityBuilder> primitiveModels;
 
     public static SizeableObject sphereTemplate;
     public static SizeableObject boxTemplate;
@@ -109,7 +113,7 @@ public class SceneLoader implements Disposable {
           which will in turn correctly call
            load(Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size)
          */
-        primitiveModels = new ArrayMap<String, GameObject>(String.class, GameObject.class);
+        primitiveModels = new ArrayMap<String, EntityBuilder>(String.class, EntityBuilder.class);
 
         // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
         final float primUnit = 1.0f;
@@ -296,13 +300,13 @@ private static int nextColor = 0;
         }
 
 
-        Entity skybox = GameObject.load(sceneModel, "space");
+        Entity skybox = BaseEntityBuilder.load(sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
 
         if (true) { // this slows down bullet debug drawer considerably!
-            Entity ls = GameObject.load(landscapeModel);
+            Entity ls = BulletEntityBuilder.load(landscapeModel);
             engine.addEntity(ls);
 
             // put the landscape at an angle so stuff falls of it...
@@ -326,21 +330,21 @@ if (true) {
     final Mesh mesh = shipModel.meshes.get(0);
     boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
 }
-        player = GameObject.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
+        player = BulletEntityBuilder.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
         player.add(new PlayerComponent());
         return player;
     }
 
     public static void createTestObjects(Engine engine){
 
-        engine.addEntity(GameObject.load(testCubeModel, "Cube"));  // "static" cube
-        engine.addEntity(GameObject.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+        engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
+        engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate");
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
-        GameObject bo = new GameObject(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
+        BulletEntityBuilder bo = new BulletEntityBuilder(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
 
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
@@ -382,7 +386,7 @@ if (true) {
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(rootNodeId)) {
-                engine.addEntity(GameObject.load(model, id, 0.1f));
+                engine.addEntity(BulletEntityBuilder.load(model, id, 0.1f));
             }
         }
     }
@@ -396,7 +400,7 @@ if (true) {
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
         float r = 0.5f;
-        Entity e = GameObject.load(primitivesModel, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
+        Entity e = BaseEntityBuilder.load(primitivesModel, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
 
         ModelComponent mc = e.getComponent(ModelComponent.class);
 
@@ -417,7 +421,7 @@ if (true) {
  * once in the constructor so you would need to do it a different way/ ???? investigate?.
  * Bounding box only works on mesh and doesn't work if we are scaling the mesh :(
  */
-public static class SizeableObject extends GameObject {
+public static class SizeableObject extends BulletEntityBuilder {
 
     // needed for method override (make this class from an interface, derived GameObject?)
     // can't override declare static method in anonymous inner class

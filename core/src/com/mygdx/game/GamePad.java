@@ -35,27 +35,19 @@ public class GamePad extends Stage {
     private ImageButton buttonGS;
     Touchpad touchpad;
 
-    public GamePad (
-            ChangeListener touchPadChangeListener,
-            InputListener buttonAListener,
-            InputListener buttonBListener
-    ,            InputListener buttonGSListener
+    public GamePad(ChangeListener touchPadChangeListener,
+                   InputListener buttonAListener, InputListener buttonBListener, InputListener buttonGSListener
     ) {
-
         createGamePad(touchPadChangeListener,
                 buttonAListener,
                 buttonBListener,
-         buttonGSListener
+                buttonGSListener
         );
     }
 
-    private void createGamePad(
-            ChangeListener touchPadChangeListener,
-            InputListener buttonAListener,
-            InputListener buttonBListener,
-            InputListener buttonGSListener
+    private void createGamePad(ChangeListener touchPadChangeListener, InputListener buttonAListener,
+                               InputListener buttonBListener,InputListener buttonGSListener
     ) {
-
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
         Drawable touchBackground;
@@ -95,7 +87,6 @@ public class GamePad extends Stage {
         touchpad.addListener(touchPadChangeListener);
 
 
-
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
@@ -114,7 +105,6 @@ public class GamePad extends Stage {
         this.buttonB = new ImageButton(myTexRegionDrawable);
         buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
         buttonB.addListener(buttonBListener);
-
 
 
         button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);

@@ -1,9 +1,7 @@
-package com.mygdx.game.Managers;
+package com.mygdx.game.util;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.EntityBuilder;
-import com.mygdx.game.GameObject;
 
 //import static com.mygdx.game.GameObject.loadKinematicEntity;
 
@@ -19,7 +17,7 @@ import com.mygdx.game.GameObject;
  engine.addEntity(dynFactory.createS(new BoxObject(primitivesModel, "box", new Vector3(4f, 1f, 4f)), new Vector3(0, 10, -5)));
  */
 
-public /* abstract */ class EntityFactory<T extends GameObject> {
+public /* abstract */ class EntityFactory<T extends BulletEntityBuilder> {
 
     // model? not sure what other instance data
 
@@ -45,7 +43,7 @@ public /* abstract */ class EntityFactory<T extends GameObject> {
     }
 
 
-    public static class DynEntFact<T extends GameObject> extends EntityFactory {
+    public static class DynEntFact<T extends BulletEntityBuilder> extends EntityFactory {
         /*
                 DynEntFact(T object){
                     super(object);
