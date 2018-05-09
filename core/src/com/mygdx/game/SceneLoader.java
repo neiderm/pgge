@@ -27,17 +27,16 @@ import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
-import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.util.EntityBuilder;
 import com.mygdx.game.util.MeshHelper;
+import com.mygdx.game.util.SizeableEntityBuilder;
 
 import java.util.Random;
 
@@ -58,13 +57,13 @@ public class SceneLoader implements Disposable {
     public static final Model boxTemplateModel;
     public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
-    public static final ArrayMap<String, EntityBuilder> primitiveModels;
+//    public static final ArrayMap<String, EntityBuilder> primitiveModels;
 
-    public static SizeableObject sphereTemplate;
-    public static SizeableObject boxTemplate;
-    public static SizeableObject coneTemplate;
-    public static SizeableObject capsuleTemplate;
-    public static SizeableObject cylinderTemplate;
+    public static SizeableEntityBuilder sphereTemplate;
+    public static SizeableEntityBuilder boxTemplate;
+    public static SizeableEntityBuilder coneTemplate;
+    public static SizeableEntityBuilder capsuleTemplate;
+    public static SizeableEntityBuilder cylinderTemplate;
 
     private SceneLoader() {
         //super();
@@ -113,12 +112,8 @@ public class SceneLoader implements Disposable {
           which will in turn correctly call
            load(Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size)
          */
-        primitiveModels = new ArrayMap<String, EntityBuilder>(String.class, EntityBuilder.class);
+//        primitiveModels = new ArrayMap<String, EntityBuilder>(String.class, EntityBuilder.class);
 
-        // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
-        final float primUnit = 1.0f;
-        final float primHE = 1f / 2f; // primitives half extent constant
-        final float primCapsuleHt = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
         mb.begin();
 
@@ -134,7 +129,7 @@ public class SceneLoader implements Disposable {
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 1f, 1f, 10);
         mb.node().id = "capsule";
         mb.part("capsule", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * primHE, primCapsuleHt, 10); // note radius and height vs. bullet
+                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * SizeableEntityBuilder.primHE, SizeableEntityBuilder.primCapsuleHt, 10); // note radius and height vs. bullet
         mb.node().id = "cylinder";
         mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
@@ -161,25 +156,25 @@ public class SceneLoader implements Disposable {
   In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
   Constant "primHE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
  */
-        sphereTemplate = new SizeableObject() {
+        sphereTemplate = new SizeableEntityBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
                 return load(model, rootNode, new btSphereShape(size.x * primHE), size, mass, trans);
-            }
+    }
         };
-        boxTemplate = new SizeableObject() {
+        boxTemplate = new SizeableEntityBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
                 return load(model, rootNode, new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
-        coneTemplate = new SizeableObject() {
+        coneTemplate = new SizeableEntityBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
                 return load(model, rootNode, new btConeShape(size.x * primHE, size.y), size, mass, trans);
             }
         };
-        capsuleTemplate = new SizeableObject() {
+        capsuleTemplate = new SizeableEntityBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
                 // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
@@ -193,7 +188,7 @@ public class SceneLoader implements Disposable {
                 return load(model, rootNode, new btCapsuleShape(radius, height), size, mass, trans);
             }
         };
-        cylinderTemplate = new SizeableObject() {
+        cylinderTemplate = new SizeableEntityBuilder() {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
@@ -411,37 +406,6 @@ if (true) {
         engine.addEntity(e);
         return e;
     }
-
-/*
- * extended objects ... a bullet object, optionally a "kinematic" body.
- * primitive object templates have an appropriately sized basic bullet shape bound to them automatically
- * by the overloaded create() method.
- * You would want to be able set a custom material color/texture on them.
- * if same shape instance to be used for multiple entities, then shape would need to be instanced only
- * once in the constructor so you would need to do it a different way/ ???? investigate?.
- * Bounding box only works on mesh and doesn't work if we are scaling the mesh :(
- */
-public static class SizeableObject extends BulletEntityBuilder {
-
-    // needed for method override (make this class from an interface, derived GameObject?)
-    // can't override declare static method in anonymous inner class
-    public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-        return null;
-    }
-
-    public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
-
-        Entity e;
-
-        if (0 != mass)
-            e = load(model, nodeID, size, mass, translation, shape);
-        else
-           e = load(model, nodeID, shape, translation, size);
-
-        return e;
-    }
-}
 
     @Override
     public void dispose() {
