@@ -2,20 +2,15 @@ package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -32,6 +27,7 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
+import com.mygdx.game.util.PrimitivesModel;
 import com.mygdx.game.util.SizeableEntityBuilder;
 
 import java.util.Random;
@@ -45,13 +41,10 @@ public class SceneLoader implements Disposable {
     public static final SceneLoader instance = new SceneLoader();
 
     private static boolean useTestObjects = true;
-    private static Model primitivesModel;
     private static final AssetManager assets;
     public static final Model landscapeModel;
     public static final Model shipModel;
     public static final Model sceneModel;
-    public static final Model boxTemplateModel;
-    public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
 
 
@@ -60,24 +53,10 @@ public class SceneLoader implements Disposable {
     }
 
     public void init() { // ?????????
-
         //super.init();
     }
 
-    static Vector3 tankSize = new Vector3(1, 1, 2);
-
     static {
-        final ModelBuilder mb = new ModelBuilder();
-
-        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        boxTemplateModel = mb.createBox(1f, 1f, 1f,
-                new Material(TextureAttribute.createDiffuse(cubeTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
@@ -94,32 +73,10 @@ public class SceneLoader implements Disposable {
 //        shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
-
-
-        mb.begin();
-
-        mb.node().id = "sphere";
-        mb.part("sphere", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
-//                new Material(ColorAttribute.createDiffuse(Color.GREEN), IntAttribute.createCullFace(GL_BACK))).sphere(1f, 1f, 1f, 10, 10);
-        mb.node().id = "box";
-        mb.part("box", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
-        mb.node().id = "cone";
-        mb.part("cone", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 1f, 1f, 10);
-        mb.node().id = "capsule";
-        mb.part("capsule", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * SizeableEntityBuilder.primHE, SizeableEntityBuilder.primCapsuleHt, 10); // note radius and height vs. bullet
-        mb.node().id = "cylinder";
-        mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
-                new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
-
-        primitivesModel = mb.end();
     }
 
 
-    private static void setObjectMaterial(ModelInstance inst, Color c, float alpha){
+    private static void setObjectMatlClr(ModelInstance inst, Color c, float alpha){
 
         Material mat = inst.materials.get(0);
         if (null == mat)
@@ -131,6 +88,18 @@ public class SceneLoader implements Disposable {
                 new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alpha);
         mat.set(blendingAttribute);
     }
+
+/*    private static void setObjectMatlTex(ModelInstance inst, Texture tex){
+
+        Material mat = inst.materials.get(0);
+        if (null == mat)
+            return; // throw new GdxRuntimeException("not found");
+
+mat.remove(ColorAttribute.Diffuse);
+mat.remove(BlendingAttribute.Type);
+        mat.set(TextureAttribute.createDiffuse(tex));
+    }*/
+
 
 private static int nextColor = 0;
 
@@ -169,12 +138,12 @@ private static int nextColor = 0;
             }
         }
 
-        setObjectMaterial(
+        setObjectMatlClr(
                 e.getComponent(ModelComponent.class).modelInst, colors.get(nextColor), 0.5f);
     }
 
 
-    public static Entity pickObject;
+    private static Entity pickObject;
 
     public static void createEntities(Engine engine) {
 
@@ -193,9 +162,9 @@ private static int nextColor = 0;
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
+                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.boxTemplateModel, null, size.x, translation, size));
             } else {
-                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel,
+                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(PrimitivesModel.sphereTemplateModel,
                         null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
@@ -205,11 +174,11 @@ private static int nextColor = 0;
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            addPickObject(engine, SizeableEntityBuilder.coneTemplate.create(primitivesModel, "cone", 5f, t, s));
-            addPickObject(engine, SizeableEntityBuilder.capsuleTemplate.create(primitivesModel, "capsule", 5f, t, s));
-            addPickObject(engine, SizeableEntityBuilder.cylinderTemplate.create(primitivesModel, "cylinder", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.coneTemplate.create(PrimitivesModel.model, "cone", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.capsuleTemplate.create(PrimitivesModel.model, "capsule", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.cylinderTemplate.create(PrimitivesModel.model, "cylinder", 5f, t, s));
             pickObject =
-                    addPickObject(engine, SizeableEntityBuilder.boxTemplate.create(primitivesModel, "box", 5f, t, s));
+                    addPickObject(engine, SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 5f, t, s));
 
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
             tmp.id = 65535;
@@ -260,7 +229,7 @@ if (true) {
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
-        BulletEntityBuilder bo = new BulletEntityBuilder(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
+        BulletEntityBuilder bo = new BulletEntityBuilder(PrimitivesModel.boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
 
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
@@ -279,15 +248,22 @@ if (true) {
 */
         float r = 16;
         final float yTrans = -10.0f;
-        engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel, null,0,
-                new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
-        engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null,0,
-                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
+        Entity e;
 
-        Entity e = SizeableEntityBuilder.boxTemplate.create(primitivesModel, "box",0,
+        e = SizeableEntityBuilder.sphereTemplate.create(PrimitivesModel.sphereTemplateModel, null, 0,
+                new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
+//        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+        engine.addEntity(e);
+
+        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.boxTemplateModel, null, 0,
+//        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 0,
+                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
+//        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+        engine.addEntity(e);
+
+        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box",0,
                 new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
-        setObjectMaterial(
-                e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
+        setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
         engine.addEntity(e);
     }
 
@@ -316,7 +292,7 @@ if (true) {
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
         float r = 0.5f;
-        Entity e = BaseEntityBuilder.load(primitivesModel, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
+        Entity e = BaseEntityBuilder.load(PrimitivesModel.model, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
 
         ModelComponent mc = e.getComponent(ModelComponent.class);
 
@@ -331,13 +307,13 @@ if (true) {
     @Override
     public void dispose() {
 
+        PrimitivesModel.trash(); // hack, call static method
+
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
         sceneModel.dispose();
-        sphereTemplateModel.dispose();
-        boxTemplateModel.dispose();
-        primitivesModel.dispose();
-SizeableEntityBuilder.dispose();
+// hackhackhack
+        SizeableEntityBuilder.dispose();
         assets.dispose();
     }
 
