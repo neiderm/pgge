@@ -21,11 +21,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btConeShape;
-import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
-import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
@@ -57,13 +53,7 @@ public class SceneLoader implements Disposable {
     public static final Model boxTemplateModel;
     public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
-//    public static final ArrayMap<String, EntityBuilder> primitiveModels;
 
-    public static SizeableEntityBuilder sphereTemplate;
-    public static SizeableEntityBuilder boxTemplate;
-    public static SizeableEntityBuilder coneTemplate;
-    public static SizeableEntityBuilder capsuleTemplate;
-    public static SizeableEntityBuilder cylinderTemplate;
 
     private SceneLoader() {
         //super();
@@ -106,15 +96,6 @@ public class SceneLoader implements Disposable {
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 
 
-        /*
-          each anonymous game object element will implement
-           load(Vector3 trans, Vector3 size)
-          which will in turn correctly call
-           load(Model model, String nodeID, btCollisionShape shape, Vector3 trans, Vector3 size)
-         */
-//        primitiveModels = new ArrayMap<String, EntityBuilder>(String.class, EntityBuilder.class);
-
-
         mb.begin();
 
         mb.node().id = "sphere";
@@ -135,66 +116,6 @@ public class SceneLoader implements Disposable {
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
         primitivesModel = mb.end();
-
-/*
-        primitiveModels.put("sphere", new GameObject(primitivesModel, "sphere") {
-            @Override
-            public Entity create(Vector3 trans, Vector3 size) {
-                return load(this.model, this.rootNodeId, new btSphereShape(size.x * 0.5f), trans, size);
-            }
-        });
-        primitiveModels.put("box", new GameObject(primitivesModel, "box") {
-            @Override
-            public Entity create(Vector3 trans, Vector3 size) {
-                return load(this.model, this.rootNodeId, new btBoxShape(size.cpy().scl(0.5f)), trans, size);
-            }
-        });
-*/
-/* 
-  Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh. 
-  primitive meshes should use unit value (1.0) for the extent dimensions, thus those base dimensions don't have to be multiplied in explicitly in the shape sizing calculation below.
-  In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
-  Constant "primHE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
- */
-        sphereTemplate = new SizeableEntityBuilder() {
-            @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btSphereShape(size.x * primHE), size, mass, trans);
-    }
-        };
-        boxTemplate = new SizeableEntityBuilder() {
-            @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
-            }
-        };
-        coneTemplate = new SizeableEntityBuilder() {
-            @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btConeShape(size.x * primHE, size.y), size, mass, trans);
-            }
-        };
-        capsuleTemplate = new SizeableEntityBuilder() {
-            @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
-                //  so we apply half extent factor to our size.x here.
-                float radius = size.x * primHE;
-                // btcapsuleShape total height is height+2*radius (unlike gdx capsule mesh where height specifies TOTAL height!
-                //  (http://bulletphysics.org/Bullet/BulletFull/classbtCapsuleShape.html#details)
-                // determine the equivalent bullet-compatible height parameter by explicitly scaling
-                // the base mesh height and then subtracting the (scaled) end radii
-                float height = primCapsuleHt * size.y - size.x * primHE - size.x * primHE;
-                return load(model, rootNode, new btCapsuleShape(radius, height), size, mass, trans);
-            }
-        };
-        cylinderTemplate = new SizeableEntityBuilder() {
-            @Override
-            // cylinder shape apparently allow both width (x) and height (y) to be specified
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
-            }
-        };
     }
 
 
@@ -272,9 +193,9 @@ private static int nextColor = 0;
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
+                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
             } else {
-                engine.addEntity(sphereTemplate.create(sphereTemplateModel,
+                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel,
                         null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
@@ -284,11 +205,11 @@ private static int nextColor = 0;
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            addPickObject(engine, coneTemplate.create(primitivesModel, "cone", 5f, t, s));
-            addPickObject(engine, capsuleTemplate.create(primitivesModel, "capsule", 5f, t, s));
-            addPickObject(engine, cylinderTemplate.create(primitivesModel, "cylinder", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.coneTemplate.create(primitivesModel, "cone", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.capsuleTemplate.create(primitivesModel, "capsule", 5f, t, s));
+            addPickObject(engine, SizeableEntityBuilder.cylinderTemplate.create(primitivesModel, "cylinder", 5f, t, s));
             pickObject =
-                    addPickObject(engine, boxTemplate.create(primitivesModel, "box", 5f, t, s));
+                    addPickObject(engine, SizeableEntityBuilder.boxTemplate.create(primitivesModel, "box", 5f, t, s));
 
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
             tmp.id = 65535;
@@ -358,12 +279,12 @@ if (true) {
 */
         float r = 16;
         final float yTrans = -10.0f;
-        engine.addEntity(sphereTemplate.create(sphereTemplateModel, null,0,
+        engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel, null,0,
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r)));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0,
+        engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null,0,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f)));
 
-        Entity e = boxTemplate.create(primitivesModel, "box",0,
+        Entity e = SizeableEntityBuilder.boxTemplate.create(primitivesModel, "box",0,
                 new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
         setObjectMaterial(
                 e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
@@ -416,6 +337,7 @@ if (true) {
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
         primitivesModel.dispose();
+SizeableEntityBuilder.dispose();
         assets.dispose();
     }
 
@@ -431,7 +353,12 @@ if (true) {
     private static Vector3 position = new Vector3();
 
     /*
-     * https://xoppa.github.io/blog/interacting-with-3d-objects/
+     * Using raycast/vector-projection to detect object. Can be generalized as a sort of
+     * collision detection. Would like to have the collision shape and/or raycast implemmetantion
+     * as well as use of bullet collision detection applied to different classes of game objects
+     * for different effects/systems (e.g. jewel collisions might be ray-cast, but projectiles
+     * might merit shape accuracy.
+     *  https://xoppa.github.io/blog/interacting-with-3d-objects/
      */
     public void applyPickRay(Ray ray) {
 
