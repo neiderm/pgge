@@ -1,14 +1,11 @@
 package com.mygdx.game.util;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Disposable;
 
@@ -21,8 +18,8 @@ public class PrimitivesModel implements Disposable {
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
     public static final Model model;
-    public static final Model boxTemplateModel;
-    public static final Model sphereTemplateModel;
+//    public static final Model boxTemplateModel;
+//    public static final Model sphereTemplateModel;
 
     private PrimitivesModel() {
     }
@@ -30,6 +27,7 @@ public class PrimitivesModel implements Disposable {
     static {
         final ModelBuilder mb = new ModelBuilder();
 
+/*
         Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
         boxTemplateModel = mb.createBox(1f, 1f, 1f,
                 new Material(TextureAttribute.createDiffuse(cubeTex)),
@@ -39,6 +37,7 @@ public class PrimitivesModel implements Disposable {
         sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
                 new Material(TextureAttribute.createDiffuse(sphereTex)),
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+*/
 
         mb.begin();
 
@@ -70,8 +69,10 @@ public class PrimitivesModel implements Disposable {
     public static void trash(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
+/*
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
+*/
         model.dispose();
     }
 }

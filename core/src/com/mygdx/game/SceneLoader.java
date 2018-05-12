@@ -2,15 +2,20 @@ package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -45,6 +50,8 @@ public class SceneLoader implements Disposable {
     public static final Model landscapeModel;
     public static final Model shipModel;
     public static final Model sceneModel;
+    public static final Model boxTemplateModel;
+    public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
 
 
@@ -57,6 +64,19 @@ public class SceneLoader implements Disposable {
     }
 
     static {
+
+        final ModelBuilder mb = new ModelBuilder();
+
+        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
+        boxTemplateModel = mb.createBox(1f, 1f, 1f,
+                new Material(TextureAttribute.createDiffuse(cubeTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
+        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
+        sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
+                new Material(TextureAttribute.createDiffuse(sphereTex)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+
 
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
@@ -162,9 +182,9 @@ private static int nextColor = 0;
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.boxTemplateModel, null, size.x, translation, size));
+                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
             } else {
-                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(PrimitivesModel.sphereTemplateModel,
+                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel,
                         null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
@@ -229,7 +249,7 @@ if (true) {
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
-        BulletEntityBuilder bo = new BulletEntityBuilder(PrimitivesModel.boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
+        BulletEntityBuilder bo = new BulletEntityBuilder(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
 
         engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
@@ -250,12 +270,12 @@ if (true) {
         final float yTrans = -10.0f;
         Entity e;
 
-        e = SizeableEntityBuilder.sphereTemplate.create(PrimitivesModel.sphereTemplateModel, null, 0,
+        e = SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel, null, 0,
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.boxTemplateModel, null, 0,
+        e = SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, 0,
 //        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 0,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
