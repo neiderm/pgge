@@ -1,5 +1,6 @@
 package com.mygdx.game.util;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -7,21 +8,22 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.math.Vector3;
 
 /**
  * Created by mango on 12/18/17.
  */
 
-public class PrimitivesModel implements Disposable {
+public class PrimitivesModel extends SizeableEntityBuilder {
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
-    public static final Model model;
+    public static /*final */Model primitivesModel;
 //    public static final Model boxTemplateModel;
 //    public static final Model sphereTemplateModel;
 
     private PrimitivesModel() {
+        model = primitivesModel;
     }
 
     static {
@@ -58,21 +60,40 @@ public class PrimitivesModel implements Disposable {
         mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
-        model = mb.end();
+        primitivesModel = mb.end();
     }
 
-    @Override
+    public static Entity loadSphere(float r, Vector3 pos){
+        return BaseEntityBuilder.load(
+                primitivesModel, "sphere", new Vector3(r, r, r), pos);
+    }
+
+    public static Entity loadCone(float mass, Vector3 trans, Vector3 size) {
+        return coneTemplate.create(primitivesModel, "cone", mass, trans, size);
+    }
+    public static Entity loadCapsule(float mass, Vector3 trans, Vector3 size) {
+        return capsuleTemplate.create(primitivesModel, "capsule", mass, trans, size);
+    }
+    public static Entity loadCylinder(float mass, Vector3 trans, Vector3 size) {
+        return cylinderTemplate.create(primitivesModel, "cylinder", mass, trans, size);
+    }
+    public static Entity loadBox(float mass, Vector3 trans, Vector3 size) {
+        return boxTemplate.create(primitivesModel, "box", mass, trans, size);
+    }
+
+/*    @Override
     public void dispose() {
         trash();
-    }
+    }*/
 
     public static void trash(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-//  Disposing the model will automatically make all instances invalid!
+//  Disposing the primitivesModel will automatically make all instances invalid!
 /*
         sphereTemplateModel.dispose();
         boxTemplateModel.dispose();
 */
-        model.dispose();
+        primitivesModel.dispose();
+        primitivesModel = null;
     }
 }

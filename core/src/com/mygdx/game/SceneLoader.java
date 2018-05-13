@@ -194,11 +194,12 @@ private static int nextColor = 0;
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            addPickObject(engine, SizeableEntityBuilder.coneTemplate.create(PrimitivesModel.model, "cone", 5f, t, s));
-            addPickObject(engine, SizeableEntityBuilder.capsuleTemplate.create(PrimitivesModel.model, "capsule", 5f, t, s));
-            addPickObject(engine, SizeableEntityBuilder.cylinderTemplate.create(PrimitivesModel.model, "cylinder", 5f, t, s));
+
+            addPickObject(engine, PrimitivesModel.loadCone(5f, t, s));
+            addPickObject(engine, PrimitivesModel.loadCapsule(5f, t, s));
+            addPickObject(engine, PrimitivesModel.loadCylinder(5f, t, s));
             pickObject =
-                    addPickObject(engine, SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 5f, t, s));
+                    addPickObject(engine, PrimitivesModel.loadBox(5f, t, s));
 
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
             tmp.id = 65535;
@@ -281,8 +282,9 @@ if (true) {
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box",0,
+        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.primitivesModel, "box",0,
                 new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+
         setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
         engine.addEntity(e);
     }
@@ -312,7 +314,7 @@ if (true) {
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
         float r = 0.5f;
-        Entity e = BaseEntityBuilder.load(PrimitivesModel.model, "sphere", new Vector3(r, r, r), new Vector3(0, 15f, -5f));
+        Entity e = PrimitivesModel.loadSphere(r, new Vector3(0, 15f, -5f));
 
         ModelComponent mc = e.getComponent(ModelComponent.class);
 
