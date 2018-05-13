@@ -32,8 +32,7 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
-import com.mygdx.game.util.PrimitivesModel;
-import com.mygdx.game.util.SizeableEntityBuilder;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
 
@@ -173,6 +172,9 @@ private static int nextColor = 0;
         Vector3 size = new Vector3();
         Random rnd = new Random();
 
+        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getBoxBuilder();
+        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getSphereBuilder();
+
         for (int i = 0; i < N_ENTITIES; i++) {
 
             size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
@@ -182,9 +184,9 @@ private static int nextColor = 0;
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, size.x, translation, size));
+                engine.addEntity(boxBuilder.create(boxTemplateModel, null, size.x, translation, size));
             } else {
-                engine.addEntity(SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel,
+                engine.addEntity(sphereBuilder.create(sphereTemplateModel,
                         null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
@@ -195,11 +197,11 @@ private static int nextColor = 0;
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
 
-            addPickObject(engine, PrimitivesModel.loadCone(5f, t, s));
-            addPickObject(engine, PrimitivesModel.loadCapsule(5f, t, s));
-            addPickObject(engine, PrimitivesModel.loadCylinder(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.loadCone(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.loadCapsule(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.loadCylinder(5f, t, s));
             pickObject =
-                    addPickObject(engine, PrimitivesModel.loadBox(5f, t, s));
+                    addPickObject(engine, PrimitivesBuilder.loadBox(5f, t, s));
 
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
             tmp.id = 65535;
@@ -271,18 +273,18 @@ if (true) {
         final float yTrans = -10.0f;
         Entity e;
 
-        e = SizeableEntityBuilder.sphereTemplate.create(sphereTemplateModel, null, 0,
+        e = PrimitivesBuilder.getSphereBuilder().create(sphereTemplateModel, null, 0,
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = SizeableEntityBuilder.boxTemplate.create(boxTemplateModel, null, 0,
+        e = PrimitivesBuilder.getBoxBuilder().create(boxTemplateModel, null, 0,
 //        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 0,
                 new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.primitivesModel, "box",0,
+        e = PrimitivesBuilder.getBoxBuilder().create(PrimitivesBuilder.primitivesModel, "box",0,
                 new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
 
         setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
@@ -314,7 +316,7 @@ if (true) {
     public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
 
         float r = 0.5f;
-        Entity e = PrimitivesModel.loadSphere(r, new Vector3(0, 15f, -5f));
+        Entity e = PrimitivesBuilder.loadSphere(r, new Vector3(0, 15f, -5f));
 
         ModelComponent mc = e.getComponent(ModelComponent.class);
 
@@ -329,13 +331,11 @@ if (true) {
     @Override
     public void dispose() {
 
-        PrimitivesModel.trash(); // hack, call static method
+        PrimitivesBuilder.trash(); // hack, call static method
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
         sceneModel.dispose();
-// hackhackhack
-        SizeableEntityBuilder.dispose();
         assets.dispose();
     }
 
