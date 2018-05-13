@@ -119,7 +119,7 @@ public class RenderSystem extends EntitySystem {
 
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            if (null != mc && null != mc.modelInst && mc.isShadowed) {
+            if (null != mc && null != mc.modelInst && mc.isShadowed && isVisible(cam, mc)) {
                 shadowBatch.render(mc.modelInst);
             }
         }
@@ -136,7 +136,8 @@ public class RenderSystem extends EntitySystem {
     */
     private boolean isVisible(PerspectiveCamera cam, ModelComponent  mc) {
         mc.modelInst.transform.getTranslation(position);
-        return cam.frustum.boundsInFrustum(position, mc.dimensions);
+        return cam.frustum.sphereInFrustum(position, mc.boundingRadius );
+//        return cam.frustum.boundsInFrustum(position, mc.dimensions);
     }
 
     private Vector3 axis = new Vector3();
