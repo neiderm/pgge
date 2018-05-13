@@ -72,9 +72,9 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         mb.part("cylinder", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
-
         primitivesModel = mb.end();
     }
+
 
     public static Entity loadSphere(float r, Vector3 pos){
         return BaseEntityBuilder.load(
@@ -101,12 +101,6 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
     Constant "primHE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
-
-    //    public abstract Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size);
-    public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-        return null;
-    }
-
     public static PrimitivesBuilder getSphereBuilder() {
         return new PrimitivesBuilder() {
             @Override
