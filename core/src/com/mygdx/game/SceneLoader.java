@@ -284,10 +284,10 @@ if (true) {
 //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = PrimitivesBuilder.getBoxBuilder().create(PrimitivesBuilder.primitivesModel, "box",0,
-                new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+// we can do primitive dynamic object (with 0 mass for platform)
+        e = PrimitivesBuilder.loadBox(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
 
-        setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CHARTREUSE, 0.5f);
+        setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
         engine.addEntity(e);
     }
 

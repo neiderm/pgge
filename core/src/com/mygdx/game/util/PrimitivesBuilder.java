@@ -30,7 +30,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
-    public static /*final */Model primitivesModel;
+    private static /*final */Model primitivesModel;
 //    public static final Model boxTemplateModel;
 //    public static final Model sphereTemplateModel;
 
