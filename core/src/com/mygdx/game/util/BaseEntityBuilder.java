@@ -20,6 +20,11 @@ public class BaseEntityBuilder extends EntityBuilder  {
         this.size = size;
     }
 
+    @Override
+    public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+        return new Entity(); // useless
+    }
+
     public static Entity load(Model model, String rootNodeId){
         // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
         return load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));

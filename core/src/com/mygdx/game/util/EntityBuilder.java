@@ -1,5 +1,6 @@
 package com.mygdx.game.util;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
 
@@ -13,4 +14,5 @@ public abstract class EntityBuilder {
     protected Vector3 size;
     protected String rootNodeId;
 
+    public abstract Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size);
 }
