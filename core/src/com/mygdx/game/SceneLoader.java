@@ -172,8 +172,8 @@ private static int nextColor = 0;
         Vector3 size = new Vector3();
         Random rnd = new Random();
 
-        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getBoxBuilder();
-        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getSphereBuilder();
+        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder();
+        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder();
 
         for (int i = 0; i < N_ENTITIES; i++) {
 
