@@ -2,25 +2,19 @@ package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -49,8 +43,6 @@ public class SceneLoader implements Disposable {
     public static final Model landscapeModel;
     public static final Model shipModel;
     public static final Model sceneModel;
-    public static final Model boxTemplateModel;
-    public static final Model sphereTemplateModel;
     public static final Model testCubeModel;
 
 
@@ -63,19 +55,6 @@ public class SceneLoader implements Disposable {
     }
 
     static {
-
-        final ModelBuilder mb = new ModelBuilder();
-
-        Texture cubeTex = new Texture(Gdx.files.internal("data/crate.png"), false);
-        boxTemplateModel = mb.createBox(1f, 1f, 1f,
-                new Material(TextureAttribute.createDiffuse(cubeTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
-        Texture sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
-        sphereTemplateModel = mb.createSphere(1f, 1f, 1f, 16, 16,
-                new Material(TextureAttribute.createDiffuse(sphereTex)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
-
 
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
@@ -120,7 +99,7 @@ mat.remove(BlendingAttribute.Type);
     }*/
 
 
-private static int nextColor = 0;
+    private static int nextColor = 0;
 
     private static void setMaterialColor(Entity e, Color c){
 
@@ -172,8 +151,8 @@ private static int nextColor = 0;
         Vector3 size = new Vector3();
         Random rnd = new Random();
 
-        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder();
-        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder();
+        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder("data/crate.png");
+        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder("data/day.png");
 
         for (int i = 0; i < N_ENTITIES; i++) {
 
@@ -184,10 +163,11 @@ private static int nextColor = 0;
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(boxBuilder.create(boxTemplateModel, null, size.x, translation, size));
+                engine.addEntity(boxBuilder.create(
+                        null, null, size.x, translation, size));
             } else {
-                engine.addEntity(sphereBuilder.create(sphereTemplateModel,
-                        null, size.x, translation, new Vector3(size.x, size.x, size.x)));
+                engine.addEntity(sphereBuilder.create(
+                        null, null, size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
 
@@ -232,12 +212,12 @@ private static int nextColor = 0;
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
-if (true) {
-    node = null;
-    model = shipModel;
-    final Mesh mesh = shipModel.meshes.get(0);
-    boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
-}
+        if (true) {
+            node = null;
+            model = shipModel;
+            final Mesh mesh = shipModel.meshes.get(0);
+            boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+        }
         player = BulletEntityBuilder.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
         player.add(new PlayerComponent());
         return player;
@@ -252,37 +232,36 @@ if (true) {
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
-        BulletEntityBuilder bo = new BulletEntityBuilder(boxTemplateModel, sz, new btBoxShape(sz.cpy().scl(0.5f)));
+        PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("data/crate.png"); // this constructor could use a size param ?
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(0, 4, -15f), sz));
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-2, 4, -15f), sz));
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-4, 4, -15f), sz));
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(0, 6, -15f), sz));
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-2, 6, -15f), sz));
+        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-4, 6, -15f), sz));
 
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 4, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 0 + 6, 0 - 15f)));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 0 + 6, 0 - 15f)));
-
-/* this works, but it could share a single size Shape which it does not
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(0, 0 + 4, 0 - 15f), sz));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-2, 0 + 4, 0 - 15f), sz));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-4, 0 + 4, 0 - 15f), sz));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(0, 0 + 6, 0 - 15f), sz));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-2, 0 + 6, 0 - 15f), sz));
-        engine.addEntity(boxTemplate.create(boxTemplateModel, null,0.1f, new Vector3(-4, 0 + 6, 0 - 15f), sz));
-*/
         float r = 16;
         final float yTrans = -10.0f;
         Entity e;
-
+/*
         e = PrimitivesBuilder.getSphereBuilder().create(sphereTemplateModel, null, 0,
                 new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
-//        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+*/
+        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
+        //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+        engine.addEntity(e);
+/*
+        e = PrimitivesBuilder.getBoxBuilder().create(boxTemplateModel, null, 0,
+                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
+*/
+        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
+/*
+        e = PrimitivesBuilder.getBoxBuilder("data/crate.png").create(
+                null, null, 0, new Vector3(10, 5 + yTrans, 0), new Vector3(40f, 2f, 40f));
+*/
+        //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
-        e = PrimitivesBuilder.getBoxBuilder().create(boxTemplateModel, null, 0,
-//        e = SizeableEntityBuilder.boxTemplate.create(PrimitivesModel.model, "box", 0,
-                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-//        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
-        engine.addEntity(e);
 
 // we can do primitive dynamic object (with 0 mass for platform)
         e = PrimitivesBuilder.loadBox(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
@@ -335,7 +314,10 @@ if (true) {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
+        landscapeModel.dispose();
+        shipModel.dispose();
         sceneModel.dispose();
+        testCubeModel.dispose();
         assets.dispose();
     }
 
@@ -373,38 +355,38 @@ if (true) {
                 RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
             }
 
-if (false) {
-    float dist2 = ray.origin.dst2(position);
+            if (false) {
+                float dist2 = ray.origin.dst2(position);
 
-    if (distance >= 0f && dist2 > distance)
-        continue;
+                if (distance >= 0f && dist2 > distance)
+                    continue;
 
-    if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
-        picked = e;
-        distance = dist2;
-    }
-}else{
-    final float len = ray.direction.dot(
-            position.x - ray.origin.x,
-            position.y - ray.origin.y,
-            position.z - ray.origin.z);
+                if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
+                    picked = e;
+                    distance = dist2;
+                }
+            }else{
+                final float len = ray.direction.dot(
+                        position.x - ray.origin.x,
+                        position.y - ray.origin.y,
+                        position.z - ray.origin.z);
 
-    if (len < 0f)
-        continue;
+                if (len < 0f)
+                    continue;
 
-    float dist2 = position.dst2(
-            ray.origin.x + ray.direction.x * len,
-            ray.origin.y + ray.direction.y * len,
-            ray.origin.z + ray.direction.z * len);
+                float dist2 = position.dst2(
+                        ray.origin.x + ray.direction.x * len,
+                        ray.origin.y + ray.direction.y * len,
+                        ray.origin.z + ray.direction.z * len);
 
-    if (distance >= 0f && dist2 > distance)
-        continue;
+                if (distance >= 0f && dist2 > distance)
+                    continue;
 
-    if (dist2 <= mc.boundingRadius * mc.boundingRadius) {
-        picked = e;
-        distance = dist2;
-    }
-} // if ....
+                if (dist2 <= mc.boundingRadius * mc.boundingRadius) {
+                    picked = e;
+                    distance = dist2;
+                }
+            } // if ....
             /*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
                     mc.id, distance, position.x, position.y, position.z ));*/
         }
