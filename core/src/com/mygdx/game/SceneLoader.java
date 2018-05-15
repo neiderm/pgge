@@ -163,11 +163,9 @@ mat.remove(BlendingAttribute.Type);
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(boxBuilder.create(
-                        null, null, size.x, translation, size));
+                engine.addEntity(boxBuilder.create(size.x, translation, size));
             } else {
-                engine.addEntity(sphereBuilder.create(
-                        null, null, size.x, translation, new Vector3(size.x, size.x, size.x)));
+                engine.addEntity(sphereBuilder.create(size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
 
@@ -233,25 +231,25 @@ mat.remove(BlendingAttribute.Type);
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
         PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("data/crate.png"); // this constructor could use a size param ?
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(0, 4, -15f), sz));
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-2, 4, -15f), sz));
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-4, 4, -15f), sz));
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(0, 6, -15f), sz));
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-2, 6, -15f), sz));
-        engine.addEntity(bo.create(null, null, 0.1f, new Vector3(-4, 6, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 4, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 4, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 4, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(0, 6, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(-2, 6, -15f), sz));
+        engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
 
         float r = 16;
         final float yTrans = -10.0f;
         Entity e;
 
         e = PrimitivesBuilder.getSphereBuilder("data/crate.png").create(
-                null, null, 0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
+                0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
 //        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
         e = PrimitivesBuilder.getBoxBuilder("data/crate.png").create(
-                null, null, 0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
+                0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
 //        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);

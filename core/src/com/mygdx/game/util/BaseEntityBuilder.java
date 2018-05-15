@@ -21,7 +21,7 @@ public class BaseEntityBuilder extends EntityBuilder  {
     }
 
     @Override
-    public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+    public Entity create(float mass, Vector3 trans, Vector3 size) {
         return new Entity(); // useless
     }
 

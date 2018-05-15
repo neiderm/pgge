@@ -86,27 +86,27 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     }
 
     public static Entity loadCone(float mass, Vector3 trans, Vector3 size) {
-        return getConeBuilder().create(primitivesModel, "cone", mass, trans, size);
+        return getConeBuilder().create(mass, trans, size);
     }
     public static Entity loadCapsule(float mass, Vector3 trans, Vector3 size) {
-        return getCapsuleBuilder().create(primitivesModel, "capsule", mass, trans, size);
+        return getCapsuleBuilder().create(mass, trans, size);
     }
     public static Entity loadCylinder(float mass, Vector3 trans, Vector3 size) {
-        return getCylinderBuilder().create(primitivesModel, "cylinder", mass, trans, size);
+        return getCylinderBuilder().create(mass, trans, size);
     }
     public static Entity loadBox(float mass, Vector3 trans, Vector3 size) {
-        return getBoxBuilder().create(primitivesModel, "box", mass, trans, size);
+        return getBoxBuilder().create(mass, trans, size);
     }
     public static Entity loadSphere(float mass, Vector3 trans, float r) {
-        return getSphereBuilder().create(primitivesModel, "sphere", mass, trans, new Vector3(r, r, r));
+        return getSphereBuilder().create(mass, trans, new Vector3(r, r, r));
     }
 
     // not sure to keep these
     private static Entity loadBoxTex(float mass, Vector3 trans, Vector3 size) {
-        return getBoxBuilder("data/crate.png").create(primitivesModel, "boxTex", mass, trans, size);
+        return getBoxBuilder("data/crate.png").create(mass, trans, size);
     }
     private static Entity loadSphereTex(float mass, Vector3 trans, float r) {
-        return getSphereBuilder("data/day.png").create(primitivesModel, "sphereTex", mass, trans, new Vector3(r, r, r));
+        return getSphereBuilder("data/day.png").create(mass, trans, new Vector3(r, r, r));
     }
 
     /*
@@ -119,7 +119,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getSphereBuilder(String texFile) {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "sphereTex", new btSphereShape(size.x * primHE), size, mass, trans);
             }
         };
@@ -127,7 +127,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getBoxBuilder(String texFile) {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "boxTex", new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
@@ -136,7 +136,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getSphereBuilder() {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "sphere", new btSphereShape(size.x * primHE), size, mass, trans);
             }
         };
@@ -144,7 +144,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getBoxBuilder() {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "box", new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
@@ -152,7 +152,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getConeBuilder() {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "cone", new btConeShape(size.x * primHE, size.y), size, mass, trans);
             }
         };
@@ -160,7 +160,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static PrimitivesBuilder getCapsuleBuilder() {
         return new PrimitivesBuilder() {
             @Override
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
                 //  so we apply half extent factor to our size.x here.
                 float radius = size.x * primHE;
@@ -177,7 +177,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
-            public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
                 return load(this.model, "cylinder", new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
@@ -209,10 +209,6 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static void trash(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
-/*
-        sphereTemplateModel.dispose();
-        boxTemplateModel.dispose();
-*/
         primitivesModel.dispose();
         primitivesModel = null;
     }

@@ -14,5 +14,5 @@ public abstract class EntityBuilder {
     protected Vector3 size;
     protected String rootNodeId;
 
-    public abstract Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size);
+    public abstract Entity create(float mass, Vector3 trans, Vector3 size);
 }
