@@ -101,11 +101,12 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return getSphereBuilder().create(primitivesModel, "sphere", mass, trans, new Vector3(r, r, r));
     }
 
-    public static Entity loadBoxTex(float mass, Vector3 trans, Vector3 size) {
-        return getBoxBuilder().create(primitivesModel, "boxTex", mass, trans, size);
+    // not sure to keep these
+    private static Entity loadBoxTex(float mass, Vector3 trans, Vector3 size) {
+        return getBoxBuilder("data/crate.png").create(primitivesModel, "boxTex", mass, trans, size);
     }
-    public static Entity loadSphereTex(float mass, Vector3 trans, float r) {
-        return getSphereBuilder().create(primitivesModel, "sphereTex", mass, trans, new Vector3(r, r, r));
+    private static Entity loadSphereTex(float mass, Vector3 trans, float r) {
+        return getSphereBuilder("data/day.png").create(primitivesModel, "sphereTex", mass, trans, new Vector3(r, r, r));
     }
 
     /*
@@ -136,7 +137,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btSphereShape(size.x * primHE), size, mass, trans);
+                return load(this.model, "sphere", new btSphereShape(size.x * primHE), size, mass, trans);
             }
         };
     }
@@ -144,7 +145,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
+                return load(this.model, "box", new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
     }
@@ -152,7 +153,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btConeShape(size.x * primHE, size.y), size, mass, trans);
+                return load(this.model, "cone", new btConeShape(size.x * primHE, size.y), size, mass, trans);
             }
         };
     }
@@ -168,7 +169,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
                 // determine the equivalent bullet-compatible height parameter by explicitly scaling
                 // the base mesh height and then subtracting the (scaled) end radii
                 float height = primCapsuleHt * size.y - size.x * primHE - size.x * primHE;
-                return load(model, rootNode, new btCapsuleShape(radius, height), size, mass, trans);
+                return load(this.model, "capsule", new btCapsuleShape(radius, height), size, mass, trans);
             }
         };
     }
@@ -177,7 +178,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
             public Entity create(Model model, String rootNode, float mass, Vector3 trans, Vector3 size) {
-                return load(model, rootNode, new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
+                return load(this.model, "cylinder", new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
             }
         };
     }

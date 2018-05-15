@@ -74,7 +74,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void setObjectMatlClr(ModelInstance inst, Color c, float alpha){
+    private static void setObjectMatlClr(ModelInstance inst, Color c, float alpha) {
 
         Material mat = inst.materials.get(0);
         if (null == mat)
@@ -101,7 +101,7 @@ mat.remove(BlendingAttribute.Type);
 
     private static int nextColor = 0;
 
-    private static void setMaterialColor(Entity e, Color c){
+    private static void setMaterialColor(Entity e, Color c) {
 
         Array<Color> colors = new Array<Color>();
         colors.add(Color.WHITE);
@@ -112,7 +112,7 @@ mat.remove(BlendingAttribute.Type);
         colors.add(Color.PURPLE);
 
         // hmmm, w/ alt. pick test, now getting null somtimes?
-        if (null == e){
+        if (null == e) {
             return; //  throw new GdxRuntimeException("e == null ");
         }
 
@@ -206,7 +206,7 @@ mat.remove(BlendingAttribute.Type);
         }
     }
 
-    public static Entity createPlayer(){
+    public static Entity createPlayer() {
 
         Entity player;
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
@@ -223,7 +223,7 @@ mat.remove(BlendingAttribute.Type);
         return player;
     }
 
-    public static void createTestObjects(Engine engine){
+    public static void createTestObjects(Engine engine) {
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
@@ -243,22 +243,16 @@ mat.remove(BlendingAttribute.Type);
         float r = 16;
         final float yTrans = -10.0f;
         Entity e;
-/*
-        e = PrimitivesBuilder.getSphereBuilder().create(sphereTemplateModel, null, 0,
-                new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
-*/
-        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
+
+        e = PrimitivesBuilder.getSphereBuilder("data/crate.png").create(
+                null, null, 0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
+//        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
-/*
-        e = PrimitivesBuilder.getBoxBuilder().create(boxTemplateModel, null, 0,
-                new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-*/
-        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-/*
+
         e = PrimitivesBuilder.getBoxBuilder("data/crate.png").create(
-                null, null, 0, new Vector3(10, 5 + yTrans, 0), new Vector3(40f, 2f, 40f));
-*/
+                null, null, 0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
+//        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e);
 
@@ -365,7 +359,7 @@ mat.remove(BlendingAttribute.Type);
                     picked = e;
                     distance = dist2;
                 }
-            }else{
+            } else {
                 final float len = ray.direction.dot(
                         position.x - ray.origin.x,
                         position.y - ray.origin.y,
