@@ -5,6 +5,8 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -56,8 +58,12 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private static Random rnd = new Random();
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
+    private PerspectiveCamera cam;
 
-    public PlayerSystem() {
+
+    public PlayerSystem(/*PerspectiveCamera cam*/) {
+// idfk
+        this.cam = cam;
     }
 
     @Override
@@ -111,6 +117,28 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
     };
 
+    public InputListener buttonGSListener ;
+/*    public final InputListener buttonGSListener = new InputListener() {
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        }
+
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+            // only do this if FPV mode (i.e. cam controller is not handling game window input)
+            if (true *//*!camCtrlrActive*//*) {
+//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
+
+// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+
+                pickRaySystem.applyPickRay(cam.getPickRay(nX, nY)); // whatever.appPickRay()
+            }
+            return true;
+        }
+    };*/
 
     @Override
     public void update(float delta) {

@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.BaseEntityBuilder;
@@ -315,10 +316,13 @@ mat.remove(BlendingAttribute.Type);
 
     // tmp tmp hack hack
     private static final Array<Entity> pickObjects = new Array<Entity>();
-
+// "Pickable" as a settable property (as a Component, or field of existing Comp)
     private static Entity addPickObject(Engine engine, Entity e) {
+
+//e.add(new PickRayComponent());
         engine.addEntity(e);
         pickObjects.add(e);
+
         return e; // for method call chaining
     }
 

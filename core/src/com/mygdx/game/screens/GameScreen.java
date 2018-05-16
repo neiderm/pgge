@@ -32,6 +32,7 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
+import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 
@@ -47,6 +48,7 @@ public class GameScreen implements Screen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private PlayerSystem playerSystem; //for reference to player entity
     private CameraSystem cameraSystem;
+    private PickRaySystem pickRaySystem;
 
     private PerspectiveCamera cam;
 
@@ -99,18 +101,18 @@ public class GameScreen implements Screen {
                 playerSystem.touchPadChangeListener,
                 playerSystem.actionButtonListener,
                 buttonBListener,
-                buttonGSListener
+                buttonGSListener // playerSystem.buttonGSListener
         );
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
         multiplexer = new InputMultiplexer();
-///*
+/*
         MyInputAdapter inputAdapter = new MyInputAdapter();
         inputAdapter.registerSystem(null ); // playerSystem
 //        multiplexer.addProcessor(inputAdapter);
-//*/
+*/
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
@@ -158,6 +160,7 @@ public class GameScreen implements Screen {
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
+//                pickRaySystem.applyPickRay(cam.getPickRay(nX, nY)); // whatever.appPickRay()
                 sceneLoader.applyPickRay(cam.getPickRay(nX, nY));
             }
             return true;
@@ -230,6 +233,9 @@ public class GameScreen implements Screen {
         cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
+        engine.addSystem(new PickRaySystem());
+        pickRaySystem = new PickRaySystem();
+        engine.addSystem(pickRaySystem);
     }
 
 
@@ -238,6 +244,12 @@ public class GameScreen implements Screen {
     }
 
 
+
+    /*
+     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+     * "Note that using a StringBuilder is highly recommended against string concatenation in your
+     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
+     */
     @Override
     public void render(float delta) {
 
@@ -304,6 +316,10 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
+    /*
+    https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+    We need to update the stage's viewport in the resize method. The last Boolean argument set the origin to the lower left coordinate, causing the label to be drawn at that location.
+     */
     }
 
     @Override
