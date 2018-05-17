@@ -11,10 +11,8 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -23,7 +21,6 @@ import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
@@ -102,7 +99,7 @@ mat.remove(BlendingAttribute.Type);
 
     private static int nextColor = 0;
 
-    private static void setMaterialColor(Entity e, Color c) {
+    public static void setMaterialColor(Entity e, Color c) {
 
         Array<Color> colors = new Array<Color>();
         colors.add(Color.WHITE);
@@ -142,8 +139,6 @@ mat.remove(BlendingAttribute.Type);
     }
 
 
-    private static Entity pickObject;
-
     public static void createEntities(Engine engine) {
 
         int N_ENTITIES = 10;
@@ -179,7 +174,7 @@ mat.remove(BlendingAttribute.Type);
             addPickObject(engine, PrimitivesBuilder.loadCone(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.loadCapsule(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.loadCylinder(5f, t, s));
-            pickObject =
+            Entity pickObject = // tmp hack
                     addPickObject(engine, PrimitivesBuilder.loadBox(5f, t, s));
 
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
@@ -314,78 +309,11 @@ mat.remove(BlendingAttribute.Type);
         assets.dispose();
     }
 
-    // tmp tmp hack hack
-    private static final Array<Entity> pickObjects = new Array<Entity>();
-// "Pickable" as a settable property (as a Component, or field of existing Comp)
     private static Entity addPickObject(Engine engine, Entity e) {
 
-//e.add(new PickRayComponent());
+        e.add(new PickRayComponent());
         engine.addEntity(e);
-        pickObjects.add(e);
 
         return e; // for method call chaining
-    }
-
-    private static Vector3 position = new Vector3();
-
-    /*
-     * Using raycast/vector-projection to detect object. Can be generalized as a sort of
-     * collision detection. Would like to have the collision shape and/or raycast implemmetantion
-     * as well as use of bullet collision detection applied to different classes of game objects
-     * for different effects/systems (e.g. jewel collisions might be ray-cast, but projectiles
-     * might merit shape accuracy.
-     *  https://xoppa.github.io/blog/interacting-with-3d-objects/
-     */
-    public void applyPickRay(Ray ray) {
-
-        Entity picked = null;
-        float distance = -1f;
-
-        for (Entity e : pickObjects) {
-
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-
-            mc.modelInst.transform.getTranslation(position).add(mc.center);
-
-            if (mc.id == 65535) {
-                RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
-            }
-
-            if (false) {
-                float dist2 = ray.origin.dst2(position);
-
-                if (distance >= 0f && dist2 > distance)
-                    continue;
-
-                if (Intersector.intersectRaySphere(ray, position, mc.boundingRadius, null)) {
-                    picked = e;
-                    distance = dist2;
-                }
-            } else {
-                final float len = ray.direction.dot(
-                        position.x - ray.origin.x,
-                        position.y - ray.origin.y,
-                        position.z - ray.origin.z);
-
-                if (len < 0f)
-                    continue;
-
-                float dist2 = position.dst2(
-                        ray.origin.x + ray.direction.x * len,
-                        ray.origin.y + ray.direction.y * len,
-                        ray.origin.z + ray.direction.z * len);
-
-                if (distance >= 0f && dist2 > distance)
-                    continue;
-
-                if (dist2 <= mc.boundingRadius * mc.boundingRadius) {
-                    picked = e;
-                    distance = dist2;
-                }
-            } // if ....
-            /*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
-                    mc.id, distance, position.x, position.y, position.z ));*/
-        }
-        setMaterialColor(picked, Color.RED);
     }
 }

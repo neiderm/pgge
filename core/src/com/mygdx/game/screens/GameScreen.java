@@ -20,9 +20,11 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -97,22 +99,19 @@ public class GameScreen implements Screen {
         addSystems();
         addEntities(); // this takes a long time!
 
+        // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
+        // designated receiver (object that has implemneted "InputReceiver" interface)
         stage = new GamePad(
-                playerSystem.touchPadChangeListener,
-                playerSystem.actionButtonListener,
+                touchPadChangeListener,
+                actionButtonListener,
                 buttonBListener,
-                buttonGSListener // playerSystem.buttonGSListener
+                buttonGSListener
         );
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
         multiplexer = new InputMultiplexer();
-/*
-        MyInputAdapter inputAdapter = new MyInputAdapter();
-        inputAdapter.registerSystem(null ); // playerSystem
-//        multiplexer.addProcessor(inputAdapter);
-*/
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
@@ -144,6 +143,30 @@ public class GameScreen implements Screen {
 
     private boolean camCtrlrActive = false;
 
+    public final ChangeListener touchPadChangeListener = new ChangeListener() {
+        @Override
+        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+
+                /*          -1.0
+                       -1.0   +   +1.0
+                            + 1.0        */
+            playerSystem.touchPadChangeListener.changed(event, actor);
+        }
+    };
+
+    public final InputListener actionButtonListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
+            playerSystem.actionButtonListener.touchDown(event, x, y, pointer, button);
+            return true;
+        }
+
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+        }
+    };
+
     public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
@@ -151,7 +174,6 @@ public class GameScreen implements Screen {
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!camCtrlrActive) {
 //                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
@@ -160,8 +182,12 @@ public class GameScreen implements Screen {
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
-//                pickRaySystem.applyPickRay(cam.getPickRay(nX, nY)); // whatever.appPickRay()
-                sceneLoader.applyPickRay(cam.getPickRay(nX, nY));
+// tmp ... specific handling should be done in "client" listener
+                Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
+                if (null != e) {
+                    sceneLoader.setMaterialColor(e, Color.RED);
+                    playerSystem.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
+                }
             }
             return true;
         }
@@ -196,26 +222,12 @@ public class GameScreen implements Screen {
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
 
-
-        Entity playerChaser;
-/*
-        playerChaser = SceneLoader.createChaser2(engine, comp.chaseNode);
-
-        cameraSystem.setCameraNode("chaser2",
-                new CameraSystem.CameraNode(
-                        playerChaser.getComponent(CharacterComponent.class).transform,
-                        player.getComponent(ModelComponent.class).modelInst.transform
-                ));
-*/
-///*
-        Matrix4 plyrTransform = player.getComponent(ModelComponent.class).modelInst.transform;
-
-        playerChaser = SceneLoader.createChaser1(engine, plyrTransform);
+        Entity playerChaser =
+                SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
         cameraSystem.setCameraNode("chaser1",
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
                 player.getComponent(ModelComponent.class).modelInst.transform);
-        //*/
 
 // tmp
         bulletComp = player.getComponent(BulletComponent.class);
@@ -242,8 +254,6 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
     }
-
-
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/

@@ -5,8 +5,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -58,12 +56,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     private static Random rnd = new Random();
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
-    private PerspectiveCamera cam;
-
-
-    public PlayerSystem(/*PerspectiveCamera cam*/) {
-// idfk
-        this.cam = cam;
+    public PlayerSystem() {
     }
 
     @Override
@@ -81,8 +74,10 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     }
 
 
-    public final ChangeListener touchPadChangeListener =
-            new ChangeListener() {
+/////////////////
+// needs to implement an "InputReceiver" interface
+/////////////////
+    public final ChangeListener touchPadChangeListener = new ChangeListener() {
                 @Override
                 public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
@@ -117,28 +112,17 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
     };
 
-    public InputListener buttonGSListener ;
-/*    public final InputListener buttonGSListener = new InputListener() {
+   public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
         }
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-            // only do this if FPV mode (i.e. cam controller is not handling game window input)
-            if (true *//*!camCtrlrActive*//*) {
-//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
-
-// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-
-                pickRaySystem.applyPickRay(cam.getPickRay(nX, nY)); // whatever.appPickRay()
-            }
-            return true;
+return false;
         }
-    };*/
+    };
+//////////////////////
 
     @Override
     public void update(float delta) {
@@ -187,6 +171,22 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
                     bc.body, forceVect, forceMag, MU, bc.mass);
         }
+
+/*
+do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to
+notify the thing that was hit so it can chg. color etc.
+But the BulletSystem.rayTest is particular to bullet bodies, whereas this will be purely "visual" check for any
+entity objects that are enabled in the "ray-detection" system.
+1) caster shines ray (insert my ray into the raySystem queue)
+2) raySystem updates and processes the queue of castedRays (for each ray do ; for each registeredObject, etc. ...
+3) ... invokes "callback" (interface) by which the ray caster can be notified
+4) The caster uses other means to enact consequences of the rayhit (allowing rays to do different things, e.g. see vs. distroy!
+
+not need to be asynchronous ...
+ we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
+ */
+
+
 
         bc.body.setWorldTransform(tmpM);
     }
