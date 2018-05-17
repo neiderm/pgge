@@ -31,6 +31,7 @@ import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CameraSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -48,7 +49,6 @@ public class GameScreen implements Screen {
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private PlayerSystem playerSystem; //for reference to player entity
     private CameraSystem cameraSystem;
     private PickRaySystem pickRaySystem;
 
@@ -65,6 +65,7 @@ public class GameScreen implements Screen {
 
     private BulletComponent bulletComp; // tmp, debugging info
     private PlayerComponent playerComp; // tmp, debugging info
+    private PlayerActor playerActor;
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -150,7 +151,7 @@ public class GameScreen implements Screen {
                 /*          -1.0
                        -1.0   +   +1.0
                             + 1.0        */
-            playerSystem.touchPadChangeListener.changed(event, actor);
+            playerActor.touchPadChangeListener.changed(event, actor);
         }
     };
 
@@ -158,18 +159,20 @@ public class GameScreen implements Screen {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-            playerSystem.actionButtonListener.touchDown(event, x, y, pointer, button);
+            playerActor.actionButtonListener.touchDown(event, x, y, pointer, button);
             return true;
         }
 
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            // empty
         }
     };
 
     public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            // empty
         }
 
         @Override
@@ -186,7 +189,7 @@ public class GameScreen implements Screen {
                 Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
                 if (null != e) {
                     sceneLoader.setMaterialColor(e, Color.RED);
-                    playerSystem.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
+                    playerActor.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
                 }
             }
             return true;
@@ -210,6 +213,7 @@ public class GameScreen implements Screen {
 
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            // empty
         }
     };
 
@@ -221,6 +225,7 @@ public class GameScreen implements Screen {
 
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
+        playerActor = new PlayerActor(player.getComponent(BulletComponent.class), player.getComponent(PlayerComponent.class));
 
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
@@ -241,7 +246,7 @@ public class GameScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
-        engine.addSystem(playerSystem = new PlayerSystem());
+        engine.addSystem(new PlayerSystem());
         cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
@@ -253,6 +258,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
+        // empty
     }
 
     /*
