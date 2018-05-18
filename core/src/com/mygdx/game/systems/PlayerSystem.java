@@ -104,9 +104,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
         // check for contact w/ surface, only apply force if in contact, not falling
-        if (surfaceContact(
-                bc.collisionWorld, playerComp,
-                tmpV, bc.body.getOrientation())) {
+        if (surfaceContact(bc.collisionWorld, tmpV, bc.body.getOrientation())) {
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -143,7 +141,7 @@ not need to be asynchronous ...
 //    private Vector3 down = new Vector3();
 
     private boolean surfaceContact(btCollisionWorld myCollisionWorld,
-                                   PlayerComponent pc, Vector3 bodyTranslation, Quaternion bodyOrientation) {
+                                   Vector3 bodyTranslation, Quaternion bodyOrientation) {
 
         btCollisionObject rayPickObject;
 
@@ -151,7 +149,7 @@ not need to be asynchronous ...
 //        bodyWorldTransform.getRotation(bodyOrientation);
 // bodyOrientation = plyrPhysBody.getOrientation()
 
-        Vector3 down = pc.down;
+        Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
         down.set(0, -1, 0);
         float rad = bodyOrientation.getAxisAngleRad(axis);
         down.rotateRad(axis, rad);
