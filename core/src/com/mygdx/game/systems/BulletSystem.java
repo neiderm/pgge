@@ -37,7 +37,7 @@ import java.util.Random;
 
 public class BulletSystem extends EntitySystem implements EntityListener {
 
-    private static final boolean useDdbugDraw = false;
+    private static final boolean useDdbugDraw = true;
 
     private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
@@ -80,14 +80,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void update(float deltaTime) {
 
+//        bulletWorld.update(deltaTime);
+
         collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
 
         for (Entity e : entities) {
-
-            // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
-            debugDrawer.begin(camera);
-            collisionWorld.debugDrawWorld();
-            debugDrawer.end();
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
             btRigidBody body = bc.body;
@@ -109,6 +106,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
                 }
             }
         }
+
+        // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
+        debugDrawer.begin(camera);
+        collisionWorld.debugDrawWorld();
+        debugDrawer.end();
     }
 
     @Override
@@ -127,6 +129,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     public void removedFromEngine(Engine engine) {
 
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
+
+//        bulletWorld.dispose();
 
         collisionWorld.dispose();
         solver.dispose();
