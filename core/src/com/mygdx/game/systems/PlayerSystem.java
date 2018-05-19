@@ -8,9 +8,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.SliderForceControl;
@@ -45,12 +43,17 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
     // working variables
     private static Matrix4 tmpM = new Matrix4();
-    private static Vector3 tmpV = new Vector3();
+    private static Vector3 posV = new Vector3();
 
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
-    public PlayerSystem() {
-      // empty
+    private BulletWorld world;
+
+    private Vector3 axis = new Vector3();
+
+
+    public PlayerSystem(BulletWorld world) {
+        this.world = world;
     }
 
     @Override
@@ -97,17 +100,19 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
 // for dynamic object you should get world trans directly from rigid body!
         bc.body.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
+        tmpM.getTranslation(posV);
 
-        if (tmpV.y < -19) {
+        if (posV.y < -19) {
             playerComp.died = true;
         }
 
 
         Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
         down.set(0, -1, 0);
+
+
         // check for contact w/ surface, only apply force if in contact, not falling
-        if (surfaceContact(bc.collisionWorld, bc.body.getOrientation(), tmpV, down)) {
+        if (world.surfaceContact(bc.body.getOrientation(), posV, down)) {
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -131,36 +136,6 @@ not need to be asynchronous ...
  */
 
         bc.body.setWorldTransform(tmpM);
-    }
-
-
-    /*
-    make sure player is "upright" - this is so we don't apply motive force if e.g.
-    rolled over falling etc. or otherwise not in contact with some kind of
-    "tractionable" surface (would it belong in it's own system?)
-     */
-    private Ray ray = new Ray();
-    private Vector3 axis = new Vector3();
-//    private Vector3 down = new Vector3();
-
-    private boolean surfaceContact(btCollisionWorld myCollisionWorld,
-                                   Quaternion bodyOrientation,
-                                   Vector3 origin, Vector3 direction) {
-
-        btCollisionObject rayPickObject;
-
-        // get quat from world transfrom ... or not? seems equivalent to body.getOrientation()
-//        bodyWorldTransform.getRotation(bodyOrientation);
-// bodyOrientation = plyrPhysBody.getOrientation()
-
-        float rad = bodyOrientation.getAxisAngleRad(axis);
-        direction.rotateRad(axis, rad);
-
-        ray.set(origin, direction);
-        // 1 meters max from the origin seems to work pretty good
-        rayPickObject = BulletSystem.rayTest(myCollisionWorld, ray, 1f);
-
-        return (null != rayPickObject);
     }
 
 

@@ -19,12 +19,12 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
@@ -45,8 +45,11 @@ import com.mygdx.game.systems.RenderSystem;
 
 public class GameScreen implements Screen {
 
+    private BulletWorld bulletWorld;
+
     private SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
+
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraSystem cameraSystem;
@@ -65,6 +68,7 @@ public class GameScreen implements Screen {
 
     private BulletComponent bulletComp; // tmp, debugging info
     private PlayerComponent playerComp; // tmp, debugging info
+
     private PlayerActor playerActor;
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
@@ -242,11 +246,12 @@ public class GameScreen implements Screen {
 
     private void addSystems() {
 
-        Bullet.init(); // must be done before any bullet object can be created
+        bulletWorld = BulletWorld.getInstance(cam); // must be done before any bullet object can be created
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
-        engine.addSystem(bulletSystem = new BulletSystem(engine, cam));
-        engine.addSystem(new PlayerSystem());
+// the bullet system will handle disposing bulletworld members but maybe we should do it in here?
+        engine.addSystem(bulletSystem = new BulletSystem(engine, cam, bulletWorld));
+        engine.addSystem(new PlayerSystem(bulletWorld));
         cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
@@ -354,6 +359,8 @@ public class GameScreen implements Screen {
         engine.removeSystem(renderSystem); // make the system dispose its stuff
 
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
+
+//        bulletWorld.dispose(); // ???????? ( in BulletSystem:removedFromEngine() ???????
 
         font.dispose();
         batch.dispose();
