@@ -103,8 +103,11 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             playerComp.died = true;
         }
 
+
+        Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
+        down.set(0, -1, 0);
         // check for contact w/ surface, only apply force if in contact, not falling
-        if (surfaceContact(bc.collisionWorld, tmpV, bc.body.getOrientation())) {
+        if (surfaceContact(bc.collisionWorld, bc.body.getOrientation(), tmpV, down)) {
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -141,7 +144,8 @@ not need to be asynchronous ...
 //    private Vector3 down = new Vector3();
 
     private boolean surfaceContact(btCollisionWorld myCollisionWorld,
-                                   Vector3 bodyTranslation, Quaternion bodyOrientation) {
+                                   Quaternion bodyOrientation,
+                                   Vector3 origin, Vector3 direction) {
 
         btCollisionObject rayPickObject;
 
@@ -149,12 +153,10 @@ not need to be asynchronous ...
 //        bodyWorldTransform.getRotation(bodyOrientation);
 // bodyOrientation = plyrPhysBody.getOrientation()
 
-        Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
-        down.set(0, -1, 0);
         float rad = bodyOrientation.getAxisAngleRad(axis);
-        down.rotateRad(axis, rad);
+        direction.rotateRad(axis, rad);
 
-        ray.set(bodyTranslation, down);
+        ray.set(origin, direction);
         // 1 meters max from the origin seems to work pretty good
         rayPickObject = BulletSystem.rayTest(myCollisionWorld, ray, 1f);
 
