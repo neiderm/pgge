@@ -4,13 +4,9 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -24,6 +20,7 @@ import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
+import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
@@ -72,31 +69,6 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void setObjectMatlClr(ModelInstance inst, Color c, float alpha) {
-
-        Material mat = inst.materials.get(0);
-        if (null == mat)
-            return; // throw new GdxRuntimeException("not found");
-
-        mat.set(ColorAttribute.createDiffuse(c));
-
-        BlendingAttribute blendingAttribute =
-                new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alpha);
-        mat.set(blendingAttribute);
-    }
-
-/*    private static void setObjectMatlTex(ModelInstance inst, Texture tex){
-
-        Material mat = inst.materials.get(0);
-        if (null == mat)
-            return; // throw new GdxRuntimeException("not found");
-
-mat.remove(ColorAttribute.Diffuse);
-mat.remove(BlendingAttribute.Type);
-        mat.set(TextureAttribute.createDiffuse(tex));
-    }*/
-
-
     private static int nextColor = 0;
 
     public static void setMaterialColor(Entity e, Color c) {
@@ -114,27 +86,20 @@ mat.remove(BlendingAttribute.Type);
             return; //  throw new GdxRuntimeException("e == null ");
         }
 
-        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
-
-        Material mat = inst.materials.get(0);
-        if (null == mat)
-            return; // throw new GdxRuntimeException("not found");
-
         nextColor += 1;
         if (nextColor >= colors.size) {
             nextColor = 0;
         }
 
-        ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
+/*        ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
 
         for (Color color : colors) {
             if (ca.color != color) {
                 mat.set(ColorAttribute.createDiffuse(color));
                 break;
             }
-        }
-
-        setObjectMatlClr(
+        }*/
+        ModelInstanceEx.setColorAttribute(
                 e.getComponent(ModelComponent.class).modelInst, colors.get(nextColor), 0.5f);
     }
 
@@ -254,7 +219,7 @@ mat.remove(BlendingAttribute.Type);
 // we can do primitive dynamic object (with 0 mass for platform)
         e = PrimitivesBuilder.loadBox(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
 
-        setObjectMatlClr(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
+        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
         engine.addEntity(e);
     }
 
