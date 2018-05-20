@@ -21,63 +21,63 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
+//import com.badlogic.gdx.utils.GdxRuntimeException;
 
 
 public class BulletWorld implements Disposable {
 
-    public static BulletWorld instance = null;
+    private static BulletWorld instance = null;
 
     private static final boolean USE_DDBUG_DRAW = false;
-    private DebugDrawer debugDrawer;
-    private btCollisionConfiguration collisionConfiguration;
-    private btCollisionDispatcher dispatcher;
-    private btBroadphaseInterface broadphase;
-    private btConstraintSolver solver;
-    private btDynamicsWorld collisionWorld;
+    private DebugDrawer debugDrawer = null;
+    private btCollisionConfiguration collisionConfiguration = null;
+    private btCollisionDispatcher dispatcher = null;
+    private btBroadphaseInterface broadphase = null;
+    private btConstraintSolver solver = null;
+    private btDynamicsWorld collisionWorld = null;
 
     private Camera camera; // for debug drawing
 
-/*
-    private BulletWorld() {
-//        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
-    }
-*/
+    /*
+        private BulletWorld() {
+    //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
+        }
+    */
     public static BulletWorld getInstance(Camera camera) {
 
         if (null == instance) {
 
             Bullet.init();
             instance = new BulletWorld();
-            instance.init();
-            instance.camera = camera;
         }
+// always need to rebuild the bullet stuf
+        instance.init();
+        instance.camera = camera;
         return instance;
 
     }
 
     private void init() {
 
-            callback = new ClosestRayResultCallback(rayFrom, rayTo);
+        callback = new ClosestRayResultCallback(rayFrom, rayTo);
 
-            final Vector3 gravity = new Vector3(0, -9.81f, 0);
+        final Vector3 gravity = new Vector3(0, -9.81f, 0);
 
-            // Create the bullet world
-            collisionConfiguration = new btDefaultCollisionConfiguration();
-            dispatcher = new btCollisionDispatcher(collisionConfiguration);
-            broadphase = new btDbvtBroadphase();
-            solver = new btSequentialImpulseConstraintSolver();
-            collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-            collisionWorld.setGravity(gravity);
+        // Create the bullet world
+        collisionConfiguration = new btDefaultCollisionConfiguration();
+        dispatcher = new btCollisionDispatcher(collisionConfiguration);
+        broadphase = new btDbvtBroadphase();
+        solver = new btSequentialImpulseConstraintSolver();
+        collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+        collisionWorld.setGravity(gravity);
 
-            debugDrawer = new DebugDrawer();
-            debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
+        debugDrawer = new DebugDrawer();
+        debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
 
-            if (USE_DDBUG_DRAW) {
-                collisionWorld.setDebugDrawer(debugDrawer);
-            }
+        if (USE_DDBUG_DRAW) {
+            collisionWorld.setDebugDrawer(debugDrawer);
+        }
     }
-
-
 
     @Override
     public void dispose() {
@@ -87,8 +87,13 @@ public class BulletWorld implements Disposable {
         broadphase.dispose();
         dispatcher.dispose();
         collisionConfiguration.dispose();
-    }
 
+        collisionWorld = null;
+        solver = null;
+        broadphase = null;
+        dispatcher = null;
+        collisionConfiguration = null;
+    }
 
     public void update(float deltaTime) {
 
@@ -100,14 +105,13 @@ public class BulletWorld implements Disposable {
         debugDrawer.end();
     }
 
-
     /*
      this is here for access to collisionworld
       https://stackoverflow.com/questions/24988852/raycasting-in-libgdx-3d
      */
     private static final Vector3 rayFrom = new Vector3();
     private static final Vector3 rayTo = new Vector3();
-    private static  ClosestRayResultCallback callback = null; // = new ClosestRayResultCallback(rayFrom, rayTo);
+    private static ClosestRayResultCallback callback = null; // = new ClosestRayResultCallback(rayFrom, rayTo);
     private static final Vector3 outV = new Vector3();
 
 
@@ -133,7 +137,6 @@ public class BulletWorld implements Disposable {
         return null;
     }
 
-
     /*
     make sure player is "upright" - this is so we don't apply motive force if e.g.
     rolled over falling etc. or otherwise not in contact with some kind of
@@ -142,7 +145,7 @@ public class BulletWorld implements Disposable {
     private Ray ray = new Ray();
     private Vector3 axis = new Vector3();
 
-    public boolean surfaceContact(Quaternion bodyOrientation, Vector3 origin, Vector3 direction ) {
+    public boolean rayTest(Quaternion bodyOrientation, Vector3 origin, Vector3 direction, float length) {
 
         btCollisionObject rayPickObject;
 
@@ -150,26 +153,26 @@ public class BulletWorld implements Disposable {
 //        bodyWorldTransform.getRotation(bodyOrientation);
 // bodyOrientation = plyrPhysBody.getOrientation()
 
-//        Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
         direction.set(0, -1, 0);
-        float rad = bodyOrientation.getAxisAngleRad(axis);
-        direction.rotateRad(axis, rad);
+        direction.rotateRad(axis, bodyOrientation.getAxisAngleRad(axis));
 
-        ray.set(origin, direction);
         // 1 meters max from the origin seems to work pretty good
-        rayPickObject = this.rayTest(this.collisionWorld, ray, 1f);
+        rayPickObject = rayTest(this.collisionWorld, ray.set(origin, direction), length);
 
         return (null != rayPickObject);
     }
 
     public void addBody(btRigidBody body) {
 
+//        if (null != body && null != collisionWorld) {
         collisionWorld.addRigidBody(body);
+//        }else{
+//            throw new GdxRuntimeException("null ");
+//        }
     }
 
     public void removeBody(btRigidBody body) {
 
         collisionWorld.removeRigidBody(body);
     }
-
 }

@@ -6,12 +6,11 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.SliderForceControl;
+import com.mygdx.game.TankController;
 
 /**
  * Created by mango on 1/23/18.
@@ -27,16 +26,6 @@ be placed). "
 
 public class PlayerSystem extends EntitySystem implements EntityListener {
 
-    // magnitude of force applied (property of "vehicle" type?)
-    private static /* final */ float forceMag = 12.0f;
-
-    /* kinetic friction? ... ground/landscape is not dynamic and doesn't provide friction!
-     * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
-     * passed as parameter to the friction computation .
-     * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
-     * velocity seems to be limited and constant ... go look up the math eventually */
-    private static final float MU = 0.5f;
-
     //    private Engine engine;
     private PlayerComponent playerComp;
     private BulletComponent bc;
@@ -48,8 +37,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
     private BulletWorld world;
-
-    private Vector3 axis = new Vector3();
 
 
     public PlayerSystem(BulletWorld world) {
@@ -75,52 +62,21 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     @Override
     public void update(float delta) {
 
-        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-
-        // rotate by a constant rate according to stick left or stick right.
-        float degrees = 0;
-        if (playerComp.inpVect.x < -DZ) {
-            degrees = 1;
-        } else if (playerComp.inpVect.x > DZ) {
-            degrees = -1;
-        }
-
-        Quaternion r = bc.body.getOrientation();
-
-        forceVect.set(0, 0, -1);
-        float rad = r.getAxisAngleRad(axis);
-        forceVect.rotateRad(axis, rad);
-
-
-        if (playerComp.inpVect.y > DZ) {
-            // reverse thrust & "steer" opposite direction !
-            forceVect.scl(-1);
-            degrees *= -1;
-        } else if (!(playerComp.inpVect.y < -DZ)) {
-            forceVect.set(0, 0, 0);
-        }
-
 // for dynamic object you should get world trans directly from rigid body!
-        bc.body.getWorldTransform(tmpM);
-        tmpM.getTranslation(posV);
+//        if (null != bc.body)
+        {
+            bc.body.getWorldTransform(tmpM);
+            tmpM.getTranslation(posV);
 
-        if (posV.y < -19) {
-            playerComp.died = true;
-        }
+            if (posV.y < -19) {
+                playerComp.died = true;
+            }
 
-
-//        down.set(0, -1, 0);
-
-        // check for contact w/ surface, only apply force if in contact, not falling
-        if (world.surfaceContact(bc.body.getOrientation(), posV, down.set(0, -1, 0))) {
-
-            // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
-            tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
-
-            SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
-                    bc.body, forceVect, forceMag, MU, bc.mass);
-        }
-/*
+            // check for contact w/ surface, only apply force if in contact, not falling
+            if (world.rayTest(bc.body.getOrientation(), posV, down.set(0, -1, 0), 1.0f)) {
+                TankController.update(bc.body, bc.mass, delta, playerComp.inpVect);
+            }
+        /*
 do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to
 notify the thing that was hit so it can chg. color etc.
 But the BulletSystem.rayTest is particular to bullet bodies, whereas this will be purely "visual" check for any
@@ -133,9 +89,8 @@ entity objects that are enabled in the "ray-detection" system.
 not need to be asynchronous ...
  we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
  */
-        bc.body.setWorldTransform(tmpM);
+        }
     }
-
 
     @Override
     public void entityAdded(Entity entity) {
