@@ -58,6 +58,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     }
 
     private Vector3 down = new Vector3();
+    private Vector3 axis = new Vector3();
 
     @Override
     public void update(float delta) {
@@ -72,8 +73,11 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
                 playerComp.died = true;
             }
 
+            down.set(0, -1, 0).rotateRad(axis, bc.body.getOrientation().getAxisAngleRad(axis));
+
             // check for contact w/ surface, only apply force if in contact, not falling
-            if (world.rayTest(bc.body.getOrientation(), posV, down.set(0, -1, 0), 1.0f)) {
+            // 1 meters max from the origin seems to work pretty good
+            if (world.rayTest(posV, down, 1.0f)) {
                 TankController.update(bc.body, bc.mass, delta, playerComp.inpVect);
             }
         /*

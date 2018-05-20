@@ -1,7 +1,6 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -115,7 +114,7 @@ public class BulletWorld implements Disposable {
     private static final Vector3 outV = new Vector3();
 
 
-    public static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray, float length) {
+    private static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray, float length) {
 
         rayFrom.set(ray.origin);
         rayTo.set(ray.direction).scl(length).add(rayFrom);
@@ -137,26 +136,12 @@ public class BulletWorld implements Disposable {
         return null;
     }
 
-    /*
-    make sure player is "upright" - this is so we don't apply motive force if e.g.
-    rolled over falling etc. or otherwise not in contact with some kind of
-    "tractionable" surface (would it belong in it's own system?)
-     */
     private Ray ray = new Ray();
-    private Vector3 axis = new Vector3();
 
-    public boolean rayTest(Quaternion bodyOrientation, Vector3 origin, Vector3 direction, float length) {
+    public boolean rayTest(Vector3 origin, Vector3 direction, float length) {
 
         btCollisionObject rayPickObject;
 
-        // get quat from world transfrom ... or not? seems equivalent to body.getOrientation()
-//        bodyWorldTransform.getRotation(bodyOrientation);
-// bodyOrientation = plyrPhysBody.getOrientation()
-
-        direction.set(0, -1, 0);
-        direction.rotateRad(axis, bodyOrientation.getAxisAngleRad(axis));
-
-        // 1 meters max from the origin seems to work pretty good
         rayPickObject = rayTest(this.collisionWorld, ray.set(origin, direction), length);
 
         return (null != rayPickObject);
