@@ -70,6 +70,8 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
     }
 
+    private Vector3 down = new Vector3();
+
     @Override
     public void update(float delta) {
 
@@ -107,12 +109,10 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
         }
 
 
-        Vector3 down = playerComp.down; // tmp: globalize this value for debuggery
-        down.set(0, -1, 0);
-
+//        down.set(0, -1, 0);
 
         // check for contact w/ surface, only apply force if in contact, not falling
-        if (world.surfaceContact(bc.body.getOrientation(), posV, down)) {
+        if (world.surfaceContact(bc.body.getOrientation(), posV, down.set(0, -1, 0))) {
 
             // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
             tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
@@ -120,7 +120,6 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             SliderForceControl.comp(delta, // eventually we should take time into account not assume 16mS?
                     bc.body, forceVect, forceMag, MU, bc.mass);
         }
-
 /*
 do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to
 notify the thing that was hit so it can chg. color etc.
@@ -134,7 +133,6 @@ entity objects that are enabled in the "ray-detection" system.
 not need to be asynchronous ...
  we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
  */
-
         bc.body.setWorldTransform(tmpM);
     }
 

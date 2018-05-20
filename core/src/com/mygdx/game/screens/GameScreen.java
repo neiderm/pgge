@@ -298,8 +298,7 @@ public class GameScreen implements Screen {
                     forceVect.x, forceVect.y, forceVect.z);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f",
-                    playerComp.down.x, playerComp.down.y, playerComp.down.z);
+            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
             Matrix4 mmm = bulletComp.motionstate.transform;

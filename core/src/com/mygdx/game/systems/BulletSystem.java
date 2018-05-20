@@ -75,7 +75,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         if (null != bc) {
             if (null != bc.body) {
-                world.collisionWorld.addRigidBody(bc.body);
+                world.addBody(bc.body);
             }
         }
     }
@@ -87,7 +87,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         if (null != bc) {
             if (null != bc.body) {
-                world.collisionWorld.removeRigidBody(bc.body);
+                world.removeBody(bc.body);
             }
         }
     }

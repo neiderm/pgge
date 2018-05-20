@@ -17,6 +17,7 @@ import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
@@ -26,13 +27,13 @@ public class BulletWorld implements Disposable {
 
     public static BulletWorld instance = null;
 
-    private static final boolean USE_DDBUG_DRAW = true;
+    private static final boolean USE_DDBUG_DRAW = false;
     private DebugDrawer debugDrawer;
     private btCollisionConfiguration collisionConfiguration;
     private btCollisionDispatcher dispatcher;
     private btBroadphaseInterface broadphase;
     private btConstraintSolver solver;
-    public btDynamicsWorld collisionWorld;
+    private btDynamicsWorld collisionWorld;
 
     private Camera camera; // for debug drawing
 
@@ -160,4 +161,15 @@ public class BulletWorld implements Disposable {
 
         return (null != rayPickObject);
     }
+
+    public void addBody(btRigidBody body) {
+
+        collisionWorld.addRigidBody(body);
+    }
+
+    public void removeBody(btRigidBody body) {
+
+        collisionWorld.removeRigidBody(body);
+    }
+
 }
