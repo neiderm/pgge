@@ -16,12 +16,13 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.Components.BulletComponent;
+import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+
+import static com.mygdx.game.util.ModelInstanceEx.rotateV;
 
 /**
  * Created by mango on 12/18/17.
@@ -88,25 +89,33 @@ public class RenderSystem extends EntitySystem {
         for (Entity e : entities) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            BulletComponent bc = e.getComponent(BulletComponent.class);
+
             if (null != mc) {
-                if (null != bc && null != mc.modelInst && null != bc.body) {
+
+                ModelInstance modelInst = mc.modelInst;
+
+                if (null != modelInst) {
 
                     // tmp, hack
                     PlayerComponent pc = e.getComponent(PlayerComponent.class);
                     if (null != pc) {
 
-                        ModelInstance lineInstance = raytest(mc.modelInst.transform);
+                        ModelInstance lineInstance = line(modelInst.transform.getTranslation(position),
+                                rotateV(down.set(0, -1, 0), modelInst.transform.getRotation(rotation)),
+                                Color.RED);
+
                         modelBatch.render(lineInstance, environment);
                     }
+
                     if (null != testRayLine) // tmp hack
                         modelBatch.render(testRayLine, environment);
                 }
+
                 renderableCount += 1;
 
-                if (isVisible(cam, mc)) {
+                if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
                     visibleCount += 1;
-                    modelBatch.render(mc.modelInst, environment);
+                    modelBatch.render(modelInst, environment);
                 }
             }
         } // for
@@ -119,7 +128,8 @@ public class RenderSystem extends EntitySystem {
 
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            if (null != mc && null != mc.modelInst && mc.isShadowed && isVisible(cam, mc)) {
+            if (null != mc && null != mc.modelInst && mc.isShadowed &&
+                    isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius) ) {
                 shadowBatch.render(mc.modelInst);
             }
         }
@@ -134,49 +144,36 @@ public class RenderSystem extends EntitySystem {
           mc.modelInst.transform.getTranslation(position);
           cam.frustum.sphereInFrustum(position, mc.boundingRadius );
     */
-    private boolean isVisible(PerspectiveCamera cam, ModelComponent  mc) {
-        mc.modelInst.transform.getTranslation(position);
-        return cam.frustum.sphereInFrustum(position, mc.boundingRadius );
+    private boolean isVisible(PerspectiveCamera cam, Vector3 position, float radius) {
+
+        return cam.frustum.sphereInFrustum(position, radius);
 //        return cam.frustum.boundsInFrustum(position, mc.dimensions);
     }
 
-    private Vector3 axis = new Vector3();
+    public static ModelInstance testRayLine; // tmp
     private Vector3 down = new Vector3();
     private Vector3 position = new Vector3();
-    Quaternion rotation = new Quaternion();
-
-    private ModelInstance raytest(Matrix4 transform) {
-
-        transform.getRotation(rotation);
-
-        down.set(0, -1, 0);
-
-        float rad = rotation.getAxisAngleRad(axis);
-        down.rotateRad(axis, rad);
-
-        transform.getTranslation(position);
-
-        return line(position, down, Color.RED);
-    }
-
-    public static ModelInstance testRayLine;
+    private Quaternion rotation = new Quaternion();
     private static Vector3 to = new Vector3();
     private static ModelBuilder modelBuilder = new ModelBuilder();
+    private static Ray tmpRay = new Ray();
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
     private static ModelInstance line(Vector3 from, Vector3 b, Color c) {
 
+//        tmpRay.set(from, b);
+//        tmpRay.getEndPoint(to, 0.2f);
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
         return lineTo(from, to, c);
     }
 
-    public static ModelInstance lineTo(Vector3 from, Vector3 too, Color c) {
+    public static ModelInstance lineTo(Vector3 from, Vector3 to, Color c) {
 
         modelBuilder.begin();
         MeshPartBuilder lineBuilder = modelBuilder.part("line", 1, 3, new Material());
         lineBuilder.setColor(c);
-        lineBuilder.line(from, too);
+        lineBuilder.line(from, to);
         Model lineModel = modelBuilder.end();
         return  new ModelInstance(lineModel);
     }

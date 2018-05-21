@@ -1,10 +1,11 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+
+import static com.mygdx.game.util.ModelInstanceEx.rotateV;
 
 /**
  * Created by mango on 2/10/18.
@@ -20,8 +21,6 @@ public class TankController /* extends CharacterController  */ {
 
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
-    private static Vector3 axis = new Vector3();
-
 
     public static void update(btRigidBody body, float mass, float delta, Vector2 inpVect) {
 
@@ -35,12 +34,7 @@ public class TankController /* extends CharacterController  */ {
             degrees = -1;
         }
 
-        Quaternion r = body.getOrientation();
-
-        forceVect.set(0, 0, -1);
-        float rad = r.getAxisAngleRad(axis);
-        forceVect.rotateRad(axis, rad);
-
+        rotateV(forceVect.set(0, 0, -1), body.getOrientation());
 
         if (inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !
