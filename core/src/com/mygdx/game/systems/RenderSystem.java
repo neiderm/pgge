@@ -8,21 +8,17 @@ import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.util.GfxUtil;
 
-import static com.mygdx.game.util.ModelInstanceEx.rotateV;
+import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 /**
  * Created by mango on 12/18/17.
@@ -42,6 +38,12 @@ public class RenderSystem extends EntitySystem {
 
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
+
+    public static ModelInstance testRayLine; // tmp
+    private Vector3 down = new Vector3();
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+
 
 
     public RenderSystem(Engine engine, Environment environment, PerspectiveCamera cam ) {
@@ -100,8 +102,8 @@ public class RenderSystem extends EntitySystem {
                     PlayerComponent pc = e.getComponent(PlayerComponent.class);
                     if (null != pc) {
 
-                        ModelInstance lineInstance = line(modelInst.transform.getTranslation(position),
-                                rotateV(down.set(0, -1, 0), modelInst.transform.getRotation(rotation)),
+                        ModelInstance lineInstance = GfxUtil.line(modelInst.transform.getTranslation(position),
+                                rotateRad(down.set(0, -1, 0), modelInst.transform.getRotation(rotation)),
                                 Color.RED);
 
                         modelBatch.render(lineInstance, environment);
@@ -148,33 +150,5 @@ public class RenderSystem extends EntitySystem {
 
         return cam.frustum.sphereInFrustum(position, radius);
 //        return cam.frustum.boundsInFrustum(position, mc.dimensions);
-    }
-
-    public static ModelInstance testRayLine; // tmp
-    private Vector3 down = new Vector3();
-    private Vector3 position = new Vector3();
-    private Quaternion rotation = new Quaternion();
-    private static Vector3 to = new Vector3();
-    private static ModelBuilder modelBuilder = new ModelBuilder();
-    private static Ray tmpRay = new Ray();
-    /*
-    https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
-     */
-    private static ModelInstance line(Vector3 from, Vector3 b, Color c) {
-
-//        tmpRay.set(from, b);
-//        tmpRay.getEndPoint(to, 0.2f);
-        to.set(from.x + b.x, from.y + b.y, from.z + b.z);
-        return lineTo(from, to, c);
-    }
-
-    public static ModelInstance lineTo(Vector3 from, Vector3 to, Color c) {
-
-        modelBuilder.begin();
-        MeshPartBuilder lineBuilder = modelBuilder.part("line", 1, 3, new Material());
-        lineBuilder.setColor(c);
-        lineBuilder.line(from, to);
-        Model lineModel = modelBuilder.end();
-        return  new ModelInstance(lineModel);
     }
 }

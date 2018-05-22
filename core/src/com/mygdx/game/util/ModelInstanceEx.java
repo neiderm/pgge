@@ -17,9 +17,10 @@ public class ModelInstanceEx extends ModelInstance {
     }
 
     private static Vector3 axis = new Vector3();
-
-
-    public static Vector3 rotateV(Vector3 v, Quaternion rotation){
+    /*
+    doesn't belong here but it's handy to keep the temp vector axis somewhere
+     */
+    public static Vector3 rotateRad(Vector3 v, Quaternion rotation){
 
         return v.rotateRad(axis, rotation.getAxisAngleRad(axis));
     }

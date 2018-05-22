@@ -10,20 +10,20 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
+import com.mygdx.game.util.GfxUtil;
 
 public class PickRaySystem extends EntitySystem implements EntityListener {
 
 
     private ImmutableArray<Entity> entities;
 
-    private static final Array<Entity> pickObjects = new Array<Entity>();
+//    private static final Array<Entity> pickObjects = new Array<Entity>();
 
 
-    private static void addPickObject(Entity e) {
-        pickObjects.add(e);
+    private static void _addPickObject(Entity e) {
+//        pickObjects.add(e);
     }
 
     private static Vector3 position = new Vector3();
@@ -41,14 +41,14 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
         Entity picked = null;
         float distance = -1f;
 
-        for (Entity e : pickObjects) {
+        for (Entity e : entities) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
 
             mc.modelInst.transform.getTranslation(position).add(mc.center);
 
             if (mc.id == 65535) {
-                RenderSystem.testRayLine = RenderSystem.lineTo(ray.origin, position, Color.LIME);
+                RenderSystem.testRayLine = GfxUtil.lineTo(ray.origin, position, Color.LIME);
             }
 
             if (false) {
@@ -92,12 +92,12 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
     @Override
     public void entityAdded (Entity entity){
 
-        addPickObject(entity) ;
+//        addPickObject(entity) ;
     }
 
     @Override
     public void entityRemoved (Entity entity){
-
+    // empty
     }
 
 
@@ -119,12 +119,12 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
 
         // tmp ... loop all Bullet entities to destroy resources
-        for (Entity e : entities) {
+/*        for (Entity e : entities) {
 
             PickRayComponent bc = e.getComponent(PickRayComponent.class);
 
             if (null != bc) {
             }
-        }
+        }*/
     }
 }

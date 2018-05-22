@@ -16,8 +16,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -25,9 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
@@ -65,9 +61,6 @@ public class GameScreen implements Screen {
     private OrthographicCamera guiCam;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-
-    private BulletComponent bulletComp; // tmp, debugging info
-    private PlayerComponent playerComp; // tmp, debugging info
 
     private PlayerActor playerActor;
 
@@ -229,7 +222,7 @@ public class GameScreen implements Screen {
 
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
-        playerActor = new PlayerActor(player.getComponent(BulletComponent.class), player.getComponent(PlayerComponent.class));
+        playerActor = new PlayerActor(player);
 
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
@@ -238,9 +231,6 @@ public class GameScreen implements Screen {
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
                 player.getComponent(ModelComponent.class).modelInst.transform);
 
-// tmp
-        bulletComp = player.getComponent(BulletComponent.class);
-        playerComp = player.getComponent(PlayerComponent.class);
 // playerComp.died = false;
     }
 
@@ -277,6 +267,7 @@ public class GameScreen implements Screen {
         String s;
 
         camController.update();
+        playerActor.update(delta);
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
@@ -293,19 +284,13 @@ public class GameScreen implements Screen {
 
         //if (null != playerBody)
         {
-            Vector3 forceVect = PlayerSystem.forceVect; // sonar warning "change this instance=reference to a static reference??
-            s = String.format("%+2.1f %+2.1f %+2.1f",
-                    forceVect.x, forceVect.y, forceVect.z);
+            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
             s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
-            Matrix4 mmm = bulletComp.motionstate.transform;
-            Quaternion r = new Quaternion();
-            mmm.getRotation(r);
-            r = bulletComp.body.getOrientation(); /// same as getRotation?
-            s = String.format("%+2.1f %+2.1f %+2.1f", r.getPitch(), r.getYaw(), r.getRoll());
+            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
 
