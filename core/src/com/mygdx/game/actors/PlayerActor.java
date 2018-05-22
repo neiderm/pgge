@@ -3,6 +3,7 @@ package com.mygdx.game.actors;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 
 import java.util.Random;
@@ -40,6 +42,9 @@ public class PlayerActor {
     private static Random rnd = new Random();
     private static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
+    public Matrix4 getModelTransform(){
+        return modelComp.modelInst.transform;
+    }
 
     public PlayerActor(Entity e) {
 
@@ -105,11 +110,11 @@ public class PlayerActor {
 
     public void update(float delta) {
 
-/*
         ModelInstance lineInstance = GfxUtil.line(modelComp.modelInst.transform.getTranslation(position),
                 rotateRad(down.set(0, -1, 0), modelComp.modelInst.transform.getRotation(rotation)),
                 Color.RED);
-*/
+
+        RenderSystem.otherThings.add(lineInstance);
     }
 
 }

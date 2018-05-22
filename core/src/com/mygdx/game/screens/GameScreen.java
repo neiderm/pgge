@@ -224,6 +224,8 @@ public class GameScreen implements Screen {
         engine.addEntity(player);
         playerActor = new PlayerActor(player);
 
+        pickRaySystem.setTransformHACK(playerActor.getModelTransform());  // hackertyy hack
+
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
@@ -245,7 +247,6 @@ public class GameScreen implements Screen {
         cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
-        engine.addSystem(new PickRaySystem());
         pickRaySystem = new PickRaySystem();
         engine.addSystem(pickRaySystem);
     }

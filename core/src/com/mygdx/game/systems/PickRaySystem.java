@@ -8,25 +8,55 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.util.GfxUtil;
 
-public class PickRaySystem extends EntitySystem implements EntityListener {
+import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
+public class PickRaySystem extends EntitySystem implements EntityListener {
 
     private ImmutableArray<Entity> entities;
 
-//    private static final Array<Entity> pickObjects = new Array<Entity>();
 
+    private Matrix4 transformHACK;
 
-    private static void _addPickObject(Entity e) {
-//        pickObjects.add(e);
+    public void setTransformHACK(Matrix4 transformHACK){
+
+        this.transformHACK = transformHACK;
     }
 
+
+    private Quaternion rotation = new Quaternion();
     private static Vector3 position = new Vector3();
+    private static Vector3 tmpV = new Vector3();
+    private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+    private Ray ray = new Ray();
+
+    @Override
+    public void update(float deltaTime) {
+
+        rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation));
+
+        transformHACK.getTranslation(position);
+
+        ray.set(position, direction);
+
+        Entity picked = applyPickRay(ray);
+
+        if (null != picked) {
+            Matrix4 tmpM = picked.getComponent(ModelComponent.class).modelInst.transform;
+            tmpM.getTranslation(tmpV);
+// have to getTranslation again, dumb
+            RenderSystem.otherThings.add(GfxUtil.lineTo(transformHACK.getTranslation(position),
+                    tmpV, Color.LIME));
+        }
+    }
+
 
     /*
      * Using raycast/vector-projection to detect object. Can be generalized as a sort of
@@ -46,10 +76,6 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
             ModelComponent mc = e.getComponent(ModelComponent.class);
 
             mc.modelInst.transform.getTranslation(position).add(mc.center);
-
-            if (mc.id == 65535) {
-                RenderSystem.testRayLine = GfxUtil.lineTo(ray.origin, position, Color.LIME);
-            }
 
             if (false) {
                 float dist2 = ray.origin.dst2(position);

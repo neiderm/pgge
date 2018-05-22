@@ -5,20 +5,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.util.GfxUtil;
-
-import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 /**
  * Created by mango on 12/18/17.
@@ -39,10 +34,8 @@ public class RenderSystem extends EntitySystem {
     //    private Engine engine;
     private ImmutableArray<Entity> entities;
 
-    public static ModelInstance testRayLine; // tmp
-    private Vector3 down = new Vector3();
     private Vector3 position = new Vector3();
-    private Quaternion rotation = new Quaternion();
+    public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
 
 
 
@@ -96,32 +89,25 @@ public class RenderSystem extends EntitySystem {
 
                 ModelInstance modelInst = mc.modelInst;
 
-                if (null != modelInst) {
+//                if (null != modelInst)
+                {
+                    renderableCount += 1;
 
-                    // tmp, hack
-                    PlayerComponent pc = e.getComponent(PlayerComponent.class);
-                    if (null != pc) {
-
-                        ModelInstance lineInstance = GfxUtil.line(modelInst.transform.getTranslation(position),
-                                rotateRad(down.set(0, -1, 0), modelInst.transform.getRotation(rotation)),
-                                Color.RED);
-
-                        modelBatch.render(lineInstance, environment);
+                    if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
+                        visibleCount += 1;
+                        modelBatch.render(modelInst, environment);
                     }
-
-                    if (null != testRayLine) // tmp hack
-                        modelBatch.render(testRayLine, environment);
-                }
-
-                renderableCount += 1;
-
-                if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
-                    visibleCount += 1;
-                    modelBatch.render(modelInst, environment);
                 }
             }
         } // for
+
+        for (ModelInstance modelInst : otherThings) {
+            modelBatch.render(modelInst, environment);
+        }
+        otherThings.clear();
+
         modelBatch.end();
+
 
         // now the modelinstance is (re)scaled, so do shadows now
 ///***
@@ -131,7 +117,7 @@ public class RenderSystem extends EntitySystem {
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
             if (null != mc && null != mc.modelInst && mc.isShadowed &&
-                    isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius) ) {
+                    isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius)) {
                 shadowBatch.render(mc.modelInst);
             }
         }
@@ -139,6 +125,7 @@ public class RenderSystem extends EntitySystem {
         shadowLight.end();
 //***/
     }
+
 
     /*
        https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
