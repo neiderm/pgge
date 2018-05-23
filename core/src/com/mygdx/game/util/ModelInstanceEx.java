@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 
 public class ModelInstanceEx extends ModelInstance {
 
@@ -47,6 +48,39 @@ public class ModelInstanceEx extends ModelInstance {
         mat.set(blendingAttribute);
     }
 
+
+    private static int nextColor = 0;
+
+    public static void setMaterialColor(ModelInstance modelInst, Color c) {
+
+        Array<Color> colors = new Array<Color>();
+        colors.add(Color.WHITE);
+        colors.add(Color.BLUE);
+        colors.add(Color.RED);
+        colors.add(Color.GREEN);
+        colors.add(Color.YELLOW);
+        colors.add(Color.PURPLE);
+
+        // hmmm, w/ alt. pick test, now getting null somtimes?
+//        if (null == modelInst) {
+//            return; //  throw new GdxRuntimeException("e == null ");
+//        }
+
+        nextColor += 1;
+        if (nextColor >= colors.size) {
+            nextColor = 0;
+        }
+
+/*        ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
+
+        for (Color color : colors) {
+            if (ca.color != color) {
+                mat.set(ColorAttribute.createDiffuse(color));
+                break;
+            }
+        }*/
+        setColorAttribute(modelInst, colors.get(nextColor), 0.5f);
+    }
 
 
 /*    private static void setObjectMatlTex(ModelInstance inst, Texture tex){

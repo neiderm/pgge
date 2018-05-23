@@ -33,6 +33,7 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by mango on 12/18/17.
@@ -184,7 +185,8 @@ class GameScreen implements Screen {
 // tmp ... specific handling should be done in "client" listener
                 Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
                 if (null != e) {
-                    sceneLoader.setMaterialColor(e, Color.RED); // TODO: go away!
+                    ModelInstanceEx.setMaterialColor(e.getComponent(ModelComponent.class).modelInst, Color.RED); // TODO: go away!
+
                     playerActor.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
                 }
             }
