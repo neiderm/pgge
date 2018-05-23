@@ -20,15 +20,14 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TiledDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.mygdx.game.GameWorld;
 
 /**
  * Created by mango on 12/18/17.
  */
 
 // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java#L37
-
-public class MainMenuScreen implements Screen {
+// make sure this not visible outside of com.mygdx.game.screens
+class MainMenuScreen implements Screen {
 
     private GameWorld world;
     private BitmapFont font;

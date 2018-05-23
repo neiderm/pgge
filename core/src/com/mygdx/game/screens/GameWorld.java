@@ -1,13 +1,11 @@
-package com.mygdx.game;
+package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Game;
-import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
-import com.mygdx.game.screens.MainMenuScreen;
 
 /**
  * Created by utf1247 on 2/28/2018.
@@ -18,7 +16,7 @@ public class GameWorld {
     public Game game;
     public Engine engine = new Engine();
 
-    GameWorld(Game game) {
+    public GameWorld(Game game) {
         this.game = game;
         game.setScreen(new MainMenuScreen(this));
     }
@@ -49,7 +47,10 @@ public class GameWorld {
         }
     }
 
-    void destroy() {
+// hack ...................... only for sceneLoader.dispose()
+    public void destroy() {
         game.getScreen().dispose();
+//GameScreen.sceneLoader.dispose();
+
     }
 }

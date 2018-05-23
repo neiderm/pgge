@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
+import com.mygdx.game.screens.GameWorld;
 
 public class MyGdxGame extends Game {
 
@@ -19,6 +20,8 @@ public class MyGdxGame extends Game {
 
     @Override
     public void dispose() {
-        world.destroy(); // "back" button
+    // ALT+F4, or possibly "back" button
+//        super.dispose();   // calls screen->hide()
+        world.destroy();  // hack ... for sceneloader.dispose()
     }
 }

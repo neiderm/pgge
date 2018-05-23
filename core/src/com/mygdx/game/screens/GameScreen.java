@@ -25,7 +25,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.GamePad;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
@@ -38,12 +37,12 @@ import com.mygdx.game.systems.RenderSystem;
 /**
  * Created by mango on 12/18/17.
  */
-
-public class GameScreen implements Screen {
+// make sure this not visible outside of com.mygdx.game.screens
+class GameScreen implements Screen {
 
     private BulletWorld bulletWorld;
 
-    private SceneLoader sceneLoader = SceneLoader.instance;
+    public static SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -185,7 +184,7 @@ public class GameScreen implements Screen {
 // tmp ... specific handling should be done in "client" listener
                 Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
                 if (null != e) {
-                    sceneLoader.setMaterialColor(e, Color.RED);
+                    sceneLoader.setMaterialColor(e, Color.RED); // TODO: go away!
                     playerActor.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
                 }
             }
@@ -330,13 +329,15 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-
+// only reason this is here is so GameWorld can call to sceneLoader.dispose() even iff GameScreen not the active Screen
         trash();
 
         // HACKME HACK HACK
+///*
         if (!isPaused) {
             sceneLoader.dispose(); // static dispose models
         }
+//*/
     }
 
     void trash(){
