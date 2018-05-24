@@ -6,6 +6,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Game;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.SceneLoader;
 
 /**
  * Created by utf1247 on 2/28/2018.
@@ -16,7 +17,12 @@ public class GameWorld {
     public Game game;
     public Engine engine = new Engine();
 
+//    private static SceneLoader sceneloader; // tmp
+
     public GameWorld(Game game) {
+
+        SceneLoader.init(); // sceneloader = SceneLoader.init();
+
         this.game = game;
         game.setScreen(new MainMenuScreen(this));
     }
@@ -25,7 +31,7 @@ public class GameWorld {
 
     public void update() {
 
-        entities = engine.getEntitiesFor(Family.all(PlayerComponent.class).get());
+        entities = engine.getEntitiesFor(Family.all(PlayerComponent.class).get()); // TODO: tmp hack
 
         if (null == entities)
             entities = null; // wtf
@@ -50,7 +56,7 @@ public class GameWorld {
 // hack ...................... only for sceneLoader.dispose()
     public void destroy() {
         game.getScreen().dispose();
-//GameScreen.sceneLoader.dispose();
 
+        SceneLoader.dispose();
     }
 }

@@ -43,7 +43,7 @@ class GameScreen implements Screen {
 
     private BulletWorld bulletWorld;
 
-    public static SceneLoader sceneLoader = SceneLoader.instance;
+//    public static SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -337,9 +337,10 @@ class GameScreen implements Screen {
         // HACKME HACK HACK
 ///*
         if (!isPaused) {
-            sceneLoader.dispose(); // static dispose models
+//            sceneLoader.dispose(); // static dispose models
         }
 //*/
+//        SceneLoader.dispose(); // static dispose models
     }
 
     void trash(){

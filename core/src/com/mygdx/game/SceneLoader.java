@@ -2,15 +2,18 @@ package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.loader.G3dModelLoader;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.UBJsonReader;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -28,28 +31,43 @@ import java.util.Random;
  * Created by mango on 12/18/17.
  */
 
-public class SceneLoader implements Disposable {
+public class SceneLoader /* implements Disposable */ {
 
     public static final SceneLoader instance = new SceneLoader();
+//public static SceneLoader instance;
 
     private static boolean useTestObjects = true;
-    private static final AssetManager assets;
-    public static final Model landscapeModel;
-    public static final Model shipModel;
-    public static final Model sceneModel;
-    public static final Model testCubeModel;
+//    private static  AssetManager assets;
+    private static  Model landscapeModel;
+    private static  Model shipModel;
+    private static  Model sceneModel;
+    private static  Model testCubeModel;
 
 
     private SceneLoader() {
         //super();
     }
 
-    public void init() { // ?????????
-        //super.init();
+    public static void /* SceneLoader */ init() {
+///*
+        G3dModelLoader loader;
+        loader = new G3dModelLoader(new JsonReader());
+        testCubeModel = loader.loadModel(Gdx.files.internal("data/cubetest.g3dj"));
+        sceneModel = loader.loadModel(Gdx.files.internal("data/scene.g3dj"));
+
+        loader = new G3dModelLoader(new UBJsonReader());
+        landscapeModel = loader.loadModel(Gdx.files.internal("data/landscape.g3db"));
+        shipModel = loader.loadModel(Gdx.files.internal("data/panzerwagen.g3db"));
+//*/
+
+//        if (null == instance){
+//            instance = new SceneLoader();
+//        }
+//        return instance;
     }
 
     static {
-
+/*
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
@@ -65,6 +83,7 @@ public class SceneLoader implements Disposable {
 //        shipModel = assets.get("data/ship.g3dj", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
+*/
     }
 
 
@@ -225,8 +244,8 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-    @Override
-    public void dispose() {
+//    @Override
+    public static void dispose() {
 
         PrimitivesBuilder.trash(); // hack, call static method
 
@@ -236,7 +255,7 @@ public class SceneLoader implements Disposable {
         shipModel.dispose();
         sceneModel.dispose();
         testCubeModel.dispose();
-        assets.dispose();
+//        assets.dispose();
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
