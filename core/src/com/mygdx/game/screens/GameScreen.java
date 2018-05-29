@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
@@ -75,10 +76,14 @@ class GameScreen implements Screen {
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
 
+    private GameWorld world;
+    private Entity player;
+
 
     public GameScreen(GameWorld world) {
 
         this.engine = world.engine;
+        this.world = world;
 
         environment = new Environment();
         environment.set(
@@ -221,7 +226,7 @@ class GameScreen implements Screen {
         SceneLoader.createEntities(engine);
         SceneLoader.createTestObjects(engine);
 
-        Entity player = SceneLoader.createPlayer();
+        /* Entity */ player = SceneLoader.createPlayer();
         engine.addEntity(player);
         playerActor = new PlayerActor(player);
 
@@ -319,6 +324,16 @@ class GameScreen implements Screen {
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
+
+
+
+        PlayerComponent pc = player.getComponent(PlayerComponent.class);
+        if (null != pc) {
+            if (pc.died) {
+                pc.died = false;
+                world.update(); // tmp
+            }
+        }
     }
 
     @Override
