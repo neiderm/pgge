@@ -24,7 +24,9 @@ public class GameWorld {
 
     public void initialize(Game game){
 
-        SceneLoader.init(); // sceneloader = SceneLoader.init();
+//        SceneLoader.init(); // sceneloader = SceneLoader.init();
+
+
         this.game = game;
         game.setScreen(new MainMenuScreen());
     }
@@ -47,10 +49,11 @@ public class GameWorld {
     }
 
 // hack ...................... only for sceneLoader.dispose()
-    public void destroy() {
+    // Note that Screen:dispose() is not called automatically by framework
+    public void dispose() {
 
         game.getScreen().dispose();
 
-        SceneLoader.dispose();
+//        SceneLoader.dispose();
     }
 }

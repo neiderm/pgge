@@ -5,6 +5,10 @@ import com.mygdx.game.screens.GameWorld;
 
 public class MyGdxGame extends Game {
 
+    @Override
+    public void render() {
+        super.render(); // I can hook into this render, as well as that of current screen
+    }
 
     @Override
     public void create() {
@@ -17,7 +21,8 @@ public class MyGdxGame extends Game {
         // ALT+F4, or Android on "back" button calls pause() then dispose() ... but there is still an instance in the background, and when resumed it does NOT cause resume ?????????? (not sure, seems debugger separates, so we will need to observe by adb logging!)
 //        super.dispose();   // calls screen->hide()
 
-        GameWorld.getInstance().destroy();  // destroy the current screen
+        // Note that Screen:dispose() is not called automatically by framework
+        GameWorld.getInstance().dispose();  // dispose the current screen
     }
 
 

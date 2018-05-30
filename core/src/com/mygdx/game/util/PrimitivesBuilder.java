@@ -199,14 +199,8 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return e;
     }
 
-
-
-/*    @Override
-    public void dispose() {
-        trash();
-    }*/
-
-    public static void trash(){
+    
+    public static void dispose(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
         primitivesModel.dispose();

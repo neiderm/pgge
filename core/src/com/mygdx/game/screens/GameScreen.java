@@ -81,6 +81,10 @@ class GameScreen implements Screen {
 
     public GameScreen() {
 
+        SceneLoader.init(); // idfk
+
+
+
         this.engine = new Engine(); // GameWorld.getInstance().engine;
 
 
@@ -363,12 +367,13 @@ class GameScreen implements Screen {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
 //        bulletWorld.dispose(); // ???????? ( in BulletSystem:removedFromEngine() ???????
-
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-
         stage.dispose();
+
+
+        SceneLoader.dispose();
     }
 
 

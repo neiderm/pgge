@@ -3,7 +3,6 @@ package com.mygdx.game;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -43,28 +42,34 @@ public class SceneLoader /* implements Disposable */ {
     private static  Model sceneModel;
     private static  Model testCubeModel;
 
+    private static boolean loaded = false;
 
     private SceneLoader() {
         //super();
     }
 
     public static void /* SceneLoader */ init() {
-///*
-        G3dModelLoader loader;
-        loader = new G3dModelLoader(new JsonReader());
-        testCubeModel = loader.loadModel(Gdx.files.internal("data/cubetest.g3dj"));
-        sceneModel = loader.loadModel(Gdx.files.internal("data/scene.g3dj"));
 
-        loader = new G3dModelLoader(new UBJsonReader());
-        landscapeModel = loader.loadModel(Gdx.files.internal("data/landscape.g3db"));
-        shipModel = loader.loadModel(Gdx.files.internal("data/panzerwagen.g3db"));
-//*/
+        if (!loaded) {
+
+            loaded = true;
+
+            G3dModelLoader loader;
+            loader = new G3dModelLoader(new JsonReader());
+            testCubeModel = loader.loadModel(Gdx.files.internal("data/cubetest.g3dj"));
+            sceneModel = loader.loadModel(Gdx.files.internal("data/scene.g3dj"));
+
+            loader = new G3dModelLoader(new UBJsonReader());
+            landscapeModel = loader.loadModel(Gdx.files.internal("data/landscape.g3db"));
+            shipModel = loader.loadModel(Gdx.files.internal("data/panzerwagen.g3db"));
+        }
 
 //        if (null == instance){
 //            instance = new SceneLoader();
 //        }
 //        return instance;
     }
+
 
     static {
 /*
@@ -247,7 +252,7 @@ public class SceneLoader /* implements Disposable */ {
 //    @Override
     public static void dispose() {
 
-        PrimitivesBuilder.trash(); // hack, call static method
+        PrimitivesBuilder.dispose(); // hack, call static method
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
