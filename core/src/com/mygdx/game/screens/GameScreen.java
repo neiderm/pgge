@@ -76,14 +76,13 @@ class GameScreen implements Screen {
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
 
-    private GameWorld world;
     private Entity player;
 
 
-    public GameScreen(GameWorld world) {
+    public GameScreen() {
 
-        this.engine = world.engine;
-        this.world = world;
+        this.engine = new Engine(); // GameWorld.getInstance().engine;
+
 
         environment = new Environment();
         environment.set(
@@ -326,12 +325,11 @@ class GameScreen implements Screen {
         stage.draw();
 
 
-
         PlayerComponent pc = player.getComponent(PlayerComponent.class);
         if (null != pc) {
             if (pc.died) {
                 pc.died = false;
-                world.update(); // tmp
+                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp
             }
         }
     }
@@ -358,7 +356,7 @@ class GameScreen implements Screen {
 //        SceneLoader.dispose(); // static dispose models
     }
 
-    void trash(){
+    private void trash(){
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
 

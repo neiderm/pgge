@@ -29,14 +29,11 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 // make sure this not visible outside of com.mygdx.game.screens
 class MainMenuScreen implements Screen {
 
-    private GameWorld world;
     private BitmapFont font;
     private Stage stage;
 
 
-    public MainMenuScreen(GameWorld world) {
-
-        this.world = world;
+    public MainMenuScreen() {
 
         int WWW = Gdx.graphics.getWidth() / 2;
         int HHH = Gdx.graphics.getHeight() / 2;
@@ -137,7 +134,7 @@ text.setText("Play___!");
         }
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            world.game.setScreen(new GameScreen(world));
+            GameWorld.getInstance().showScreen(new GameScreen());
         }
     };
 
@@ -161,6 +158,7 @@ text.setText("Play___!");
 
     @Override
     public void dispose() {
+
         font.dispose();
     }
 
