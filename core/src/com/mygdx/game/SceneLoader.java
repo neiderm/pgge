@@ -83,16 +83,25 @@ public class SceneLoader /* implements Disposable */ {
 //        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
 //        assets.load("data/ship.g3dj", Model.class);
             assets.load("data/scene.g3dj", Model.class);
+
+///*
             assets.finishLoading();
 
-            landscapeModel = assets.get("data/landscape.g3db", Model.class);
-//        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
-            shipModel = assets.get("data/panzerwagen.g3db", Model.class);
-//        shipModel = assets.get("data/ship.g3dj", Model.class);
-            sceneModel = assets.get("data/scene.g3dj", Model.class);
-            testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
+doneLoading();
+//*/
         }
         return assets;
+    }
+
+
+    public static void doneLoading () {
+
+        landscapeModel = assets.get("data/landscape.g3db", Model.class);
+//        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
+        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+//        shipModel = assets.get("data/ship.g3dj", Model.class);
+        sceneModel = assets.get("data/scene.g3dj", Model.class);
+        testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
     }
 
 
@@ -145,7 +154,7 @@ public class SceneLoader /* implements Disposable */ {
         engine.addEntity(skybox);
 
 
-        if (true) { // this slows down bullet debug drawer considerably!
+        if (true) { // this no longer slows down bullet debug drawer considerably!
             Entity ls = BulletEntityBuilder.load(landscapeModel);
             engine.addEntity(ls);
 

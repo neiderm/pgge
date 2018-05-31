@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -78,11 +79,14 @@ class GameScreen implements Screen {
 
     private Entity player;
 
+    private boolean loading;
+    private AssetManager assets;
+
 
     public GameScreen() {
 
-        SceneLoader.init(); // idfk
-
+        assets = SceneLoader.init(); // idfk
+        loading = true;
 
 
         this.engine = new Engine(); // GameWorld.getInstance().engine;
@@ -266,6 +270,16 @@ class GameScreen implements Screen {
         // empty
     }
 
+
+    private void doneLoading () {
+
+        if (loading && assets.update()) {
+
+            SceneLoader.doneLoading();
+            loading = false;
+        }
+    }
+
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -276,18 +290,17 @@ class GameScreen implements Screen {
 
         String s;
 
+//doneLoading();
+
         camController.update();
         playerActor.update(delta);
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
-                 Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.f);
+        Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         engine.update(delta);
-
-        // GUI viewport (full screen)
-        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
