@@ -3,6 +3,7 @@ package com.mygdx.game;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -36,7 +37,7 @@ public class SceneLoader /* implements Disposable */ {
 //public static SceneLoader instance;
 
     private static boolean useTestObjects = true;
-//    private static  AssetManager assets;
+    private static  AssetManager assets;
     private static  Model landscapeModel;
     private static  Model shipModel;
     private static  Model sceneModel;
@@ -48,7 +49,7 @@ public class SceneLoader /* implements Disposable */ {
         //super();
     }
 
-    public static void /* SceneLoader */ init() {
+    public static void __init() {
 
         if (!loaded) {
 
@@ -71,24 +72,27 @@ public class SceneLoader /* implements Disposable */ {
     }
 
 
-    static {
-/*
-        assets = new AssetManager();
-        assets.load("data/cubetest.g3dj", Model.class);
-        assets.load("data/landscape.g3db", Model.class);
-        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
+    public static AssetManager init()
+    {
+        if (!loaded) {
+            loaded = true;
+            assets = new AssetManager();
+            assets.load("data/cubetest.g3dj", Model.class);
+            assets.load("data/landscape.g3db", Model.class);
+            assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
 //        assets.load("data/panzerwagen_3x3.g3dj", Model.class);
 //        assets.load("data/ship.g3dj", Model.class);
-        assets.load("data/scene.g3dj", Model.class);
-        assets.finishLoading();
+            assets.load("data/scene.g3dj", Model.class);
+            assets.finishLoading();
 
-        landscapeModel = assets.get("data/landscape.g3db", Model.class);
+            landscapeModel = assets.get("data/landscape.g3db", Model.class);
 //        shipModel = assets.get("data/panzerwagen_3x3.g3dj", Model.class);
-        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+            shipModel = assets.get("data/panzerwagen.g3db", Model.class);
 //        shipModel = assets.get("data/ship.g3dj", Model.class);
-        sceneModel = assets.get("data/scene.g3dj", Model.class);
-        testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
-*/
+            sceneModel = assets.get("data/scene.g3dj", Model.class);
+            testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
+        }
+        return assets;
     }
 
 
@@ -256,11 +260,13 @@ public class SceneLoader /* implements Disposable */ {
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the model will automatically make all instances invalid!
+/*
         landscapeModel.dispose();
         shipModel.dispose();
         sceneModel.dispose();
         testCubeModel.dispose();
-//        assets.dispose();
+*/
+        assets.dispose();
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
