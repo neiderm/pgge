@@ -8,7 +8,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 
-public class GfxUtil {
+public class GfxUtil /* extends modelBuilder? */ {
 
     private static Vector3 to = new Vector3();
     private static ModelBuilder modelBuilder = new ModelBuilder();
