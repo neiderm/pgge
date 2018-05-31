@@ -106,9 +106,10 @@ class GameScreen implements Screen {
         cam.update();
 
         // make sure add system first before other entity creation crap, so that the system can get entityAdded!
+///*
         addSystems();
         addEntities(); // this takes a long time!
-
+//*/
         // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
         // designated receiver (object that has implemneted "InputReceiver" interface)
         stage = new GamePad(
@@ -149,6 +150,15 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
     }
+
+
+    private void doAllThatOtherShit(){
+
+        addSystems();
+        addEntities(); // this takes a long time!
+    }
+
+
 
 
     private boolean camCtrlrActive = false;
@@ -271,13 +281,17 @@ class GameScreen implements Screen {
     }
 
 
-    private void doneLoading () {
+    private boolean doneLoading () {
 
         if (loading && assets.update()) {
 
             SceneLoader.doneLoading();
+
+            doAllThatOtherShit();
+
             loading = false;
         }
+        return !loading;
     }
 
     /*
@@ -289,11 +303,24 @@ class GameScreen implements Screen {
     public void render(float delta) {
 
         String s;
+float renderableCount = 0;
+float visibleCount = 0;
+/*
+        if (doneLoading()){
+            playerActor.update(delta);
+            visibleCount = renderSystem.visibleCount;
+            renderableCount = renderSystem.renderableCount;
 
-//doneLoading();
-
+            PlayerComponent pc = player.getComponent(PlayerComponent.class);
+            if (null != pc) {
+                if (pc.died) {
+                    pc.died = false;
+                    GameWorld.getInstance().showScreen(new MainMenuScreen());
+                }
+            }
+        }
+*/
         camController.update();
-        playerActor.update(delta);
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
@@ -320,8 +347,8 @@ class GameScreen implements Screen {
         //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
         stringBuilder.setLength(0);
         stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
-        stringBuilder.append(" Visible: ").append(renderSystem.visibleCount);
-        stringBuilder.append(" / ").append(renderSystem.renderableCount);
+        stringBuilder.append(" Visible: ").append(visibleCount);
+        stringBuilder.append(" / ").append(renderableCount);
         //label.setText(stringBuilder);
         font.draw(batch, stringBuilder, 0, 10);
 
@@ -341,7 +368,7 @@ class GameScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-
+///*
         PlayerComponent pc = player.getComponent(PlayerComponent.class);
         if (null != pc) {
             if (pc.died) {
@@ -349,6 +376,7 @@ class GameScreen implements Screen {
                 GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp
             }
         }
+//*/
     }
 
     @Override

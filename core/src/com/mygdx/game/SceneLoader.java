@@ -265,6 +265,7 @@ doneLoading();
 //    @Override
     public static void dispose() {
 
+        loaded = false;
         PrimitivesBuilder.dispose(); // hack, call static method
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
