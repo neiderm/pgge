@@ -85,7 +85,7 @@ class GameScreen implements Screen {
 
     public GameScreen() {
 
-        assets = SceneLoader.init(); // idfk
+//        assets = SceneLoader.init(); // idfk
         loading = true;
 
 
@@ -105,11 +105,7 @@ class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-        // make sure add system first before other entity creation crap, so that the system can get entityAdded!
-///*
-        addSystems();
-        addEntities(); // this takes a long time!
-//*/
+
         // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
         // designated receiver (object that has implemneted "InputReceiver" interface)
         stage = new GamePad(
@@ -149,16 +145,11 @@ class GameScreen implements Screen {
         //      box = new Sprite();
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
+
+
+        // start this last so that other stuff will be available in render()
+        assets = SceneLoader.init(); // idfk
     }
-
-
-    private void doAllThatOtherShit(){
-
-        addSystems();
-        addEntities(); // this takes a long time!
-    }
-
-
 
 
     private boolean camCtrlrActive = false;
@@ -221,7 +212,10 @@ class GameScreen implements Screen {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            camCtrlrActive = cameraSystem.nextOpMode();
+            // camera system might be null if we are servicing the input but
+            // not Done Loading yet!
+            if (null != cameraSystem)
+                camCtrlrActive = cameraSystem.nextOpMode();
 
             if (camCtrlrActive)
                 multiplexer.addProcessor(camController);
@@ -255,8 +249,6 @@ class GameScreen implements Screen {
         cameraSystem.setCameraNode("chaser1",
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
                 player.getComponent(ModelComponent.class).modelInst.transform);
-
-// playerComp.died = false;
     }
 
     private void addSystems() {
@@ -281,19 +273,6 @@ class GameScreen implements Screen {
     }
 
 
-    private boolean doneLoading () {
-
-        if (loading && assets.update()) {
-
-            SceneLoader.doneLoading();
-
-            doAllThatOtherShit();
-
-            loading = false;
-        }
-        return !loading;
-    }
-
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -303,58 +282,58 @@ class GameScreen implements Screen {
     public void render(float delta) {
 
         String s;
-float renderableCount = 0;
-float visibleCount = 0;
-/*
-        if (doneLoading()){
-            playerActor.update(delta);
-            visibleCount = renderSystem.visibleCount;
-            renderableCount = renderSystem.renderableCount;
-
-            PlayerComponent pc = player.getComponent(PlayerComponent.class);
-            if (null != pc) {
-                if (pc.died) {
-                    pc.died = false;
-                    GameWorld.getInstance().showScreen(new MainMenuScreen());
-                }
-            }
-        }
-*/
-        camController.update();
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
+        camController.update();
         engine.update(delta);
 
+        if (loading && assets.update()) {
+            SceneLoader.doneLoading();
+            // make sure add system first before other entity creation crap, so that the system can get entityAdded!
+            addSystems();
+            addEntities(); // this takes a long time!
+            loading = false;
+        }
+
+        // verify instance variable in current gameScreen instance (would be null until done Loading)
+        if (null != playerActor) playerActor.update(delta);
+
+///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
 
         //if (null != playerBody)
         {
-            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
+            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
+            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f",0f, 0f, 0f);
+            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
 
-        //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
-        stringBuilder.setLength(0);
-        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
-        stringBuilder.append(" Visible: ").append(visibleCount);
-        stringBuilder.append(" / ").append(renderableCount);
-        //label.setText(stringBuilder);
-        font.draw(batch, stringBuilder, 0, 10);
+        if (null != renderSystem) {
+            float visibleCount = renderSystem.visibleCount;
+            float renderableCount = renderSystem.renderableCount;
+            //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
+            stringBuilder.setLength(0);
+            stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
+            stringBuilder.append(" Visible: ").append(visibleCount);
+            stringBuilder.append(" / ").append(renderableCount);
+            //label.setText(stringBuilder);
+            font.draw(batch, stringBuilder, 0, 10);
+        }
 
         batch.end();
+//*//////////////////////////////
 
-//        shapeRenderer.setProjectionMatrix ????
+        //        shapeRenderer.setProjectionMatrix ????
         // semi-opaque filled box over touch area
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -363,20 +342,22 @@ float visibleCount = 0;
         shapeRenderer.setColor(hudOverlayColor);
         shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-        shapeRenderer.end();
 
+//*//////////////////////////////
+
+        // note: I protected for null camera system on the input hhandler ... do
+        // we want to update the stage if not Done Loading?
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-///*
-        PlayerComponent pc = player.getComponent(PlayerComponent.class);
-        if (null != pc) {
-            if (pc.died) {
+        // verify instance variable in current gameScreen instance (would be null until done Loading)
+        if (null != player) {
+            PlayerComponent pc = player.getComponent(PlayerComponent.class);
+            if (null != pc && pc.died) {
                 pc.died = false;
-                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp
+                GameWorld.getInstance().showScreen(new MainMenuScreen());
             }
         }
-//*/
     }
 
     @Override
@@ -402,6 +383,7 @@ float visibleCount = 0;
     }
 
     private void trash(){
+
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
 
@@ -412,8 +394,6 @@ float visibleCount = 0;
         batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
-
-
         SceneLoader.dispose();
     }
 

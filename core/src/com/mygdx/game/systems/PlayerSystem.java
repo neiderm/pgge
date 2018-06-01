@@ -63,7 +63,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     public void update(float delta) {
 
 // for dynamic object you should get world trans directly from rigid body!
-//        if (null != bc.body)
+        if (null != bc && null != bc.body)
         {
             bc.body.getWorldTransform(tmpM);
             tmpM.getTranslation(posV);
@@ -80,6 +80,9 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
             if (world.rayTest(posV, down, 1.0f)) {
                 TankController.update(bc.body, bc.mass, delta, playerComp.inpVect);
             }
+        }else{
+            bc = null; // tmp wtf
+        }
         /*
 do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to
 notify the thing that was hit so it can chg. color etc.
@@ -93,7 +96,6 @@ entity objects that are enabled in the "ray-detection" system.
 not need to be asynchronous ...
  we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
  */
-        }
     }
 
     @Override
@@ -111,6 +113,7 @@ not need to be asynchronous ...
 
     @Override
     public void entityRemoved(Entity entity) {
-      // emtpy
+
+        bc = null; // kind of a hack so we know shits not initialized or been de-initialized
     }
 }

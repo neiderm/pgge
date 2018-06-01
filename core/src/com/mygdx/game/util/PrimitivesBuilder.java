@@ -26,9 +26,9 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 public class PrimitivesBuilder extends BulletEntityBuilder {
 
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
-    protected static final float primUnit = 1.0f;
-    protected static final float primHE = 1f / 2f; // primitives half extent constant
-    protected static final float primCapsuleHt = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
+    protected static final float DIM_UNIT = 1.0f;
+    protected static final float DIM_HE = 1f / 2f; // primitives half extent constant
+    protected static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
@@ -39,7 +39,8 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         model = primitivesModel;
     }
 
-    static {
+    public static void init() {
+
         final ModelBuilder mb = new ModelBuilder();
         long attributes =
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
@@ -59,7 +60,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 1f, 1f, 10);
         mb.node().id = "capsule";
         mb.part("capsule", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * primHE, primCapsuleHt, 10); // note radius and height vs. bullet
+                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
         mb.node().id = "cylinder";
         mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
@@ -113,14 +114,14 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh.
     primitive meshes should use unit value (1.0) for the extent dimensions, thus those base dimensions don't have to be multiplied in explicitly in the shape sizing calculation below.
     In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
-    Constant "primHE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
+    Constant "DIM_HE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
 
     public static PrimitivesBuilder getSphereBuilder(String texFile) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "sphereTex", new btSphereShape(size.x * primHE), size, mass, trans);
+                return load(this.model, "sphereTex", new btSphereShape(size.x * DIM_HE), size, mass, trans);
             }
         };
     }
@@ -128,7 +129,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "boxTex", new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
+                return load(this.model, "boxTex", new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
             }
         };
     }
@@ -137,7 +138,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "sphere", new btSphereShape(size.x * primHE), size, mass, trans);
+                return load(this.model, "sphere", new btSphereShape(size.x * DIM_HE), size, mass, trans);
             }
         };
     }
@@ -145,7 +146,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "box", new btBoxShape(size.cpy().scl(primHE)), size, mass, trans);
+                return load(this.model, "box", new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
             }
         };
     }
@@ -153,7 +154,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "cone", new btConeShape(size.x * primHE, size.y), size, mass, trans);
+                return load(this.model, "cone", new btConeShape(size.x * DIM_HE, size.y), size, mass, trans);
             }
         };
     }
@@ -163,12 +164,12 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             public Entity create(float mass, Vector3 trans, Vector3 size) {
                 // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
                 //  so we apply half extent factor to our size.x here.
-                float radius = size.x * primHE;
+                float radius = size.x * DIM_HE;
                 // btcapsuleShape total height is height+2*radius (unlike gdx capsule mesh where height specifies TOTAL height!
                 //  (http://bulletphysics.org/Bullet/BulletFull/classbtCapsuleShape.html#details)
                 // determine the equivalent bullet-compatible height parameter by explicitly scaling
                 // the base mesh height and then subtracting the (scaled) end radii
-                float height = primCapsuleHt * size.y - size.x * primHE - size.x * primHE;
+                float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
                 return load(this.model, "capsule", new btCapsuleShape(radius, height), size, mass, trans);
             }
         };
@@ -178,7 +179,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "cylinder", new btCylinderShape(size.cpy().scl(primHE)), size, mass, trans);
+                return load(this.model, "cylinder", new btCylinderShape(size.cpy().scl(DIM_HE)), size, mass, trans);
             }
         };
     }
@@ -199,7 +200,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return e;
     }
 
-    
+
     public static void dispose(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
