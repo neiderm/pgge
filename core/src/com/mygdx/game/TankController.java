@@ -4,8 +4,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 /**
  * Created by mango on 2/10/18.
@@ -36,7 +36,7 @@ public class TankController /* extends CharacterController  */ {
 
 //        Vector3 axis = new Vector3();
 //        forceVect.set(0, 0, -1).rotateRad(axis, body.getOrientation().getAxisAngleRad(axis));
-        rotateRad(forceVect.set(0, 0, -1), body.getOrientation());
+        ModelInstanceEx.rotateRad(forceVect.set(0, 0, -1), body.getOrientation());
 
         if (inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !

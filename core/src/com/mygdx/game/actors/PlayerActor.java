@@ -16,10 +16,10 @@ import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Random;
 
-import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 /**
  * Created by utf1247 on 5/17/2018.
@@ -111,7 +111,7 @@ public class PlayerActor {
     public void update(float delta) {
 
         ModelInstance lineInstance = GfxUtil.line(modelComp.modelInst.transform.getTranslation(position),
-                rotateRad(down.set(0, -1, 0), modelComp.modelInst.transform.getRotation(rotation)),
+                ModelInstanceEx.rotateRad(down.set(0, -1, 0), modelComp.modelInst.transform.getRotation(rotation)),
                 Color.RED);
 
         RenderSystem.otherThings.add(lineInstance);

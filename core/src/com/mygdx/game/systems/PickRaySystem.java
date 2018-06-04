@@ -15,8 +15,8 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 public class PickRaySystem extends EntitySystem implements EntityListener {
 
@@ -40,13 +40,11 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
     @Override
     public void update(float deltaTime) {
 
-        rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation));
+        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation));
 
         transformHACK.getTranslation(position);
 
-        ray.set(position, direction);
-
-        Entity picked = applyPickRay(ray);
+        Entity picked = applyPickRay(ray.set(position, direction));
 
         if (null != picked) {
             Matrix4 tmpM = picked.getComponent(ModelComponent.class).modelInst.transform;

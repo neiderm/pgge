@@ -11,8 +11,8 @@ import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.TankController;
+import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.util.ModelInstanceEx.rotateRad;
 
 /**
  * Created by mango on 1/23/18.
@@ -72,7 +72,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
                 playerComp.died = true;
             }
 
-            rotateRad(down.set(0, -1, 0), bc.body.getOrientation());
+            ModelInstanceEx.rotateRad(down.set(0, -1, 0), bc.body.getOrientation());
 //            down.set(0, 0, -1).rotateRad(axis, bc.body.getOrientation().getAxisAngleRad(axis));
 
             // check for contact w/ surface, only apply force if in contact, not falling
