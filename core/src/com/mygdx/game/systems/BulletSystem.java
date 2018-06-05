@@ -61,10 +61,11 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
-            if (null != bc && null != bc.shape && null != bc.body) {
-                bc.shape.dispose();
-                bc.body.dispose();
-            }
+            // assert null != bc
+            // assert null != bc.shape
+            // assert null != bc.body
+            bc.shape.dispose();
+            bc.body.dispose();
         }
     }
 
@@ -72,12 +73,9 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     public void entityAdded(Entity entity) {
 
         BulletComponent bc = entity.getComponent(BulletComponent.class);
-
-        if (null != bc) {
-            if (null != bc.body) {
-                world.addBody(bc.body);
-            }
-        }
+        //assert null != bc
+        //assert null != bc.body
+        world.addBody(bc.body);
     }
 
     @Override
@@ -85,10 +83,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-        if (null != bc) {
-            if (null != bc.body) {
-                world.removeBody(bc.body);
-            }
-        }
+        // assert null != bc
+        // assert null != bc.body
+        world.removeBody(bc.body);
     }
 }

@@ -63,25 +63,22 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     public void update(float delta) {
 
 // for dynamic object you should get world trans directly from rigid body!
-        if (null != bc && null != bc.body)
-        {
-            bc.body.getWorldTransform(tmpM);
-            tmpM.getTranslation(posV);
+        // assert null != bc
+        // assert null != bc.body
+        bc.body.getWorldTransform(tmpM);
+        tmpM.getTranslation(posV);
 
-            if (posV.y < -19) {
-                playerComp.died = true;
-            }
+        if (posV.y < -19) {
+            playerComp.died = true;
+        }
 
-            ModelInstanceEx.rotateRad(down.set(0, -1, 0), bc.body.getOrientation());
+        ModelInstanceEx.rotateRad(down.set(0, -1, 0), bc.body.getOrientation());
 //            down.set(0, 0, -1).rotateRad(axis, bc.body.getOrientation().getAxisAngleRad(axis));
 
-            // check for contact w/ surface, only apply force if in contact, not falling
-            // 1 meters max from the origin seems to work pretty good
-            if (world.rayTest(posV, down, 1.0f)) {
-                TankController.update(bc.body, bc.mass, delta, playerComp.inpVect);
-            }
-        }else{
-            bc = null; // tmp wtf
+        // check for contact w/ surface, only apply force if in contact, not falling
+        // 1 meters max from the origin seems to work pretty good
+        if (world.rayTest(posV, down, 1.0f)) {
+            TankController.update(bc.body, bc.mass, delta, playerComp.inpVect);
         }
         /*
 do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to

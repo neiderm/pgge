@@ -84,20 +84,17 @@ public class RenderSystem extends EntitySystem {
         for (Entity e : entities) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
+            ModelInstance modelInst = mc.modelInst;
 
-            if (null != mc) {
+            // only entity with valid model comp and model instance should be in here
+            //assert null != mc;
+            //assert null != mc.modelInst;
 
-                ModelInstance modelInst = mc.modelInst;
+            renderableCount += 1;
 
-//                if (null != modelInst)
-                {
-                    renderableCount += 1;
-
-                    if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
-                        visibleCount += 1;
-                        modelBatch.render(modelInst, environment);
-                    }
-                }
+            if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
+                visibleCount += 1;
+                modelBatch.render(modelInst, environment);
             }
         } // for
 
@@ -116,7 +113,9 @@ public class RenderSystem extends EntitySystem {
 
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            if (null != mc && null != mc.modelInst && mc.isShadowed &&
+            //assert null != mc;
+            //assert null != mc.modelInst;
+            if (mc.isShadowed &&
                     isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius)) {
                 shadowBatch.render(mc.modelInst);
             }
