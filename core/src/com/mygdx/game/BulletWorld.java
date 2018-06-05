@@ -42,21 +42,17 @@ public class BulletWorld implements Disposable {
     //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
         }
     */
-    public static BulletWorld getInstance(Camera camera) {
+    public static BulletWorld getInstance() {
 
         if (null == instance) {
-
             Bullet.init();
             instance = new BulletWorld();
         }
-// always need to rebuild the bullet stuf
-        instance.init();
-        instance.camera = camera;
         return instance;
 
     }
 
-    private void init() {
+    public void initialize(Camera camera) {
 
         callback = new ClosestRayResultCallback(rayFrom, rayTo);
 
@@ -76,6 +72,7 @@ public class BulletWorld implements Disposable {
         if (USE_DDBUG_DRAW) {
             collisionWorld.setDebugDrawer(debugDrawer);
         }
+        instance.camera = camera;
     }
 
     @Override
@@ -87,11 +84,7 @@ public class BulletWorld implements Disposable {
         dispatcher.dispose();
         collisionConfiguration.dispose();
 
-        collisionWorld = null;
-        solver = null;
-        broadphase = null;
-        dispatcher = null;
-        collisionConfiguration = null;
+        instance = null;
     }
 
     public void update(float deltaTime) {
@@ -149,11 +142,7 @@ public class BulletWorld implements Disposable {
 
     public void addBody(btRigidBody body) {
 
-//        if (null != body && null != collisionWorld) {
         collisionWorld.addRigidBody(body);
-//        }else{
-//            throw new GdxRuntimeException("null ");
-//        }
     }
 
     public void removeBody(btRigidBody body) {

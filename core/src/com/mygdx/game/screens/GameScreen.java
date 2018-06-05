@@ -43,8 +43,6 @@ import com.mygdx.game.util.ModelInstanceEx;
 // make sure this not visible outside of com.mygdx.game.screens
 class GameScreen implements Screen {
 
-    private BulletWorld bulletWorld;
-
 //    public static SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
 
@@ -253,12 +251,12 @@ class GameScreen implements Screen {
 
     private void addSystems() {
 
-        bulletWorld = BulletWorld.getInstance(cam); // must be done before any bullet object can be created
+        // must be done before any bullet object can be created
+        BulletWorld.getInstance().initialize(cam);
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
-// the bullet system will handle disposing bulletworld members but maybe we should do it in here?
-        engine.addSystem(bulletSystem = new BulletSystem(engine, cam, bulletWorld));
-        engine.addSystem(new PlayerSystem(bulletWorld));
+        engine.addSystem(bulletSystem = new BulletSystem(engine, cam, BulletWorld.getInstance()));
+        engine.addSystem(new PlayerSystem(BulletWorld.getInstance()));
         cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
         engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
@@ -353,7 +351,8 @@ class GameScreen implements Screen {
         // verify instance variable in current gameScreen instance (would be null until done Loading)
         if (null != player) {
             PlayerComponent pc = player.getComponent(PlayerComponent.class);
-            if (null != pc && pc.died) {
+            // assert null != pc
+            if (pc.died) {
                 pc.died = false;
                 GameWorld.getInstance().showScreen(new MainMenuScreen());
             }
