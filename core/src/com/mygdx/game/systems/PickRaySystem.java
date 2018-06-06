@@ -3,9 +3,8 @@ package com.mygdx.game.systems;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
@@ -18,10 +17,7 @@ import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
-public class PickRaySystem extends EntitySystem implements EntityListener {
-
-    private ImmutableArray<Entity> entities;
-
+public class PickRaySystem extends IteratingSystem implements EntityListener {
 
     private Matrix4 transformHACK;
 
@@ -36,6 +32,15 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
     private static Vector3 tmpV = new Vector3();
     private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Ray ray = new Ray();
+
+
+    public PickRaySystem(){
+        super(Family.all(PickRayComponent.class).get());
+    }
+
+    @Override
+    protected void processEntity(Entity entity, float deltaTime) {
+    }
 
     @Override
     public void update(float deltaTime) {
@@ -69,7 +74,7 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
         Entity picked = null;
         float distance = -1f;
 
-        for (Entity e : entities) {
+        for (Entity e : getEntities()) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
 
@@ -126,29 +131,9 @@ public class PickRaySystem extends EntitySystem implements EntityListener {
 
 
     @Override
-    public void addedToEngine(Engine engine) {
-
-//        this.engine = engine;
-
-        // Grabs all entities with desired components
-        entities = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
-
-        // listener for these so that their bullet objects can be dispose'd
-        engine.addEntityListener(Family.all(PickRayComponent.class).get(), this);
-    }
-
-    @Override
     public void removedFromEngine(Engine engine) {
 
+        super.removedFromEngine(engine);
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
-
-        // tmp ... loop all Bullet entities to destroy resources
-/*        for (Entity e : entities) {
-
-            PickRayComponent bc = e.getComponent(PickRayComponent.class);
-
-            if (null != bc) {
-            }
-        }*/
     }
 }
