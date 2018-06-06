@@ -16,13 +16,8 @@ public class CharacterSystem extends IteratingSystem {
     }
 
     @Override
-    protected void processEntity (Entity entity, float deltaTime){
+    protected void processEntity(Entity entity, float deltaTime) {
 
-        for (Entity e : getEntities()) {
-
-            CharacterComponent charComp = e.getComponent(CharacterComponent.class);
-
-            charComp.controller.update();
-        }
+        entity.getComponent(CharacterComponent.class).controller.update();
     }
 }
