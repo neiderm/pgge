@@ -1,16 +1,10 @@
 package com.mygdx.game.systems;
 
-import com.badlogic.ashley.core.Engine;
-import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntityListener;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
 
-import static com.mygdx.game.systems.CameraSystem.CameraOpMode.CHASE;
-import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE;
 
 /**
  * Created by mango on 2/4/18.
@@ -36,7 +30,7 @@ import static com.mygdx.game.systems.CameraSystem.CameraOpMode.FIXED_PERSPECTIVE
  * Chase type would be constructed with a reference to the chasee
  */
 
-public class CameraSystem extends EntitySystem {
+public class CameraOperator {
 
     private PerspectiveCamera cam;
 
@@ -101,7 +95,7 @@ public class CameraSystem extends EntitySystem {
 
 
 
-    private CameraOpMode cameraOpMode = FIXED_PERSPECTIVE;
+    private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
     // these reference whatever the camera is supposed to be chasing
     private Matrix4 positionMatrixRef;
@@ -139,13 +133,13 @@ public class CameraSystem extends EntitySystem {
 
         CameraNode node = cameraNodes.getValueAt(index);
 
-        cameraOpMode = CHASE;
+        cameraOpMode = CameraOpMode.CHASE;
 
         Vector3 tmp = cam.position.cpy();
 
         if (node.flags == FIXED){
 
-            cameraOpMode = FIXED_PERSPECTIVE;
+            cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
             tmp.y += 1;
             setCameraLocation(tmp, currentLookAtV);
@@ -183,7 +177,7 @@ public class CameraSystem extends EntitySystem {
         currentLookAtV.set(lookAt);
     }
 
-    public CameraSystem(PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
+    public CameraOperator(PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
 
         this.cam = cam;
 
@@ -199,24 +193,15 @@ public class CameraSystem extends EntitySystem {
         setCameraLocation(posV, lookAtV);
     }
 
-    @Override
-    public void addedToEngine(Engine engine) {
-
-//        this.engine = engine;
-
-//        engine.addEntityListener(Family.all(CameraComponent.class).get(), this);
-    }
-
 
     private Vector3 currentPositionV = new Vector3();
     private Vector3 currentLookAtV = new Vector3();
 
-    @Override
     public void update(float delta) {
 
-        if (FIXED_PERSPECTIVE == cameraOpMode) {
+        if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
 
-        } else if (CHASE == cameraOpMode) {
+        } else if (CameraOpMode.CHASE == cameraOpMode) {
             positionMatrixRef.getTranslation(currentPositionV);
             lookAtMatrixRef.getTranslation(currentLookAtV);
             setCameraLocation(currentPositionV, currentLookAtV);

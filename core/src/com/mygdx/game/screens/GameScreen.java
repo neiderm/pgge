@@ -30,7 +30,7 @@ import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
-import com.mygdx.game.systems.CameraSystem;
+import com.mygdx.game.systems.CameraOperator;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.PlayerSystem;
@@ -48,7 +48,7 @@ class GameScreen implements Screen {
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private CameraSystem cameraSystem;
+    private CameraOperator cameraOperator;
     private PickRaySystem pickRaySystem;
 
     private PerspectiveCamera cam;
@@ -147,6 +147,10 @@ class GameScreen implements Screen {
 
         // start this last so that other stuff will be available in render()
         assets = SceneLoader.init(); // idfk
+
+
+        cameraOperator =
+                new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
     }
 
 
@@ -210,10 +214,8 @@ class GameScreen implements Screen {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            // camera system might be null if we are servicing the input but
-            // not Done Loading yet!
-            if (null != cameraSystem)
-                camCtrlrActive = cameraSystem.nextOpMode();
+              // assert null != cameraOperator
+            camCtrlrActive = cameraOperator.nextOpMode();
 
             if (camCtrlrActive)
                 multiplexer.addProcessor(camController);
@@ -244,7 +246,7 @@ class GameScreen implements Screen {
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
-        cameraSystem.setCameraNode("chaser1",
+        cameraOperator.setCameraNode("chaser1",
                 playerChaser.getComponent(ModelComponent.class).modelInst.transform,
                 player.getComponent(ModelComponent.class).modelInst.transform);
     }
@@ -257,8 +259,6 @@ class GameScreen implements Screen {
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new PlayerSystem(BulletWorld.getInstance()));
-        cameraSystem = new CameraSystem(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
-        engine.addSystem(cameraSystem);
         engine.addSystem(new CharacterSystem());
         pickRaySystem = new PickRaySystem();
         engine.addSystem(pickRaySystem);
@@ -280,6 +280,8 @@ class GameScreen implements Screen {
     public void render(float delta) {
 
         String s;
+
+        cameraOperator.update(delta);
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
