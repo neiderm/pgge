@@ -3,10 +3,8 @@ package com.mygdx.game.systems;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 
@@ -16,22 +14,24 @@ import com.mygdx.game.Components.BulletComponent;
  * "from http://bedroomcoders.co.uk/libgdx-bullet-redux-2/"
  */
 
-public class BulletSystem extends EntitySystem implements EntityListener {
-
+public class BulletSystem extends IteratingSystem implements EntityListener {
 
     //    private Engine engine;
-    private ImmutableArray<Entity> entities;
     private BulletWorld world;
 
 
-    public BulletSystem(Engine engine, PerspectiveCamera cam, BulletWorld world) {
+    public BulletSystem(BulletWorld world) {
 
+        super(Family.all(BulletComponent.class).get());
         this.world = world;
+    }
+
+    protected void processEntity(Entity entity, float deltaTime) { // empty
     }
 
     @Override
     public void update(float deltaTime) {
-
+        super.update(deltaTime);
         world.update(deltaTime);
     }
 
@@ -39,10 +39,8 @@ public class BulletSystem extends EntitySystem implements EntityListener {
     @Override
     public void addedToEngine(Engine engine) {
 
+        super.addedToEngine(engine);
 //        this.engine = engine;
-
-        // Grabs all entities with desired components
-        entities = engine.getEntitiesFor(Family.all(BulletComponent.class).get());
 
         // listener for these so that their bullet objects can be dispose'd
         engine.addEntityListener(Family.all(BulletComponent.class).get(), this);
@@ -55,9 +53,7 @@ public class BulletSystem extends EntitySystem implements EntityListener {
 
         world.dispose();
 
-
-        // tmp ... loop all Bullet entities to destroy resources
-        for (Entity e : entities) {
+        for (Entity e : getEntities()) {
 
             BulletComponent bc = e.getComponent(BulletComponent.class);
 
