@@ -30,7 +30,7 @@ import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
-import com.mygdx.game.systems.CameraOperator;
+import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.PlayerSystem;

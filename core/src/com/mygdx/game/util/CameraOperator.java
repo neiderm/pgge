@@ -1,4 +1,4 @@
-package com.mygdx.game.systems;
+package com.mygdx.game.util;
 
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
