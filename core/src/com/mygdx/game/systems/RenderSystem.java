@@ -2,9 +2,8 @@ package com.mygdx.game.systems;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.utils.ImmutableArray;
+import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -19,7 +18,7 @@ import com.mygdx.game.Components.ModelComponent;
  * Created by mango on 12/18/17.
  */
 
-public class RenderSystem extends EntitySystem {
+public class RenderSystem extends IteratingSystem {
 
     public int visibleCount;
     public int renderableCount;
@@ -32,15 +31,20 @@ public class RenderSystem extends EntitySystem {
     private ModelBatch shadowBatch;
 
     //    private Engine engine;
-    private ImmutableArray<Entity> entities;
 
     private Vector3 position = new Vector3();
     public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
 
 
+    public RenderSystem()
+    {
+        super(Family.all(ModelComponent.class).get());
+    }
+
 
     public RenderSystem(Engine engine, Environment environment, PerspectiveCamera cam ) {
 
+        this();
         this.environment = environment;
         this.cam = cam;
 
@@ -55,22 +59,32 @@ public class RenderSystem extends EntitySystem {
     }
 
     @Override
-    public void addedToEngine(Engine engine) {
-
-//        this.engine = engine;
-
-        // Grabs all entities with desired components
-        entities = engine.getEntitiesFor(Family.all(ModelComponent.class).get());
-    }
-
-    @Override
     public void removedFromEngine(Engine engine) {
 
+        super.removedFromEngine(engine);
         modelBatch.dispose();
 ///***
         shadowBatch.dispose();
         shadowLight.dispose();
 //***/
+    }
+
+    @Override
+    protected void processEntity (Entity entity, float deltaTime){
+
+        ModelComponent mc = entity.getComponent(ModelComponent.class);
+        ModelInstance modelInst = mc.modelInst;
+
+        // only entity with valid model comp and model instance should be in here
+        //assert null != mc;
+        //assert null != mc.modelInst;
+
+        renderableCount += 1;
+
+        if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
+            visibleCount += 1;
+            modelBatch.render(modelInst, environment);
+        }
     }
 
     @Override
@@ -81,22 +95,7 @@ public class RenderSystem extends EntitySystem {
 
         modelBatch.begin(cam);
 
-        for (Entity e : entities) {
-
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            ModelInstance modelInst = mc.modelInst;
-
-            // only entity with valid model comp and model instance should be in here
-            //assert null != mc;
-            //assert null != mc.modelInst;
-
-            renderableCount += 1;
-
-            if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
-                visibleCount += 1;
-                modelBatch.render(modelInst, environment);
-            }
-        } // for
+        super.update(deltaTime);
 
         for (ModelInstance modelInst : otherThings) {
             modelBatch.render(modelInst, environment);
@@ -111,7 +110,7 @@ public class RenderSystem extends EntitySystem {
         shadowLight.begin(Vector3.Zero, cam.direction);
         shadowBatch.begin(shadowLight.getCamera());
 
-        for (Entity e : entities) {
+        for (Entity e : getEntities()) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
             //assert null != mc;
             //assert null != mc.modelInst;
