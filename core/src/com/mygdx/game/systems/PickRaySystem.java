@@ -45,19 +45,9 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     @Override
     public void update(float deltaTime) {
 
-        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation));
-
-        transformHACK.getTranslation(position);
-
-        Entity picked = applyPickRay(ray.set(position, direction));
-
-        if (null != picked) {
-            Matrix4 tmpM = picked.getComponent(ModelComponent.class).modelInst.transform;
-            tmpM.getTranslation(tmpV);
-// have to getTranslation again, dumb
-            RenderSystem.otherThings.add(GfxUtil.lineTo(transformHACK.getTranslation(position),
-                    tmpV, Color.LIME));
-        }
+        applyPickRay(ray.set(transformHACK.getTranslation(position),
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation))
+                ));
     }
 
 
@@ -115,8 +105,17 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
             /*            Gdx.app.log("asdf", String.format("mc.id=%d, dx = %f, pos=(%f,%f,%f)",
                     mc.id, distance, position.x, position.y, position.z ));*/
         }
+
+        if (null != picked) {
+            RenderSystem.otherThings.add(
+                    GfxUtil.lineTo(transformHACK.getTranslation(position),
+                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                            Color.LIME));
+        }
+
         return picked;
     }
+
 
     @Override
     public void entityAdded (Entity entity){
