@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
@@ -12,6 +13,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
+import com.mygdx.game.util.EventQueue;
+import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -19,6 +22,11 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class PickRaySystem extends IteratingSystem implements EntityListener {
 
     private Matrix4 transformHACK;
+
+    private Signal<GameEvent> gameEventSignal;
+    private EventQueue eventQueue;
+
+
 
     public void setTransformHACK(Matrix4 transformHACK){
 
@@ -33,8 +41,14 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     private Ray ray = new Ray();
 
 
-    public PickRaySystem(){
+    public PickRaySystem(Signal<GameEvent> gameEventSignal){
+
         super(Family.all(PickRayComponent.class).get());
+
+        this.gameEventSignal = gameEventSignal;
+
+        eventQueue = new EventQueue();
+        gameEventSignal.add(eventQueue);
     }
 
     @Override
@@ -45,9 +59,16 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     @Override
     public void update(float deltaTime) {
 
+        // super?
+Entity picked =
         applyPickRay(ray.set(transformHACK.getTranslation(position),
                 ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation))
         ));
+
+if (null != picked){
+    gameEventSignal.dispatch(GameEvent.THAT);
+}
+
     }
 
 //    Vector3 interSection = new Vector3();

@@ -2,6 +2,7 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
@@ -35,6 +36,7 @@ import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /**
@@ -80,8 +82,15 @@ class GameScreen implements Screen {
     private boolean loading;
     private AssetManager assets;
 
+    private Signal<GameEvent> gameEventSignal;
+
 
     public GameScreen() {
+
+
+        //Create the event signal
+        gameEventSignal = new Signal<GameEvent>();
+
 
 //        assets = SceneLoader.init(); // idfk
         loading = true;
@@ -258,9 +267,12 @@ class GameScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new PlayerSystem(BulletWorld.getInstance()));
+        engine.addSystem(
+                new PlayerSystem(BulletWorld.getInstance(), gameEventSignal)
+        );
         engine.addSystem(new CharacterSystem());
-        pickRaySystem = new PickRaySystem();
+
+        pickRaySystem = new PickRaySystem(gameEventSignal);
         engine.addSystem(pickRaySystem);
     }
 

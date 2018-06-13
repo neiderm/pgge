@@ -5,12 +5,15 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.TankController;
+import com.mygdx.game.util.EventQueue;
+import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
@@ -26,20 +29,26 @@ be placed). "
  */
 
 
-public class PlayerSystem extends EntitySystem implements EntityListener {
+public class PlayerSystem extends EntitySystem /* IteratingSystem */ implements EntityListener {
 
     //    private Engine engine;
     private PlayerComponent playerComp;
     private BulletComponent bc;
+    private BulletWorld world;
+    private EventQueue eventQueue;
 
     // working variables
     private static Matrix4 tmpM = new Matrix4();
     private static Vector3 posV = new Vector3();
 
-    private BulletWorld world;
 
+    public PlayerSystem(BulletWorld world,  Signal<GameEvent> gameEventSignal ) {
 
-    public PlayerSystem(BulletWorld world) {
+//        super(Family.all(PlayerComponent.class).get());
+
+        eventQueue = new EventQueue();
+        gameEventSignal.add(eventQueue);
+
         this.world = world;
     }
 
@@ -54,13 +63,19 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
     @Override
     public void removedFromEngine(Engine engine) {
 
+//super.removedFromEngine(engine);
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
     }
 
     private Vector3 down = new Vector3();
 
+
+//    protected void processEntity (Entity entity, float deltaTime){};
+
     @Override
     public void update(float delta) {
+
+        // super();
 
 // for dynamic object you should get world trans directly from rigid body!
         // assert null != bc
@@ -70,6 +85,7 @@ public class PlayerSystem extends EntitySystem implements EntityListener {
 
         if (posV.y < -19) {
             playerComp.died = true;
+// should also switch cam back to 3rd person
         }
 
         ModelInstanceEx.rotateRad(down.set(0, -1, 0), bc.body.getOrientation());
@@ -93,6 +109,18 @@ entity objects that are enabled in the "ray-detection" system.
 not need to be asynchronous ...
  we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
  */
+        for (GameEvent event : eventQueue.getEvents()) {
+            switch (event) {
+
+                case THAT:
+                    break;
+                case THIS:
+                    break;
+                default:
+
+            }
+        }
+
     }
 
     @Override
