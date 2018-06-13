@@ -65,10 +65,14 @@ Entity picked =
                 ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation))
         ));
 
-if (null != picked){
-    gameEventSignal.dispatch(GameEvent.THAT);
-}
+        if (null != picked) {
+            gameEventSignal.dispatch(GameEvent.THAT);
 
+            RenderSystem.otherThings.add(
+                    GfxUtil.lineTo(transformHACK.getTranslation(position),
+                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                            Color.LIME));
+        }
     }
 
 //    Vector3 interSection = new Vector3();
@@ -98,13 +102,6 @@ if (null != picked){
                 picked = e;
                 distance = dist2;
             }
-        }
-
-        if (null != picked) {
-            RenderSystem.otherThings.add(
-                    GfxUtil.lineTo(transformHACK.getTranslation(position),
-                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                            Color.LIME));
         }
 
         return picked;
