@@ -47,10 +47,10 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
 
         applyPickRay(ray.set(transformHACK.getTranslation(position),
                 ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation))
-                ));
+        ));
     }
 
-
+//    Vector3 interSection = new Vector3();
     /*
      * Using raycast/vector-projection to detect object. Can be generalized as a sort of
      * collision detection. Would like to have the collision shape and/or raycast implemmetantion
@@ -66,10 +66,16 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
 
         for (Entity e : getEntities()) {
 
-            float tmpDistance = pickRay(e.getComponent(ModelComponent.class), ray, distance);
-            if (tmpDistance >= 0) {
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            mc.modelInst.transform.getTranslation(position).add(mc.center);
+
+            // gets the distance of the center of object to the ray, for more accuracy
+            float dist2 = intersect(ray, position, mc.boundingRadius, null);
+            if (dist2>=0)  dist2 = ray.origin.dst2(position);//ray.origin to object distance works ok
+
+            if ((dist2 < distance || distance < 0f) && dist2 >= 0) {
                 picked = e;
-                distance = tmpDistance;
+                distance = dist2;
             }
         }
 
@@ -83,34 +89,35 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
         return picked;
     }
 
+    /*
+     * Intersector.intersectRaySphere() modified to return the "distance" of ray endpoint
+     *  to object center ( >= 0 )  or -1 if no intersection
+     *  Create an extended Ray class for this.
+     */
+    public float intersect(Ray ray, Vector3 center, float radius, Vector3 intersection) {
 
-    public float pickRay(ModelComponent mc, Ray ray, float distance) {
-
-        float tmpDistance = -1;
-        mc.modelInst.transform.getTranslation(position).add(mc.center);
+        float dst2 = -1;
 
         final float len = ray.direction.dot(
-                position.x - ray.origin.x,
-                position.y - ray.origin.y,
-                position.z - ray.origin.z);
+                center.x - ray.origin.x,
+                center.y - ray.origin.y,
+                center.z - ray.origin.z);
 
-        if (len >= 0f) {
+        if (len >= 0f) { // if negative then the center is behind the ray
 
-            float dist2 = position.dst2(
+            dst2 = center.dst2(
                     ray.origin.x + ray.direction.x * len,
                     ray.origin.y + ray.direction.y * len,
                     ray.origin.z + ray.direction.z * len);
 
-            if (distance >= 0f && dist2 > distance) {
-                ; // item is not selected if distance is farther than reference distance
-
-            } else if (dist2 <= mc.boundingRadius * mc.boundingRadius) {
-                tmpDistance = dist2;
-            }
+            final float r2 = radius * radius;
+            if (dst2 > r2) return -1; // no intersection
+/*
+        if (intersection != null) intersection.set(ray.direction).scl(len - (float)Math.sqrt(r2 - dst2)).add(ray.origin);
+*/
         }
-        return tmpDistance;
+        return dst2;
     }
-
 
     @Override
     public void entityAdded (Entity entity){
@@ -119,9 +126,8 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
 
     @Override
     public void entityRemoved (Entity entity){
-    // empty
+        // empty
     }
-
 
     @Override
     public void removedFromEngine(Engine engine) {
