@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -15,28 +14,15 @@ import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.util.EventQueue;
 import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
 public class PickRaySystem extends IteratingSystem implements EntityListener {
 
-    private Matrix4 transformHACK;
-
-    private Signal<GameEvent> gameEventSignal;
     private EventQueue eventQueue;
-
-
-
-    public void setTransformHACK(Matrix4 transformHACK){
-
-        this.transformHACK = transformHACK;
-    }
-
 
     private Quaternion rotation = new Quaternion();
     private static Vector3 position = new Vector3();
-    private static Vector3 tmpV = new Vector3();
     private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Ray ray = new Ray();
 
@@ -44,8 +30,6 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     public PickRaySystem(Signal<GameEvent> gameEventSignal){
 
         super(Family.all(PickRayComponent.class).get());
-
-        this.gameEventSignal = gameEventSignal;
 
         eventQueue = new EventQueue();
         gameEventSignal.add(eventQueue);
@@ -60,18 +44,34 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     public void update(float deltaTime) {
 
         // super?
-Entity picked =
-        applyPickRay(ray.set(transformHACK.getTranslation(position),
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transformHACK.getRotation(rotation))
-        ));
 
-        if (null != picked) {
-            gameEventSignal.dispatch(GameEvent.THAT);
+        GameEvent activeEvent = null; // tmp: need a queue of listeners
 
-            RenderSystem.otherThings.add(
-                    GfxUtil.lineTo(transformHACK.getTranslation(position),
-                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                            Color.LIME));
+// first we have to find out who's listening for notificaitons
+        for (GameEvent event : eventQueue.getEvents()) {
+            switch (event.type) {
+
+                case THAT:
+                    activeEvent = event; // tmp: need to update the queue of listeners for this event
+                    break;
+                case THIS:
+                    break;
+                default:
+                    ;
+            }
+        }
+
+        // no point in doing any more unless we have at least one listener!
+        if (null != activeEvent) {
+            Matrix4 tmpM = (Matrix4) activeEvent.object;
+            Entity picked =
+                    applyPickRay(ray.set(tmpM.getTranslation(position),
+                            ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
+                    ));
+
+            if (null != picked) {
+                activeEvent.callback(picked);
+            }
         }
     }
 

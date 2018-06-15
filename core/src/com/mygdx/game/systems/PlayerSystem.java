@@ -6,14 +6,16 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.TankController;
-import com.mygdx.game.util.EventQueue;
 import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
@@ -35,19 +37,37 @@ public class PlayerSystem extends EntitySystem /* IteratingSystem */ implements 
     private PlayerComponent playerComp;
     private BulletComponent bc;
     private BulletWorld world;
-    private EventQueue eventQueue;
+
+    Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+
+    GameEvent event = new GameEvent(null, GameEvent.EventType.THAT, null) {
+
+        Vector3 tmpV = new Vector3();
+
+        @Override
+        public void callback(Entity picked) {
+            // we have an object in sight so kil it, bump the score, whatever
+            bc.body.getWorldTransform(tmpM);
+            tmpM.getTranslation(posV);
+
+            RenderSystem.otherThings.add(
+                    GfxUtil.lineTo(tmpM.getTranslation(posV),
+                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                            Color.LIME));
+        }
+    };
+
 
     // working variables
     private static Matrix4 tmpM = new Matrix4();
     private static Vector3 posV = new Vector3();
 
 
-    public PlayerSystem(BulletWorld world,  Signal<GameEvent> gameEventSignal ) {
+    public PlayerSystem(BulletWorld world,  Signal<GameEvent> gameEventSignal) {
 
 //        super(Family.all(PlayerComponent.class).get());
 
-        eventQueue = new EventQueue();
-        gameEventSignal.add(eventQueue);
+        this.gameEventSignal = gameEventSignal;
 
         this.world = world;
     }
@@ -109,19 +129,13 @@ entity objects that are enabled in the "ray-detection" system.
 not need to be asynchronous ...
  we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
  */
-        for (GameEvent event : eventQueue.getEvents()) {
-            switch (event) {
 
-                case THAT:
-                    break;
-                case THIS:
-                    break;
-                default:
-
-            }
-        }
-
+// if (debug){
+        this.event.set(null, GameEvent.EventType.THAT, tmpM);
+        gameEventSignal.dispatch(this.event);
+//    }
     }
+
 
     @Override
     public void entityAdded(Entity entity) {

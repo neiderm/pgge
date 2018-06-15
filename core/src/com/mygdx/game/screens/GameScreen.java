@@ -250,8 +250,6 @@ class GameScreen implements Screen {
         engine.addEntity(player);
         playerActor = new PlayerActor(player);
 
-        pickRaySystem.setTransformHACK(playerActor.getModelTransform());  // hackertyy hack
-
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
