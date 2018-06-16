@@ -1,6 +1,7 @@
 package com.mygdx.game.actors;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
@@ -11,10 +12,13 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PlayerComponent;
+import com.mygdx.game.TankController;
 import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -33,24 +37,48 @@ import java.util.Random;
 
 public class PlayerActor {
 
-    private PlayerComponent playerComp;
+    //    private Engine engine;
     private BulletComponent bulletComp;
     private ModelComponent modelComp;
+    private PlayerComponent playerComp;
+    private BulletWorld world;
 
-    // working variables
-    private static Vector3 tmpV = new Vector3();
-    private static Random rnd = new Random();
-    private static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+
+
+    private GameEvent event = new GameEvent(null, GameEvent.EventType.THAT, null) {
+
+        private Vector3 tmpV = new Vector3();
+        private Vector3 posV = new Vector3();
+        private Matrix4 tmpM = new Matrix4();
+
+        @Override
+        public void callback(Entity picked) {
+            // we have an object in sight so kil it, bump the score, whatever
+            bulletComp.body.getWorldTransform(tmpM);
+            tmpM.getTranslation(posV);
+
+            RenderSystem.otherThings.add(
+                    GfxUtil.lineTo(tmpM.getTranslation(posV),
+                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                            Color.LIME));
+        }
+    };
+
 
     public Matrix4 getModelTransform(){
         return modelComp.modelInst.transform;
     }
 
-    public PlayerActor(Entity e) {
+
+    public PlayerActor(Entity e, BulletWorld world,  Signal<GameEvent> gameEventSignal) {
 
         modelComp = e.getComponent(ModelComponent.class);
         bulletComp = e.getComponent(BulletComponent.class);
         playerComp = e.getComponent(PlayerComponent.class);
+
+        this.world = world;
+        this.gameEventSignal = gameEventSignal;
     }
 
 // needs to implement an "InputReceiver" interface
@@ -70,6 +98,11 @@ public class PlayerActor {
     };
 
     public final InputListener actionButtonListener = new InputListener() {
+
+        private final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
+        private Vector3 tmpV = new Vector3();
+        private Random rnd = new Random();
+
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
@@ -104,13 +137,54 @@ public class PlayerActor {
     };
 
 
-    Vector3 position = new Vector3();
-    Vector3 down = new Vector3();
-    Quaternion rotation = new Quaternion();
+    private static Matrix4 tmpM = new Matrix4();
+    private static Vector3 down = new Vector3();
+    private static Quaternion rotation = new Quaternion();
+    private Vector3 tmpV = new Vector3();
 
     public void update(float delta) {
 
-        ModelInstance lineInstance = GfxUtil.line(modelComp.modelInst.transform.getTranslation(position),
+// for dynamic object you should get world trans directly from rigid body!
+        // assert null != bc
+        // assert null != bc.body
+        bulletComp.body.getWorldTransform(tmpM);
+        tmpM.getTranslation(tmpV);
+
+        if (tmpV.y < -19) {
+            playerComp.died = true;
+// should also switch cam back to 3rd person
+        }
+
+        ModelInstanceEx.rotateRad(down.set(0, -1, 0), bulletComp.body.getOrientation());
+//            down.set(0, 0, -1).rotateRad(axis, bc.body.getOrientation().getAxisAngleRad(axis));
+
+        // check for contact w/ surface, only apply force if in contact, not falling
+        // 1 meters max from the origin seems to work pretty good
+        if (world.rayTest(tmpV, down, 1.0f)) {
+            TankController.update(bulletComp.body, bulletComp.mass, delta, playerComp.inpVect);
+        }
+        /*
+do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to
+notify the thing that was hit so it can chg. color etc.
+But the BulletSystem.rayTest is particular to bullet bodies, whereas this will be purely "visual" check for any
+entity objects that are enabled in the "ray-detection" system.
+1) caster shines ray (insert my ray into the raySystem queue)
+2) raySystem updates and processes the queue of castedRays (for each ray do ; for each registeredObject, etc. ...
+3) ... invokes "callback" (interface) by which the ray caster can be notified
+4) The caster uses other means to enact consequences of the rayhit (allowing rays to do different things, e.g. see vs. distroy!
+
+not need to be asynchronous ...
+ we need a raySystem (subscribed to appropriate entities) but it doesn't have to be an updated system.?
+ */
+
+// if (debug){
+        this.event.set(null, GameEvent.EventType.THAT, tmpM);
+        gameEventSignal.dispatch(this.event);
+//    }
+
+
+
+        ModelInstance lineInstance = GfxUtil.line(modelComp.modelInst.transform.getTranslation(tmpV),
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), modelComp.modelInst.transform.getRotation(rotation)),
                 Color.RED);
 

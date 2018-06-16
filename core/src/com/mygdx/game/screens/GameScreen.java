@@ -34,7 +34,6 @@ import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
-import com.mygdx.game.systems.PlayerSystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -248,7 +247,7 @@ class GameScreen implements Screen {
 
         /* Entity */ player = SceneLoader.createPlayer();
         engine.addEntity(player);
-        playerActor = new PlayerActor(player);
+        playerActor = new PlayerActor(player, BulletWorld.getInstance(), gameEventSignal);
 
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
@@ -265,9 +264,6 @@ class GameScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(
-                new PlayerSystem(BulletWorld.getInstance(), gameEventSignal)
-        );
         engine.addSystem(new CharacterSystem());
 
         pickRaySystem = new PickRaySystem(gameEventSignal);

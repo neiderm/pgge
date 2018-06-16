@@ -18,6 +18,6 @@ public class CharacterSystem extends IteratingSystem {
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
 
-        entity.getComponent(CharacterComponent.class).controller.update();
+        entity.getComponent(CharacterComponent.class).controller.update(deltaTime);
     }
 }

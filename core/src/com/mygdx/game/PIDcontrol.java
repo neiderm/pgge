@@ -55,7 +55,7 @@ public class PIDcontrol implements CharacterController {
     private static Vector3 vec3 = new Vector3();
 
     @Override
-    public void update() {
+    public void update(float delta) {
 
         Matrix4 currentPositionTransform = this.process;
 

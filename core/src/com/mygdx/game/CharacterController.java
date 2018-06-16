@@ -10,5 +10,5 @@ public interface CharacterController {
 
     // I don't know that this would really work ;(
 //    public Vector3 doControl(Vector3 setpoint, Vector3 process) ;
-    void update();
+    void update(float delta);
 }
