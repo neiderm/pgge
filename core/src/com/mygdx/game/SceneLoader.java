@@ -14,7 +14,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
@@ -142,7 +141,6 @@ public class SceneLoader /* implements Disposable */ {
             boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
         }
         player = BulletEntityBuilder.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
-        player.add(new PlayerComponent());
         return player;
     }
 

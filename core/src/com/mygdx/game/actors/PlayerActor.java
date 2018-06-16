@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -15,7 +16,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.TankController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
@@ -40,10 +40,12 @@ public class PlayerActor {
     //    private Engine engine;
     private BulletComponent bulletComp;
     private ModelComponent modelComp;
-    private PlayerComponent playerComp;
     private BulletWorld world;
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+    public Vector2 inpVect = new Vector2(0, 0); // control input vector
+
+    public boolean died = false;
 
 
     private GameEvent event = new GameEvent(null, GameEvent.EventType.THAT, null) {
@@ -75,7 +77,6 @@ public class PlayerActor {
 
         modelComp = e.getComponent(ModelComponent.class);
         bulletComp = e.getComponent(BulletComponent.class);
-        playerComp = e.getComponent(PlayerComponent.class);
 
         this.world = world;
         this.gameEventSignal = gameEventSignal;
@@ -92,8 +93,8 @@ public class PlayerActor {
                             + 1.0        */
 
             Touchpad t = (Touchpad) actor;
-            playerComp.inpVect.x = t.getKnobPercentX();
-            playerComp.inpVect.y = -t.getKnobPercentY();
+            inpVect.x = t.getKnobPercentX();
+            inpVect.y = -t.getKnobPercentY();
         }
     };
 
@@ -151,7 +152,7 @@ public class PlayerActor {
         tmpM.getTranslation(tmpV);
 
         if (tmpV.y < -19) {
-            playerComp.died = true;
+            died = true;
 // should also switch cam back to 3rd person
         }
 
@@ -161,7 +162,7 @@ public class PlayerActor {
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
         if (world.rayTest(tmpV, down, 1.0f)) {
-            TankController.update(bulletComp.body, bulletComp.mass, delta, playerComp.inpVect);
+            TankController.update(bulletComp.body, bulletComp.mass, delta, inpVect);
         }
         /*
 do same kind of raycst for tank ray-gun and optionally draw the ray to anything we "hit", of course we'll want to

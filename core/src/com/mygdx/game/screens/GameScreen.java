@@ -26,7 +26,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PlayerComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
@@ -75,8 +74,6 @@ class GameScreen implements Screen {
 
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
-
-    private Entity player;
 
     private boolean loading;
     private AssetManager assets;
@@ -245,7 +242,7 @@ class GameScreen implements Screen {
         SceneLoader.createEntities(engine);
         SceneLoader.createTestObjects(engine);
 
-        /* Entity */ player = SceneLoader.createPlayer();
+        Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
         playerActor = new PlayerActor(player, BulletWorld.getInstance(), gameEventSignal);
 
@@ -357,11 +354,9 @@ class GameScreen implements Screen {
         stage.draw();
 
         // verify instance variable in current gameScreen instance (would be null until done Loading)
-        if (null != player) {
-            PlayerComponent pc = player.getComponent(PlayerComponent.class);
-            // assert null != pc
-            if (pc.died) {
-                pc.died = false;
+        if (null != playerActor) {
+            if (playerActor.died) {
+                playerActor.died = false;
                 GameWorld.getInstance().showScreen(new MainMenuScreen());
             }
         }
