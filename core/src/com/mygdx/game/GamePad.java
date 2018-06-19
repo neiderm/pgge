@@ -26,15 +26,6 @@ public class GamePad extends Stage {
     //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
-    private ImageButton buttonA;
-    private ImageButton buttonB;
-    private ImageButton buttonX;
-    private ImageButton buttonY;
-    private ImageButton buttonL;
-    private ImageButton buttonR;
-    private ImageButton buttonGS;
-    Touchpad touchpad;
-
     public GamePad(ChangeListener touchPadChangeListener,
                    InputListener buttonAListener, InputListener buttonBListener, InputListener buttonGSListener
     ) {
@@ -79,7 +70,7 @@ public class GamePad extends Stage {
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
 
         //Create new TouchPad with the created style
-        this.touchpad = new Touchpad(10, touchpadStyle);
+        Touchpad touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
 
@@ -98,11 +89,11 @@ public class GamePad extends Stage {
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
-        this.buttonA = new ImageButton(myTexRegionDrawable);
+        ImageButton buttonA = new ImageButton(myTexRegionDrawable);
         buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         buttonA.addListener(buttonAListener);
 
-        this.buttonB = new ImageButton(myTexRegionDrawable);
+        ImageButton buttonB = new ImageButton(myTexRegionDrawable);
         buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
         buttonB.addListener(buttonBListener);
 
@@ -116,7 +107,7 @@ public class GamePad extends Stage {
         myTextureRegion = new TextureRegion(myTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
-        this.buttonGS = new ImageButton(myTexRegionDrawable);
+        ImageButton buttonGS = new ImageButton(myTexRegionDrawable);
         /* bottom left */
         buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         buttonGS.addListener(buttonGSListener);
