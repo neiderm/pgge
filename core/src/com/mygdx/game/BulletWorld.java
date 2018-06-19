@@ -131,13 +131,9 @@ public class BulletWorld implements Disposable {
 
     private Ray ray = new Ray();
 
-    public boolean rayTest(Vector3 origin, Vector3 direction, float length) {
+    public btCollisionObject rayTest(Vector3 origin, Vector3 direction, float length) {
 
-        btCollisionObject rayPickObject;
-
-        rayPickObject = rayTest(this.collisionWorld, ray.set(origin, direction), length);
-
-        return (null != rayPickObject);
+        return rayTest(this.collisionWorld, ray.set(origin, direction), length);
     }
 
     public void addBody(btRigidBody body) {
