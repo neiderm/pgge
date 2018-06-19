@@ -12,9 +12,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.mygdx.game.BulletWorld;
+import com.mygdx.game.CharacterController;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.TankController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
@@ -32,12 +31,11 @@ import java.util.Random;
 
 public class PlayerActor {
 
-    private float mass;
+    private CharacterController ctrlr;
     private btRigidBody body;
-    private BulletWorld world;
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    public Vector2 inpVect = new Vector2(0, 0); // control input vector
+    private Vector2 inpVect; // control input vector
 
     public boolean died = false;
 
@@ -63,12 +61,16 @@ public class PlayerActor {
 
 
 
-    public PlayerActor(btRigidBody body, float mass, BulletWorld world, Signal<GameEvent> gameEventSignal) {
+    public PlayerActor(CharacterController ctrlr, btRigidBody body,
+                       Vector2 vector, // tmp
+                       Signal<GameEvent> gameEventSignal) {
 
-        this.mass = mass;
+        this.ctrlr = ctrlr;
         this.body = body;
-        this.world = world;
         this.gameEventSignal = gameEventSignal;
+
+//        this.inpVect = ctrlr.inpVect;
+this.inpVect = vector;
     }
 
 // needs to implement an "InputReceiver" interface
@@ -143,8 +145,7 @@ public class PlayerActor {
 // should also switch cam back to 3rd person
         }
 
-        TankController.update(body, mass, world, delta, inpVect);
-
+        ctrlr.update(delta);
 
 // if (debug){
         this.event.set(null, GameEvent.EventType.THAT, tmpM);

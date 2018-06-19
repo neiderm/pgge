@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -29,6 +30,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.TankController;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.util.CameraOperator;
@@ -246,7 +248,14 @@ class GameScreen implements Screen {
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
         BulletComponent bulletComp = player.getComponent(BulletComponent.class);
-        playerActor = new PlayerActor(bulletComp.body, bulletComp.mass, BulletWorld.getInstance(), gameEventSignal);
+
+        TankController tank =
+                new TankController(BulletWorld.getInstance(), bulletComp.body, bulletComp.mass);
+Vector2 crap = tank.getInputVector();
+        playerActor = new PlayerActor(tank,
+                bulletComp.body, // tmp
+                crap, // tmp
+                gameEventSignal);
 
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);

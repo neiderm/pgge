@@ -16,9 +16,18 @@ import com.mygdx.game.util.ModelInstanceEx;
  * Created by mango on 2/10/18.
  */
 
-public class TankController /* extends CharacterController  */ {
+public class TankController implements CharacterController   {
 
-    private TankController(){
+    public Vector2 inpVect = new Vector2(0, 0); // control input vector
+
+    private btRigidBody body;
+    private float mass;
+    private BulletWorld world;
+
+    public TankController(BulletWorld world, btRigidBody body, float mass){
+        this.body = body;
+        this.mass = mass;
+        this.world = world;
     }
 
     // working variables
@@ -29,8 +38,16 @@ public class TankController /* extends CharacterController  */ {
 
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
+//    public Vector2 inpVect;
 
-    public static void update(btRigidBody body, float mass, BulletWorld world, float delta, Vector2 inpVect) {
+
+    public Vector2 getInputVector(){
+        return this.inpVect;
+    }
+
+
+    @Override
+    public void update(float delta) {
 
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
@@ -48,11 +65,11 @@ public class TankController /* extends CharacterController  */ {
         btCollisionObject rayPickObject = world.rayTest(tmpV, down, 1.0f);
 
         if (null != rayPickObject) {
-            update(body, mass, delta, inpVect);
+            updateControl(delta);
         }
     }
 
-    private static void update(btRigidBody body, float mass, float delta, Vector2 inpVect){
+    private void updateControl(float delta){
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -91,9 +108,9 @@ public class TankController /* extends CharacterController  */ {
          * velocity seems to be limited and constant ... go look up the math eventually */
         final float MU = 0.5f;
 
-        body.applyCentralForce(forceVect.cpy().scl(forceMag * mass));
+        body.applyCentralForce(forceVect.cpy().scl(forceMag * this.mass));
 
-        body.applyCentralForce(body.getLinearVelocity().scl(-MU * mass));
+        body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
 
         body.setWorldTransform(tmpM);
     }
