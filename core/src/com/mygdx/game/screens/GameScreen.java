@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
@@ -244,7 +245,8 @@ class GameScreen implements Screen {
 
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
-        playerActor = new PlayerActor(player, BulletWorld.getInstance(), gameEventSignal);
+        BulletComponent bulletComp = player.getComponent(BulletComponent.class);
+        playerActor = new PlayerActor(bulletComp.body, bulletComp.mass, BulletWorld.getInstance(), gameEventSignal);
 
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);

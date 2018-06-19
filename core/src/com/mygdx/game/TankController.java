@@ -1,9 +1,14 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
@@ -18,11 +23,36 @@ public class TankController /* extends CharacterController  */ {
 
     // working variables
     private static Matrix4 tmpM = new Matrix4();
+    private static Vector3 tmpV = new Vector3();
+    private static Vector3 down = new Vector3();
+    private static Quaternion rotation = new Quaternion();
 
     public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
 
 
-    public static void update(btRigidBody body, float mass, float delta, Vector2 inpVect) {
+    public static void update(btRigidBody body, float mass, BulletWorld world, float delta, Vector2 inpVect) {
+
+        // check for contact w/ surface, only apply force if in contact, not falling
+        // 1 meters max from the origin seems to work pretty good
+        body.getWorldTransform(tmpM);
+        tmpM.getTranslation(tmpV);
+
+        ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
+
+
+        RenderSystem.otherThings.add(GfxUtil.line(tmpV,
+                ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
+                Color.RED));
+
+
+        btCollisionObject rayPickObject = world.rayTest(tmpV, down, 1.0f);
+
+        if (null != rayPickObject) {
+            update(body, mass, delta, inpVect);
+        }
+    }
+
+    private static void update(btRigidBody body, float mass, float delta, Vector2 inpVect){
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -34,8 +64,6 @@ public class TankController /* extends CharacterController  */ {
             degrees = -1;
         }
 
-//        Vector3 axis = new Vector3();
-//        forceVect.set(0, 0, -1).rotateRad(axis, body.getOrientation().getAxisAngleRad(axis));
         ModelInstanceEx.rotateRad(forceVect.set(0, 0, -1), body.getOrientation());
 
         if (inpVect.y > DZ) {
