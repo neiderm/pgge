@@ -13,8 +13,10 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.CharacterController;
 import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.TankController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
@@ -64,18 +66,18 @@ public class PlayerActor {
     };
 
 
-
-    public PlayerActor(CameraOperator cameraOperator, CharacterController ctrlr, btRigidBody body,
-                       Vector2 vector, // tmp
-                       Signal<GameEvent> gameEventSignal) {
+    public PlayerActor(
+            CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
 
         this.cameraOperator = cameraOperator;
-        this.ctrlr = ctrlr;
+
+        // eventually, pass in a type enum for this?
+        TankController tank = new TankController(BulletWorld.getInstance(), body, /* bulletComp.mass */ 5.1f /* should be a property of the tank? */ );
+
+        this.ctrlr = tank;
         this.body = body;
         this.gameEventSignal = gameEventSignal;
-
-//        this.inpVect = ctrlr.inpVect;
-this.inpVect = vector;
+        this.inpVect = tank.getInputVector();
     }
 
 // needs to implement an "InputReceiver" interface
@@ -121,6 +123,9 @@ this.inpVect = vector;
         }
     };
 
+    /*
+     "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
+      */
     public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {

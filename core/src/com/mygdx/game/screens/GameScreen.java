@@ -159,15 +159,13 @@ class GameScreen implements Screen {
 
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
-        BulletComponent bulletComp = player.getComponent(BulletComponent.class);
 
-
-        TankController tank =
-                new TankController(BulletWorld.getInstance(), bulletComp.body, bulletComp.mass);
-Vector2 crap = tank.getInputVector();
-        playerActor = new PlayerActor(cameraOperator, tank,
-                bulletComp.body, // tmp
-                crap, // tmp
+        playerActor = new PlayerActor(
+//                stage, // TODO:? pass this, let actor assign the event handlers to the InputAdapter
+// (we could have an abstract class derived from Stage ) and GaeScreem might pass a different specific
+                // adapter based on the capability of the running platform
+                cameraOperator,
+                player.getComponent(BulletComponent.class).body, // tmp?
                 gameEventSignal);
 
         stage.createGamePad(
