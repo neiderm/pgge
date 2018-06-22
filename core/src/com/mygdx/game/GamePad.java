@@ -25,6 +25,7 @@ public class GamePad extends Stage {
     // copy ....
     //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
+    public GamePad(){}
 
     public GamePad(ChangeListener touchPadChangeListener,
                    InputListener buttonAListener, InputListener buttonBListener, InputListener buttonGSListener
@@ -36,8 +37,8 @@ public class GamePad extends Stage {
         );
     }
 
-    private void createGamePad(ChangeListener touchPadChangeListener, InputListener buttonAListener,
-                               InputListener buttonBListener,InputListener buttonGSListener
+    public void createGamePad(ChangeListener touchPadChangeListener, InputListener buttonAListener,
+                               InputListener buttonBListener, InputListener buttonGSListener
     ) {
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;

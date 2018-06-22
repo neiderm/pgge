@@ -114,12 +114,8 @@ class GameScreen implements Screen {
 
         // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
         // designated receiver (object that has implemneted "InputReceiver" interface)
-        stage = new GamePad(
-                touchPadChangeListener,
-                actionButtonListener,
-                buttonBListener,
-                buttonGSListener
-        );
+        stage = new GamePad();
+
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -162,7 +158,6 @@ class GameScreen implements Screen {
     }
 
 
-    private boolean camCtrlrActive = false;
 
     public final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -198,7 +193,7 @@ class GameScreen implements Screen {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
-            if (!camCtrlrActive) {
+            if (!cameraOperator.getIsController()) {
 //                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
 
 // tmp hack: offset button x,y to screen x,y (button origin on bottom left)
@@ -223,12 +218,7 @@ class GameScreen implements Screen {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
               // assert null != cameraOperator
-            camCtrlrActive = cameraOperator.nextOpMode();
-
-            if (camCtrlrActive)
-                multiplexer.addProcessor(camController);
-            else
-                multiplexer.removeProcessor(camController);
+            cameraOperator.nextOpMode();
 
             return true;
         }
@@ -249,14 +239,24 @@ class GameScreen implements Screen {
         engine.addEntity(player);
         BulletComponent bulletComp = player.getComponent(BulletComponent.class);
 
+
+
+        stage.createGamePad(
+                touchPadChangeListener,
+                actionButtonListener,
+                buttonBListener,
+                buttonGSListener);
+
         TankController tank =
                 new TankController(BulletWorld.getInstance(), bulletComp.body, bulletComp.mass);
 Vector2 crap = tank.getInputVector();
-        playerActor = new PlayerActor(tank,
+        playerActor = new PlayerActor(cameraOperator, tank,
                 bulletComp.body, // tmp
                 crap, // tmp
                 gameEventSignal);
 
+
+        // player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
@@ -296,6 +296,11 @@ Vector2 crap = tank.getInputVector();
         String s;
 
         cameraOperator.update(delta);
+        if (cameraOperator.getIsController())
+            multiplexer.addProcessor(camController);
+        else
+            multiplexer.removeProcessor(camController);
+
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);

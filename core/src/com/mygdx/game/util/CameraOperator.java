@@ -103,6 +103,13 @@ public class CameraOperator {
 
     private static int nodeIndex = 0;
 
+    private boolean isController;
+
+
+
+    public boolean getIsController(){
+        return isController;
+    }
 
     /*
      */
@@ -129,7 +136,7 @@ public class CameraOperator {
 
     boolean setOpModeByIndex(int index){
 
-        boolean isController = false;
+        isController = false;
 
         CameraNode node = cameraNodes.getValueAt(index);
 
@@ -200,7 +207,7 @@ public class CameraOperator {
     public void update(float delta) {
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
-
+            // nothing
         } else if (CameraOpMode.CHASE == cameraOpMode) {
             positionMatrixRef.getTranslation(currentPositionV);
             lookAtMatrixRef.getTranslation(currentLookAtV);
