@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -7,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.characters.Character;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -16,9 +18,9 @@ import com.mygdx.game.util.ModelInstanceEx;
  * Created by mango on 2/10/18.
  */
 
-public class TankController implements CharacterController   {
+public class TankController implements Character {
 
-    public Vector2 inpVect = new Vector2(0, 0); // control input vector
+    private Vector2 inpVect = new Vector2(0, 0); // control input vector
 
     private btRigidBody body;
     private float mass;
@@ -36,15 +38,12 @@ public class TankController implements CharacterController   {
     private static Vector3 down = new Vector3();
     private static Quaternion rotation = new Quaternion();
 
-    public /* private */ static final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
+    private static final Vector3 forceVect = new Vector3();
 
-//    public Vector2 inpVect;
-
-
-    public Vector2 getInputVector(){
-        return this.inpVect;
+    @Override
+    public void inputSet(float x, float y) {
+        inpVect.set(x, y);
     }
-
 
     @Override
     public void update(float delta) {

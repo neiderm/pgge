@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.mygdx.game.inputadapters.GameController;
 
 /**
  * Created by utf1247 on 2/15/2018.
@@ -20,26 +21,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
  * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
  */
 
-public class GamePad extends Stage {
+public class GamePad extends Stage implements GameController {
 
     // copy ....
     //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
-    public GamePad(){}
 
-    public GamePad(ChangeListener touchPadChangeListener,
-                   InputListener buttonAListener, InputListener buttonBListener, InputListener buttonGSListener
-    ) {
-        createGamePad(touchPadChangeListener,
-                buttonAListener,
-                buttonBListener,
-                buttonGSListener
-        );
-    }
+    public void create(ChangeListener touchPadChangeListener, InputListener buttonAListener,
+                               InputListener buttonBListener, InputListener buttonGSListener) {
 
-    public void createGamePad(ChangeListener touchPadChangeListener, InputListener buttonAListener,
-                               InputListener buttonBListener, InputListener buttonGSListener
-    ) {
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
         Drawable touchBackground;

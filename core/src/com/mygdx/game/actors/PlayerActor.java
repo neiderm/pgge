@@ -5,7 +5,6 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -14,14 +13,14 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.CharacterController;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.TankController;
+import com.mygdx.game.characters.Character;
+import com.mygdx.game.inputadapters.GameController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Random;
 
@@ -30,19 +29,19 @@ import java.util.Random;
  * Created by utf1247 on 5/17/2018.
  *
  * Not in the Scene2D sense
- * Actors are anything that implements an "InputReceiver" interface that control commands can be
- * directed at (not necessarily a physical contrllr, e.g. AIs).
+ * Actor implements "glue" between Game Characters, Game Screen, and Game Controller (which is not
+ * necessarily a physical contrllr, e.g. AIs).  Furthermore, Actor is also attached to a Game Event Signal.
+ * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
+ * Player Actor is not presently tied to the Entity Engine and we do not have "Player Component".
+ * If we supported multi-player we would perhaps need to have a Player System.
  */
 
 public class PlayerActor {
 
     private CameraOperator cameraOperator ;
-    private CharacterController ctrlr;
+    private Character ctrlr;
     private btRigidBody body;
-
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    private Vector2 inpVect; // control input vector
-
     public boolean died = false;
 
 
@@ -66,21 +65,19 @@ public class PlayerActor {
     };
 
 
-    public PlayerActor(
+    public PlayerActor(GameController stage,
             CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
-
-        this.cameraOperator = cameraOperator;
 
         // eventually, pass in a type enum for this?
         TankController tank = new TankController(BulletWorld.getInstance(), body, /* bulletComp.mass */ 5.1f /* should be a property of the tank? */ );
-
+        this.cameraOperator = cameraOperator;
         this.ctrlr = tank;
         this.body = body;
         this.gameEventSignal = gameEventSignal;
-        this.inpVect = tank.getInputVector();
+
+        stage.create(touchPadChangeListener, actionButtonListener, buttonBListener, buttonGSListener);
     }
 
-// needs to implement an "InputReceiver" interface
 
     public final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -91,8 +88,7 @@ public class PlayerActor {
                             + 1.0        */
 
             Touchpad t = (Touchpad) actor;
-            inpVect.x = t.getKnobPercentX();
-            inpVect.y = -t.getKnobPercentY();
+            ctrlr.inputSet(t.getKnobPercentX(), -t.getKnobPercentY());
         }
     };
 
@@ -112,6 +108,9 @@ public class PlayerActor {
             else
                 tmpV.set(-0.1f, 0, 0);
 
+            /*
+            TODO: what the "action" button does exactly should be implemnented in the Character!
+             */
             body.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
 
             return true;
@@ -142,7 +141,8 @@ public class PlayerActor {
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
-// tmp ... specific handling should be done in "client" listener
+// we will be grabbing a pick ray from the cameera and then passing it to whatever gun-sight function is active, if any
+// tmp
 //                Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
 //                if (null != e) {
 //                    ModelInstanceEx.setMaterialColor(e.getComponent(ModelComponent.class).modelInst, Color.RED); // TODO: go away!

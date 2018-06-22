@@ -18,7 +18,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
@@ -26,7 +25,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.GamePad;
 import com.mygdx.game.SceneLoader;
-import com.mygdx.game.TankController;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -161,21 +159,16 @@ class GameScreen implements Screen {
         engine.addEntity(player);
 
         playerActor = new PlayerActor(
-//                stage, // TODO:? pass this, let actor assign the event handlers to the InputAdapter
-// (we could have an abstract class derived from Stage ) and GaeScreem might pass a different specific
-                // adapter based on the capability of the running platform
+                stage, // game screen decide based on the capability of the running platform
+                // which GameController (abstract class derived from Stage )
+                // but let actor implement the event handlers
                 cameraOperator,
                 player.getComponent(BulletComponent.class).body, // tmp?
                 gameEventSignal);
 
-        stage.createGamePad(
-                playerActor.touchPadChangeListener,
-                playerActor.actionButtonListener,
-                playerActor.buttonBListener,
-                playerActor.buttonGSListener);
-
-
-        // player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
+        /*
+         player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
+          */
         Entity playerChaser =
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
