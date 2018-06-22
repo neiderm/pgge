@@ -2,6 +2,7 @@ package com.mygdx.game.actors;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -18,6 +19,7 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Random;
 
@@ -127,7 +129,37 @@ this.inpVect = vector;
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            return false;
+            // only do this if FPV mode (i.e. cam controller is not handling game window input)
+            if (!cameraOperator.getIsController()) {
+//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
+
+// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+
+// tmp ... specific handling should be done in "client" listener
+//                Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
+//                if (null != e) {
+//                    ModelInstanceEx.setMaterialColor(e.getComponent(ModelComponent.class).modelInst, Color.RED); // TODO: go away!
+//                }
+            }
+            return true;
+        }
+    };
+
+    public final InputListener buttonBListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+            // assert null != cameraOperator
+            cameraOperator.nextOpMode();
+
+            return true;
+        }
+
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            // empty
         }
     };
 

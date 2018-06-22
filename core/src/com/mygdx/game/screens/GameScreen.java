@@ -20,11 +20,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
@@ -33,12 +29,11 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.TankController;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
-import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by mango on 12/18/17.
@@ -52,7 +47,6 @@ class GameScreen implements Screen {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraOperator cameraOperator;
-    private PickRaySystem pickRaySystem;
 
     private PerspectiveCamera cam;
 
@@ -158,78 +152,6 @@ class GameScreen implements Screen {
     }
 
 
-
-    public final ChangeListener touchPadChangeListener = new ChangeListener() {
-        @Override
-        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
-                /*          -1.0
-                       -1.0   +   +1.0
-                            + 1.0        */
-            playerActor.touchPadChangeListener.changed(event, actor);
-        }
-    };
-
-    public final InputListener actionButtonListener = new InputListener() {
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-            playerActor.actionButtonListener.touchDown(event, x, y, pointer, button);
-            return true;
-        }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            // empty
-        }
-    };
-
-    public final InputListener buttonGSListener = new InputListener() {
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            // empty
-        }
-
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            // only do this if FPV mode (i.e. cam controller is not handling game window input)
-            if (!cameraOperator.getIsController()) {
-//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
-
-// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-
-// tmp ... specific handling should be done in "client" listener
-                Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
-                if (null != e) {
-                    ModelInstanceEx.setMaterialColor(e.getComponent(ModelComponent.class).modelInst, Color.RED); // TODO: go away!
-
-                    playerActor.buttonGSListener.touchDown(event, x, y, pointer, button);// not sure here
-                }
-            }
-            return true;
-        }
-    };
-
-
-    public final InputListener buttonBListener = new InputListener() {
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-              // assert null != cameraOperator
-            cameraOperator.nextOpMode();
-
-            return true;
-        }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            // empty
-        }
-    };
-
-
     private void addEntities() {
 
         SceneLoader.createEntities(engine);
@@ -240,13 +162,6 @@ class GameScreen implements Screen {
         BulletComponent bulletComp = player.getComponent(BulletComponent.class);
 
 
-
-        stage.createGamePad(
-                touchPadChangeListener,
-                actionButtonListener,
-                buttonBListener,
-                buttonGSListener);
-
         TankController tank =
                 new TankController(BulletWorld.getInstance(), bulletComp.body, bulletComp.mass);
 Vector2 crap = tank.getInputVector();
@@ -254,6 +169,12 @@ Vector2 crap = tank.getInputVector();
                 bulletComp.body, // tmp
                 crap, // tmp
                 gameEventSignal);
+
+        stage.createGamePad(
+                playerActor.touchPadChangeListener,
+                playerActor.actionButtonListener,
+                playerActor.buttonBListener,
+                playerActor.buttonGSListener);
 
 
         // player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
@@ -273,9 +194,7 @@ Vector2 crap = tank.getInputVector();
         engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem());
-
-        pickRaySystem = new PickRaySystem(gameEventSignal);
-        engine.addSystem(pickRaySystem);
+        engine.addSystem(new PickRaySystem(gameEventSignal));
     }
 
 
