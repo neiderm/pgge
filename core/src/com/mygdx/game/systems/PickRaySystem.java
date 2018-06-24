@@ -51,10 +51,11 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
         for (GameEvent event : eventQueue.getEvents()) {
             switch (event.type) {
 
-                case THAT:
+                case RAY_PICK:
                     activeEvent = event; // tmp: need to update the queue of listeners for this event
                     break;
-                case THIS:
+                case RAY_DETECT:
+                    activeEvent = event; // tmp: need to update the queue of listeners for this event
                     break;
                 default:
                     ;
@@ -70,7 +71,7 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
                     ));
 
             if (null != picked) {
-                activeEvent.callback(picked);
+                activeEvent.callback(picked, activeEvent.type);
             }
         }
     }

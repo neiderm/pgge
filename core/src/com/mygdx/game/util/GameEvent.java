@@ -9,20 +9,22 @@ import com.badlogic.ashley.core.Entity;
 public class GameEvent implements Comparable<GameEvent> {
 
     public enum EventType {
-        THIS,
-        THAT
+        RAY_DETECT,
+        RAY_PICK
     }
 
-    public EventType type = EventType.THIS;
+    public EventType type;
     public Entity entity;
     public Object object;
+public int id;
 
 
-    public GameEvent(Entity e, EventType t, Object o) {
-        set(e, t, o);
-    }
+//    public GameEvent(Entity e, EventType t, Object o) {    }
 
-    public void set(Entity e, EventType t, Object o) {
+
+    public void set(Entity e, EventType t, Object o, int id) {
+
+this.id = id;
         this.entity = e;
         this.type = t;
         this.object = o;
@@ -32,7 +34,7 @@ public class GameEvent implements Comparable<GameEvent> {
     /*
      * optional: client can override this for custom fucntionality
      */
-    public void callback(Entity picked) {
+    public void callback(Entity picked, EventType eventType) {
         //empty
     }
 
@@ -51,3 +53,4 @@ public class GameEvent implements Comparable<GameEvent> {
         return 0;
     }
 }
+

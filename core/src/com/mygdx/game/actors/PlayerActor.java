@@ -21,8 +21,12 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Random;
+
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
+import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 /**
@@ -45,22 +49,33 @@ public class PlayerActor {
     public boolean died = false;
 
 
-    private GameEvent event = new GameEvent(null, GameEvent.EventType.THAT, null) {
+    private GameEvent gameEvent = new GameEvent(null, RAY_PICK, null) {
 
         private Vector3 tmpV = new Vector3();
         private Vector3 posV = new Vector3();
         private Matrix4 tmpM = new Matrix4();
 
         @Override
-        public void callback(Entity picked) {
-            // we have an object in sight so kil it, bump the score, whatever
+        public void callback(Entity picked, EventType eventType) {
+
             body.getWorldTransform(tmpM);
             tmpM.getTranslation(posV);
+            //assert (null != picked)
+            switch (eventType) {
+                case RAY_DETECT:
+                    // we have an object in sight so kil it, bump the score, whatever
+                    RenderSystem.otherThings.add(
+                            GfxUtil.lineTo(tmpM.getTranslation(posV),
+                                    picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                    Color.LIME));
+                    break;
+                case RAY_PICK:
+                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                    break;
+                default:
+                    ;
+            }
 
-            RenderSystem.otherThings.add(
-                    GfxUtil.lineTo(tmpM.getTranslation(posV),
-                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                            Color.LIME));
         }
     };
 
@@ -135,18 +150,14 @@ public class PlayerActor {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!cameraOperator.getIsController()) {
-//                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f", x, y));
-
 // tmp hack: offset button x,y to screen x,y (button origin on bottom left)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
 // we will be grabbing a pick ray from the cameera and then passing it to whatever gun-sight function is active, if any
-// tmp
-//                Entity e = pickRaySystem.applyPickRay(cam.getPickRay(nX, nY));
-//                if (null != e) {
-//                    ModelInstanceEx.setMaterialColor(e.getComponent(ModelComponent.class).modelInst, Color.RED); // TODO: go away!
-//                }
+                gameEvent.set(null, RAY_PICK, tmpM, id++);
+                gameEventSignal.dispatch(gameEvent);
+                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;
         }
@@ -172,6 +183,9 @@ public class PlayerActor {
     private static Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
 
+
+    private int id = 0; // tmp : test that I can create another gameEvent.set from this module
+
     public void update(float delta) {
 
 // for dynamic object you should get world trans directly from rigid body!
@@ -188,8 +202,9 @@ public class PlayerActor {
         ctrlr.update(delta);
 
 // if (debug){
-        this.event.set(null, GameEvent.EventType.THAT, tmpM);
-        gameEventSignal.dispatch(this.event);
-//    }
+        this.gameEvent.set(null, RAY_DETECT, tmpM, id++);
+        gameEventSignal.dispatch(this.gameEvent);
+//Gdx.app.log(this.getClass().getName(), String.format("update() ... id == %d", id));
+        //    }
     }
 }
