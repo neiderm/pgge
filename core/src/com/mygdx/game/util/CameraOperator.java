@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.mygdx.game.PIDcontrol;
+import com.mygdx.game.characters.Character;
 
 
 /**
@@ -58,13 +60,14 @@ public class CameraOperator {
     private static final int FIXED = 1; // idfk
 
     private static class CameraNode{
+
         private Matrix4 positionRef;
         private Matrix4 lookAtRef;
         private int flags; // e.g. FIXED_PERSPECTIVE
 
-        public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
+/*        public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
             this(FIXED, positionRef, lookAtRef);
-        }
+        }*/
 
         public CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
             this.flags = flags;
@@ -75,12 +78,20 @@ public class CameraOperator {
 
     private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
 
+    private Matrix4 camPositionMatrix = new Matrix4();
+
+    private PIDcontrol pidControl;
+
+
     public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {
 
-        setCameraNode(key, posM, lookAtM, 0);
+//        setCameraNode(key, posM, lookAtM, 0);
+        setCameraNode(key, camPositionMatrix, lookAtM, 0); // set up our own transform matrix and controller
+
+        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
-    public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
+    private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
 
         CameraNode cameraNode = new CameraNode(flags, posM, lookAtM);
 
@@ -205,6 +216,9 @@ public class CameraOperator {
     private Vector3 currentLookAtV = new Vector3();
 
     public void update(float delta) {
+
+        if (null != pidControl)
+            pidControl.update(delta);
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
             // nothing
