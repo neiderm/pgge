@@ -14,6 +14,7 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
+import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
@@ -216,7 +217,7 @@ public class SceneLoader /* implements Disposable */ {
 
         mc.modelInst.userData = 0xaa55;
         e.add(new CharacterComponent(
-                new PIDcontrol(tgtTransform, mc.modelInst.transform, new Vector3(0, 2, 3), 0.1f, 0, 0)));
+                new PIDcontrol(tgtTransform, mc.modelInst.transform, new Vector3(0, 1, 2), 0.1f, 0, 0)));
 
         engine.addEntity(e);
         return e;

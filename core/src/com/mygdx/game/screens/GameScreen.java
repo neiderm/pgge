@@ -23,7 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.GamePad;
+import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.systems.BulletSystem;
