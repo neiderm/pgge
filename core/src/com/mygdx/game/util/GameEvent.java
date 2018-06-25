@@ -19,7 +19,7 @@ public class GameEvent implements Comparable<GameEvent> {
 public int id;
 
 
-//    public GameEvent(Entity e, EventType t, Object o) {    }
+    public GameEvent(Entity e, EventType t, Object o) {    }
 
 
     public void set(Entity e, EventType t, Object o, int id) {

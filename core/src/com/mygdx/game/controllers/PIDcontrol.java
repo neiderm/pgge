@@ -1,8 +1,9 @@
-package com.mygdx.game;
+package com.mygdx.game.controllers;
 
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.controllers.CharacterControlAuto;
 
 import static com.badlogic.gdx.math.MathUtils.cos;
 import static com.badlogic.gdx.math.MathUtils.sin;
@@ -15,7 +16,7 @@ import static com.badlogic.gdx.math.MathUtils.sin;
   a bit of a misnomer, this is not truly generic since the process variable and
   setpoints are 3d vectors ... could it be done with generics?
  */
-public class PIDcontrol /* implements Character */ {
+public class PIDcontrol implements CharacterControlAuto {
 
     private float kP = 0.1f;
     private float kI = 0;
@@ -25,7 +26,7 @@ public class PIDcontrol /* implements Character */ {
     protected Matrix4 setpoint; // this will probably usually be a position we're trying to reach
     protected Vector3 spOffset;  // offset for camera chaser, or 0 for direct target
 
-    PIDcontrol(){
+    public PIDcontrol(){
     }
 
     private PIDcontrol(float kP, float kI, float kD) {

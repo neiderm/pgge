@@ -4,8 +4,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.game.PIDcontrol;
-import com.mygdx.game.characters.Character;
+import com.mygdx.game.controllers.PIDcontrol;
+import com.mygdx.game.controllers.CharacterControlAuto;
 
 
 /**
@@ -80,7 +80,7 @@ public class CameraOperator {
 
     private Matrix4 camPositionMatrix = new Matrix4();
 
-    private PIDcontrol pidControl;
+    private CharacterControlAuto pidControl;
 
 
     public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {

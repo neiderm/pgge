@@ -1,8 +1,9 @@
-package com.mygdx.game;
+package com.mygdx.game.controllers;
 
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.controllers.PIDcontrol;
 
 /**
  * Created by mango on 2/11/18.

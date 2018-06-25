@@ -14,8 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.TankController;
-import com.mygdx.game.characters.Character;
+import com.mygdx.game.controllers.TankController;
+import com.mygdx.game.controllers.CharacterControlManual;
 import com.mygdx.game.inputadapters.GameController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
@@ -43,7 +43,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 public class PlayerActor {
 
     private CameraOperator cameraOperator ;
-    private Character ctrlr;
+    private CharacterControlManual ctrlr;
     private btRigidBody body;
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     public boolean died = false;

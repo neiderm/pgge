@@ -1,8 +1,7 @@
 package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.math.Matrix4;
-import com.mygdx.game.PIDcontrol;
+import com.mygdx.game.controllers.CharacterControlAuto;
 
 /**
  * Created by mango on 2/10/18.
@@ -16,9 +15,9 @@ public class CharacterComponent implements Component {
 
     // idea for using controller instance e.g. PICcontrol etc.
 
-    public CharacterComponent(/* CharacterController */ PIDcontrol controller) {
+    public CharacterComponent(CharacterControlAuto controller) {
         this.controller = controller;
     }
 
-    public PIDcontrol controller;
+    public CharacterControlAuto controller;
 }

@@ -1,6 +1,5 @@
-package com.mygdx.game;
+package com.mygdx.game.controllers;
 
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -8,7 +7,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.characters.Character;
+import com.mygdx.game.BulletWorld;
+import com.mygdx.game.controllers.CharacterControlManual;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -18,7 +18,7 @@ import com.mygdx.game.util.ModelInstanceEx;
  * Created by mango on 2/10/18.
  */
 
-public class TankController implements Character {
+public class TankController implements CharacterControlManual {
 
     private Vector2 inpVect = new Vector2(0, 0); // control input vector
 
