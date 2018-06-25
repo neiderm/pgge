@@ -85,9 +85,12 @@ public class CameraOperator {
 
     public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {
 
-//        setCameraNode(key, posM, lookAtM, 0);
-        setCameraNode(key, camPositionMatrix, lookAtM, 0); // set up our own transform matrix and controller
+        Matrix4 tmp = camPositionMatrix;  // set up our own transform matrix and controller
 
+        if (null != posM)
+            tmp = posM;
+
+        setCameraNode(key, tmp, lookAtM, 0);
         pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 

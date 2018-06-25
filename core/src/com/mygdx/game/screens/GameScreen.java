@@ -173,7 +173,7 @@ class GameScreen implements Screen {
                 SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
         cameraOperator.setCameraNode("chaser1",
-                playerChaser.getComponent(ModelComponent.class).modelInst.transform,
+                null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
     }
 
