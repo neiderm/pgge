@@ -40,7 +40,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
  * If we supported multi-player we would perhaps need to have a Player System.
  */
 
-public class PlayerActor {
+public class PlayerActor implements GameCharacter {
 
     private CameraOperator cameraOperator ;
     private CharacterControlManual ctrlr;

@@ -85,7 +85,7 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
      * might merit shape accuracy.
      *  https://xoppa.github.io/blog/interacting-with-3d-objects/
      */
-    public Entity applyPickRay(Ray ray) {
+    private Entity applyPickRay(Ray ray) {
 
         Entity picked = null;
         float distance = -1f;

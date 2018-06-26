@@ -1,6 +1,7 @@
 package com.mygdx.game.Components;
 
 import com.badlogic.ashley.core.Component;
+import com.mygdx.game.actors.GameCharacter;
 import com.mygdx.game.controllers.CharacterControlAuto;
 
 /**
@@ -13,7 +14,11 @@ import com.mygdx.game.controllers.CharacterControlAuto;
  */
 public class CharacterComponent implements Component {
 
-    // idea for using controller instance e.g. PICcontrol etc.
+    public GameCharacter actor;
+
+    public CharacterComponent(GameCharacter actor){
+        this.actor = actor;
+    }
 
     public CharacterComponent(CharacterControlAuto controller) {
         this.controller = controller;

@@ -22,10 +22,12 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.actors.GameCharacter;
 import com.mygdx.game.actors.PlayerActor;
+import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -165,6 +167,8 @@ class GameScreen implements Screen {
                 cameraOperator,
                 player.getComponent(BulletComponent.class).body, // tmp?
                 gameEventSignal);
+
+        player.add(new CharacterComponent(playerActor));
 
         /*
          player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
