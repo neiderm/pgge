@@ -25,7 +25,6 @@ import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.SceneLoader;
-import com.mygdx.game.actors.GameCharacter;
 import com.mygdx.game.actors.PlayerActor;
 import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.systems.BulletSystem;
@@ -173,8 +172,7 @@ class GameScreen implements Screen {
         /*
          player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
-        Entity playerChaser =
-                SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
+        SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
         cameraOperator.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
@@ -232,8 +230,6 @@ class GameScreen implements Screen {
             loading = false;
         }
 
-        // verify instance variable in current gameScreen instance (would be null until done Loading)
-        if (null != playerActor) playerActor.update(delta);
 
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);

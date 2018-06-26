@@ -16,16 +16,17 @@ public class GameEvent implements Comparable<GameEvent> {
     public EventType type;
     public Entity entity;
     public Object object;
-public int id;
+    public int id;
 
 
-    public GameEvent(Entity e, EventType t, Object o) {    }
+    public GameEvent(EventType t) {
+        this.type = t;
+    }
 
 
-    public void set(Entity e, EventType t, Object o, int id) {
+    public void set(EventType t, Object o, int id) {
 
-this.id = id;
-        this.entity = e;
+        this.id = id;
         this.type = t;
         this.object = o;
     }

@@ -49,35 +49,38 @@ public class PlayerActor implements GameCharacter {
     public boolean died = false;
 
 
-    private GameEvent gameEvent = new GameEvent(null, RAY_PICK, null) {
+    private GameEvent createGameEvent(GameEvent.EventType t) {
 
-        private Vector3 tmpV = new Vector3();
-        private Vector3 posV = new Vector3();
-        private Matrix4 tmpM = new Matrix4();
+        return new GameEvent(t) {
 
-        @Override
-        public void callback(Entity picked, EventType eventType) {
+            private Vector3 tmpV = new Vector3();
+            private Vector3 posV = new Vector3();
+            private Matrix4 tmpM = new Matrix4();
 
-            body.getWorldTransform(tmpM);
-            tmpM.getTranslation(posV);
-            //assert (null != picked)
-            switch (eventType) {
-                case RAY_DETECT:
-                    // we have an object in sight so kil it, bump the score, whatever
-                    RenderSystem.otherThings.add(
-                            GfxUtil.lineTo(tmpM.getTranslation(posV),
-                                    picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                                    Color.LIME));
-                    break;
-                case RAY_PICK:
-                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                    break;
-                default:
-                    ;
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+
+                body.getWorldTransform(tmpM);
+                tmpM.getTranslation(posV);
+                //assert (null != picked)
+                switch (eventType) {
+                    case RAY_DETECT:
+                        // we have an object in sight so kil it, bump the score, whatever
+                        RenderSystem.otherThings.add(
+                                GfxUtil.lineTo(tmpM.getTranslation(posV),
+                                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                        Color.LIME));
+                        break;
+                    case RAY_PICK:
+                        ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        break;
+                    default:
+                        ;
+                }
+
             }
-
-        }
-    };
+        };
+    }
 
 
     public PlayerActor(GameController stage,
@@ -141,6 +144,9 @@ public class PlayerActor implements GameCharacter {
      "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
       */
     public final InputListener buttonGSListener = new InputListener() {
+
+        private GameEvent gameEvent = createGameEvent(RAY_PICK);
+
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
             // empty
@@ -155,10 +161,10 @@ public class PlayerActor implements GameCharacter {
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
 // we will be grabbing a pick ray from the cameera and then passing it to whatever gun-sight function is active, if any
-                gameEvent.set(null, RAY_PICK, tmpM, id++);
+                gameEvent.set(RAY_PICK, tmpM, id++);
                 gameEventSignal.dispatch(gameEvent);
-                Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
-            }
+                //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
+                }
             return true;
         }
     };
@@ -185,6 +191,7 @@ public class PlayerActor implements GameCharacter {
 
 
     private int id = 0; // tmp : test that I can create another gameEvent.set from this module
+    private GameEvent gameEvent = createGameEvent(RAY_DETECT);
 
     public void update(float delta) {
 
@@ -202,9 +209,9 @@ public class PlayerActor implements GameCharacter {
         ctrlr.update(delta);
 
 // if (debug){
-        this.gameEvent.set(null, RAY_DETECT, tmpM, id++);
+        this.gameEvent.set(RAY_DETECT, tmpM, id++);
         gameEventSignal.dispatch(this.gameEvent);
 //Gdx.app.log(this.getClass().getName(), String.format("update() ... id == %d", id));
         //    }
-    }
+  }
 }

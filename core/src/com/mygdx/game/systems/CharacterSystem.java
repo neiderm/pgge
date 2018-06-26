@@ -28,7 +28,7 @@ public class CharacterSystem extends IteratingSystem {
         GameCharacter actor = entity.getComponent(CharacterComponent.class).actor;
 
         if (null != actor) {
-//            actor.update(deltaTime);
+            actor.update(deltaTime);
         }
     }
 

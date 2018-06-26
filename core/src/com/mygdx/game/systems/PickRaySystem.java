@@ -43,14 +43,11 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
     @Override
     public void update(float deltaTime) {
 
-        // super?
-
-        GameEvent activeEvent = null; // tmp: need a queue of listeners
-
 // first we have to find out who's listening for notificaitons
         for (GameEvent event : eventQueue.getEvents()) {
-            switch (event.type) {
+            GameEvent activeEvent = null; // tmp: need a queue of listeners
 
+            switch (event.type) {
                 case RAY_PICK:
                     activeEvent = event; // tmp: need to update the queue of listeners for this event
                     break;
@@ -60,21 +57,26 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
                 default:
                     ;
             }
-        }
 
-        // no point in doing any more unless we have at least one listener!
-        if (null != activeEvent) {
-            Matrix4 tmpM = (Matrix4) activeEvent.object;
-            Entity picked =
-                    applyPickRay(ray.set(tmpM.getTranslation(position),
-                            ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
-                    ));
-
-            if (null != picked) {
-                activeEvent.callback(picked, activeEvent.type);
+            if (null != activeEvent) {
+                handleEvent(activeEvent);
             }
         }
+   }
+
+    private void handleEvent(GameEvent event) {
+
+        Matrix4 tmpM = (Matrix4) event.object;
+        Entity picked =
+                applyPickRay(ray.set(tmpM.getTranslation(position),
+                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
+                ));
+
+        if (null != picked) {
+            event.callback(picked, event.type);
+        }
     }
+
 
 //    Vector3 interSection = new Vector3();
     /*
@@ -104,7 +106,6 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
                 distance = dist2;
             }
         }
-
         return picked;
     }
 

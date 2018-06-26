@@ -5,6 +5,9 @@ import com.badlogic.ashley.signals.Signal;
 
 import java.util.PriorityQueue;
 
+/*
+ * https://stackoverflow.com/questions/38208221/libgdx-ashley-framework-ecs-what-is-the-proper-way-of-talking-system-to-anot
+ */
 public class EventQueue implements Listener<GameEvent> {
 
     private PriorityQueue<GameEvent> queue;
