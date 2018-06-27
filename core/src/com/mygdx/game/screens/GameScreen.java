@@ -23,12 +23,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.BulletComponent;
 import com.mygdx.game.Components.CharacterComponent;
+import com.mygdx.game.Components.ControllerComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.actors.PlayerActor;
+import com.mygdx.game.controllers.CharacterControlManual;
+import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
+import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
@@ -146,7 +150,12 @@ class GameScreen implements Screen {
         Entity player = SceneLoader.createPlayer();
         engine.addEntity(player);
 
-        playerActor = new PlayerActor(
+        // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
+        CharacterControlManual playerCtrlr =
+                new TankController(player.getComponent(BulletComponent.class).body,
+                        player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
+
+        playerActor = new PlayerActor(playerCtrlr,
                 stage, // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let actor implement the event handlers
@@ -155,6 +164,7 @@ class GameScreen implements Screen {
                 gameEventSignal);
 
         player.add(new CharacterComponent(playerActor));
+        player.add(new ControllerComponent(playerCtrlr));
 
         /*
          player actor should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
@@ -174,6 +184,7 @@ class GameScreen implements Screen {
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem());
+        engine.addSystem(new ControllerSystem());
         engine.addSystem(new PickRaySystem(gameEventSignal));
     }
 

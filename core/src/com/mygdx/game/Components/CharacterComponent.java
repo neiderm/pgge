@@ -20,9 +20,5 @@ public class CharacterComponent implements Component {
         this.actor = actor;
     }
 
-    public CharacterComponent(CharacterControlAuto controller) {
-        this.controller = controller;
-    }
-
     public CharacterControlAuto controller;
 }

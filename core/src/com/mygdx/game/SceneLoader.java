@@ -11,7 +11,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.CharacterComponent;
+import com.mygdx.game.Components.ControllerComponent;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.Components.PickRayComponent;
 import com.mygdx.game.controllers.PIDcontrol;
@@ -213,11 +213,11 @@ public class SceneLoader /* implements Disposable */ {
         float r = 0.5f;
         Entity e = PrimitivesBuilder.loadSphere(r, new Vector3(0, 15f, -5f));
 
-        ModelComponent mc = e.getComponent(ModelComponent.class);
+        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-        mc.modelInst.userData = 0xaa55;
-        e.add(new CharacterComponent(
-                new PIDcontrol(tgtTransform, mc.modelInst.transform, new Vector3(0, 1, 2), 0.1f, 0, 0)));
+        instance.userData = 0xaa55;
+        e.add(new ControllerComponent(
+                new PIDcontrol(tgtTransform, instance.transform, new Vector3(0, 1, 2), 0.1f, 0, 0)));
 
         engine.addEntity(e);
         return e;

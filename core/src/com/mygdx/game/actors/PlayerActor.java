@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.CharacterControlManual;
 import com.mygdx.game.inputadapters.GameController;
 import com.mygdx.game.systems.RenderSystem;
@@ -82,13 +81,12 @@ public class PlayerActor implements GameCharacter {
     }
 
 
-    public PlayerActor(GameController stage,
+    public PlayerActor(CharacterControlManual ctrl, GameController stage,
             CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
 
         // eventually, pass in a type enum for this?
-        TankController tank = new TankController(body, /* bulletComp.mass */ 5.1f /* should be a property of the tank? */ );
         this.cameraOperator = cameraOperator;
-        this.ctrlr = tank;
+        this.ctrlr = ctrl;
         this.body = body;
         this.gameEventSignal = gameEventSignal;
 
@@ -207,7 +205,7 @@ public class PlayerActor implements GameCharacter {
 // should also switch cam back to 3rd person
         }
 
-        ctrlr.update(delta);
+//        ctrlr.update(delta);
 
 // if (debug){
         this.gameEvent.set(RAY_DETECT, tmpM, id++);
