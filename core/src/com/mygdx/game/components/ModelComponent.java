@@ -1,4 +1,4 @@
-package com.mygdx.game.Components;
+package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -16,10 +16,10 @@ public class ModelComponent implements Component {
     public float boundingRadius = 0;
     public Vector3 center = new Vector3(); // idfk
     public boolean isShadowed = true;
-    public Vector3 dimensions = new Vector3();
-    public BoundingBox boundingBox;
+    private Vector3 dimensions = new Vector3();
+    private BoundingBox boundingBox;
     public int id = 0;
-    public static int instcnt = 0;
+    private static int instcnt = 0;
 
 /*    public ModelComponent(Model model) {
 

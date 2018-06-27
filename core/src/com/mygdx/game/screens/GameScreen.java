@@ -21,13 +21,13 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.CharacterComponent;
-import com.mygdx.game.Components.ControllerComponent;
-import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.ControllerComponent;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.SceneLoader;
-import com.mygdx.game.actors.PlayerActor;
-import com.mygdx.game.controllers.CharacterControlManual;
+import com.mygdx.game.characters.PlayerCharacter;
+import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.systems.BulletSystem;
@@ -62,7 +62,7 @@ class GameScreen implements Screen {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
 
-    private PlayerActor playerActor;
+    private PlayerCharacter playerActor;
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -151,11 +151,11 @@ class GameScreen implements Screen {
         engine.addEntity(player);
 
         // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
-        CharacterControlManual playerCtrlr =
+        ICharacterControlManual playerCtrlr =
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
 
-        playerActor = new PlayerActor(playerCtrlr,
+        playerActor = new PlayerCharacter(playerCtrlr,
                 stage, // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let actor implement the event handlers

@@ -1,8 +1,7 @@
-package com.mygdx.game.Components;
+package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
-import com.mygdx.game.actors.GameCharacter;
-import com.mygdx.game.controllers.CharacterControlAuto;
+import com.mygdx.game.controllers.ICharacterControlAuto;
 
 /**
  * Created by mango on 2/10/18.
@@ -13,9 +12,9 @@ import com.mygdx.game.controllers.CharacterControlAuto;
  */
 public class ControllerComponent implements Component {
 
-    public CharacterControlAuto controller;
+    public ICharacterControlAuto controller;
 
-    public ControllerComponent(CharacterControlAuto controller) {
+    public ControllerComponent(ICharacterControlAuto controller) {
         this.controller = controller;
     }
 

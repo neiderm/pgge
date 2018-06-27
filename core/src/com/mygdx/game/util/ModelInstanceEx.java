@@ -38,8 +38,8 @@ public class ModelInstanceEx extends ModelInstance {
 
         Material mat = inst.materials.get(0);
 
-        if (null == mat)
-            return; // throw new GdxRuntimeException("not found");
+//        if (null == mat)
+//            return; // throw new GdxRuntimeException("not found");
 
         mat.set(ColorAttribute.createDiffuse(c));
 

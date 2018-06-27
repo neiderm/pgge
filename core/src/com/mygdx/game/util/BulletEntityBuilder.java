@@ -10,8 +10,8 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 4/1/18.
@@ -21,7 +21,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
 
     private btCollisionShape shape;
 
-    public BulletEntityBuilder() {
+    BulletEntityBuilder() {
     }
 
     public BulletEntityBuilder(Model model, Vector3 size, btCollisionShape shape) {
@@ -95,7 +95,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
             // have a shape so use it
         } else if (null != size) {
             // Convex Hull
-        } else if (null == size && null == shape) {
+        } else /* if ( null == size &&   null == shape) */ {
 //            shape = new btBvhTriangleMeshShape(model.meshParts);
             // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill.
             shape = Bullet.obtainStaticNodeShape(model.nodes);

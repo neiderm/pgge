@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.Components.BulletComponent;
+import com.mygdx.game.components.BulletComponent;
 
 /**
  * Created by mango on 12/18/17.

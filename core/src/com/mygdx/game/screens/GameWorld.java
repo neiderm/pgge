@@ -55,5 +55,7 @@ public class GameWorld {
         game.getScreen().dispose();
 
 //        SceneLoader.dispose();
+
+        instance = null;
     }
 }

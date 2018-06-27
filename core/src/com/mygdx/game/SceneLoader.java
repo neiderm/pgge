@@ -10,10 +10,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.mygdx.game.Components.BulletComponent;
-import com.mygdx.game.Components.ControllerComponent;
-import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PickRayComponent;
+import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.ControllerComponent;
+import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
@@ -41,7 +41,6 @@ public class SceneLoader /* implements Disposable */ {
 
 
     private SceneLoader() {
-        //super();
     }
 
 
@@ -132,7 +131,7 @@ public class SceneLoader /* implements Disposable */ {
     public static Entity createPlayer() {
 
         Entity player;
-        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+        btCollisionShape boxshape; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
         if (true) {

@@ -3,7 +3,6 @@ package com.mygdx.game.controllers;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.controllers.CharacterControlAuto;
 
 import static com.badlogic.gdx.math.MathUtils.cos;
 import static com.badlogic.gdx.math.MathUtils.sin;
@@ -16,17 +15,17 @@ import static com.badlogic.gdx.math.MathUtils.sin;
   a bit of a misnomer, this is not truly generic since the process variable and
   setpoints are 3d vectors ... could it be done with generics?
  */
-public class PIDcontrol implements CharacterControlAuto {
+public class PIDcontrol implements ICharacterControlAuto {
 
     private float kP = 0.1f;
     private float kI = 0;
     private float kD = 0;
 
-    protected Matrix4 process; // reference to present value of whatever we're controlling
-    protected Matrix4 setpoint; // this will probably usually be a position we're trying to reach
-    protected Vector3 spOffset;  // offset for camera chaser, or 0 for direct target
+    private Matrix4 process; // reference to present value of whatever we're controlling
+    private Matrix4 setpoint; // this will probably usually be a position we're trying to reach
+    private Vector3 spOffset;  // offset for camera chaser, or 0 for direct target
 
-    public PIDcontrol(){
+    PIDcontrol(){
     }
 
     private PIDcontrol(float kP, float kI, float kD) {
@@ -49,8 +48,8 @@ public class PIDcontrol implements CharacterControlAuto {
 
 
     // working variables
-    protected static Vector3 output = new Vector3();
-    protected Vector3 error = new Vector3();
+    static Vector3 output = new Vector3();
+    private Vector3 error = new Vector3();
     protected Vector3 translation = new Vector3();
 
     private static Vector3 vec3 = new Vector3();
@@ -97,7 +96,7 @@ public class PIDcontrol implements CharacterControlAuto {
 
 This should become just a general case of vector addition (offset added to the position reference we're tracking)
      */
-    public Matrix4 addSetpointOffset(Vector3 targetPosition, Matrix4 actorTransform) {
+    private Matrix4 addSetpointOffset(Vector3 targetPosition, Matrix4 actorTransform) {
 
 //        Vector3 targetPosition = new Vector3();
 

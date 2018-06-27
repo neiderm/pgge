@@ -8,8 +8,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.mygdx.game.Components.ModelComponent;
-import com.mygdx.game.Components.PickRayComponent;
+import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.util.EventQueue;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -43,22 +43,16 @@ public class PickRaySystem extends IteratingSystem {
 
 // first we have to find out who's listening for notificaitons
         for (GameEvent event : eventQueue.getEvents()) {
-            GameEvent activeEvent = null; // tmp: need a queue of listeners
 
             switch (event.type) {
                 case RAY_PICK:
-                    activeEvent = event; // tmp: need to update the queue of listeners for this event
                     break;
                 case RAY_DETECT:
-                    activeEvent = event; // tmp: need to update the queue of listeners for this event
                     break;
                 default:
-                    ;
+                    break;
             }
-
-            if (null != activeEvent) {
-                handleEvent(activeEvent);
-            }
+            handleEvent(event);
         }
    }
 
@@ -112,7 +106,7 @@ public class PickRaySystem extends IteratingSystem {
      *  to object center ( >= 0 )  or -1 if no intersection
      *  Create an extended Ray class for this.
      */
-    public float intersect(Ray ray, Vector3 center, float radius, Vector3 intersection) {
+    private float intersect(Ray ray, Vector3 center, float radius, Vector3 intersection) {
 
         float dst2 = -1;
 

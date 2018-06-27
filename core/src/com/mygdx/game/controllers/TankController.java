@@ -17,7 +17,7 @@ import com.mygdx.game.util.ModelInstanceEx;
  * Created by mango on 2/10/18.
  */
 
-public class TankController implements CharacterControlManual {
+public class TankController implements ICharacterControlManual {
 
     private Vector2 inpVect = new Vector2(0, 0); // control input vector
 

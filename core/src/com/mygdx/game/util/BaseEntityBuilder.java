@@ -4,7 +4,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 4/1/18.
@@ -12,10 +12,10 @@ import com.mygdx.game.Components.ModelComponent;
 
 public class BaseEntityBuilder extends EntityBuilder  {
 
-    protected BaseEntityBuilder() {
+    BaseEntityBuilder() {
     }
 
-    public BaseEntityBuilder(Model model, Vector3 size) {
+    BaseEntityBuilder(Model model, Vector3 size) {
         this.model = model;
         this.size = size;
     }
@@ -45,8 +45,6 @@ public class BaseEntityBuilder extends EntityBuilder  {
         if (null != translation) {
             e.getComponent(ModelComponent.class).modelInst.transform.trn(translation);
         }
-        else
-            translation = null; // GN: tmp  // throw new GdxRuntimeException("?");
 
         return e;
     }

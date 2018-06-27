@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.controllers.PIDcontrol;
-import com.mygdx.game.controllers.CharacterControlAuto;
+import com.mygdx.game.controllers.ICharacterControlAuto;
 
 
 /**
@@ -69,7 +69,7 @@ public class CameraOperator {
             this(FIXED, positionRef, lookAtRef);
         }*/
 
-        public CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
+        CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
             this.flags = flags;
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
@@ -80,7 +80,7 @@ public class CameraOperator {
 
     private Matrix4 camPositionMatrix = new Matrix4();
 
-    private CharacterControlAuto pidControl;
+    private ICharacterControlAuto pidControl;
 
 
     public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {
@@ -133,8 +133,6 @@ public class CameraOperator {
         if (index > -1) {
 
             return setOpModeByIndex(index);
-        } else {
-             // we're doomed ... idfk
         }
         return false;
     }
@@ -148,7 +146,7 @@ public class CameraOperator {
         return setOpModeByIndex(nodeIndex);
     }
 
-    boolean setOpModeByIndex(int index){
+    private boolean setOpModeByIndex(int index){
 
         isController = false;
 
@@ -187,7 +185,7 @@ public class CameraOperator {
     }
 
 
-    public void setCameraLocation(Vector3 position, Vector3 lookAt) {
+    private void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
         cam.position.set(position);
         cam.lookAt(lookAt);

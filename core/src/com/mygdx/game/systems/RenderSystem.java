@@ -12,7 +12,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.Components.ModelComponent;
+import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 12/18/17.
@@ -34,7 +34,7 @@ public class RenderSystem extends IteratingSystem {
     public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
 
 
-    public RenderSystem()
+    private RenderSystem()
     {
         super(Family.all(ModelComponent.class).get());
     }
