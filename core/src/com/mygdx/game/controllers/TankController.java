@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.controllers.CharacterControlManual;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -26,10 +25,10 @@ public class TankController implements CharacterControlManual {
     private float mass;
     private BulletWorld world;
 
-    public TankController(BulletWorld world, btRigidBody body, float mass){
+    public TankController(btRigidBody body, float mass){
         this.body = body;
         this.mass = mass;
-        this.world = world;
+        this.world = BulletWorld.getInstance();
     }
 
     // working variables

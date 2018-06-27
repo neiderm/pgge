@@ -79,17 +79,10 @@ class GameScreen implements Screen {
 
     public GameScreen() {
 
-
         //Create the event signal
         gameEventSignal = new Signal<GameEvent>();
 
-
-//        assets = SceneLoader.init(); // idfk
-        loading = true;
-
-
         this.engine = new Engine(); // GameWorld.getInstance().engine;
-
 
         environment = new Environment();
         environment.set(
@@ -104,11 +97,9 @@ class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-
         // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
         // designated receiver (object that has implemneted "InputReceiver" interface)
         stage = new GamePad();
-
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -118,18 +109,15 @@ class GameScreen implements Screen {
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
 
-
         // Font files from ashley-superjumper
         font = new BitmapFont(
                 Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
 
-
         // ok so you can add a label to the stage
         label = new Label("", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
-
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -141,10 +129,9 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
-
         // start this last so that other stuff will be available in render()
-        assets = SceneLoader.init(); // idfk
-
+        loading = true;
+        assets = SceneLoader.init();
 
         cameraOperator =
                 new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
@@ -184,7 +171,7 @@ class GameScreen implements Screen {
         // must be done before any bullet object can be created
         BulletWorld.getInstance().initialize(cam);
 
-        engine.addSystem(renderSystem = new RenderSystem(engine, environment, cam));
+        engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem());
         engine.addSystem(new PickRaySystem(gameEventSignal));
@@ -207,7 +194,6 @@ class GameScreen implements Screen {
 
         String s;
 
-        cameraOperator.update(delta);
         if (cameraOperator.getIsController())
             multiplexer.addProcessor(camController);
         else
@@ -306,8 +292,6 @@ class GameScreen implements Screen {
         if (!isPaused) {
 //            sceneLoader.dispose(); // static dispose models
         }
-//*/
-//        SceneLoader.dispose(); // static dispose models
     }
 
     private void trash(){

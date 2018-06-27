@@ -30,8 +30,6 @@ public class RenderSystem extends IteratingSystem {
     private DirectionalShadowLight shadowLight;
     private ModelBatch shadowBatch;
 
-    //    private Engine engine;
-
     private Vector3 position = new Vector3();
     public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
 
@@ -42,20 +40,19 @@ public class RenderSystem extends IteratingSystem {
     }
 
 
-    public RenderSystem(Engine engine, Environment environment, PerspectiveCamera cam ) {
+    public RenderSystem(Environment environment, PerspectiveCamera cam ) {
 
         this();
         this.environment = environment;
         this.cam = cam;
 
         modelBatch = new ModelBatch();
-///***
+
         shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
         shadowLight.set(0.8f, 0.8f, 0.8f, -1f, -.8f, -.2f);
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
         shadowBatch = new ModelBatch(new DepthShaderProvider());
-//***/
     }
 
     @Override
@@ -63,10 +60,9 @@ public class RenderSystem extends IteratingSystem {
 
         super.removedFromEngine(engine);
         modelBatch.dispose();
-///***
+
         shadowBatch.dispose();
         shadowLight.dispose();
-//***/
     }
 
     @Override
@@ -106,7 +102,6 @@ public class RenderSystem extends IteratingSystem {
 
 
         // now the modelinstance is (re)scaled, so do shadows now
-///***
         shadowLight.begin(Vector3.Zero, cam.direction);
         shadowBatch.begin(shadowLight.getCamera());
 
@@ -121,7 +116,6 @@ public class RenderSystem extends IteratingSystem {
         }
         shadowBatch.end();
         shadowLight.end();
-//***/
     }
 
 

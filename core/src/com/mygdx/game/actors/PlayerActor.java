@@ -12,7 +12,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.mygdx.game.BulletWorld;
 import com.mygdx.game.Components.ModelComponent;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.CharacterControlManual;
@@ -87,7 +86,7 @@ public class PlayerActor implements GameCharacter {
             CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
 
         // eventually, pass in a type enum for this?
-        TankController tank = new TankController(BulletWorld.getInstance(), body, /* bulletComp.mass */ 5.1f /* should be a property of the tank? */ );
+        TankController tank = new TankController(body, /* bulletComp.mass */ 5.1f /* should be a property of the tank? */ );
         this.cameraOperator = cameraOperator;
         this.ctrlr = tank;
         this.body = body;
@@ -194,6 +193,8 @@ public class PlayerActor implements GameCharacter {
     private GameEvent gameEvent = createGameEvent(RAY_DETECT);
 
     public void update(float delta) {
+
+        cameraOperator.update(delta);
 
 // for dynamic object you should get world trans directly from rigid body!
         // assert null != bc
