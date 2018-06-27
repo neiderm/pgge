@@ -1,8 +1,6 @@
 package com.mygdx.game.systems;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
@@ -17,7 +15,7 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 
-public class PickRaySystem extends IteratingSystem implements EntityListener {
+public class PickRaySystem extends IteratingSystem {
 
     private EventQueue eventQueue;
 
@@ -139,20 +137,4 @@ public class PickRaySystem extends IteratingSystem implements EntityListener {
         return dst2;
     }
 
-    @Override
-    public void entityAdded (Entity entity){
-        // empty
-    }
-
-    @Override
-    public void entityRemoved (Entity entity){
-        // empty
-    }
-
-    @Override
-    public void removedFromEngine(Engine engine) {
-
-        super.removedFromEngine(engine);
-        engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
-    }
 }

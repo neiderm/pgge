@@ -28,19 +28,18 @@ public class BulletWorld implements Disposable {
     private static BulletWorld instance = null;
 
     private static final boolean USE_DDBUG_DRAW = false;
-    private DebugDrawer debugDrawer = null;
-    private btCollisionConfiguration collisionConfiguration = null;
-    private btCollisionDispatcher dispatcher = null;
-    private btBroadphaseInterface broadphase = null;
-    private btConstraintSolver solver = null;
-    private btDynamicsWorld collisionWorld = null;
-
+    private DebugDrawer debugDrawer;
+    private btCollisionConfiguration collisionConfiguration;
+    private btCollisionDispatcher dispatcher;
+    private btBroadphaseInterface broadphase;
+    private btConstraintSolver solver;
+    private btDynamicsWorld collisionWorld;
     private Camera camera; // for debug drawing
 
     /*
         private BulletWorld() {
     //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
-        }
+    }
     */
     public static BulletWorld getInstance() {
 
@@ -49,14 +48,11 @@ public class BulletWorld implements Disposable {
             instance = new BulletWorld();
         }
         return instance;
-
     }
 
     public void initialize(Camera camera) {
 
         callback = new ClosestRayResultCallback(rayFrom, rayTo);
-
-        final Vector3 gravity = new Vector3(0, -9.81f, 0);
 
         // Create the bullet world
         collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -64,7 +60,7 @@ public class BulletWorld implements Disposable {
         broadphase = new btDbvtBroadphase();
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-        collisionWorld.setGravity(gravity);
+        collisionWorld.setGravity(new Vector3(0, -9.81f, 0));
 
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
@@ -103,7 +99,7 @@ public class BulletWorld implements Disposable {
      */
     private static final Vector3 rayFrom = new Vector3();
     private static final Vector3 rayTo = new Vector3();
-    private static ClosestRayResultCallback callback = null; // = new ClosestRayResultCallback(rayFrom, rayTo);
+    private static ClosestRayResultCallback callback;
     private static final Vector3 outV = new Vector3();
 
 
@@ -125,7 +121,6 @@ public class BulletWorld implements Disposable {
         if (callback.hasHit()) {
             return callback.getCollisionObject();
         }
-
         return null;
     }
 

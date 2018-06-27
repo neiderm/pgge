@@ -16,7 +16,6 @@ import com.mygdx.game.Components.BulletComponent;
 
 public class BulletSystem extends IteratingSystem implements EntityListener {
 
-    //    private Engine engine;
     private BulletWorld world;
 
 
@@ -40,10 +39,9 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
     public void addedToEngine(Engine engine) {
 
         super.addedToEngine(engine);
-//        this.engine = engine;
 
         // listener for these so that their bullet objects can be dispose'd
-        engine.addEntityListener(Family.all(BulletComponent.class).get(), this);
+        engine.addEntityListener(getFamily(), this);
     }
 
     @Override
