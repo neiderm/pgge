@@ -12,6 +12,8 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
+import java.util.Random;
+
 
 /**
  * Created by mango on 2/10/18.
@@ -40,9 +42,37 @@ public class TankController implements ICharacterControlManual {
     private static final Vector3 forceVect = new Vector3();
 
     @Override
-    public void inputSet(float x, float y) {
-        inpVect.set(x, y);
+    public void inputSet(Object ioObject) {
+
+        InputStruct io = (InputStruct)ioObject;
+        inpVect.set(io.inpVector);
+
+        InputStruct.ButtonsEnum button = io.buttonPress;
+
+        switch (button) {
+            case BUTTON_A:
+                break;
+            case BUTTON_B:
+                break;
+            case BUTTON_C:
+                applyJump();
+                break;
+        }
     }
+
+
+    private Random rnd = new Random();
+
+    void applyJump() {
+        // random flip left or right
+        if (rnd.nextFloat() > 0.5f)
+            tmpV.set(0.1f, 0, 0);
+        else
+            tmpV.set(-0.1f, 0, 0);
+
+        body.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+    }
+
 
     @Override
     public void update(float delta) {

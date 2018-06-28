@@ -9,5 +9,5 @@ public interface ICharacterControlManual extends ICharacterControlAuto {
     /*
     this would change to something generic like Object
      */
-    void inputSet(float x, float y);
+    void inputSet(Object o);
 }

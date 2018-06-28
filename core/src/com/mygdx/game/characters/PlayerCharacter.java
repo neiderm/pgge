@@ -5,6 +5,7 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -14,14 +15,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
+import com.mygdx.game.controllers.InputStruct;
 import com.mygdx.game.inputadapters.GameController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
-
-import java.util.Random;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
@@ -30,17 +30,14 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 /**
  * Created by utf1247 on 5/17/2018.
  *
- * Not in the Scene2D sense
- * Actor implements "glue" between Game Characters, Game Screen, and Game Controller (which is not
- * necessarily a physical contrllr, e.g. AIs).  Furthermore, Actor is also attached to a Game Event Signal.
+ * Character implements the intelligence "glue" between Game Character and Game Controller (which is not
+ * necessarily a physical contrllr, e.g. AIs).  Character can be attached to a Game Event Signal.
  * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
- * Player Actor is not presently tied to the Entity Engine and we do not have "Player Component".
- * If we supported multi-player we would perhaps need to have a Player System.
  */
 
 public class PlayerCharacter implements IGameCharacter {
 
-    private CameraOperator cameraOperator ;
+    private CameraOperator cameraOperator;
     private ICharacterControlManual ctrlr;
     private btRigidBody body;
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
@@ -93,8 +90,13 @@ public class PlayerCharacter implements IGameCharacter {
         stage.create(touchPadChangeListener, actionButtonListener, buttonBListener, buttonGSListener);
     }
 
+    /* need this persistent since we pass it every time but only update on change */
+    private Vector2 touchPadCoords = new Vector2();
+    private InputStruct io = new InputStruct();
+
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
+
         @Override
         public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
@@ -103,30 +105,19 @@ public class PlayerCharacter implements IGameCharacter {
                             + 1.0        */
 
             Touchpad t = (Touchpad) actor;
-            ctrlr.inputSet(t.getKnobPercentX(), -t.getKnobPercentY());
+
+            ctrlr.inputSet(
+                    io.set(touchPadCoords.set(t.getKnobPercentX(), -t.getKnobPercentY()),
+                            InputStruct.ButtonsEnum.BUTTON_NONE));
         }
     };
 
     private final InputListener actionButtonListener = new InputListener() {
 
-        private final Vector3 forceVect = new Vector3(); // allowed this to be seen for debug info
-        private Vector3 tmpV = new Vector3();
-        private Random rnd = new Random();
-
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-
-            // random flip left or right
-            if (rnd.nextFloat() > 0.5f)
-                tmpV.set(0.1f, 0, 0);
-            else
-                tmpV.set(-0.1f, 0, 0);
-
-            /*
-            TODO: what the "action" button does exactly should be implemnented in the Character!
-             */
-            body.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+            ctrlr.inputSet(io.set(touchPadCoords, InputStruct.ButtonsEnum.BUTTON_C));
 
             return true;
         }
@@ -161,7 +152,7 @@ public class PlayerCharacter implements IGameCharacter {
                 gameEvent.set(RAY_PICK, tmpM, id++);
                 gameEventSignal.dispatch(gameEvent);
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
-                }
+            }
             return true;
         }
     };
@@ -212,5 +203,5 @@ public class PlayerCharacter implements IGameCharacter {
         gameEventSignal.dispatch(this.gameEvent);
 //Gdx.app.log(this.getClass().getName(), String.format("update() ... id == %d", id));
         //    }
-  }
+    }
 }
