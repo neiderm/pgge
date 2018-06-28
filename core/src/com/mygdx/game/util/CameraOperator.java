@@ -34,7 +34,7 @@ import com.mygdx.game.controllers.ICharacterControlAuto;
 
 public class CameraOperator {
 
-    private PerspectiveCamera cam;
+    public /* private */ PerspectiveCamera cam;
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
     public enum CameraOpMode {

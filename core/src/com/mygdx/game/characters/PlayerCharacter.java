@@ -5,8 +5,10 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -30,8 +32,9 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 /**
  * Created by utf1247 on 5/17/2018.
  *
- * Character implements the intelligence "glue" between Game Character and Game Controller (which is not
- * necessarily a physical contrllr, e.g. AIs).  Character can be attached to a Game Event Signal.
+ * Character implements the intelligence "glue" between Game Character, a virtual input device (player
+ * control input, or possibly from an AI) and a "Character Controller" (a poor term for the essence of
+ * what is in and interacting with the game model).  Character can be attached to a Game Event Signal.
  * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
  */
 
@@ -144,12 +147,11 @@ public class PlayerCharacter implements IGameCharacter {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!cameraOperator.getIsController()) {
-// tmp hack: offset button x,y to screen x,y (button origin on bottom left)
+                // offset button x,y to screen x,y (button origin on bottom left)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
-// we will be grabbing a pick ray from the cameera and then passing it to whatever gun-sight function is active, if any
-                gameEvent.set(RAY_PICK, tmpM, id++);
+                gameEvent.set(RAY_PICK, cameraOperator.cam.getPickRay(nX, nY), id++);
                 gameEventSignal.dispatch(gameEvent);
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
@@ -180,6 +182,10 @@ public class PlayerCharacter implements IGameCharacter {
 
     private int id = 0; // tmp : test that I can create another gameEvent.set from this module
     private GameEvent gameEvent = createGameEvent(RAY_DETECT);
+    private Ray ray = new Ray();
+    private Vector3 position = new Vector3();
+    private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+    private Quaternion rotation = new Quaternion();
 
     public void update(float delta) {
 
@@ -196,12 +202,14 @@ public class PlayerCharacter implements IGameCharacter {
 // should also switch cam back to 3rd person
         }
 
-//        ctrlr.update(delta);
-
 // if (debug){
-        this.gameEvent.set(RAY_DETECT, tmpM, id++);
+        ray.set(tmpM.getTranslation(position),
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
+        );
+
+        this.gameEvent.set(RAY_DETECT, ray, id++);
+
         gameEventSignal.dispatch(this.gameEvent);
-//Gdx.app.log(this.getClass().getName(), String.format("update() ... id == %d", id));
-        //    }
+//    }
     }
 }

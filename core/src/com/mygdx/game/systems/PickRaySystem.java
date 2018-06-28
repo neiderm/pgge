@@ -4,25 +4,18 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.util.EventQueue;
 import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.ModelInstanceEx;
 
 
 public class PickRaySystem extends IteratingSystem {
 
     private EventQueue eventQueue;
-
-    private Quaternion rotation = new Quaternion();
     private static Vector3 position = new Vector3();
-    private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-    private Ray ray = new Ray();
 
 
     public PickRaySystem(Signal<GameEvent> gameEventSignal){
@@ -58,11 +51,7 @@ public class PickRaySystem extends IteratingSystem {
 
     private void handleEvent(GameEvent event) {
 
-        Matrix4 tmpM = (Matrix4) event.object;
-        Entity picked =
-                applyPickRay(ray.set(tmpM.getTranslation(position),
-                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
-                ));
+        Entity picked = applyPickRay((Ray) event.object);
 
         if (null != picked) {
             event.callback(picked, event.type);
