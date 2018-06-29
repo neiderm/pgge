@@ -1,6 +1,7 @@
 package com.mygdx.game.inputadapters;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -108,5 +109,14 @@ public class GamePad extends Stage implements GameController {
         this.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
         this.addActor(buttonB);
         this.addActor(buttonGS);
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        if(keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE){
+            // Do your optional back button handling (show pause menu?)
+            keycode = Input.Keys.BACK;//tmp
+        }
+        return false;
     }
 }

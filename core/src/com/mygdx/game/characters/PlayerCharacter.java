@@ -90,6 +90,11 @@ public class PlayerCharacter implements IGameCharacter {
         this.body = body;
         this.gameEventSignal = gameEventSignal;
 
+        /*
+         GS listener needs some geometry info to process correctly.
+         Extend InputListener?  to include some fields to describe button geometry, those fields
+         would be set  by stage.create()
+         */
         stage.create(touchPadChangeListener, actionButtonListener, buttonBListener, buttonGSListener);
     }
 
@@ -147,7 +152,8 @@ public class PlayerCharacter implements IGameCharacter {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!cameraOperator.getIsController()) {
-                // offset button x,y to screen x,y (button origin on bottom left)
+
+                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
@@ -176,15 +182,13 @@ public class PlayerCharacter implements IGameCharacter {
     };
 
 
-    private static Matrix4 tmpM = new Matrix4();
+    private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
-
-
     private int id = 0; // tmp : test that I can create another gameEvent.set from this module
     private GameEvent gameEvent = createGameEvent(RAY_DETECT);
     private Ray ray = new Ray();
     private Vector3 position = new Vector3();
-    private static Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
     public void update(float delta) {
@@ -201,14 +205,11 @@ public class PlayerCharacter implements IGameCharacter {
             died = true;
 // should also switch cam back to 3rd person
         }
-
 // if (debug){
         ray.set(tmpM.getTranslation(position),
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))
-        );
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))        );
 
         this.gameEvent.set(RAY_DETECT, ray, id++);
-
         gameEventSignal.dispatch(this.gameEvent);
 //    }
     }
