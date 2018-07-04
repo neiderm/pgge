@@ -29,7 +29,6 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
-import com.mygdx.game.inputadapters.GamePad;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.ControllerSystem;

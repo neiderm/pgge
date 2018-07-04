@@ -30,13 +30,14 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 class MainMenuScreen implements Screen {
 
     private BitmapFont font;
-    private Stage stage;
+
+    private Stage stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
 
 
     public MainMenuScreen() {
 
-        int WWW = Gdx.graphics.getWidth() / 2;
-        int HHH = Gdx.graphics.getHeight() / 2;
+        int width = Gdx.graphics.getWidth() / 2;
+        int height = Gdx.graphics.getHeight() / 2;
 
 //        Gdx.graphics.setWindowedMode(800,600);
         font = new BitmapFont();
@@ -50,9 +51,9 @@ class MainMenuScreen implements Screen {
     table.setFillParent(true);
     table.setDebug(true);
 
-        Pixmap background = new Pixmap(WWW, HHH, Pixmap.Format.RGBA8888);
+        Pixmap background = new Pixmap(width, height, Pixmap.Format.RGBA8888);
                 background.setColor(1, 0, 223/255f, 1);
-        background.fillRectangle(0, 0, WWW /2, HHH /2);
+        background.fillRectangle(0, 0, width /2, height /2);
         table.setBackground(new TiledDrawable(new TextureRegion(new Texture(background))));
 
 
@@ -128,13 +129,17 @@ text.setText("Play___!");
 
 
     private final InputListener buttonBListener = new InputListener() {
+
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             return true;
         }
+
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
             GameWorld.getInstance().showScreen(new GameScreen());
+            Gdx.input.setCatchBackKey(true);
         }
     };
 
@@ -153,28 +158,31 @@ text.setText("Play___!");
 
     @Override
     public void resize(int width, int height) {
-
+        // empty
     }
 
     @Override
     public void dispose() {
-
         font.dispose();
     }
 
     @Override
     public void show() {
+        Gdx.input.setCatchBackKey(false);
     }
 
     @Override
     public void pause() {
+        // empty
     }
 
     @Override
     public void resume() {
+        // empty
     }
 
     @Override
     public void hide() {
+        // empty
     }
 }

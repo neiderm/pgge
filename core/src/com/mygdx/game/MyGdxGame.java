@@ -6,14 +6,14 @@ import com.mygdx.game.screens.GameWorld;
 
 public class MyGdxGame extends Game {
 
-    @Override
+/*    @Override
     public void render() {
         super.render(); // I can hook into this render, as well as that of current screen
-    }
+    }*/
 
     @Override
     public void create() {
-        Gdx.input.setCatchBackKey(true);
+//        Gdx.input.setCatchBackKey(true);
         GameWorld.getInstance().initialize(this);
     }
 
