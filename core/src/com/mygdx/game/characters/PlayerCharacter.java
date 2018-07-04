@@ -18,7 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.InputStruct;
-import com.mygdx.game.inputadapters.GameController;
+import com.mygdx.game.screens.IGameController;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
@@ -81,7 +81,7 @@ public class PlayerCharacter implements IGameCharacter {
     }
 
 
-    public PlayerCharacter(ICharacterControlManual ctrl, GameController stage,
+    public PlayerCharacter(ICharacterControlManual ctrl, IGameController stage,
                            CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
 
         // eventually, pass in a type enum for this?
