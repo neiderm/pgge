@@ -14,11 +14,10 @@ import com.mygdx.game.controllers.ICharacterControlAuto;
  */
 public class CharacterComponent implements Component {
 
-    public IGameCharacter actor;
-
-    public CharacterComponent(IGameCharacter actor){
-        this.actor = actor;
-    }
-
+    public IGameCharacter character;
     public ICharacterControlAuto controller;
+
+    public CharacterComponent(IGameCharacter character){
+        this.character = character;
+    }
 }
