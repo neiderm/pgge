@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -42,10 +41,8 @@ public class PlayerCharacter implements IGameCharacter {
 
     private CameraOperator cameraOperator;
     private ICharacterControlManual ctrlr;
-    private btRigidBody body;
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    public boolean died = false;
-
+    private Matrix4 transform;
 
     private GameEvent createGameEvent(GameEvent.EventType t) {
 
@@ -53,19 +50,17 @@ public class PlayerCharacter implements IGameCharacter {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
-            private Matrix4 tmpM = new Matrix4();
 
             @Override
             public void callback(Entity picked, EventType eventType) {
 
-                body.getWorldTransform(tmpM);
-                tmpM.getTranslation(posV);
                 //assert (null != picked)
                 switch (eventType) {
                     case RAY_DETECT:
                         // we have an object in sight so kil it, bump the score, whatever
                         RenderSystem.otherThings.add(
-                                GfxUtil.lineTo(tmpM.getTranslation(posV),
+                                GfxUtil.lineTo(
+                                        transform.getTranslation(posV),
                                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
                         break;
@@ -82,12 +77,12 @@ public class PlayerCharacter implements IGameCharacter {
 
 
     public PlayerCharacter(ICharacterControlManual ctrl, IGameController stage,
-                           CameraOperator cameraOperator, btRigidBody body, Signal<GameEvent> gameEventSignal) {
+                           CameraOperator cameraOperator, Signal<GameEvent> gameEventSignal, Matrix4 transform) {
 
         // eventually, pass in a type enum for this?
         this.cameraOperator = cameraOperator;
         this.ctrlr = ctrl;
-        this.body = body;
+        this.transform = transform;
         this.gameEventSignal = gameEventSignal;
 
         /*
@@ -182,8 +177,6 @@ public class PlayerCharacter implements IGameCharacter {
     };
 
 
-    private Matrix4 tmpM = new Matrix4();
-    private Vector3 tmpV = new Vector3();
     private int id = 0; // tmp : test that I can create another gameEvent.set from this module
     private GameEvent gameEvent = createGameEvent(RAY_DETECT);
     private Ray ray = new Ray();
@@ -195,20 +188,10 @@ public class PlayerCharacter implements IGameCharacter {
 
         cameraOperator.update(delta);
 
-// for dynamic object you should get world trans directly from rigid body!
-        // assert null != bc
-        // assert null != bc.body
-        body.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
-
-        if (tmpV.y < -19) {
-            died = true;
-// should also switch cam back to 3rd person
-        }
-// if (debug){
-        ray.set(tmpM.getTranslation(position),
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), tmpM.getRotation(rotation))        );
-
+        // if (debug){
+        transform.getTranslation(position);
+        transform.getRotation(rotation);
+        ray.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
         this.gameEvent.set(RAY_DETECT, ray, id++);
         gameEventSignal.dispatch(this.gameEvent);
 //    }

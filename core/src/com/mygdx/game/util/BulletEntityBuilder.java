@@ -3,6 +3,7 @@ package com.mygdx.game.util;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.StatusComponent;
 
 /**
  * Created by mango on 4/1/18.
@@ -34,10 +36,34 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
         return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
     }
 
+
+    private static Entity loadWithStatusComp(Model model, String rootNodeId, Vector3 size, Vector3 translation) {
+
+        Entity e = load(model, rootNodeId, size, translation);
+
+        final Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+
+        final StatusComponent sc = e.getComponent(StatusComponent.class);
+        sc.statusUpdater = new BulletEntityStatusUpdate() {
+            private Vector3 v = new Vector3();
+
+            @Override
+            public void update() {
+                sc.position = transform.getTranslation(v);
+
+                if (sc.position.dst2(sc.origin) > sc.boundsDst2)
+                            sc.isActive = false;
+            }
+        };
+
+        return e;
+    }
+
+
     public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = load(model, nodeID, size, translation);
+        Entity e = loadWithStatusComp(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         if (null != nodeID) {
@@ -60,7 +86,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
     */
     public static Entity load(Model model, String nodeID, float mass) {
 
-        Entity e = load(model, nodeID, null, null);
+        Entity e = loadWithStatusComp(model, nodeID, null, null);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();

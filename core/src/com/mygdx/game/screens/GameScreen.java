@@ -18,7 +18,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
@@ -37,7 +36,6 @@ import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
-import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 
@@ -64,8 +62,6 @@ class GameScreen implements Screen {
     private OrthographicCamera guiCam;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-
-    private PlayerCharacter playerCharacter;
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -145,12 +141,16 @@ class GameScreen implements Screen {
     }
 
 
+    private Entity player;//tmp
+
+
     private void addEntities() {
 
         SceneLoader.createEntities(engine);
         SceneLoader.createTestObjects(engine);
 
-        Entity player = SceneLoader.createPlayer();
+//        Entity
+                player = SceneLoader.createPlayer();
         engine.addEntity(player);
 
         // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
@@ -158,25 +158,15 @@ class GameScreen implements Screen {
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
 
-        playerCharacter = new PlayerCharacter(playerCtrlr,
+        PlayerCharacter        playerCharacter = new PlayerCharacter(playerCtrlr,
                 stage, // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let character implement the event handlers
-                cameraOperator,
-                player.getComponent(BulletComponent.class).body, // tmp?
-                gameEventSignal);
+                cameraOperator, gameEventSignal,
+                player.getComponent(ModelComponent.class).modelInst.transform);
 
         player.add(new CharacterComponent(playerCharacter));
         player.add(new ControllerComponent(playerCtrlr));
-
-        final Matrix4 asdf =
-                player.getComponent(BulletComponent.class).body.getWorldTransform();
-        final StatusComponent sc = player.getComponent(StatusComponent.class);
-        sc.statusUpdater = new BulletEntityStatusUpdate() {
-            private Vector3 v = new Vector3();
-            @Override
-            public void update() { sc.position = asdf.getTranslation(v); }
-        };
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
@@ -290,9 +280,9 @@ class GameScreen implements Screen {
         stage.draw();
 
         // verify instance variable in current gameScreen instance (would be null until done Loading)
-        if (null != playerCharacter) {
-            if (playerCharacter.died) {
-                playerCharacter.died = false;
+        if (null != player) { //tmp
+            StatusComponent sc = player.getComponent(StatusComponent.class);
+            if (!sc.isActive) {
                 GameWorld.getInstance().showScreen(new MainMenuScreen());
             }
         }
