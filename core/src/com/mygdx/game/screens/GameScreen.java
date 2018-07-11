@@ -146,11 +146,12 @@ class GameScreen implements Screen {
 
     private void addEntities() {
 
-        SceneLoader.createEntities(engine);
-        SceneLoader.createTestObjects(engine);
+        SceneLoader.create(engine);
 
+        player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
+        engine.addEntity(player);
 //        Entity
-                player = SceneLoader.createPlayer();
+                player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
         engine.addEntity(player);
 
         // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):

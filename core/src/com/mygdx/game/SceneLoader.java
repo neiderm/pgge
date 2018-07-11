@@ -65,9 +65,12 @@ public class SceneLoader /* implements Disposable */ {
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
     }
 
+    public static void create(Engine engine) {
+        createEntities(engine);
+        createTestObjects(engine);
+    }
 
-
-    public static void createEntities(Engine engine) {
+    private static void createEntities(Engine engine) {
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
@@ -128,23 +131,29 @@ public class SceneLoader /* implements Disposable */ {
         }
     }
 
-    public static Entity createPlayer() {
+    public static Entity createTank(Vector3 trans) {
 
         Entity player;
         btCollisionShape boxshape; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
-        Model model = sceneModel;
-        String node = "ship";
-        if (true) {
-            node = null;
-            model = shipModel;
+        Model model = shipModel;
+        String node = null;
             final Mesh mesh = shipModel.meshes.get(0);
             boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
-        }
-        player = BulletEntityBuilder.load(model, node, null, 5.1f, new Vector3(-1, 11f, -5f), boxshape);
+        player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
         return player;
     }
 
-    public static void createTestObjects(Engine engine) {
+    public static Entity createShip(Vector3 trans) {
+
+        Entity player;
+        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
+        Model model = sceneModel;
+        String node = "ship";
+        player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
+        return player;
+    }
+
+    private static void createTestObjects(Engine engine) {
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
