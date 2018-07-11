@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
@@ -22,12 +21,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
  * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
  */
 
-public class GamePad extends Stage implements IGameController {
+public class GamePad extends IUserInterface {
 
     // copy ....
     //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
+    @Override
     public void create(ChangeListener touchPadChangeListener, InputListener buttonAListener,
                                InputListener buttonBListener, InputListener buttonGSListener) {
 
@@ -92,7 +92,7 @@ public class GamePad extends Stage implements IGameController {
 
         button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
 
         //       this.buttonGS = new ImageButton(touchBackground);
         myTexture = new Texture(button);

@@ -17,7 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.InputStruct;
-import com.mygdx.game.screens.IGameController;
+import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
@@ -76,7 +76,7 @@ public class PlayerCharacter implements IGameCharacter {
     }
 
 
-    public PlayerCharacter(ICharacterControlManual ctrl, IGameController stage,
+    public PlayerCharacter(ICharacterControlManual ctrl, IUserInterface stage,
                            CameraOperator cameraOperator, Signal<GameEvent> gameEventSignal, Matrix4 transform) {
 
         // eventually, pass in a type enum for this?
@@ -92,7 +92,7 @@ public class PlayerCharacter implements IGameCharacter {
          */
         stage.create(touchPadChangeListener, actionButtonListener, buttonBListener, buttonGSListener);
     }
-
+    
     /* need this persistent since we pass it every time but only update on change */
     private Vector2 touchPadCoords = new Vector2();
     private InputStruct io = new InputStruct();
@@ -184,9 +184,9 @@ public class PlayerCharacter implements IGameCharacter {
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
-    public void update(float delta) {
+    public void update(Entity entity, float deltaTime) {
 
-        cameraOperator.update(delta);
+        cameraOperator.update(deltaTime);
 
         // if (debug){
         transform.getTranslation(position);

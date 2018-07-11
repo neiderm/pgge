@@ -19,6 +19,8 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
@@ -67,7 +69,8 @@ class GameScreen implements Screen {
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private GamePad stage;
+    private IUserInterface stage;
+    private GamePad gamePad;
 
     private InputMultiplexer multiplexer;
 
@@ -100,17 +103,39 @@ class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-        // ChangeListener, InputLister etc. implemented here, but each of those will pass off to the
-        // designated receiver (object that has implemneted "InputReceiver" interface)
-        stage = new GamePad();
+
+        final InputListener pickBoxListener = new InputListener() {
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                // empty
+            }
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // for now ...
+                // set stage to GamePad and continue on ...  ?
+                stage = gamePad;
+                multiplexer.addProcessor(stage);
+                multiplexer.addProcessor(camController);
+                Gdx.input.setInputProcessor(multiplexer);
+                return true;
+            }
+        };
+
+        SetupUI setupUI = new SetupUI();
+        setupUI.create(null, null, null, pickBoxListener);
+        stage = setupUI;
+        Gdx.input.setInputProcessor(stage);
+
+        gamePad = new GamePad(); // gamePad is not fully create()'d yet, but we can pass out the references anyways
+
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
         multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(stage);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
+//        multiplexer.addProcessor(stage);
+//        multiplexer.addProcessor(camController);
+//        Gdx.input.setInputProcessor(multiplexer);
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -119,7 +144,7 @@ class GameScreen implements Screen {
         font.getData().setScale(0.5f);
 
         // ok so you can add a label to the stage
-        label = new Label("", new Label.LabelStyle(font, Color.WHITE));
+        label = new Label("Loading ...", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
@@ -159,8 +184,9 @@ class GameScreen implements Screen {
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
 
-        PlayerCharacter        playerCharacter = new PlayerCharacter(playerCtrlr,
-                stage, // game screen decide based on the capability of the running platform
+        PlayerCharacter playerCharacter = new PlayerCharacter(playerCtrlr,
+                gamePad, // playerCharacter initialize gamepad with its own inputhandlers
+                // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let character implement the event handlers
                 cameraOperator, gameEventSignal,
