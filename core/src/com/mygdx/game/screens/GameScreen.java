@@ -203,6 +203,8 @@ class GameScreen implements Screen {
         cameraOperator.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
+
+        cameraOperator.setOpModeByKey("chaser1"); // for some reason this is needed otherwise wtfk's what mode the canera is in
     }
 
     private void addSystems() {
