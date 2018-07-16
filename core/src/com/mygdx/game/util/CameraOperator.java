@@ -115,7 +115,7 @@ public class CameraOperator {
     private Matrix4 positionMatrixRef;
     private Matrix4 lookAtMatrixRef;
 
-    private static int nodeIndex = 0;
+    private int nodeIndex = 0;
 
     private boolean isController;
 
