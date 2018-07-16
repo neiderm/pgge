@@ -6,7 +6,6 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -23,12 +22,12 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.SceneLoader;
+import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.SceneLoader;
-import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
@@ -78,7 +77,7 @@ class GameScreen implements Screen {
     private Label label;
 
     private boolean loading;
-    private AssetManager assets;
+//    private AssetManager assets;
 
     private Signal<GameEvent> gameEventSignal;
 
@@ -159,7 +158,7 @@ class GameScreen implements Screen {
 
         // start this last so that other stuff will be available in render()
         loading = true;
-        assets = SceneLoader.init();
+//        assets = SceneLoader.init();
 
         cameraOperator =
                 new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
@@ -251,8 +250,9 @@ class GameScreen implements Screen {
         camController.update();
         engine.update(delta);
 
-        if (loading && assets.update()) {
-            SceneLoader.doneLoading();
+        if (loading /* && assets.update() */ )
+        {
+//            SceneLoader.doneLoading();
             // make sure add system first before other entity creation crap, so that the system can get entityAdded!
             addSystems();
             addEntities(); // this takes a long time!
@@ -349,7 +349,7 @@ class GameScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
-        SceneLoader.dispose();
+//        SceneLoader.dispose();
     }
 
 

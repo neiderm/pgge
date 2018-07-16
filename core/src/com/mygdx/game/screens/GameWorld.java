@@ -1,8 +1,8 @@
 package com.mygdx.game.screens;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.mygdx.game.SceneLoader;
 
 /**
@@ -15,7 +15,8 @@ import com.mygdx.game.SceneLoader;
 public class GameWorld {
 
     private Game game;
-//    public Engine engine = new Engine();
+    public static AssetManager assets;
+    //    public Engine engine = new Engine();
 
     private static GameWorld instance;
 
@@ -24,11 +25,10 @@ public class GameWorld {
 
     public void initialize(Game game){
 
-//        SceneLoader.init(); // sceneloader = SceneLoader.init();
-
+        assets = SceneLoader.init();
 
         this.game = game;
-        game.setScreen(new MainMenuScreen());
+        game.setScreen(new SplashScreen()); // game.setScreen(new MainMenuScreen());
     }
 
     public static GameWorld getInstance(){
@@ -54,7 +54,7 @@ public class GameWorld {
 
         game.getScreen().dispose();
 
-//        SceneLoader.dispose();
+        SceneLoader.dispose();
 
         instance = null;
     }
