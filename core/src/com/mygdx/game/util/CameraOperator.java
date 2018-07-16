@@ -131,7 +131,7 @@ public class CameraOperator {
         int index = cameraNodes.indexOfKey(key);
 
         if (index > -1) {
-
+            nodeIndex = index;
             return setOpModeByIndex(index);
         }
         return false;
@@ -185,7 +185,7 @@ public class CameraOperator {
     }
 
 
-    private void setCameraLocation(Vector3 position, Vector3 lookAt) {
+    public void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
         cam.position.set(position);
         cam.lookAt(lookAt);
