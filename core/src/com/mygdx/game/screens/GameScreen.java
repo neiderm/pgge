@@ -70,13 +70,14 @@ class GameScreen implements Screen {
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private IUserInterface stage;
     private GamePad gamePad;
+    private SetupUI setupUI;
 
     private InputMultiplexer multiplexer;
 
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
 
-    private boolean loading;
+//    private boolean loading;
 //    private AssetManager assets;
 
     private Signal<GameEvent> gameEventSignal;
@@ -112,18 +113,18 @@ class GameScreen implements Screen {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 // for now ...
                 // set stage to GamePad and continue on ...  ?
+                multiplexer.removeProcessor(camController);
+                multiplexer.removeProcessor(setupUI);
+                multiplexer.addProcessor(gamePad);
                 stage = gamePad;
-                multiplexer.addProcessor(stage);
-                multiplexer.addProcessor(camController);
-                Gdx.input.setInputProcessor(multiplexer);
+                cameraOperator.setOpModeByKey("chaser1");
                 return true;
             }
         };
 
-        SetupUI setupUI = new SetupUI();
+        setupUI = new SetupUI();
         setupUI.create(null, null, null, pickBoxListener);
         stage = setupUI;
-        Gdx.input.setInputProcessor(stage);
 
         gamePad = new GamePad(); // gamePad is not fully create()'d yet, but we can pass out the references anyways
 
@@ -132,9 +133,8 @@ class GameScreen implements Screen {
 //        camController = new FirstPersonCameraController(cam);
 
         multiplexer = new InputMultiplexer();
-//        multiplexer.addProcessor(stage);
-//        multiplexer.addProcessor(camController);
-//        Gdx.input.setInputProcessor(multiplexer);
+        multiplexer.addProcessor(stage);
+        Gdx.input.setInputProcessor(multiplexer);
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -157,11 +157,15 @@ class GameScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         // start this last so that other stuff will be available in render()
-        loading = true;
+//        loading = true;
 //        assets = SceneLoader.init();
 
         cameraOperator =
                 new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+
+
+            addSystems();
+            addEntities();
     }
 
 
@@ -203,7 +207,11 @@ class GameScreen implements Screen {
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
 
-        cameraOperator.setOpModeByKey("chaser1"); // for some reason this is needed otherwise wtfk's what mode the canera is in
+
+        cameraOperator.setCameraLocation( // hack: position of fixed camera at 'home" location
+        new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
+        cameraOperator.setOpModeByKey("fixed");
+        multiplexer.addProcessor(camController);
     }
 
     private void addSystems() {
@@ -235,12 +243,12 @@ class GameScreen implements Screen {
     public void render(float delta) {
 
         String s;
-
+/*
         if (cameraOperator.getIsController())
             multiplexer.addProcessor(camController);
         else
             multiplexer.removeProcessor(camController);
-
+*/
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
@@ -250,13 +258,13 @@ class GameScreen implements Screen {
         camController.update();
         engine.update(delta);
 
-        if (loading /* && assets.update() */ )
+//        if (loading /* && assets.update() */ )
         {
 //            SceneLoader.doneLoading();
             // make sure add system first before other entity creation crap, so that the system can get entityAdded!
-            addSystems();
-            addEntities(); // this takes a long time!
-            loading = false;
+//            addSystems();
+//            addEntities(); // this takes a long time!
+//            loading = false;
         }
 
 
@@ -311,8 +319,19 @@ class GameScreen implements Screen {
         // verify instance variable in current gameScreen instance (would be null until done Loading)
         if (null != player) { //tmp
             StatusComponent sc = player.getComponent(StatusComponent.class);
+
             if (!sc.isActive) {
-                GameWorld.getInstance().showScreen(new MainMenuScreen());
+//                GameWorld.getInstance().showScreen(new MainMenuScreen());
+
+                engine.removeSystem(bulletSystem); // make the system dispose its stuff
+                engine.removeSystem(renderSystem); // make the system dispose its stuff
+                engine.removeAllEntities(); // allow listeners to be called (for disposal)
+
+                addSystems();
+                addEntities();
+                multiplexer.removeProcessor(gamePad);
+                multiplexer.addProcessor(setupUI);
+                stage = setupUI;
             }
         }
     }
@@ -348,7 +367,9 @@ class GameScreen implements Screen {
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-        stage.dispose();
+//        stage.dispose();
+        gamePad.dispose();
+        setupUI.dispose();
 //        SceneLoader.dispose();
     }
 
