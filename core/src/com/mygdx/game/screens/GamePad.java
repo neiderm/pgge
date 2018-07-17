@@ -1,6 +1,5 @@
 package com.mygdx.game.screens;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,13 +11,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-//import com.mygdx.game.screens.MainMenuScreen;
 
 /**
  * Created by utf1247 on 2/15/2018.
- *
- * Use the venerable Game Pad idiom as our user-input abstraction
- * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
  */
 
 public class GamePad extends IUserInterface {
@@ -27,16 +22,19 @@ public class GamePad extends IUserInterface {
     //private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     //private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
-    @Override
-    public void create(ChangeListener touchPadChangeListener, InputListener buttonAListener,
-                               InputListener buttonBListener, InputListener buttonGSListener) {
+    public GamePad() {
+        super();
+        this.clear();
+    }
+
+    /**
+     * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
+     */
+    public void addTouchPad(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
         Drawable touchBackground;
-        Texture myTexture;
-        TextureRegion myTextureRegion;
-        TextureRegionDrawable myTexRegionDrawable;
 
         //Create a touchpad skin
         touchpadSkin = new Skin();
@@ -69,56 +67,29 @@ public class GamePad extends IUserInterface {
         // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
 
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-
-
-//        myTexture = new Texture(Gdx.files.internal("data/myTexture.png"));
-        myTexture = new Texture(button);
-        myTextureRegion = new TextureRegion(myTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-        ImageButton buttonA = new ImageButton(myTexRegionDrawable);
-        buttonA.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
-        buttonA.addListener(buttonAListener);
-
-        ImageButton buttonB = new ImageButton(myTexRegionDrawable);
-        buttonB.setPosition((2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
-        buttonB.addListener(buttonBListener);
-
-
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-
-        //       this.buttonGS = new ImageButton(touchBackground);
-        myTexture = new Texture(button);
-        myTextureRegion = new TextureRegion(myTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-        ImageButton buttonGS = new ImageButton(myTexRegionDrawable);
-        /* bottom left */
-        buttonGS.setPosition((Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        buttonGS.addListener(buttonGSListener);
-
-        this.clear();
         this.addActor(touchpad);
-        this.addActor(buttonA); //Add the button to the stage to perform rendering and take input.
-        this.addActor(buttonB);
-        this.addActor(buttonGS);
     }
 
-///*
+    @Override
+    public void addButton(InputListener listener, Pixmap pixmap, float x, float y) {
+
+        Texture myTexture = new Texture(pixmap);
+        TextureRegion myTextureRegion = new TextureRegion(myTexture);
+        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+
+        ImageButton button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(x, y);
+        button.addListener(listener);
+
+        this.addActor(button);
+    }
+
     @Override
     public boolean keyDown(int keycode) {
-        if(keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE){
+        if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
 
             GameWorld.getInstance().showScreen(new MainMenuScreen());
         }
         return false;
     }
-    //*/
 }

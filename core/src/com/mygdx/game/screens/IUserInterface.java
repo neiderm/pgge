@@ -1,5 +1,6 @@
 package com.mygdx.game.screens;
 
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -10,9 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
 public abstract class IUserInterface extends Stage {
 
-    /* for now, we're not flexible and stuck on this set of input listeners ...
-     ... overload create() for different combinations of UI elements? */
-    public void create(ChangeListener touchPadChangeListener,
-            InputListener buttonAListener, InputListener buttonBListener, InputListener buttonGSListener){
+    public void addTouchPad(ChangeListener touchPadChangeListener) {
+    }
+    public void addButton(InputListener buttonAListener, Pixmap button, float x, float y){
     }
 }

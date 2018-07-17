@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -122,11 +123,15 @@ class GameScreen implements Screen {
             }
         };
 
-        setupUI = new SetupUI();
-        setupUI.create(null, null, null, pickBoxListener);
-        stage = setupUI;
-
+        stage = setupUI = new SetupUI();
         gamePad = new GamePad(); // gamePad is not fully create()'d yet, but we can pass out the references anyways
+
+            Pixmap.setBlending(Pixmap.Blending.None);
+            Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+            button.setColor(1, 1, 1, .3f);
+            button.fillRectangle(0, 0, 150, 150);
+            stage.addButton(pickBoxListener, button,
+                    (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
 
         camController = new CameraInputController(cam);
@@ -326,11 +331,13 @@ class GameScreen implements Screen {
                 engine.removeSystem(bulletSystem); // make the system dispose its stuff
                 engine.removeSystem(renderSystem); // make the system dispose its stuff
                 engine.removeAllEntities(); // allow listeners to be called (for disposal)
+//idfk
+                multiplexer = new InputMultiplexer();
+                multiplexer.addProcessor(setupUI);
+                Gdx.input.setInputProcessor(multiplexer);
 
                 addSystems();
                 addEntities();
-                multiplexer.removeProcessor(gamePad);
-                multiplexer.addProcessor(setupUI);
                 stage = setupUI;
             }
         }
@@ -342,6 +349,7 @@ class GameScreen implements Screen {
     https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
     We need to update the stage's viewport in the resize method. The last Boolean argument set the origin to the lower left coordinate, causing the label to be drawn at that location.
      */
+// ??? // stage.getViewport().update(width, height, true);
     }
 
     @Override
