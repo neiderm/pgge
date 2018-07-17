@@ -126,20 +126,16 @@ class GameScreen implements Screen {
         stage = setupUI = new GameUI();
         gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
 
-            Pixmap.setBlending(Pixmap.Blending.None);
-            Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-            button.setColor(1, 1, 1, .3f);
-            button.fillRectangle(0, 0, 150, 150);
-            stage.addButton(pickBoxListener, button,
-                    (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillRectangle(0, 0, 150, 150);
+        stage.addButton(pickBoxListener, button,
+                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
-
-        multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(stage);
-        Gdx.input.setInputProcessor(multiplexer);
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -161,16 +157,20 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
-        // start this last so that other stuff will be available in render()
-//        loading = true;
-//        assets = SceneLoader.init();
-
         cameraOperator =
                 new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
+        newRound();
+    }
 
-            addSystems();
-            addEntities();
+    void newRound() {
+        stage = setupUI;
+        multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(camController);
+        Gdx.input.setInputProcessor(multiplexer);
+        addSystems();
+        addEntities();
     }
 
 
@@ -211,12 +211,9 @@ class GameScreen implements Screen {
         cameraOperator.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
-
-
-        cameraOperator.setCameraLocation( // hack: position of fixed camera at 'home" location
-        new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
+       cameraOperator.setCameraLocation( // hack: position of fixed camera at 'home" location
+                new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
         cameraOperator.setOpModeByKey("fixed");
-        multiplexer.addProcessor(camController);
     }
 
     private void addSystems() {
@@ -254,7 +251,6 @@ class GameScreen implements Screen {
         else
             multiplexer.removeProcessor(camController);
 */
-
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -262,15 +258,6 @@ class GameScreen implements Screen {
 
         camController.update();
         engine.update(delta);
-
-//        if (loading /* && assets.update() */ )
-        {
-//            SceneLoader.doneLoading();
-            // make sure add system first before other entity creation crap, so that the system can get entityAdded!
-//            addSystems();
-//            addEntities(); // this takes a long time!
-//            loading = false;
-        }
 
 
 ///*///////////////////////////////////////////
@@ -327,18 +314,10 @@ class GameScreen implements Screen {
 
             if (!sc.isActive) {
 //                GameWorld.getInstance().showScreen(new MainMenuScreen());
-
                 engine.removeSystem(bulletSystem); // make the system dispose its stuff
                 engine.removeSystem(renderSystem); // make the system dispose its stuff
                 engine.removeAllEntities(); // allow listeners to be called (for disposal)
-//idfk
-                multiplexer = new InputMultiplexer();
-                multiplexer.addProcessor(setupUI);
-                Gdx.input.setInputProcessor(multiplexer);
-
-                addSystems();
-                addEntities();
-                stage = setupUI;
+                newRound();
             }
         }
     }
