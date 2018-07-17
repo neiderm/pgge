@@ -70,8 +70,8 @@ class GameScreen implements Screen {
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private IUserInterface stage;
-    private GamePad gamePad;
-    private SetupUI setupUI;
+    private GameUI gameUI;
+    private GameUI setupUI;
 
     private InputMultiplexer multiplexer;
 
@@ -116,15 +116,15 @@ class GameScreen implements Screen {
                 // set stage to GamePad and continue on ...  ?
                 multiplexer.removeProcessor(camController);
                 multiplexer.removeProcessor(setupUI);
-                multiplexer.addProcessor(gamePad);
-                stage = gamePad;
+                multiplexer.addProcessor(gameUI);
+                stage = gameUI;
                 cameraOperator.setOpModeByKey("chaser1");
                 return true;
             }
         };
 
-        stage = setupUI = new SetupUI();
-        gamePad = new GamePad(); // gamePad is not fully create()'d yet, but we can pass out the references anyways
+        stage = setupUI = new GameUI();
+        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
 
             Pixmap.setBlending(Pixmap.Blending.None);
             Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -193,7 +193,7 @@ class GameScreen implements Screen {
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
 
         PlayerCharacter playerCharacter = new PlayerCharacter(playerCtrlr,
-                gamePad, // playerCharacter initialize gamepad with its own inputhandlers
+                gameUI, // playerCharacter initialize gamepad with its own inputhandlers
                 // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let character implement the event handlers
@@ -375,8 +375,7 @@ class GameScreen implements Screen {
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-//        stage.dispose();
-        gamePad.dispose();
+        gameUI.dispose();
         setupUI.dispose();
 //        SceneLoader.dispose();
     }
