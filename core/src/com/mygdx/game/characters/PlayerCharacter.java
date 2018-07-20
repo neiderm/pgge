@@ -45,9 +45,9 @@ public class PlayerCharacter implements IGameCharacter {
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private Matrix4 transform;
 
-    private GameEvent createGameEvent(GameEvent.EventType t) {
+    private GameEvent createGameEvent(GameEvent.EventType eventType) {
 
-        return new GameEvent(t) {
+        return new GameEvent(eventType) {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
@@ -97,12 +97,6 @@ public class PlayerCharacter implements IGameCharacter {
         stage.addButton(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
 
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-        stage.addButton(buttonBListener, button,
-                (2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
 
         Pixmap.setBlending(Pixmap.Blending.None);
         button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -179,21 +173,6 @@ public class PlayerCharacter implements IGameCharacter {
         }
     };
 
-    private final InputListener buttonBListener = new InputListener() {
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-            // assert null != cameraOperator
-            cameraOperator.nextOpMode();
-
-            return true;
-        }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            // empty
-        }
-    };
 
 
     private int id = 0; // tmp : test that I can create another gameEvent.set from this module
@@ -203,7 +182,7 @@ public class PlayerCharacter implements IGameCharacter {
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
-    public void update(Entity entity, float deltaTime) {
+    public void update(float deltaTime) {
 
         cameraOperator.update(deltaTime);
 

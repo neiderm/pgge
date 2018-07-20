@@ -105,6 +105,38 @@ class GameScreen implements Screen {
         cam.update();
 
 
+
+        final InputListener buttonBListener = new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // assert null != cameraOperator
+                if (cameraOperator.nextOpMode())
+                    multiplexer.addProcessor(camController);
+                else
+                    multiplexer.removeProcessor(camController);
+
+                return true;
+            }
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                // empty
+            }
+        };
+
+
+        Pixmap button;
+
+        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+        gameUI.addButton(buttonBListener, button,
+                (2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
+
+
+
         final InputListener pickBoxListener = new InputListener() {
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
@@ -124,13 +156,11 @@ class GameScreen implements Screen {
         };
 
         stage = setupUI = new GameUI();
-        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
-
         Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillRectangle(0, 0, 150, 150);
-        stage.addButton(pickBoxListener, button,
+        setupUI.addButton(pickBoxListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
 
