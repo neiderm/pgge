@@ -24,11 +24,12 @@ public class GameEvent implements Comparable<GameEvent> {
     }
 
 
-    public void set(EventType t, Object o, int id) {
+    public GameEvent set(EventType t, Object o, int id) {
 
         this.id = id;
         this.type = t;
         this.object = o;
+        return this;
     }
 
 

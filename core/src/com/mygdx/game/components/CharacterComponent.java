@@ -3,6 +3,7 @@ package com.mygdx.game.components;
 import com.badlogic.ashley.core.Component;
 import com.mygdx.game.characters.IGameCharacter;
 import com.mygdx.game.controllers.ICharacterControlAuto;
+import com.mygdx.game.util.GameEvent;
 
 /**
  * Created by mango on 2/10/18.
@@ -14,6 +15,7 @@ import com.mygdx.game.controllers.ICharacterControlAuto;
  */
 public class CharacterComponent implements Component {
 
+    public GameEvent gameEvent;
     public IGameCharacter character;
     public ICharacterControlAuto controller;
 

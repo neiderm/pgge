@@ -6,10 +6,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -25,7 +23,6 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
@@ -149,6 +146,8 @@ public class PlayerCharacter implements IGameCharacter {
       */
     private final InputListener buttonGSListener = new InputListener() {
 
+        private int id = 0; // tmp : test that I can create another gameEvent.set from this module
+
         private GameEvent gameEvent = createGameEvent(RAY_PICK);
 
         @Override
@@ -174,24 +173,8 @@ public class PlayerCharacter implements IGameCharacter {
     };
 
 
-
-    private int id = 0; // tmp : test that I can create another gameEvent.set from this module
-    private GameEvent gameEvent = createGameEvent(RAY_DETECT);
-    private Ray ray = new Ray();
-    private Vector3 position = new Vector3();
-    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-    private Quaternion rotation = new Quaternion();
-
     public void update(float deltaTime) {
 
         cameraOperator.update(deltaTime);
-
-        // if (debug){
-        transform.getTranslation(position);
-        transform.getRotation(rotation);
-        ray.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-        this.gameEvent.set(RAY_DETECT, ray, id++);
-        gameEventSignal.dispatch(this.gameEvent);
-//    }
     }
 }

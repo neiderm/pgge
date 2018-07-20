@@ -253,7 +253,7 @@ class GameScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new CharacterSystem());
+        engine.addSystem(new CharacterSystem(gameEventSignal));
         engine.addSystem(new ControllerSystem());
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
