@@ -38,8 +38,9 @@ import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
-import com.mygdx.game.util.CameraOperator;
+import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
  * Created by mango on 12/18/17.
@@ -52,7 +53,7 @@ class GameScreen implements Screen {
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private CameraOperator cameraOperator;
+    private CameraMan cameraMan;
 
     private PerspectiveCamera cam;
 
@@ -109,8 +110,8 @@ class GameScreen implements Screen {
         final InputListener buttonBListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // assert null != cameraOperator
-                if (cameraOperator.nextOpMode())
+                // assert null != cameraMan
+                if (cameraMan.nextOpMode())
                     multiplexer.addProcessor(camController);
                 else
                     multiplexer.removeProcessor(camController);
@@ -150,7 +151,7 @@ class GameScreen implements Screen {
                 multiplexer.removeProcessor(setupUI);
                 multiplexer.addProcessor(gameUI);
                 stage = gameUI;
-                cameraOperator.setOpModeByKey("chaser1");
+                cameraMan.setOpModeByKey("chaser1");
                 return true;
             }
         };
@@ -187,8 +188,8 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
-        cameraOperator =
-                new CameraOperator(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+        cameraMan =
+                new CameraMan(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
         newRound();
     }
@@ -227,7 +228,7 @@ class GameScreen implements Screen {
                 // game screen decide based on the capability of the running platform
                 // which GameController (abstract class derived from Stage )
                 // but let character implement the event handlers
-                cameraOperator, gameEventSignal,
+                cameraMan, gameEventSignal,
                 player.getComponent(ModelComponent.class).modelInst.transform);
 
         player.add(new CharacterComponent(playerCharacter));
@@ -238,12 +239,17 @@ class GameScreen implements Screen {
           */
         SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
 
-        cameraOperator.setCameraNode("chaser1",
+        cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
-       cameraOperator.setCameraLocation( // hack: position of fixed camera at 'home" location
+       cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
                 new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
-        cameraOperator.setOpModeByKey("fixed");
+        cameraMan.setOpModeByKey("fixed");
+
+// for now we have to create a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
+        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
+        engine.addEntity(cameraEntity);
+        cameraEntity.add(new CharacterComponent(cameraMan));
     }
 
     private void addSystems() {
@@ -276,7 +282,7 @@ class GameScreen implements Screen {
 
         String s;
 /*
-        if (cameraOperator.getIsController())
+        if (cameraMan.getIsController())
             multiplexer.addProcessor(camController);
         else
             multiplexer.removeProcessor(camController);

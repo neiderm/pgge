@@ -18,7 +18,6 @@ import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.InputStruct;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.util.CameraOperator;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -37,7 +36,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 public class PlayerCharacter implements IGameCharacter {
 
-    private CameraOperator cameraOperator;
+    private CameraMan cameraOperator;
     private ICharacterControlManual ctrlr;
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private Matrix4 transform;
@@ -75,7 +74,7 @@ public class PlayerCharacter implements IGameCharacter {
 
 
     public PlayerCharacter(ICharacterControlManual ctrl, IUserInterface stage,
-                           CameraOperator cameraOperator, Signal<GameEvent> gameEventSignal, Matrix4 transform) {
+                           CameraMan cameraOperator, Signal<GameEvent> gameEventSignal, Matrix4 transform) {
 
         this.cameraOperator = cameraOperator;
         this.ctrlr = ctrl;
@@ -174,7 +173,6 @@ public class PlayerCharacter implements IGameCharacter {
 
 
     public void update(float deltaTime) {
-
-        cameraOperator.update(deltaTime);
+// nothing to see here
     }
 }
