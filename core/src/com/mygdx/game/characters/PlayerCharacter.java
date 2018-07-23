@@ -171,8 +171,8 @@ public class PlayerCharacter implements IGameCharacter {
         }
     };
 
-
-    public void update(float deltaTime) {
+    @Override
+    public void update(float deltaTime, Object whatever) {
 // nothing to see here
     }
 }

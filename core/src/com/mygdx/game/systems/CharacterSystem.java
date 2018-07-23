@@ -29,7 +29,6 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
 
     private int id;
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    private Ray ray = new Ray();
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
@@ -114,16 +113,14 @@ private Entity myEntityReference = e;
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
 
-        ICharacterControlAuto ctrl = entity.getComponent(CharacterComponent.class).controller;
+        CharacterComponent comp = entity.getComponent(CharacterComponent.class);
 
-        if (null != ctrl)
-            ctrl.update(deltaTime);
+        if (null != comp.controller)
+            comp.controller.update(deltaTime);
 
-        IGameCharacter character = entity.getComponent(CharacterComponent.class).character;
+        if (null != comp.character) {
 
-        if (null != character) {
-
-            character.update(deltaTime);
+            comp.character.update(deltaTime, comp.lookRay);
 
             /*
             all characters to get the object in their line-of-sight view.
@@ -131,15 +128,13 @@ private Entity myEntityReference = e;
             camera LOS would be center of screen by default, but then on touch would defer to
             coordinate of cam.getPickRay()
              */
-            GameEvent gameEvent = entity.getComponent(CharacterComponent.class).gameEvent;
-
-            if (null != gameEvent) {
+            if (null != comp.gameEvent) {
                 Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
                 transform.getTranslation(position);
                 transform.getRotation(rotation);
-                ray.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                gameEvent.set(RAY_DETECT, ray, id++);
-                gameEventSignal.dispatch(gameEvent);
+                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                comp.gameEvent.set(RAY_DETECT, comp.lookRay, id++);
+                gameEventSignal.dispatch(comp.gameEvent);
             }
         }
     }

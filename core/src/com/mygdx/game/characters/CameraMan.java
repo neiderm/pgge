@@ -4,8 +4,8 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.controllers.PIDcontrol;
+import com.mygdx.game.controllers.ICharacterControlAuto;
 
 
 /**
@@ -216,7 +216,8 @@ public class CameraMan implements IGameCharacter  {
     private Vector3 currentPositionV = new Vector3();
     private Vector3 currentLookAtV = new Vector3();
 
-    public void update(float delta) {
+    @Override
+    public void update(float delta, Object whatever) {
 
         if (null != pidControl)
             pidControl.update(delta);
