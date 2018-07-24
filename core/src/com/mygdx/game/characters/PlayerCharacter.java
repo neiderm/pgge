@@ -6,8 +6,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -171,8 +173,19 @@ public class PlayerCharacter implements IGameCharacter {
         }
     };
 
+
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+
     @Override
-    public void update(float deltaTime, Object whatever) {
-// nothing to see here
+    public void update(Entity entity, float deltaTime, Object whatever) {
+
+        Ray ray = (Ray) whatever;
+
+        Matrix4 trans = entity.getComponent(ModelComponent.class).modelInst.transform;
+        trans.getTranslation(position);
+        trans.getRotation(rotation);
+        ray.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
     }
 }
