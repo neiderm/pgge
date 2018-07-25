@@ -148,7 +148,7 @@ public class PlayerCharacter implements IGameCharacter {
     private final InputListener buttonGSListener = new InputListener() {
 
         private int id = 0; // tmp : test that I can create another gameEvent.set from this module
-
+private Ray ray = new Ray();
         private GameEvent gameEvent = createGameEvent(RAY_PICK);
 
         @Override
@@ -165,7 +165,9 @@ public class PlayerCharacter implements IGameCharacter {
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
 
-                gameEvent.set(RAY_PICK, cameraOperator.cam.getPickRay(nX, nY), id++);
+                Ray rayTmp = cameraOperator.cam.getPickRay(nX, nY);
+                ray.set(rayTmp.origin, rayTmp.direction);
+                gameEvent.set(RAY_PICK, ray, id++);
                 gameEventSignal.dispatch(gameEvent);
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
