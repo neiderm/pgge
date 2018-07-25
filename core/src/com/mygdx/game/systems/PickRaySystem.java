@@ -39,13 +39,14 @@ public class PickRaySystem extends IteratingSystem {
 
             switch (event.type) {
                 case RAY_PICK:
+                    handleEvent(event);
                     break;
                 case RAY_DETECT:
+                    handleEvent(event);
                     break;
                 default:
                     break;
             }
-            handleEvent(event);
         }
    }
 
