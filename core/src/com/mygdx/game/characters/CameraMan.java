@@ -1,11 +1,26 @@
 package com.mygdx.game.characters;
 
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Signal;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.controllers.ICharacterControlAuto;
+import com.mygdx.game.screens.IUserInterface;
+import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.ModelInstanceEx;
+
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
+import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 /**
@@ -32,7 +47,9 @@ import com.mygdx.game.controllers.ICharacterControlAuto;
  * Chase type would be constructed with a reference to the chasee
  */
 
-public class CameraMan implements IGameCharacter  {
+public class CameraMan implements IGameCharacter {
+
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
 
     public /* private */ PerspectiveCamera cam;
 
@@ -59,7 +76,7 @@ public class CameraMan implements IGameCharacter  {
 
     private static final int FIXED = 1; // idfk
 
-    private static class CameraNode{
+    private static class CameraNode {
 
         private Matrix4 positionRef;
         private Matrix4 lookAtRef;
@@ -69,7 +86,7 @@ public class CameraMan implements IGameCharacter  {
             this(FIXED, positionRef, lookAtRef);
         }*/
 
-        CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef){
+        CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef) {
             this.flags = flags;
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
@@ -108,7 +125,6 @@ public class CameraMan implements IGameCharacter  {
     // remove camera node
 
 
-
     private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
     // these reference whatever the camera is supposed to be chasing
@@ -120,8 +136,7 @@ public class CameraMan implements IGameCharacter  {
     private boolean isController;
 
 
-
-    public boolean getIsController(){
+    public boolean getIsController() {
         return isController;
     }
 
@@ -146,7 +161,7 @@ public class CameraMan implements IGameCharacter  {
         return setOpModeByIndex(nodeIndex);
     }
 
-    private boolean setOpModeByIndex(int index){
+    private boolean setOpModeByIndex(int index) {
 
         isController = false;
 
@@ -156,7 +171,7 @@ public class CameraMan implements IGameCharacter  {
 
         Vector3 tmp = cam.position.cpy();
 
-        if (node.flags == FIXED){
+        if (node.flags == FIXED) {
 
             cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
@@ -196,9 +211,11 @@ public class CameraMan implements IGameCharacter  {
         currentLookAtV.set(lookAt);
     }
 
-    public CameraMan(PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
+
+    public CameraMan(PerspectiveCamera cam, IUserInterface stage, Signal<GameEvent> gameEventSignal, Vector3 pos, Vector3 lookAt) {
 
         this.cam = cam;
+        this.gameEventSignal = gameEventSignal;
 
         Vector3 posV = new Vector3(pos);
         Vector3 lookAtV = new Vector3(lookAt);
@@ -210,14 +227,33 @@ public class CameraMan implements IGameCharacter  {
 //        setCameraNode("fixed", pos, look, FIXED);
         setCameraNode("fixed", null, null, FIXED);
         setCameraLocation(posV, lookAtV);
+
+        Pixmap button;
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
     }
 
 
     private Vector3 currentPositionV = new Vector3();
     private Vector3 currentLookAtV = new Vector3();
 
+
     @Override
-    public void update(float delta, Object whatever) {
+    public void update(Entity entity, float delta, Object whatever) {
+/*
+        float x= 75;
+        float y = 75;
+        float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+        float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+
+        Ray rayRef = (Ray)whatever;
+        rayRef.set(pickRay.origin, pickRay.direction);
+        gameEvent.set(RAY_PICK, rayRef, 0);
+        gameEventSignal.dispatch(gameEvent);
+        */
 
         if (null != pidControl)
             pidControl.update(delta);
@@ -230,4 +266,70 @@ public class CameraMan implements IGameCharacter  {
             setCameraLocation(currentPositionV, currentLookAtV);
         }
     }
+
+
+    /* create us a game event object for signalling to pickray system.
+    modelinstance reference doesn't belong in here but we could
+    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
+     */
+    private GameEvent createGameEvent() {
+
+        return new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                //assert (null != picked)
+                switch (eventType) {
+                    case RAY_DETECT:
+                        // we have an object in sight so kil it, bump the score, whatever
+//Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
+                        if (touchDown) {
+                            ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        }
+                        break;
+                    case RAY_PICK:
+//if (touchDown) { ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED); }
+                    default:
+                        break;
+                }
+            }
+        };
+    }
+
+
+    private Ray pickRay = new Ray();
+    private boolean touchDown = false;
+    private GameEvent gameEvent = createGameEvent(); // needs to be reference to the one in the CharacterComponent!
+
+    /*
+ "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
+  */
+    public final InputListener buttonGSListener = new InputListener() {
+
+        private int id = 0; // tmp : test that I can create another gameEvent.set from this module
+
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+            touchDown = false;
+        }
+
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            // only do this if FPV mode (i.e. cam controller is not handling game window input)
+            if (!getIsController()) {
+
+                touchDown = true;
+
+                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+
+                Ray rayTmp = cam.getPickRay(nX, nY);
+                pickRay.set(rayTmp.origin, rayTmp.direction);
+
+                gameEventSignal.dispatch(gameEvent.set(/* RAY_PICK*/ RAY_DETECT, pickRay, id++));
+                //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
+            }
+            return true;
+        }
+    };
 }

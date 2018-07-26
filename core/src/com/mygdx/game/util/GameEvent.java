@@ -19,11 +19,6 @@ public class GameEvent implements Comparable<GameEvent> {
     public int id;
 
 
-    public GameEvent(EventType t) {
-        this.type = t;
-    }
-
-
     public GameEvent set(EventType t, Object o, int id) {
 
         this.id = id;
@@ -42,8 +37,8 @@ public class GameEvent implements Comparable<GameEvent> {
 
 
     /* @return  a negative integer, zero, or a positive integer as this object
-    *          is less than, equal to, or greater than the specified object.
-   */
+     *          is less than, equal to, or greater than the specified object.
+     */
     @Override
     public int compareTo(GameEvent o) {
 

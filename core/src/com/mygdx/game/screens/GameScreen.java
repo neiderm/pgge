@@ -48,7 +48,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
 // make sure this not visible outside of com.mygdx.game.screens
 class GameScreen implements Screen {
 
-//    public static SceneLoader sceneLoader = SceneLoader.instance;
+    //    public static SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -79,8 +79,6 @@ class GameScreen implements Screen {
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
 
-//    private boolean loading;
-//    private AssetManager assets;
 
     private Signal<GameEvent> gameEventSignal;
 
@@ -106,7 +104,6 @@ class GameScreen implements Screen {
         cam.update();
 
 
-
         final InputListener buttonBListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -118,6 +115,7 @@ class GameScreen implements Screen {
 
                 return true;
             }
+
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 // empty
@@ -134,8 +132,7 @@ class GameScreen implements Screen {
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
         gameUI.addButton(buttonBListener, button,
-                (2 * Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 9f));
-
+                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
 
 
         final InputListener pickBoxListener = new InputListener() {
@@ -143,6 +140,7 @@ class GameScreen implements Screen {
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 // empty
             }
+
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 // for now ...
@@ -189,7 +187,7 @@ class GameScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         cameraMan =
-                new CameraMan(cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+                new CameraMan(cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
         newRound();
     }
@@ -215,21 +213,15 @@ class GameScreen implements Screen {
         player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
         engine.addEntity(player);
 //        Entity
-                player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
+        player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
         engine.addEntity(player);
 
         // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
         ICharacterControlManual playerCtrlr =
                 new TankController(player.getComponent(BulletComponent.class).body,
-                        player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */ );
+                        player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        PlayerCharacter playerCharacter = new PlayerCharacter(playerCtrlr,
-                gameUI, // playerCharacter initialize gamepad with its own inputhandlers
-                // game screen decide based on the capability of the running platform
-                // which GameController (abstract class derived from Stage )
-                // but let character implement the event handlers
-                cameraMan, gameEventSignal,
-                player.getComponent(ModelComponent.class).modelInst.transform);
+        PlayerCharacter playerCharacter = new PlayerCharacter(playerCtrlr, gameUI);
 
         player.add(new CharacterComponent(playerCharacter));
         player.add(new ControllerComponent(playerCtrlr));
@@ -242,7 +234,7 @@ class GameScreen implements Screen {
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
-       cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
+        cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
                 new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
         cameraMan.setOpModeByKey("fixed");
 
@@ -336,7 +328,12 @@ class GameScreen implements Screen {
         shapeRenderer.setColor(hudOverlayColor);
         shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-
+///*
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(255, 255, 255, 1));
+        shapeRenderer.rect((Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5, 10, 10);
+        shapeRenderer.end();
+//*/
 //*//////////////////////////////
 
         // note: I protected for null camera system on the input hhandler ... do
@@ -379,7 +376,7 @@ class GameScreen implements Screen {
         }
     }
 
-    private void trash(){
+    private void trash() {
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
@@ -409,7 +406,7 @@ class GameScreen implements Screen {
 
     @Override
     public void resume() {
-        isPaused  = false; // android clicked app icon or from "left button"
+        isPaused = false; // android clicked app icon or from "left button"
     }
 
     @Override

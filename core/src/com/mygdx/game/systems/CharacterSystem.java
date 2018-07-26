@@ -8,11 +8,13 @@ import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
@@ -34,16 +36,17 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
     }
 
 
-    private GameEvent createPickEvent(final Entity e, GameEvent.EventType eventType) {
+    private GameEvent createPickEvent(final Entity e) {
 
-        return new GameEvent(eventType) {
+        return new GameEvent() {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
             private Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-/*
-private Entity myEntityReference = e;
- */
+
+            /*
+            private Entity myEntityReference = e;
+             */
             /*
             we have no way to invoke a callback to the picked component.
             Pickable component required to implment some kind of interface to provide a
@@ -94,7 +97,7 @@ private Entity myEntityReference = e;
     @Override
     public void entityAdded(Entity entity) {
 
-        entity.getComponent(CharacterComponent.class).gameEvent = createPickEvent(entity, RAY_DETECT);
+        entity.getComponent(CharacterComponent.class).gameEvent = createPickEvent(entity);
     }
 
     @Override
@@ -102,6 +105,10 @@ private Entity myEntityReference = e;
         //empty
     }
 
+
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
@@ -122,10 +129,12 @@ private Entity myEntityReference = e;
             coordinate of cam.getPickRay()
              */
             if (null != comp.gameEvent) {
-//                Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
-//                transform.getTranslation(position);
-//                transform.getRotation(rotation);
-//                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+///*
+                Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
+                transform.getTranslation(position);
+                transform.getRotation(rotation);
+                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+//*/
                 comp.gameEvent.set(RAY_DETECT, comp.lookRay, id++);
                 gameEventSignal.dispatch(comp.gameEvent);
             }
