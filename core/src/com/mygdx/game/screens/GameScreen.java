@@ -219,7 +219,7 @@ class GameScreen implements Screen {
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        PlayerCharacter playerCharacter = new PlayerCharacter(player, playerCtrlr, gameUI);
+        PlayerCharacter playerCharacter = new PlayerCharacter(player, gameUI, playerCtrlr);
 
 
         /*
@@ -233,7 +233,7 @@ class GameScreen implements Screen {
         engine.addEntity(cameraEntity);
 
 // does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+        cameraMan = new CameraMan(cameraEntity, gameUI, cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,

@@ -39,7 +39,7 @@ public class PlayerCharacter implements IGameCharacter {
     private ICharacterControlManual ctrlr;
 
 
-    public PlayerCharacter(final Entity player, ICharacterControlManual ctrl, IUserInterface stage) {
+    public PlayerCharacter(final Entity player, IUserInterface stage, ICharacterControlManual ctrl) {
 
 
         player.add(
@@ -142,6 +142,7 @@ public class PlayerCharacter implements IGameCharacter {
     @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
 
+        // different things have different means of setting their lookray
         Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
         transform.getRotation(rotation);

@@ -20,8 +20,6 @@ import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
-
 
 /**
  * Created by mango on 2/4/18.
@@ -48,8 +46,6 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
  */
 
 public class CameraMan implements IGameCharacter {
-
-    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
 
     public /* private */ PerspectiveCamera cam;
 
@@ -224,9 +220,10 @@ public class CameraMan implements IGameCharacter {
                 case RAY_DETECT:
                     // we have an object in sight so kil it, bump the score, whatever
 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
-//                    if (touchDown)
+                    if (touchDown)
                     {
                         ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        touchDown = false;
                     }
                     break;
                 case RAY_PICK:
@@ -237,19 +234,14 @@ public class CameraMan implements IGameCharacter {
         }
     };
 
-    public CameraMan(Entity cameraMan, PerspectiveCamera cam, IUserInterface stage,
-                     Signal<GameEvent> gameEventSignal, Vector3 pos, Vector3 lookAt) {
+    public CameraMan(Entity cameraMan, IUserInterface stage, PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
 
+        cameraMan.add( new CharacterComponent(this, gameEvent));
 
-        cameraMan.add( new CharacterComponent(this, new GameEvent())); // tmp
-//        cameraMan.add( new CharacterComponent(this, gameEvent));  // nfg
+        this.pickRay = (cameraMan.getComponent(CharacterComponent.class)).lookRay;
 
-        // grab component's gameEvent so we can post messages to it
-        // needs to be reference to the one in the CharacterComponent!
-//        this.gameEvent = event;
 
         this.cam = cam;
-        this.gameEventSignal = gameEventSignal;
 
         Vector3 posV = new Vector3(pos);
         Vector3 lookAtV = new Vector3(lookAt);
@@ -277,17 +269,6 @@ public class CameraMan implements IGameCharacter {
 
     @Override
     public void update(Entity entity, float delta, Object whatever) {
-/*
-        float x= 75;
-        float y = 75;
-        float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-        float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-
-        Ray rayRef = (Ray)whatever;
-        rayRef.set(pickRay.origin, pickRay.direction);
-        gameEvent.set(RAY_PICK, rayRef, 0);
-        gameEventSignal.dispatch(gameEvent);
-        */
 
         if (null != pidControl)
             pidControl.update(delta);
@@ -304,8 +285,8 @@ public class CameraMan implements IGameCharacter {
 
 
 
-    private Ray pickRay = new Ray();
-//    private boolean touchDown = false;
+    private Ray pickRay;
+    private boolean touchDown = false;
 
     /*
  "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
@@ -316,7 +297,7 @@ public class CameraMan implements IGameCharacter {
 
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-//            touchDown = false;
+// empty
         }
 
         @Override
@@ -324,8 +305,10 @@ public class CameraMan implements IGameCharacter {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!getIsController()) {
 
-//                touchDown = true;
+                touchDown = true;
 
+                // different things have different means of setting their lookray
+                
                 // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
@@ -333,7 +316,7 @@ public class CameraMan implements IGameCharacter {
                 Ray rayTmp = cam.getPickRay(nX, nY);
                 pickRay.set(rayTmp.origin, rayTmp.direction);
 
-                gameEventSignal.dispatch(gameEvent.set(/* RAY_PICK*/ RAY_DETECT, pickRay, id++));
+//                gameEventSignal.dispatch(gameEvent.set(/* RAY_PICK*/ RAY_DETECT, pickRay, id++));
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;
