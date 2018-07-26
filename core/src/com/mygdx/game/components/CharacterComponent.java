@@ -21,7 +21,18 @@ public class CharacterComponent implements Component {
     public ICharacterControlAuto controller;
     public Ray lookRay = new Ray();
 
-    public CharacterComponent(IGameCharacter character){
+
+    public CharacterComponent(IGameCharacter character) {
         this.character = character;
+    }
+
+    /*
+     every entity instance must have its own gameEvent instance
+     */
+    public CharacterComponent(IGameCharacter character, GameEvent gameEvent) {
+
+        this(character);
+
+        this.gameEvent = gameEvent;
     }
 }

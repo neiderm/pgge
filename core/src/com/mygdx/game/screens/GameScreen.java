@@ -24,10 +24,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
@@ -38,7 +37,6 @@ import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
-import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -186,8 +184,8 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
-        cameraMan =
-                new CameraMan(cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+
+//        cameraMan = new CameraMan(cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
         newRound();
     }
@@ -221,15 +219,21 @@ class GameScreen implements Screen {
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        PlayerCharacter playerCharacter = new PlayerCharacter(playerCtrlr, gameUI);
+        PlayerCharacter playerCharacter = new PlayerCharacter(player, playerCtrlr, gameUI);
 
-        player.add(new CharacterComponent(playerCharacter));
-        player.add(new ControllerComponent(playerCtrlr));
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
+
+
+// for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
+        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
+        engine.addEntity(cameraEntity);
+
+// does it need to be disposed?
+        cameraMan = new CameraMan(cameraEntity, cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
@@ -237,11 +241,6 @@ class GameScreen implements Screen {
         cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
                 new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
         cameraMan.setOpModeByKey("fixed");
-
-// for now we have to create a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
-        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
-        engine.addEntity(cameraEntity);
-        cameraEntity.add(new CharacterComponent(cameraMan));
     }
 
     private void addSystems() {

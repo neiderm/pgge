@@ -2,16 +2,27 @@ package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.ControllerComponent;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.InputStruct;
 import com.mygdx.game.screens.IUserInterface;
+import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 
 /**
@@ -28,7 +39,47 @@ public class PlayerCharacter implements IGameCharacter {
     private ICharacterControlManual ctrlr;
 
 
-    public PlayerCharacter(ICharacterControlManual ctrl, IUserInterface stage) {
+    public PlayerCharacter(final Entity player, ICharacterControlManual ctrl, IUserInterface stage) {
+
+
+        player.add(
+                new CharacterComponent(this, new GameEvent() {
+
+                    private Vector3 tmpV = new Vector3();
+                    private Vector3 posV = new Vector3();
+                    private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
+                    /*
+                    private Entity myEntityReference = e;
+                     */
+            /*
+            we have no way to invoke a callback to the picked component.
+            Pickable component required to implment some kind of interface to provide a
+            callback method e.g.
+              pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
+              if (null != pickedComp.pickedInterface)
+                 pickInterface.picked( myEntityReference );
+             */
+                    @Override
+                    public void callback(Entity picked, EventType eventType) {
+                        //assert (null != picked)
+                        switch (eventType) {
+                            case RAY_DETECT:
+                                // we have an object in sight so kil it, bump the score, whatever
+                                RenderSystem.otherThings.add(
+                                        GfxUtil.lineTo(
+                                                transform.getTranslation(posV),
+                                                picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                                Color.LIME));
+                                break;
+                            case RAY_PICK:
+                            default:
+                                break;
+                        }
+                    }
+                }));
+        player.add(new ControllerComponent(ctrl));
+
+
 
         this.ctrlr = ctrl;
 
@@ -84,9 +135,17 @@ public class PlayerCharacter implements IGameCharacter {
     };
 
 
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+
     @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
-// nothing to see here
+
+        Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
+        transform.getTranslation(position);
+        transform.getRotation(rotation);
+        entity.getComponent(CharacterComponent.class).lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
     }
 }
 

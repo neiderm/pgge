@@ -12,15 +12,15 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.controllers.ICharacterControlAuto;
+import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
-import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 /**
@@ -212,7 +212,41 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    public CameraMan(PerspectiveCamera cam, IUserInterface stage, Signal<GameEvent> gameEventSignal, Vector3 pos, Vector3 lookAt) {
+/* create us a game event object for signalling to pickray system.
+    modelinstance reference doesn't belong in here but we could
+    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
+     */
+    GameEvent gameEvent = new GameEvent() {
+        @Override
+        public void callback(Entity picked, EventType eventType) {
+            //assert (null != picked)
+            switch (eventType) {
+                case RAY_DETECT:
+                    // we have an object in sight so kil it, bump the score, whatever
+//Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
+//                    if (touchDown)
+                    {
+                        ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                    }
+                    break;
+                case RAY_PICK:
+//if (touchDown) { ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED); }
+                default:
+                    break;
+            }
+        }
+    };
+
+    public CameraMan(Entity cameraMan, PerspectiveCamera cam, IUserInterface stage,
+                     Signal<GameEvent> gameEventSignal, Vector3 pos, Vector3 lookAt) {
+
+
+        cameraMan.add( new CharacterComponent(this, new GameEvent())); // tmp
+//        cameraMan.add( new CharacterComponent(this, gameEvent));  // nfg
+
+        // grab component's gameEvent so we can post messages to it
+        // needs to be reference to the one in the CharacterComponent!
+//        this.gameEvent = event;
 
         this.cam = cam;
         this.gameEventSignal = gameEventSignal;
@@ -268,37 +302,10 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    /* create us a game event object for signalling to pickray system.
-    modelinstance reference doesn't belong in here but we could
-    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
-     */
-    private GameEvent createGameEvent() {
-
-        return new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                //assert (null != picked)
-                switch (eventType) {
-                    case RAY_DETECT:
-                        // we have an object in sight so kil it, bump the score, whatever
-//Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
-                        if (touchDown) {
-                            ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        }
-                        break;
-                    case RAY_PICK:
-//if (touchDown) { ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED); }
-                    default:
-                        break;
-                }
-            }
-        };
-    }
 
 
     private Ray pickRay = new Ray();
-    private boolean touchDown = false;
-    private GameEvent gameEvent = createGameEvent(); // needs to be reference to the one in the CharacterComponent!
+//    private boolean touchDown = false;
 
     /*
  "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
@@ -309,7 +316,7 @@ public class CameraMan implements IGameCharacter {
 
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            touchDown = false;
+//            touchDown = false;
         }
 
         @Override
@@ -317,7 +324,7 @@ public class CameraMan implements IGameCharacter {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
             if (!getIsController()) {
 
-                touchDown = true;
+//                touchDown = true;
 
                 // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
