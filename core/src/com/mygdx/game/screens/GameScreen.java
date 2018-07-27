@@ -79,6 +79,7 @@ class GameScreen implements Screen {
 
 
     private Signal<GameEvent> gameEventSignal;
+    private boolean pickBoxTouchDown = false;
 
 
     public GameScreen() {
@@ -141,13 +142,16 @@ class GameScreen implements Screen {
 
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
                 // for now ...
-                // set stage to GamePad and continue on ...  ?
+                pickBoxTouchDown = true;
+/*
                 multiplexer.removeProcessor(camController);
                 multiplexer.removeProcessor(setupUI);
                 multiplexer.addProcessor(gameUI);
                 stage = gameUI;
                 cameraMan.setOpModeByKey("chaser1");
+*/
                 return true;
             }
         };
@@ -233,7 +237,7 @@ class GameScreen implements Screen {
         engine.addEntity(cameraEntity);
 
 // does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, gameUI, cam, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
+        cameraMan = new CameraMan(cameraEntity, gameUI, cam);
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
@@ -272,12 +276,16 @@ class GameScreen implements Screen {
     public void render(float delta) {
 
         String s;
-/*
-        if (cameraMan.getIsController())
-            multiplexer.addProcessor(camController);
-        else
+
+        if (pickBoxTouchDown){
             multiplexer.removeProcessor(camController);
-*/
+            multiplexer.removeProcessor(setupUI);
+            multiplexer.addProcessor(gameUI);
+            stage = gameUI;
+            cameraMan.setOpModeByKey("chaser1");
+            pickBoxTouchDown = false;
+        }
+
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);

@@ -1,7 +1,6 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -208,43 +207,44 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-/* create us a game event object for signalling to pickray system.
+
+
+    public CameraMan(Entity cameraMan, IUserInterface stage, PerspectiveCamera cam) {
+
+        /* create us a game event object for signalling to pickray system.
     modelinstance reference doesn't belong in here but we could
     simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
      */
-    GameEvent gameEvent = new GameEvent() {
-        @Override
-        public void callback(Entity picked, EventType eventType) {
-            //assert (null != picked)
-            switch (eventType) {
-                case RAY_DETECT:
-                    // we have an object in sight so kil it, bump the score, whatever
+        GameEvent gameEvent = new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                //assert (null != picked)
+                switch (eventType) {
+                    case RAY_DETECT:
+                        // we have an object in sight so kil it, bump the score, whatever
 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
-                    if (touchDown)
-                    {
-                        ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        touchDown = false;
-                    }
-                    break;
-                case RAY_PICK:
+                        if (touchDown)
+                        {
+                            ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                            touchDown = false;
+                        }
+                        break;
+                    case RAY_PICK:
 //if (touchDown) { ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED); }
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
-        }
-    };
-
-    public CameraMan(Entity cameraMan, IUserInterface stage, PerspectiveCamera cam, Vector3 pos, Vector3 lookAt) {
+        };
 
         cameraMan.add( new CharacterComponent(this, gameEvent));
 
         this.pickRay = (cameraMan.getComponent(CharacterComponent.class)).lookRay;
 
-
         this.cam = cam;
 
-        Vector3 posV = new Vector3(pos);
-        Vector3 lookAtV = new Vector3(lookAt);
+        Vector3 posV = new Vector3();
+        Vector3 lookAtV = new Vector3();
 // we don't really use the transform matrix for fixed camera
 //        Matrix4 pos = new Matrix4();
 //        Matrix4 look = new Matrix4();
