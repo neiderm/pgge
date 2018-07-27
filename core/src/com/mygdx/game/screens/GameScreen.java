@@ -210,7 +210,7 @@ class GameScreen implements Screen {
 
     private void addEntities() {
 
-        SceneLoader.create(engine);
+        SceneLoader.buildArena(engine);
 
         player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
         engine.addEntity(player);
@@ -284,6 +284,7 @@ class GameScreen implements Screen {
             stage = gameUI;
             cameraMan.setOpModeByKey("chaser1");
             pickBoxTouchDown = false;
+            SceneLoader.createObjects(engine);
         }
 
         // game box viewport

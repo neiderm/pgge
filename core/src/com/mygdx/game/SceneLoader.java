@@ -65,12 +65,7 @@ public class SceneLoader /* implements Disposable */ {
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
     }
 
-    public static void create(Engine engine) {
-        createEntities(engine);
-        createTestObjects(engine);
-    }
-
-    private static void createEntities(Engine engine) {
+    public static void createObjects(Engine engine) {
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
@@ -111,24 +106,6 @@ public class SceneLoader /* implements Disposable */ {
             ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
             tmp.id = 65535;
         }
-
-
-        Entity skybox = BaseEntityBuilder.load(sceneModel, "space");
-        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
-        engine.addEntity(skybox);
-
-
-        if (true) { // this no longer slows down bullet debug drawer considerably!
-            Entity ls = BulletEntityBuilder.load(landscapeModel);
-            engine.addEntity(ls);
-
-            // put the landscape at an angle so stuff falls of it...
-            final float yTrans = -10.0f;
-            ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
-            inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
-
-            ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
-        }
     }
 
     public static Entity createTank(Vector3 trans) {
@@ -153,7 +130,24 @@ public class SceneLoader /* implements Disposable */ {
         return player;
     }
 
-    private static void createTestObjects(Engine engine) {
+    public static void buildArena(Engine engine) {
+
+        Entity skybox = BaseEntityBuilder.load(sceneModel, "space");
+        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
+        engine.addEntity(skybox);
+
+
+        Entity ls = BulletEntityBuilder.load(landscapeModel);
+        engine.addEntity(ls);
+
+        final float yTrans = -10.0f;
+
+        // put the landscape at an angle so stuff falls of it...
+        ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
+        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
+
+        ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
@@ -171,7 +165,6 @@ public class SceneLoader /* implements Disposable */ {
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
 
         float r = 16;
-        final float yTrans = -10.0f;
         Entity e;
 
         e = PrimitivesBuilder.getSphereBuilder("data/crate.png").create(
