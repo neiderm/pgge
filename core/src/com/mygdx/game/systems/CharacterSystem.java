@@ -7,6 +7,8 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.components.CharacterComponent;
 
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
+
 /**
  * Created by mango on 2/10/18.
  */
@@ -64,15 +66,12 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
             comp.character.update(entity, deltaTime, comp.lookRay);
             /*
             all characters to get the object in their line-of-sight view.
-            caneraOpoerator (cameraMan) to also do this.
-            camera LOS would be center of screen by default, but then on touch would defer to
-            coordinate of cam.getPickRay()
              */
             if (null != comp.gameEvent) {
-/*
-                comp.gameEvent.set(RAY_DETECT, comp.lookRay, id++);
-                gameEventSignal.dispatch(comp.gameEvent);
-*/
+///*
+                comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0);
+                comp.gameEventSignal.dispatch(comp.gameEvent);
+//*/
             }
         }
     }

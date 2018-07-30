@@ -54,7 +54,8 @@ public class PickRaySystem extends IteratingSystem {
 
         Entity picked = applyPickRay((Ray) event.object);
 
-        if (null != picked) {
+//        if (null != picked)
+        {
             event.callback(picked, event.type);
         }
     }

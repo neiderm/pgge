@@ -1,6 +1,7 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.characters.IGameCharacter;
 import com.mygdx.game.controllers.ICharacterControlAuto;
@@ -16,6 +17,7 @@ import com.mygdx.game.util.GameEvent;
  */
 public class CharacterComponent implements Component {
 
+    public Signal<GameEvent> gameEventSignal;
     public GameEvent gameEvent;
     public IGameCharacter character;
     public ICharacterControlAuto controller;
@@ -29,10 +31,12 @@ public class CharacterComponent implements Component {
     /*
      every entity instance must have its own gameEvent instance
      */
-    public CharacterComponent(IGameCharacter character, GameEvent gameEvent) {
+    public CharacterComponent(
+            IGameCharacter character, Signal<GameEvent> gameEventSignal, GameEvent gameEvent) {
 
         this(character);
 
         this.gameEvent = gameEvent;
+        this.gameEventSignal = gameEventSignal;
     }
 }

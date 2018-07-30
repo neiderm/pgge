@@ -40,17 +40,13 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 public class PlayerCharacter implements IGameCharacter {
 
     private ICharacterControlManual ctrlr;
-    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-
     private GameEvent gameEvent;
 
 
     public PlayerCharacter(final Entity player, IUserInterface stage,
                            Signal<GameEvent> gameEventSignal, ICharacterControlManual ctrl) {
 
-        this.gameEventSignal = gameEventSignal;
-
-        CharacterComponent comp = new CharacterComponent(this, gameEvent);
+        CharacterComponent comp = new CharacterComponent(this, gameEventSignal, gameEvent);
         player.add(comp);
         player.add(new ControllerComponent(ctrl));
 
@@ -74,15 +70,17 @@ public class PlayerCharacter implements IGameCharacter {
              */
             @Override
             public void callback(Entity picked, EventType eventType) {
-                //assert (null != picked)
+
                 switch (eventType) {
                     case RAY_DETECT:
-                        // we have an object in sight so kil it, bump the score, whatever
-                        RenderSystem.otherThings.add(
-                                GfxUtil.lineTo(
-                                        transform.getTranslation(posV),
-                                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                                        Color.LIME));
+                        if (null != picked) {
+                            // we have an object in sight so kil it, bump the score, whatever
+                            RenderSystem.otherThings.add(
+                                    GfxUtil.lineTo(
+                                            transform.getTranslation(posV),
+                                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                            Color.LIME));
+                        }
                         break;
                     case RAY_PICK:
                     default:
@@ -160,8 +158,8 @@ public class PlayerCharacter implements IGameCharacter {
 
         Ray lookRay = entity.getComponent(CharacterComponent.class).lookRay;
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-
+/*
         gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, lookRay, 0));
+*/
     }
 }
-
