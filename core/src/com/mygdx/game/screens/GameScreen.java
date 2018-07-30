@@ -78,16 +78,15 @@ class GameScreen implements Screen {
     private Label label;
 
 
-    private Signal<GameEvent> gameEventSignal;
+    private Signal<GameEvent> pickRayEventSignal;
     private boolean pickBoxTouchDown = false;
 
 
     public GameScreen() {
 
-        //Create the event signal
-        gameEventSignal = new Signal<GameEvent>();
+        pickRayEventSignal = new Signal<GameEvent>();
 
-        this.engine = new Engine(); // GameWorld.getInstance().engine;
+        engine = new Engine(); // GameWorld.getInstance().engine;
 
         environment = new Environment();
         environment.set(
@@ -136,22 +135,11 @@ class GameScreen implements Screen {
 
         final InputListener pickBoxListener = new InputListener() {
             @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                // empty
-            }
-
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/*empty*/}
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
                 // for now ...
                 pickBoxTouchDown = true;
-/*
-                multiplexer.removeProcessor(camController);
-                multiplexer.removeProcessor(setupUI);
-                multiplexer.addProcessor(gameUI);
-                stage = gameUI;
-                cameraMan.setOpModeByKey("chaser1");
-*/
                 return true;
             }
         };
@@ -188,9 +176,6 @@ class GameScreen implements Screen {
         //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
-
-//        cameraMan = new CameraMan(cam, gameUI, gameEventSignal, new Vector3(0, 7, 10), new Vector3(0, 0, 0));
-
         newRound();
     }
 
@@ -223,8 +208,8 @@ class GameScreen implements Screen {
                 new TankController(player.getComponent(BulletComponent.class).body,
                         player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        PlayerCharacter playerCharacter = new PlayerCharacter(player, gameUI, playerCtrlr);
-
+        PlayerCharacter playerCharacter =
+                new PlayerCharacter(player, gameUI, pickRayEventSignal, playerCtrlr);
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
@@ -237,7 +222,7 @@ class GameScreen implements Screen {
         engine.addEntity(cameraEntity);
 
 // does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, gameUI, cam);
+        cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam);
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
@@ -254,9 +239,9 @@ class GameScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new CharacterSystem(gameEventSignal));
+        engine.addSystem(new CharacterSystem());
         engine.addSystem(new ControllerSystem());
-        engine.addSystem(new PickRaySystem(gameEventSignal));
+        engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
     }
 
@@ -265,7 +250,6 @@ class GameScreen implements Screen {
     public void show() {
         // empty
     }
-
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -388,7 +372,6 @@ class GameScreen implements Screen {
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
-
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
 //        bulletWorld.dispose(); // ???????? ( in BulletSystem:removedFromEngine() ???????

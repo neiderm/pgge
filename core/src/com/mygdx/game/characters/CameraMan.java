@@ -1,6 +1,7 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -18,6 +19,8 @@ import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
+
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 
 /**
@@ -46,6 +49,9 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class CameraMan implements IGameCharacter {
 
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+    private GameEvent gameEvent; // stored in Character comp but it probably doesn't need to be
+    private Ray pickRay;
     public /* private */ PerspectiveCamera cam;
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
@@ -89,9 +95,7 @@ public class CameraMan implements IGameCharacter {
     }
 
     private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
-
     private Matrix4 camPositionMatrix = new Matrix4();
-
     private ICharacterControlAuto pidControl;
 
 
@@ -127,13 +131,8 @@ public class CameraMan implements IGameCharacter {
     private Matrix4 lookAtMatrixRef;
 
     private int nodeIndex = 0;
-
     private boolean isController;
 
-
-    public boolean getIsController() {
-        return isController;
-    }
 
     /*
      */
@@ -159,11 +158,8 @@ public class CameraMan implements IGameCharacter {
     private boolean setOpModeByIndex(int index) {
 
         isController = false;
-
         CameraNode node = cameraNodes.getValueAt(index);
-
         cameraOpMode = CameraOpMode.CHASE;
-
         Vector3 tmp = cam.position.cpy();
 
         if (node.flags == FIXED) {
@@ -187,10 +183,8 @@ public class CameraMan implements IGameCharacter {
 
             // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
             // this would be nicer if we could "un-stiffen" the control gain during this zoom!
-
             positionMatrixRef.setToTranslation(tmp);
         }
-
         return isController;
     }
 
@@ -207,41 +201,35 @@ public class CameraMan implements IGameCharacter {
     }
 
 
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
+                     PerspectiveCamera cam) {
 
-
-    public CameraMan(Entity cameraMan, IUserInterface stage, PerspectiveCamera cam) {
-
-        /* create us a game event object for signalling to pickray system.
-    modelinstance reference doesn't belong in here but we could
+        CharacterComponent comp = new CharacterComponent(this,
+        /* create us a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
     simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
      */
-        GameEvent gameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                //assert (null != picked)
-                switch (eventType) {
-                    case RAY_DETECT:
-                        // we have an object in sight so kil it, bump the score, whatever
+                new GameEvent() {
+                    @Override
+                    public void callback(Entity picked, EventType eventType) {
+                        //assert (null != picked)
+                        switch (eventType) {
+                            case RAY_DETECT:
+                                // we have an object in sight so kil it, bump the score, whatever
 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
-                        if (touchDown)
-                        {
-                            ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                            touchDown = false;
+                                ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                                break;
+                            case RAY_PICK:
+                            default:
+                                break;
                         }
-                        break;
-                    case RAY_PICK:
-//if (touchDown) { ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED); }
-                    default:
-                        break;
-                }
-            }
-        };
+                    }
+                });
 
-        cameraMan.add( new CharacterComponent(this, gameEvent));
-
-        this.pickRay = (cameraMan.getComponent(CharacterComponent.class)).lookRay;
-
+        cameraMan.add(comp);
+        this.gameEvent = comp.gameEvent;
+        this.pickRay = comp.lookRay;
         this.cam = cam;
+        this.gameEventSignal = gameEventSignal;
 
         Vector3 posV = new Vector3();
         Vector3 lookAtV = new Vector3();
@@ -283,40 +271,25 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-
-
-    private Ray pickRay;
-    private boolean touchDown = false;
-
     /*
  "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
   */
     public final InputListener buttonGSListener = new InputListener() {
 
         private int id = 0; // tmp : test that I can create another gameEvent.set from this module
-
         @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-// empty
-        }
-
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
-            if (!getIsController()) {
-
-                touchDown = true;
-
+            if (!isController) {
                 // different things have different means of setting their lookray
-                
                 // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-
                 Ray rayTmp = cam.getPickRay(nX, nY);
                 pickRay.set(rayTmp.origin, rayTmp.direction);
-
-//                gameEventSignal.dispatch(gameEvent.set(/* RAY_PICK*/ RAY_DETECT, pickRay, id++));
+                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, pickRay, id++));
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;

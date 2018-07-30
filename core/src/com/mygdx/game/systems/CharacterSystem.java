@@ -4,12 +4,8 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.util.GameEvent;
-
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 /**
  * Created by mango on 2/10/18.
@@ -17,17 +13,9 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class CharacterSystem extends IteratingSystem implements EntityListener {
 
-    private int id;
-    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-
-
-    public CharacterSystem(Signal<GameEvent> gameEventSignal) {
-
+    public CharacterSystem() {
         super(Family.all(CharacterComponent.class).get());
-
-        this.gameEventSignal = gameEventSignal;
     }
-
 
     @Override
     public void addedToEngine(Engine engine) {
@@ -82,13 +70,9 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
              */
             if (null != comp.gameEvent) {
 /*
-                Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
-                transform.getTranslation(position);
-                transform.getRotation(rotation);
-                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-*/
                 comp.gameEvent.set(RAY_DETECT, comp.lookRay, id++);
                 gameEventSignal.dispatch(comp.gameEvent);
+*/
             }
         }
     }

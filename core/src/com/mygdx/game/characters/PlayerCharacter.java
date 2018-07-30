@@ -1,6 +1,7 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -24,6 +26,7 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 /**
  * Created by utf1247 on 5/17/2018.
@@ -37,20 +40,30 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class PlayerCharacter implements IGameCharacter {
 
     private ICharacterControlManual ctrlr;
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+
+    private GameEvent gameEvent;
 
 
-    public PlayerCharacter(final Entity player, IUserInterface stage, ICharacterControlManual ctrl) {
+    public PlayerCharacter(final Entity player, IUserInterface stage,
+                           Signal<GameEvent> gameEventSignal, ICharacterControlManual ctrl) {
 
+        this.gameEventSignal = gameEventSignal;
 
-        player.add(
-                new CharacterComponent(this, new GameEvent() {
+        CharacterComponent comp = new CharacterComponent(this, gameEvent);
+        player.add(comp);
+        player.add(new ControllerComponent(ctrl));
 
-                    private Vector3 tmpV = new Vector3();
-                    private Vector3 posV = new Vector3();
-                    private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
-                    /*
-                    private Entity myEntityReference = e;
-                     */
+        // game Event stored in character comp but it probably doesn't need to be
+        comp.gameEvent = this.gameEvent = new GameEvent() {
+
+            private Vector3 tmpV = new Vector3();
+            private Vector3 posV = new Vector3();
+            private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
+
+            /*
+            private Entity myEntityReference = e;
+             */
             /*
             we have no way to invoke a callback to the picked component.
             Pickable component required to implment some kind of interface to provide a
@@ -59,26 +72,24 @@ public class PlayerCharacter implements IGameCharacter {
               if (null != pickedComp.pickedInterface)
                  pickInterface.picked( myEntityReference );
              */
-                    @Override
-                    public void callback(Entity picked, EventType eventType) {
-                        //assert (null != picked)
-                        switch (eventType) {
-                            case RAY_DETECT:
-                                // we have an object in sight so kil it, bump the score, whatever
-                                RenderSystem.otherThings.add(
-                                        GfxUtil.lineTo(
-                                                transform.getTranslation(posV),
-                                                picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                                                Color.LIME));
-                                break;
-                            case RAY_PICK:
-                            default:
-                                break;
-                        }
-                    }
-                }));
-        player.add(new ControllerComponent(ctrl));
-
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                //assert (null != picked)
+                switch (eventType) {
+                    case RAY_DETECT:
+                        // we have an object in sight so kil it, bump the score, whatever
+                        RenderSystem.otherThings.add(
+                                GfxUtil.lineTo(
+                                        transform.getTranslation(posV),
+                                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                        Color.LIME));
+                        break;
+                    case RAY_PICK:
+                    default:
+                        break;
+                }
+            }
+        };
 
 
         this.ctrlr = ctrl;
@@ -146,7 +157,11 @@ public class PlayerCharacter implements IGameCharacter {
         Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
         transform.getRotation(rotation);
-        entity.getComponent(CharacterComponent.class).lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+
+        Ray lookRay = entity.getComponent(CharacterComponent.class).lookRay;
+        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+
+        gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, lookRay, 0));
     }
 }
 
