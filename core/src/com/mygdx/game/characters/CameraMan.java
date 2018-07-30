@@ -1,5 +1,6 @@
 package com.mygdx.game.characters;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
@@ -200,8 +201,7 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam) {
+    public CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal,
         /* create us a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
@@ -244,6 +244,12 @@ public class CameraMan implements IGameCharacter {
 //        setCameraNode("fixed", pos, look, FIXED);
         setCameraNode("fixed", null, null, FIXED);
         setCameraLocation(posV, lookAtV);
+    }
+
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
+                     PerspectiveCamera cam) {
+
+        this(cameraMan, gameEventSignal, cam);
 
         Pixmap button;
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -251,6 +257,17 @@ public class CameraMan implements IGameCharacter {
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+    }
+
+    public CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
+                     GameEvent event) {
+
+        CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
+        cameraMan.add(comp);
+        this.pickRay = comp.lookRay;
+        this.cam = cam;
+        setCameraNode("fixed", null, null, FIXED);
+        setCameraLocation(new Vector3(), new Vector3());
     }
 
 
@@ -280,6 +297,7 @@ public class CameraMan implements IGameCharacter {
     public final InputListener buttonGSListener = new InputListener() {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
+
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)

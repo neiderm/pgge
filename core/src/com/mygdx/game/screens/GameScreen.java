@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -28,6 +29,7 @@ import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
@@ -113,11 +115,8 @@ class GameScreen implements Screen {
 
                 return true;
             }
-
             @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                // empty
-            }
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
         };
 
 
@@ -133,26 +132,6 @@ class GameScreen implements Screen {
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
 
 
-        final InputListener pickBoxListener = new InputListener() {
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/*empty*/}
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // for now ...
-                pickBoxTouchDown = true;
-                return true;
-            }
-        };
-
-        stage = setupUI = new GameUI();
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, 150, 150);
-        setupUI.addButton(pickBoxListener, button,
-                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-
-
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
@@ -161,10 +140,6 @@ class GameScreen implements Screen {
                 Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(0.5f);
-
-        // ok so you can add a label to the stage
-        label = new Label("Loading ...", new Label.LabelStyle(font, Color.WHITE));
-        stage.addActor(label);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -177,16 +152,48 @@ class GameScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         newRound();
+
+        // ok so you can add a label to the stage
+        label = new Label("Loading ...", new Label.LabelStyle(font, Color.WHITE));
+        stage.addActor(label);
     }
 
     void newRound() {
         stage = setupUI;
+        addSystems();
+        addEntities();
+
+        makeCameraMan("fixed");
+
+        final InputListener pickBoxListener = new InputListener() {
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/*empty*/}
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // for now ...
+                if (null != pickedPlayer){
+                    float asdf = 0;// idfk
+                }
+
+                pickBoxTouchDown = true;
+                return true;
+            }
+        };
+
+        stage = setupUI = new GameUI();
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillRectangle(0, 0, 150, 150);
+        setupUI.addButton(pickBoxListener, button,
+                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+
+
         multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
-        addSystems();
-        addEntities();
     }
 
 
@@ -199,9 +206,11 @@ class GameScreen implements Screen {
 
         player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
         engine.addEntity(player);
-//        Entity
+        player.add(new PickRayComponent());
+
         player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
         engine.addEntity(player);
+        player.add(new PickRayComponent());
 
         // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
         ICharacterControlManual playerCtrlr =
@@ -215,22 +224,59 @@ class GameScreen implements Screen {
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
+    }
 
+    /*
+     * hack for setupUI
+     */
+private Entity pickedPlayer;
 
-// for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
+    private void makeCameraMan(String mode) {
+
+        // for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
         Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
         engine.addEntity(cameraEntity);
 
 // does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam);
+        cameraMan = new CameraMan(cameraEntity, pickRayEventSignal, cam, new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_DETECT:
+                        if (null != picked) {
+Entity pickedPlayer = picked;
+                        }
+                        break;
+                    case RAY_PICK:
+                    default:
+                        break;
+                }
+            }
+        });
+
+        cameraMan.setCameraNode("chaser1", null, new Matrix4() /* doesn't matter */);
+        cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
+                new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
+        cameraMan.setOpModeByKey(mode);
+    }
+
+    private void makeCameraMan(String mode, IUserInterface ui) {
+
+        // for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
+        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
+        engine.addEntity(cameraEntity);
+
+// does it need to be disposed?
+        cameraMan = new CameraMan(cameraEntity, ui, pickRayEventSignal, cam);
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
                 player.getComponent(ModelComponent.class).modelInst.transform);
         cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
                 new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
-        cameraMan.setOpModeByKey("fixed");
+        cameraMan.setOpModeByKey(mode);
     }
+
 
     private void addSystems() {
 
@@ -261,12 +307,12 @@ class GameScreen implements Screen {
 
         String s;
 
-        if (pickBoxTouchDown){
+        if (pickBoxTouchDown) {
             multiplexer.removeProcessor(camController);
             multiplexer.removeProcessor(setupUI);
             multiplexer.addProcessor(gameUI);
             stage = gameUI;
-            cameraMan.setOpModeByKey("chaser1");
+            makeCameraMan("chaser1", stage);
             pickBoxTouchDown = false;
             SceneLoader.createObjects(engine);
         }
