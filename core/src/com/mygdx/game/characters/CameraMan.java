@@ -1,6 +1,5 @@
 package com.mygdx.game.characters;
 
-import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
@@ -50,9 +49,10 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class CameraMan implements IGameCharacter {
 
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
+    private GameEvent gameEvent; // stored in Character comp but does it need to be?
     private Ray pickRay;
-    private Entity pickedEntity;
-    public /* private */ PerspectiveCamera cam;
+    private PerspectiveCamera cam;
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
     public enum CameraOpMode {
@@ -94,7 +94,8 @@ public class CameraMan implements IGameCharacter {
         }
     }
 
-    private ArrayMap<String, CameraNode> cameraNodes = new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
+    private ArrayMap<String, CameraNode> cameraNodes =
+            new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
     private Matrix4 camPositionMatrix = new Matrix4();
     private ICharacterControlAuto pidControl;
 
@@ -210,18 +211,11 @@ public class CameraMan implements IGameCharacter {
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {
-
-                        pickedEntity = picked;
-
                         switch (eventType) {
                             case RAY_DETECT:
-                                if (null != picked) {
-                                    // we have an object in sight so kil it, bump the score, whatever
-//Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", 0, 0, id));
-/*
-                                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-*/
-                                }
+                                if (null != picked)
+                                    ModelInstanceEx.setMaterialColor(
+                                            picked.getComponent(ModelComponent.class).modelInst, Color.RED);
                                 break;
                             case RAY_PICK:
                             default:
@@ -231,6 +225,8 @@ public class CameraMan implements IGameCharacter {
                 });
 
         cameraMan.add(comp);
+        this.gameEvent = comp.gameEvent;
+        this.gameEventSignal = gameEventSignal;
         this.pickRay = comp.lookRay;
         this.cam = cam;
 
@@ -259,15 +255,24 @@ public class CameraMan implements IGameCharacter {
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
     }
 
-    public CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
                      GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
         cameraMan.add(comp);
+        this.gameEvent = comp.gameEvent;
+        this.gameEventSignal = gameEventSignal;
         this.pickRay = comp.lookRay;
         this.cam = cam;
         setCameraNode("fixed", null, null, FIXED);
         setCameraLocation(new Vector3(), new Vector3());
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillRectangle(0, 0, 150, 150);
+        stage.addButton(buttonGSListener, button,
+                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
     }
 
 
@@ -290,30 +295,29 @@ public class CameraMan implements IGameCharacter {
         }
     }
 
-
     /*
  "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
   */
     public final InputListener buttonGSListener = new InputListener() {
+
+        private void setPickRay(float x, float y){
+            // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
+            float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+            float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+            Ray rayTmp = cam.getPickRay(nX, nY);
+            pickRay.set(rayTmp.origin, rayTmp.direction);
+        }
+
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
-            if (!isController) {
-                // different things have different means of setting their lookray
-                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-                Ray rayTmp = cam.getPickRay(nX, nY);
-                pickRay.set(rayTmp.origin, rayTmp.direction);
-
-                if (pickedEntity != null)
-                    ModelInstanceEx.setMaterialColor(pickedEntity.getComponent(ModelComponent.class).modelInst, Color.RED);
-/*
-                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, pickRay, id++));
-*/
+//            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
+            {
+                setPickRay(x, y);
+                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, pickRay, 0));
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;

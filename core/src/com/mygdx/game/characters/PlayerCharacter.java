@@ -40,12 +40,14 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 public class PlayerCharacter implements IGameCharacter {
 
     private ICharacterControlManual ctrlr;
+    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent;
 
 
     public PlayerCharacter(final Entity player, IUserInterface stage,
                            Signal<GameEvent> gameEventSignal, ICharacterControlManual ctrl) {
 
+        this.gameEventSignal = gameEventSignal; // local reference to item stored in component
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, gameEvent);
         player.add(comp);
         player.add(new ControllerComponent(ctrl));
@@ -57,9 +59,6 @@ public class PlayerCharacter implements IGameCharacter {
             private Vector3 posV = new Vector3();
             private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
 
-            /*
-            private Entity myEntityReference = e;
-             */
             /*
             we have no way to invoke a callback to the picked component.
             Pickable component required to implment some kind of interface to provide a
@@ -158,8 +157,6 @@ public class PlayerCharacter implements IGameCharacter {
 
         Ray lookRay = entity.getComponent(CharacterComponent.class).lookRay;
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-/*
         gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, lookRay, 0));
-*/
     }
 }

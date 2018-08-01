@@ -163,32 +163,9 @@ class GameScreen implements Screen {
         addSystems();
         addEntities();
 
-        makeCameraMan("fixed");
-
-        final InputListener pickBoxListener = new InputListener() {
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/*empty*/}
-
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // for now ...
-                if (null != pickedPlayer){
-                    float asdf = 0;// idfk
-                }
-
-                pickBoxTouchDown = true;
-                return true;
-            }
-        };
-
         stage = setupUI = new GameUI();
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, 150, 150);
-        setupUI.addButton(pickBoxListener, button,
-                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-
+ // .... setupUI is passed to CameraMan constructor to add button and handler
+        makeCameraMan("fixed"); // now we can make camera Man (depends on setupUI)
 
         multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(stage);
@@ -197,39 +174,26 @@ class GameScreen implements Screen {
     }
 
 
-    private Entity player;//tmp
-
-
     private void addEntities() {
 
         SceneLoader.buildArena(engine);
-
+        Entity player;
         player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
         engine.addEntity(player);
         player.add(new PickRayComponent());
+        pickedPlayer = player; // tmp
 
         player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
         engine.addEntity(player);
-        player.add(new PickRayComponent());
+//        player.add(new PickRayComponent());
 
-        // a player is going to control SOMETHING. Here;s a default (we need to make it possible for AIs to operate the same character controller):
-        ICharacterControlManual playerCtrlr =
-                new TankController(player.getComponent(BulletComponent.class).body,
-                        player.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
-        PlayerCharacter playerCharacter =
-                new PlayerCharacter(player, gameUI, pickRayEventSignal, playerCtrlr);
-
-        /*
-         player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
-          */
-        SceneLoader.createChaser1(engine, player.getComponent(ModelComponent.class).modelInst.transform);
+//        pickedPlayer = player; // tmp
     }
 
     /*
      * hack for setupUI
      */
-private Entity pickedPlayer;
+    private Entity pickedPlayer;
 
     private void makeCameraMan(String mode) {
 
@@ -238,21 +202,24 @@ private Entity pickedPlayer;
         engine.addEntity(cameraEntity);
 
 // does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, pickRayEventSignal, cam, new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_DETECT:
-                        if (null != picked) {
-Entity pickedPlayer = picked;
+        cameraMan = new CameraMan(cameraEntity, setupUI, pickRayEventSignal, cam,
+                new GameEvent() {
+                    @Override
+                    public void callback(Entity picked, EventType eventType) {
+                        switch (eventType) {
+                            case RAY_DETECT:
+                                if (null != picked) {
+                                    pickBoxTouchDown = true;
+//tmp                                    pickedPlayer = picked;
+                                    picked.remove(PickRayComponent.class);
+                                }
+                                break;
+                            case RAY_PICK:
+                            default:
+                                break;
                         }
-                        break;
-                    case RAY_PICK:
-                    default:
-                        break;
-                }
-            }
-        });
+                    }
+                });
 
         cameraMan.setCameraNode("chaser1", null, new Matrix4() /* doesn't matter */);
         cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
@@ -262,7 +229,7 @@ Entity pickedPlayer = picked;
 
     private void makeCameraMan(String mode, IUserInterface ui) {
 
-        // for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
+        // for now cameraMan must have a model comp in order to have position (TODO: use status Component, which contains a position reference)
         Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
         engine.addEntity(cameraEntity);
 
@@ -271,7 +238,7 @@ Entity pickedPlayer = picked;
 
         cameraMan.setCameraNode("chaser1",
                 null /* playerChaser.getComponent(ModelComponent.class).modelInst.transform */,
-                player.getComponent(ModelComponent.class).modelInst.transform);
+                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
         cameraMan.setCameraLocation( // hack: position of fixed camera at 'home" location
                 new Vector3(1.0f, 13.5f, 02f), new Vector3(1.0f, 10.5f, -5.0f));
         cameraMan.setOpModeByKey(mode);
@@ -315,6 +282,18 @@ Entity pickedPlayer = picked;
             makeCameraMan("chaser1", stage);
             pickBoxTouchDown = false;
             SceneLoader.createObjects(engine);
+
+// plug in the picked player
+                ICharacterControlManual playerCtrlr =
+                        new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
+                                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+                PlayerCharacter playerCharacter =
+                        new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
+        /*
+         player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
+          */
+                SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
         }
 
         // game box viewport
@@ -380,8 +359,8 @@ Entity pickedPlayer = picked;
         stage.draw();
 
         // verify instance variable in current gameScreen instance (would be null until done Loading)
-        if (null != player) { //tmp
-            StatusComponent sc = player.getComponent(StatusComponent.class);
+        if (null != pickedPlayer) {
+            StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
 
             if (!sc.isActive) {
 //                GameWorld.getInstance().showScreen(new MainMenuScreen());

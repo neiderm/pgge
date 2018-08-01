@@ -7,8 +7,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.components.CharacterComponent;
 
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
-
 /**
  * Created by mango on 2/10/18.
  */
@@ -34,24 +32,15 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
     }
 
-
     @Override
     public void entityAdded(Entity entity) {
-
-//        entity.getComponent(CharacterComponent.class).gameEvent = createPickEvent(entity);
+        //empty
     }
 
     @Override
     public void entityRemoved(Entity entity) {
         //empty
     }
-
-
-/*
-    private Vector3 position = new Vector3();
-    private Quaternion rotation = new Quaternion();
-    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-*/
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
@@ -62,17 +51,7 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
             comp.controller.update(deltaTime);
 
         if (null != comp.character) {
-
             comp.character.update(entity, deltaTime, comp.lookRay);
-            /*
-            all characters to get the object in their line-of-sight view.
-             */
-            if (null != comp.gameEvent) {
-///*
-                comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0);
-                comp.gameEventSignal.dispatch(comp.gameEvent);
-//*/
-            }
         }
     }
 }
