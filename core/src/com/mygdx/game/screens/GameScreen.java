@@ -177,17 +177,15 @@ class GameScreen implements Screen {
     private void addEntities() {
 
         SceneLoader.buildArena(engine);
+
         Entity player;
         player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
         engine.addEntity(player);
         player.add(new PickRayComponent());
-        pickedPlayer = player; // tmp
 
         player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
         engine.addEntity(player);
-//        player.add(new PickRayComponent());
-
-//        pickedPlayer = player; // tmp
+        player.add(new PickRayComponent());
     }
 
     /*
@@ -210,7 +208,7 @@ class GameScreen implements Screen {
                             case RAY_DETECT:
                                 if (null != picked) {
                                     pickBoxTouchDown = true;
-//tmp                                    pickedPlayer = picked;
+                                    pickedPlayer = picked;
                                     picked.remove(PickRayComponent.class);
                                 }
                                 break;
@@ -367,6 +365,7 @@ class GameScreen implements Screen {
                 engine.removeSystem(bulletSystem); // make the system dispose its stuff
                 engine.removeSystem(renderSystem); // make the system dispose its stuff
                 engine.removeAllEntities(); // allow listeners to be called (for disposal)
+                pickedPlayer = null; // removeallentities does not nullify the entity itself?
                 newRound();
             }
         }
