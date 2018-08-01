@@ -159,9 +159,11 @@ class GameScreen implements Screen {
     }
 
     void newRound() {
-        stage = setupUI;
+
         addSystems();
-        addEntities();
+        SceneLoader.buildArena(engine);
+        SceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
+        SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new GameUI();
  // .... setupUI is passed to CameraMan constructor to add button and handler
@@ -173,20 +175,6 @@ class GameScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-
-    private void addEntities() {
-
-        SceneLoader.buildArena(engine);
-
-        Entity player;
-        player = SceneLoader.createShip(new Vector3(-1, 13f, -5f));
-        engine.addEntity(player);
-        player.add(new PickRayComponent());
-
-        player = SceneLoader.createTank(new Vector3(1, 11f, -5f));
-        engine.addEntity(player);
-        player.add(new PickRayComponent());
-    }
 
     /*
      * hack for setupUI

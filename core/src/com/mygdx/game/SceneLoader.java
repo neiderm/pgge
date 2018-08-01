@@ -108,7 +108,7 @@ public class SceneLoader /* implements Disposable */ {
         }
     }
 
-    public static Entity createTank(Vector3 trans) {
+    public static Entity createTank(Engine engine, Vector3 trans) {
 
         Entity player;
         btCollisionShape boxshape; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
@@ -117,16 +117,18 @@ public class SceneLoader /* implements Disposable */ {
             final Mesh mesh = shipModel.meshes.get(0);
             boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
         player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
+        addPickObject(engine, player);
         return player;
     }
 
-    public static Entity createShip(Vector3 trans) {
+    public static Entity createShip(Engine engine, Vector3 trans) {
 
         Entity player;
         btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
         player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
+        addPickObject(engine, player);
         return player;
     }
 
@@ -238,7 +240,6 @@ public class SceneLoader /* implements Disposable */ {
 
         e.add(new PickRayComponent());
         engine.addEntity(e);
-
         return e; // for method call chaining
     }
 }
