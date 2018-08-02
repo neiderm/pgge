@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 
 /**
  * Created by mango on 4/1/18.
@@ -34,7 +33,6 @@ public class BaseEntityBuilder extends EntityBuilder  {
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
         Entity e = new Entity();
-        e.add(new StatusComponent());
 
         if (null != rootNodeId) {
             ModelInstance instance = MeshHelper.getModelInstance(model, rootNodeId);

@@ -43,14 +43,13 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
 
         final Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
 
-        final StatusComponent sc = e.getComponent(StatusComponent.class);
+        final StatusComponent sc =  new StatusComponent();
+        e.add(sc);
         sc.statusUpdater = new BulletEntityStatusUpdate() {
             private Vector3 v = new Vector3();
-
             @Override
             public void update() {
                 sc.position = transform.getTranslation(v);
-
                 if (sc.position.dst2(sc.origin) > sc.boundsDst2)
                             sc.isActive = false;
             }
@@ -71,7 +70,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
                 shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
             }
         }else{
-            nodeID = null; // does it?
+//            nodeID = null; // does it?
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));
@@ -86,7 +85,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
     */
     public static Entity load(Model model, String nodeID, float mass) {
 
-        Entity e = loadWithStatusComp(model, nodeID, null, null);
+        Entity e = load(model, nodeID, null, null);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         BoundingBox boundingBox = new BoundingBox();

@@ -3,7 +3,6 @@ package com.mygdx.game.systems;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.StatusComponent;
 
 /**
@@ -13,7 +12,7 @@ import com.mygdx.game.components.StatusComponent;
 public class StatusSystem extends IteratingSystem {
 
     public StatusSystem() {
-        super(Family.all(ControllerComponent.class).get());
+        super(Family.all(StatusComponent.class).get());
     }
 
     @Override
@@ -21,8 +20,11 @@ public class StatusSystem extends IteratingSystem {
 
         StatusComponent comp = entity.getComponent(StatusComponent.class);
 
-        if (null != comp.statusUpdater){
-            comp.statusUpdater.update();
+//        if (null != comp) 
+        {
+            if (null != comp.statusUpdater) {
+                comp.statusUpdater.update();
+            }
         }
     }
 }
