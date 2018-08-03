@@ -82,7 +82,7 @@ class GameScreen implements Screen {
 
 
     private Signal<GameEvent> pickRayEventSignal;
-    private boolean pickBoxTouchDown = false;
+    private boolean isPicked = false;
     private boolean roundOver = false;
 
 
@@ -117,6 +117,7 @@ class GameScreen implements Screen {
 
                 return true;
             }
+
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
         };
@@ -197,7 +198,7 @@ class GameScreen implements Screen {
                         switch (eventType) {
                             case RAY_DETECT:
                                 if (null != picked) {
-                                    pickBoxTouchDown = true;
+                                    isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                                     pickedPlayer = picked;
                                     picked.remove(PickRayComponent.class);
                                 }
@@ -252,6 +253,46 @@ class GameScreen implements Screen {
         // empty
     }
 
+    void onPlayerPicked() {
+        multiplexer.removeProcessor(camController);
+        multiplexer.removeProcessor(setupUI);
+        multiplexer.addProcessor(gameUI);
+        stage = gameUI;
+        makeCameraMan("chaser1", stage);
+        isPicked = false;
+        SceneLoader.createObjects(engine);
+
+// plug in the picked player
+        final StatusComponent sc = new StatusComponent();
+        pickedPlayer.add(sc);
+        sc.statusUpdater = new BulletEntityStatusUpdate() {
+            private Vector3 v = new Vector3();
+
+            @Override
+            public boolean update() {
+                final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                sc.position = transform.getTranslation(v);
+                if (sc.position.dst2(sc.origin) > sc.boundsDst2) {
+                    roundOver = true; // respawn() ... can't do it in this context??
+                    return false; // status becomes not active
+                }
+//                    roundOver = true;
+                return true;
+            }
+        };
+
+        ICharacterControlManual playerCtrlr =
+                new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
+                        pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+        PlayerCharacter playerCharacter =
+                new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
+        /*
+         player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
+          */
+        SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+    }
+
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -262,44 +303,8 @@ class GameScreen implements Screen {
 
         String s;
 
-        if (pickBoxTouchDown) {
-            multiplexer.removeProcessor(camController);
-            multiplexer.removeProcessor(setupUI);
-            multiplexer.addProcessor(gameUI);
-            stage = gameUI;
-            makeCameraMan("chaser1", stage);
-            pickBoxTouchDown = false;
-            SceneLoader.createObjects(engine);
-
-// plug in the picked player
-            final StatusComponent sc = new StatusComponent();
-            pickedPlayer.add(sc);
-            sc.statusUpdater = new BulletEntityStatusUpdate() {
-                private Vector3 v = new Vector3();
-                @Override
-                public boolean update() {
-                    final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-                    sc.position = transform.getTranslation(v);
-                    if (sc.position.dst2(sc.origin) > sc.boundsDst2) {
-                        roundOver = true; // comp.isActive = false;
-                        return false; // status becomes not active
-                    }
-//                    roundOver = true;
-                    return true;
-                }
-            };
-
-
-            ICharacterControlManual playerCtrlr =
-                    new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
-                            pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
-            PlayerCharacter playerCharacter =
-                    new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
-        /*
-         player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
-          */
-            SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+        if (isPicked) {
+            onPlayerPicked();
         }
 
         // game box viewport
