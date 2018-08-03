@@ -39,6 +39,7 @@ import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
+import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -82,6 +83,7 @@ class GameScreen implements Screen {
 
     private Signal<GameEvent> pickRayEventSignal;
     private boolean pickBoxTouchDown = false;
+    private boolean roundOver = false;
 
 
     public GameScreen() {
@@ -166,7 +168,7 @@ class GameScreen implements Screen {
         SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new GameUI();
- // .... setupUI is passed to CameraMan constructor to add button and handler
+        // .... setupUI is passed to CameraMan constructor to add button and handler
         makeCameraMan("fixed"); // now we can make camera Man (depends on setupUI)
 
         multiplexer = new InputMultiplexer();
@@ -270,16 +272,34 @@ class GameScreen implements Screen {
             SceneLoader.createObjects(engine);
 
 // plug in the picked player
-                ICharacterControlManual playerCtrlr =
-                        new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
-                                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+            final StatusComponent sc = new StatusComponent();
+            pickedPlayer.add(sc);
+            sc.statusUpdater = new BulletEntityStatusUpdate() {
+                private Vector3 v = new Vector3();
+                @Override
+                public boolean update() {
+                    final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                    sc.position = transform.getTranslation(v);
+                    if (sc.position.dst2(sc.origin) > sc.boundsDst2) {
+                        roundOver = true; // comp.isActive = false;
+                        return false; // status becomes not active
+                    }
+//                    roundOver = true;
+                    return true;
+                }
+            };
 
-                PlayerCharacter playerCharacter =
-                        new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
+
+            ICharacterControlManual playerCtrlr =
+                    new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
+                            pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+            PlayerCharacter playerCharacter =
+                    new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
-                SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+            SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
         }
 
         // game box viewport
@@ -344,19 +364,19 @@ class GameScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-        // verify instance variable in current gameScreen instance (would be null until done Loading)
-        if (null != pickedPlayer) {
-            StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
-
-            if (!sc.isActive) {
-//                GameWorld.getInstance().showScreen(new MainMenuScreen());
-                engine.removeSystem(bulletSystem); // make the system dispose its stuff
-                engine.removeSystem(renderSystem); // make the system dispose its stuff
-                engine.removeAllEntities(); // allow listeners to be called (for disposal)
-                pickedPlayer = null; // removeallentities does not nullify the entity itself?
-                newRound();
-            }
+        if (roundOver) {
+            roundOver = false;
+            respawn();
         }
+    }
+
+    void respawn() {
+        //                GameWorld.getInstance().showScreen(new MainMenuScreen());
+        engine.removeSystem(bulletSystem); // make the system dispose its stuff
+        engine.removeSystem(renderSystem); // make the system dispose its stuff
+        engine.removeAllEntities(); // allow listeners to be called (for disposal)
+        pickedPlayer = null; // removeallentities does not nullify the entity itself?
+        newRound();
     }
 
     @Override

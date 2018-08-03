@@ -3,7 +3,6 @@ package com.mygdx.game.util;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -13,7 +12,6 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 
 /**
  * Created by mango on 4/1/18.
@@ -26,10 +24,10 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
     BulletEntityBuilder() {
     }
 
-    public BulletEntityBuilder(Model model, Vector3 size, btCollisionShape shape) {
+/*    public BulletEntityBuilder(Model model, Vector3 size, btCollisionShape shape) {
         super(model, size);
         this.shape = shape;
-    }
+    }*/
 
 
     public Entity create(float mass, Vector3 translation) {
@@ -37,32 +35,10 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
     }
 
 
-    private static Entity loadWithStatusComp(Model model, String rootNodeId, Vector3 size, Vector3 translation) {
-
-        Entity e = load(model, rootNodeId, size, translation);
-
-        final Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-
-        final StatusComponent sc =  new StatusComponent();
-        e.add(sc);
-        sc.statusUpdater = new BulletEntityStatusUpdate() {
-            private Vector3 v = new Vector3();
-            @Override
-            public void update() {
-                sc.position = transform.getTranslation(v);
-                if (sc.position.dst2(sc.origin) > sc.boundsDst2)
-                            sc.isActive = false;
-            }
-        };
-
-        return e;
-    }
-
-
     public static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
-        Entity e = loadWithStatusComp(model, nodeID, size, translation);
+        Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
         if (null != nodeID) {
@@ -99,7 +75,6 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
 
         return e;
     }
-
 
     public static Entity load(Model model) {
         btCollisionShape shape = null;
