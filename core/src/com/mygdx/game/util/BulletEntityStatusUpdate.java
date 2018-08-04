@@ -7,7 +7,6 @@ package com.mygdx.game.util;
 public class BulletEntityStatusUpdate implements IStatusUpdater {
 
     @Override
-    public boolean update() {
-        return false;
+    public void update() { // empty
     }
 }

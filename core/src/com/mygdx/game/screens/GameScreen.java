@@ -43,6 +43,8 @@ import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.PrimitivesBuilder;
 
+import java.util.Locale;
+
 /**
  * Created by mango on 12/18/17.
  */
@@ -161,7 +163,7 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-    void newRound() {
+    private void newRound() {
 
         addSystems();
         SceneLoader.buildArena(engine);
@@ -253,7 +255,7 @@ class GameScreen implements Screen {
         // empty
     }
 
-    void onPlayerPicked() {
+    private void onPlayerPicked() {
         multiplexer.removeProcessor(camController);
         multiplexer.removeProcessor(setupUI);
         multiplexer.addProcessor(gameUI);
@@ -265,19 +267,16 @@ class GameScreen implements Screen {
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
         pickedPlayer.add(sc);
+        sc.transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+
         sc.statusUpdater = new BulletEntityStatusUpdate() {
             private Vector3 v = new Vector3();
-
             @Override
-            public boolean update() {
-                final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-                sc.position = transform.getTranslation(v);
-                if (sc.position.dst2(sc.origin) > sc.boundsDst2) {
+            public void update() {
+                v = sc.transform.getTranslation(v);
+                if (v.dst2(sc.origin) > sc.boundsDst2) {
                     roundOver = true; // respawn() ... can't do it in this context??
-                    return false; // status becomes not active
                 }
-//                    roundOver = true;
-                return true;
             }
         };
 
@@ -322,13 +321,13 @@ class GameScreen implements Screen {
 
         //if (null != playerBody)
         {
-            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
 
-            s = String.format("%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
         }
 
@@ -375,7 +374,7 @@ class GameScreen implements Screen {
         }
     }
 
-    void respawn() {
+    private void respawn() {
         //                GameWorld.getInstance().showScreen(new MainMenuScreen());
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff

@@ -6,5 +6,5 @@ package com.mygdx.game.util;
 
 public interface IStatusUpdater {
 
-    public boolean update();
+    void update();
 }

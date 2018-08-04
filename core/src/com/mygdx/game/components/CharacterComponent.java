@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.characters.IGameCharacter;
-import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.util.GameEvent;
 
 /**
@@ -17,14 +16,13 @@ import com.mygdx.game.util.GameEvent;
  */
 public class CharacterComponent implements Component {
 
-    public Signal<GameEvent> gameEventSignal;
+    private Signal<GameEvent> gameEventSignal;
     public GameEvent gameEvent;
     public IGameCharacter character;
-    public ICharacterControlAuto controller;
     public Ray lookRay = new Ray();
 
 
-    public CharacterComponent(IGameCharacter character) {
+    private CharacterComponent(IGameCharacter character) {
         this.character = character;
     }
 

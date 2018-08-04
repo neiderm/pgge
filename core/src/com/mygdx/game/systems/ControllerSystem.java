@@ -21,7 +21,7 @@ public class ControllerSystem extends IteratingSystem {
 
         ICharacterControlAuto ctrl = entity.getComponent(ControllerComponent.class).controller;
 
-        if (null != ctrl)
+//        if (null != ctrl)
             ctrl.update(deltaTime);
     }
 

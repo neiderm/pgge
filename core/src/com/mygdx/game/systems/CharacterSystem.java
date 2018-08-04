@@ -47,11 +47,7 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
 
         CharacterComponent comp = entity.getComponent(CharacterComponent.class);
 
-        if (null != comp.controller)
-            comp.controller.update(deltaTime);
-
-        if (null != comp.character) {
+//        if (null != comp.character)
             comp.character.update(entity, deltaTime, comp.lookRay);
-        }
     }
 }

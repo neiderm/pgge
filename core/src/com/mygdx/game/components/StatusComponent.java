@@ -1,6 +1,7 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.util.IStatusUpdater;
 
@@ -11,8 +12,7 @@ import com.mygdx.game.util.IStatusUpdater;
 public class StatusComponent implements Component {
 
     public IStatusUpdater statusUpdater;
-
-    public Vector3 position;
+    public Matrix4 transform;
     public Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
     public float boundsDst2; // the reference point for determining an object has exitted the level
 
