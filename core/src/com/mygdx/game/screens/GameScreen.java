@@ -188,12 +188,10 @@ class GameScreen implements Screen {
 
     private void makeCameraMan(String mode) {
 
-        // for now cameraMan must have a model comp in order to have position (create a new PositionComponent? that doesn't require A GRAPHUICSL OBJECT)
-        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
+        Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
         engine.addEntity(cameraEntity);
 
-// does it need to be disposed?
-        cameraMan = new CameraMan(cameraEntity, setupUI, pickRayEventSignal, cam,
+        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam,
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {
@@ -220,11 +218,9 @@ class GameScreen implements Screen {
 
     private void makeCameraMan(String mode, IUserInterface ui) {
 
-        // for now cameraMan must have a model comp in order to have position (TODO: use status Component, which contains a position reference)
-        Entity cameraEntity = PrimitivesBuilder.loadSphere(1f, new Vector3(0, 15f, -5f));
+        Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
 
-// does it need to be disposed?
         cameraMan = new CameraMan(cameraEntity, ui, pickRayEventSignal, cam);
 
         cameraMan.setCameraNode("chaser1",
