@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.controllers.PIDcontrol;
@@ -110,7 +111,7 @@ public class CameraMan implements IGameCharacter {
      *  IN: key
      *  IN: lookAtM - typically a reference to the players transformation matrix (but could it be just the position vector? )
      */
-    public void setCameraNode(String key, Matrix4 lookAtM) {
+    private void setCameraNode(String key, Matrix4 lookAtM) {
 
         setCameraNode(key, camPositionMatrix, lookAtM, 0);
 
@@ -208,7 +209,7 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    public CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam) {
+    private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam) {
 
 
 //        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
@@ -253,21 +254,22 @@ public class CameraMan implements IGameCharacter {
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV) {
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent comp) {
 
         this(cameraMan, gameEventSignal, cam);
 
-        Pixmap button;
         Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+
         setCameraLocation(positionV, lookAtV);
+        setCameraNode( "chaser1", comp.transform);
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc,
                      GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
@@ -285,7 +287,9 @@ public class CameraMan implements IGameCharacter {
         button.fillRectangle(0, 0, 150, 150);
         stage.addButton(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+
         setCameraLocation(positionV, lookAtV);
+        setCameraNode("chaser1", cc.transform /* doesn't matter */);
     }
 
 

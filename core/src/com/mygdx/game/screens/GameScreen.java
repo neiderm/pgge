@@ -28,6 +28,7 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -189,7 +190,8 @@ class GameScreen implements Screen {
         Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
         engine.addEntity(cameraEntity);
 
-        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
+        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, 
+             cam, camDefPosition, camDefLookAt, new ControllerComponent(new Matrix4() /* doesn't matter */),
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {
@@ -207,7 +209,6 @@ class GameScreen implements Screen {
                         }
                     }
                 });
-        cameraMan.setCameraNode("chaser1", new Matrix4() /* doesn't matter */);
         cameraMan.setOpModeByKey(mode);
     }
 
@@ -223,9 +224,8 @@ class GameScreen implements Screen {
 //                camPositionMatrix, ... we are setting setCameraLocation below ... hmmm
 //                new Vector3(0, 2, 3), 0.1f, 0, 0);
 
-        cameraMan = new CameraMan(cameraEntity, ui, pickRayEventSignal, cam, camDefPosition, camDefLookAt);
-        cameraMan.setCameraNode(
-                "chaser1", pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+        cameraMan = new CameraMan(cameraEntity, ui, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
+                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
         cameraMan.setOpModeByKey(mode);
     }
 
