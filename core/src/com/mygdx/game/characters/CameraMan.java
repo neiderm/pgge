@@ -90,24 +90,30 @@ public class CameraMan implements IGameCharacter {
         CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef) {
             this.flags = flags;
             this.positionRef = positionRef;
+///*
             this.lookAtRef = lookAtRef;
+//*/
         }
     }
 
     private ArrayMap<String, CameraNode> cameraNodes =
             new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
     private Matrix4 camPositionMatrix = new Matrix4();
+
+
+//TODO: ---> ControllerComponent!!!!
     private ICharacterControlAuto pidControl;
 
 
-    public void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM) {
+    /*
+     * all this could be in constructor??????
+     *  IN: key
+     *  IN: lookAtM - typically a reference to the players transformation matrix (but could it be just the position vector? )
+     */
+    public void setCameraNode(String key, Matrix4 lookAtM) {
 
-        Matrix4 tmp = camPositionMatrix;  // set up our own transform matrix and controller
+        setCameraNode(key, camPositionMatrix, lookAtM, 0);
 
-        if (null != posM)
-            tmp = posM;
-
-        setCameraNode(key, tmp, lookAtM, 0);
         pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
@@ -190,7 +196,7 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    public void setCameraLocation(Vector3 position, Vector3 lookAt) {
+    private void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
         cam.position.set(position);
         cam.lookAt(lookAt);
@@ -203,6 +209,10 @@ public class CameraMan implements IGameCharacter {
 
 
     public CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam) {
+
+
+//        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal,
         /* create us a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
@@ -243,7 +253,7 @@ public class CameraMan implements IGameCharacter {
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam) {
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV) {
 
         this(cameraMan, gameEventSignal, cam);
 
@@ -253,9 +263,11 @@ public class CameraMan implements IGameCharacter {
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        setCameraLocation(positionV, lookAtV);
     }
 
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
                      GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
@@ -273,6 +285,7 @@ public class CameraMan implements IGameCharacter {
         button.fillRectangle(0, 0, 150, 150);
         stage.addButton(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        setCameraLocation(positionV, lookAtV);
     }
 
 
@@ -283,6 +296,7 @@ public class CameraMan implements IGameCharacter {
     @Override
     public void update(Entity entity, float delta, Object whatever) {
 
+// TODO: add a proper ControllerComponent to this entity!!!!!!!
         if (null != pidControl)
             pidControl.update(delta);
 
@@ -290,6 +304,7 @@ public class CameraMan implements IGameCharacter {
             // nothing
         } else if (CameraOpMode.CHASE == cameraOpMode) {
             positionMatrixRef.getTranslation(currentPositionV);
+// if (null != lookAtMatrixRef) // ???
             lookAtMatrixRef.getTranslation(currentLookAtV);
             setCameraLocation(currentPositionV, currentLookAtV);
         }
