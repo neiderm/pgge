@@ -203,71 +203,8 @@ public class CameraMan implements IGameCharacter {
     }
 
 
-    private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam) {
-
-
-//        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
-
-
-        CharacterComponent comp = new CharacterComponent(this, gameEventSignal,
-        /* create us a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
-     */
-                new GameEvent() {
-                    @Override
-                    public void callback(Entity picked, EventType eventType) {
-                        switch (eventType) {
-                            case RAY_DETECT:
-                                if (null != picked)
-                                    ModelInstanceEx.setMaterialColor(
-                                            picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                                break;
-                            case RAY_PICK:
-                            default:
-                                break;
-                        }
-                    }
-                });
-
-        cameraMan.add(comp);
-        this.gameEvent = comp.gameEvent;
-        this.gameEventSignal = gameEventSignal;
-        this.pickRay = comp.lookRay;
-        this.cam = cam;
-
-//        Vector3 posV = new Vector3();
-//        Vector3 lookAtV = new Vector3();
-// we don't really use the transform matrix for fixed camera
-//        Matrix4 pos = new Matrix4();
-//        Matrix4 look = new Matrix4();
-//        pos.setToTranslation(posV);
-//        look.setToTranslation(lookAtV);
-//        setCameraNode("fixed", pos, look, FIXED);
-
-        setCameraNode("fixed", null, null, FIXED);
-        setCameraLocation(new Vector3(), new Vector3());
-    }
-
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent comp) {
-
-        this(cameraMan, gameEventSignal, cam);
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-
-        setCameraLocation(positionV, lookAtV);
-        setCameraNode("chaser1", camPositionMatrix, comp.transform, 0);
-        pidControl = new PIDcontrol(comp.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
-    }
-
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
-                     ControllerComponent cc,
-                     GameEvent event) {
+    private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
+                     Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
         cameraMan.add(comp);
@@ -275,8 +212,52 @@ public class CameraMan implements IGameCharacter {
         this.gameEventSignal = gameEventSignal;
         this.pickRay = comp.lookRay;
         this.cam = cam;
-//        setCameraNode("fixed", null, null, FIXED);
-//        setCameraLocation(new Vector3(), new Vector3());
+
+        setCameraLocation(positionV, lookAtV);
+    }
+
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc) {
+
+        this(cameraMan, gameEventSignal, cam, positionV, lookAtV, new GameEvent() {
+        /* 
+create a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
+     */
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_DETECT:
+                        if (null != picked)
+                            ModelInstanceEx.setMaterialColor(
+                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        break;
+                    case RAY_PICK:
+                    default:
+                        break;
+                }
+            }
+        });
+
+        setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
+        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
+        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+
+        setCameraLocation(positionV, lookAtV);
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+    }
+
+    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
+                     ControllerComponent cc,
+                     GameEvent event) {
+
+        this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -285,7 +266,6 @@ public class CameraMan implements IGameCharacter {
         stage.addButton(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
-        setCameraLocation(positionV, lookAtV);
         cc.transform = new Matrix4(); /* doesn't matter */
         setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
         pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
