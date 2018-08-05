@@ -16,9 +16,11 @@ public class ControllerComponent implements Component {
     public ICharacterControlAuto controller;
 
     // temporary?
-    public Matrix4 setpoint;
-    public Matrix4 process;
+//    public Matrix4 setpoint;
+//    public Matrix4 process;
     public Matrix4 transform;
+
+    public ControllerComponent(){/* nothing to see yere */}
 
     public ControllerComponent(Matrix4 transform ){
 
@@ -29,9 +31,11 @@ public class ControllerComponent implements Component {
         this.controller = controller;
     }
 
+/*
     public ControllerComponent(ICharacterControlAuto controller, Matrix4 setpoint, Matrix4 process) {
         this(controller);
         this.setpoint = setpoint;
         this.process = process;
     }
+    */
 }

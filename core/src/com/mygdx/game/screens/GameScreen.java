@@ -18,7 +18,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -190,8 +189,9 @@ class GameScreen implements Screen {
         Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
         engine.addEntity(cameraEntity);
 
-        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, 
-             cam, camDefPosition, camDefLookAt, new ControllerComponent(new Matrix4() /* doesn't matter */),
+        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam, 
+             camDefPosition, camDefLookAt,
+                new ControllerComponent(),
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {

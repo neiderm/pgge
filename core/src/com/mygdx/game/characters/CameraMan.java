@@ -102,7 +102,7 @@ public class CameraMan implements IGameCharacter {
     private Matrix4 camPositionMatrix = new Matrix4();
 
 
-//TODO: ---> ControllerComponent!!!!
+    //TODO: ---> ControllerComponent!!!!
     private ICharacterControlAuto pidControl;
 
 
@@ -111,12 +111,6 @@ public class CameraMan implements IGameCharacter {
      *  IN: key
      *  IN: lookAtM - typically a reference to the players transformation matrix (but could it be just the position vector? )
      */
-    private void setCameraNode(String key, Matrix4 lookAtM) {
-
-        setCameraNode(key, camPositionMatrix, lookAtM, 0);
-
-        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
-    }
 
     private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
 
@@ -241,16 +235,17 @@ public class CameraMan implements IGameCharacter {
         this.pickRay = comp.lookRay;
         this.cam = cam;
 
-        Vector3 posV = new Vector3();
-        Vector3 lookAtV = new Vector3();
+//        Vector3 posV = new Vector3();
+//        Vector3 lookAtV = new Vector3();
 // we don't really use the transform matrix for fixed camera
 //        Matrix4 pos = new Matrix4();
 //        Matrix4 look = new Matrix4();
 //        pos.setToTranslation(posV);
 //        look.setToTranslation(lookAtV);
 //        setCameraNode("fixed", pos, look, FIXED);
+
         setCameraNode("fixed", null, null, FIXED);
-        setCameraLocation(posV, lookAtV);
+        setCameraLocation(new Vector3(), new Vector3());
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
@@ -265,11 +260,13 @@ public class CameraMan implements IGameCharacter {
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
         setCameraLocation(positionV, lookAtV);
-        setCameraNode( "chaser1", comp.transform);
+        setCameraNode("chaser1", camPositionMatrix, comp.transform, 0);
+        pidControl = new PIDcontrol(comp.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
+                     ControllerComponent cc,
                      GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
@@ -278,8 +275,8 @@ public class CameraMan implements IGameCharacter {
         this.gameEventSignal = gameEventSignal;
         this.pickRay = comp.lookRay;
         this.cam = cam;
-        setCameraNode("fixed", null, null, FIXED);
-        setCameraLocation(new Vector3(), new Vector3());
+//        setCameraNode("fixed", null, null, FIXED);
+//        setCameraLocation(new Vector3(), new Vector3());
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -289,7 +286,9 @@ public class CameraMan implements IGameCharacter {
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
         setCameraLocation(positionV, lookAtV);
-        setCameraNode("chaser1", cc.transform /* doesn't matter */);
+        cc.transform = new Matrix4(); /* doesn't matter */
+        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
+        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
 
@@ -319,7 +318,7 @@ public class CameraMan implements IGameCharacter {
   */
     public final InputListener buttonGSListener = new InputListener() {
 
-        private void setPickRay(float x, float y){
+        private void setPickRay(float x, float y) {
             // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
             float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
             float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
