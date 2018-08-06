@@ -31,6 +31,7 @@ import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
@@ -178,7 +179,7 @@ class GameScreen implements Screen {
 
         cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam,
                 camDefPosition, camDefLookAt,
-                new ControllerComponent(),
+                new ControllerComponent(new ICharacterControlAuto() {}), // dummy
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {

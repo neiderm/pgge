@@ -15,7 +15,6 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.util.GameEvent;
@@ -84,33 +83,16 @@ public class CameraMan implements IGameCharacter {
         private Matrix4 lookAtRef;
         private int flags; // e.g. FIXED_PERSPECTIVE
 
-/*        public CameraNode(Matrix4 positionRef, Matrix4 lookAtRef){
-            this(FIXED, positionRef, lookAtRef);
-        }*/
-
         CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef) {
             this.flags = flags;
             this.positionRef = positionRef;
-///*
             this.lookAtRef = lookAtRef;
-//*/
         }
     }
 
     private ArrayMap<String, CameraNode> cameraNodes =
             new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
-    private Matrix4 camPositionMatrix = new Matrix4();
 
-
-    //TODO: ---> ControllerComponent!!!!
-    private ICharacterControlAuto pidControl;
-
-
-    /*
-     * all this could be in constructor??????
-     *  IN: key
-     *  IN: lookAtM - typically a reference to the players transformation matrix (but could it be just the position vector? )
-     */
 
     private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
 
@@ -133,7 +115,6 @@ public class CameraMan implements IGameCharacter {
     private Matrix4 lookAtMatrixRef;
 
     private int nodeIndex = 0;
-    private boolean isController;
 
 
     /*
@@ -159,7 +140,7 @@ public class CameraMan implements IGameCharacter {
 
     private boolean setOpModeByIndex(int index) {
 
-        isController = false;
+        boolean isController = false;
         CameraNode node = cameraNodes.getValueAt(index);
         cameraOpMode = CameraOpMode.CHASE;
         Vector3 tmp = cam.position.cpy();
@@ -169,7 +150,7 @@ public class CameraMan implements IGameCharacter {
             cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
             tmp.y += 1;
-            setCameraLocation(tmp, currentLookAtV);
+            setCameraLocation(tmp, lookAtMatrixRef.getTranslation(tmpLookAt));
 
             isController = true;
 
@@ -197,9 +178,6 @@ public class CameraMan implements IGameCharacter {
         cam.lookAt(lookAt);
         cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
         cam.update();
-
-        currentPositionV.set(position);
-        currentLookAtV.set(lookAt);
     }
 
 
@@ -239,11 +217,15 @@ create a game event object for signalling to pickray system.     modelinstance r
             }
         });
 
+        cameraMan.add(cc);
+
+        Matrix4 camTransform = new Matrix4();
+
         setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
-        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
+        setCameraNode("chaser1", camTransform, cc.transform, 0);
         setOpModeByKey("chaser1");
 
-        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -253,11 +235,12 @@ create a game event object for signalling to pickray system.     modelinstance r
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,
-                     ControllerComponent cc,
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc,
                      GameEvent event) {
 
         this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
+
+        cameraMan.add(cc);
 
 //        setOpModeByKey("fixed"); // this returns FALSE here so it is apparently useless!
 
@@ -275,24 +258,18 @@ create a game event object for signalling to pickray system.     modelinstance r
     }
 
 
-    private Vector3 currentPositionV = new Vector3();
-    private Vector3 currentLookAtV = new Vector3();
-
+    private Vector3 tmpPosition = new Vector3();
+    private Vector3 tmpLookAt = new Vector3();
 
     @Override
     public void update(Entity entity, float delta, Object whatever) {
 
-// TODO: add a proper ControllerComponent to this entity!!!!!!!
-        if (null != pidControl)
-            pidControl.update(delta);
-
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
             // nothing
         } else if (CameraOpMode.CHASE == cameraOpMode) {
-            positionMatrixRef.getTranslation(currentPositionV);
-// if (null != lookAtMatrixRef) // ???
-            lookAtMatrixRef.getTranslation(currentLookAtV);
-            setCameraLocation(currentPositionV, currentLookAtV);
+            setCameraLocation(
+                    positionMatrixRef.getTranslation(tmpPosition),
+                    lookAtMatrixRef.getTranslation(tmpLookAt));
         }
     }
 

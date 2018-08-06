@@ -15,7 +15,7 @@ import static com.badlogic.gdx.math.MathUtils.sin;
   a bit of a misnomer, this is not truly generic since the process variable and
   setpoints are 3d vectors ... could it be done with generics?
  */
-public class PIDcontrol implements ICharacterControlAuto {
+public class PIDcontrol extends ICharacterControlAuto {
 
     private float kP = 0.1f;
     private float kI = 0;
