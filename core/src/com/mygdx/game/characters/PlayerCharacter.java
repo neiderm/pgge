@@ -43,12 +43,12 @@ public class PlayerCharacter implements IGameCharacter {
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent;
 
-
     public PlayerCharacter(final Entity player, IUserInterface stage,
                            Signal<GameEvent> gameEventSignal, ICharacterControlManual ctrl) {
 
         this.gameEventSignal = gameEventSignal; // local reference to item stored in component
-        CharacterComponent comp = new CharacterComponent(this, gameEventSignal, gameEvent);
+
+        CharacterComponent comp = new CharacterComponent(this, gameEvent);
         player.add(comp);
         player.add(new ControllerComponent(ctrl));
 
@@ -58,7 +58,6 @@ public class PlayerCharacter implements IGameCharacter {
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
             private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
-
             /*
             we have no way to invoke a callback to the picked component.
             Pickable component required to implment some kind of interface to provide a
@@ -102,6 +101,7 @@ public class PlayerCharacter implements IGameCharacter {
         button.fillCircle(25, 25, 25);
         stage.addButton(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
+        button.dispose();
     }
 
 
@@ -132,14 +132,11 @@ public class PlayerCharacter implements IGameCharacter {
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
             ctrlr.inputSet(io.set(touchPadCoords, InputStruct.ButtonsEnum.BUTTON_C));
-
             return true;
         }
-
         @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-            // empty
-        }
+        public void touchUp(
+                InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
 
 

@@ -135,7 +135,7 @@ class GameScreen implements Screen {
         button.fillCircle(25, 25, 25);
         gameUI.addButton(buttonBListener, button,
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-
+        button.dispose();
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -239,13 +239,6 @@ class GameScreen implements Screen {
 
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
-
-// create a controller for the cameraMan
-//        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
-//        pidControl = new PIDcontrol(
-//                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform,
-//                camPositionMatrix, ... we are setting setCameraLocation below ... hmmm
-//                new Vector3(0, 2, 3), 0.1f, 0, 0);
 
         cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
                 new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));

@@ -184,10 +184,12 @@ public class CameraMan implements IGameCharacter {
     private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
                      Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
-        CharacterComponent comp = new CharacterComponent(this, gameEventSignal, event);
+        CharacterComponent comp = new CharacterComponent(this, event);
         cameraMan.add(comp);
+
         this.gameEvent = comp.gameEvent;
         this.gameEventSignal = gameEventSignal;
+
         this.pickRay = comp.lookRay;
         this.cam = cam;
 
@@ -232,6 +234,7 @@ create a game event object for signalling to pickray system.     modelinstance r
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
         stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        button.dispose();
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
@@ -250,7 +253,7 @@ create a game event object for signalling to pickray system.     modelinstance r
         button.fillRectangle(0, 0, 150, 150);
         stage.addButton(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-
+        button.dispose();
 // so this is all not needed?
 //        cc.transform = new Matrix4(); /* doesn't matter */
 //        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
@@ -276,26 +279,23 @@ create a game event object for signalling to pickray system.     modelinstance r
     /*
  "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
   */
-    public final InputListener buttonGSListener = new InputListener() {
+    private final InputListener buttonGSListener = new InputListener() {
 
-        private void setPickRay(float x, float y) {
+        private Ray setPickRay(float x, float y) {
             // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
             float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
             float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
             Ray rayTmp = cam.getPickRay(nX, nY);
-            pickRay.set(rayTmp.origin, rayTmp.direction);
+            return pickRay.set(rayTmp.origin, rayTmp.direction);
         }
-
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
-
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
 //            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
             {
-                setPickRay(x, y);
-                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, pickRay, 0));
+                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, setPickRay(x, y), 0));
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;

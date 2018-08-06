@@ -55,7 +55,7 @@ class MainMenuScreen implements Screen {
                 background.setColor(1, 0, 223/255f, 1);
         background.fillRectangle(0, 0, width /2, height /2);
         table.setBackground(new TiledDrawable(new TextureRegion(new Texture(background))));
-
+        background.dispose();
 
             //create a Labels showing the score and some credits
     Skin skin = new Skin();
@@ -63,7 +63,7 @@ class MainMenuScreen implements Screen {
     pixmap.setColor(Color.WHITE);
     pixmap.fill();
     skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-
+    pixmap.dispose();
 
         // GdxRuntimeException: No com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle registered with name: default
         Label.LabelStyle textStyle = new Label.LabelStyle(font, Color.WHITE);
@@ -98,6 +98,7 @@ class MainMenuScreen implements Screen {
         button.setColor(1, 0, 0, 1);
         button.fillCircle(25, 25, 25);
         Texture myTexture = new Texture(button);
+        button.dispose();
         TextureRegion myTextureRegion = new TextureRegion(myTexture);
         TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 

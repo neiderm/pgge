@@ -48,7 +48,6 @@ public abstract class IUserInterface extends Stage {
         //Apply the Drawables to the TouchPad Style
 //        touchpadStyle.background = touchBackground;
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
-
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
 
         //Create new TouchPad with the created style
@@ -58,8 +57,9 @@ public abstract class IUserInterface extends Stage {
 
         // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
-
         this.addActor(touchpad);
+
+        background.dispose();
     }
 
     public void addButton(InputListener listener, Pixmap pixmap, float x, float y) {
