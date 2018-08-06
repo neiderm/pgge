@@ -171,26 +171,13 @@ class GameScreen implements Screen {
 
         stage = setupUI = new GameUI();
         // .... setupUI is passed to CameraMan constructor to add button and handler
-        makeCameraMan("fixed"); // now we can make camera Man (depends on setupUI)
 
-        multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(stage);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
-    }
-
-
-    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
-    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
-    private Entity pickedPlayer;
-
-    private void makeCameraMan(String mode) {
-
+        // now we can make camera Man (depends on setupUI)
         Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
         engine.addEntity(cameraEntity);
 
-        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam, 
-             camDefPosition, camDefLookAt,
+        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam,
+                camDefPosition, camDefLookAt,
                 new ControllerComponent(),
                 new GameEvent() {
                     @Override
@@ -209,25 +196,18 @@ class GameScreen implements Screen {
                         }
                     }
                 });
-        cameraMan.setOpModeByKey(mode);
+
+        multiplexer = new InputMultiplexer();
+        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(camController);
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private void makeCameraMan(String mode, IUserInterface ui) {
 
-        Entity cameraEntity = new Entity();
-        engine.addEntity(cameraEntity);
+    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
+    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
+    private Entity pickedPlayer;
 
-// create a controller for the cameraMan
-//        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
-//        pidControl = new PIDcontrol(
-//                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform,
-//                camPositionMatrix, ... we are setting setCameraLocation below ... hmmm
-//                new Vector3(0, 2, 3), 0.1f, 0, 0);
-
-        cameraMan = new CameraMan(cameraEntity, ui, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
-                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
-        cameraMan.setOpModeByKey(mode);
-    }
 
 
     private void addSystems() {
@@ -250,11 +230,25 @@ class GameScreen implements Screen {
     }
 
     private void onPlayerPicked() {
+
         multiplexer.removeProcessor(camController);
         multiplexer.removeProcessor(setupUI);
         multiplexer.addProcessor(gameUI);
         stage = gameUI;
-        makeCameraMan("chaser1", gameUI);
+
+        Entity cameraEntity = new Entity();
+        engine.addEntity(cameraEntity);
+
+// create a controller for the cameraMan
+//        pidControl = new PIDcontrol(lookAtM, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+//        pidControl = new PIDcontrol(
+//                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform,
+//                camPositionMatrix, ... we are setting setCameraLocation below ... hmmm
+//                new Vector3(0, 2, 3), 0.1f, 0, 0);
+
+        cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
+                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
+
         isPicked = false;
         SceneLoader.createObjects(engine);
 

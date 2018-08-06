@@ -138,7 +138,7 @@ public class CameraMan implements IGameCharacter {
 
     /*
      */
-    public boolean setOpModeByKey(String key) {
+    private boolean setOpModeByKey(String key) {
         int index = cameraNodes.indexOfKey(key);
 
         if (index > -1) {
@@ -241,9 +241,9 @@ create a game event object for signalling to pickray system.     modelinstance r
 
         setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
         setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
-        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+        setOpModeByKey("chaser1");
 
-        setCameraLocation(positionV, lookAtV);
+        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -259,6 +259,8 @@ create a game event object for signalling to pickray system.     modelinstance r
 
         this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
 
+//        setOpModeByKey("fixed"); // this returns FALSE here so it is apparently useless!
+
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
@@ -266,9 +268,10 @@ create a game event object for signalling to pickray system.     modelinstance r
         stage.addButton(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
 
-        cc.transform = new Matrix4(); /* doesn't matter */
-        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
-        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
+// so this is all not needed?
+//        cc.transform = new Matrix4(); /* doesn't matter */
+//        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
+//        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
 
