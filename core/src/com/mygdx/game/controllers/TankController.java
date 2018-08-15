@@ -39,7 +39,11 @@ public class TankController extends ICharacterControlManual {
     private static Vector3 down = new Vector3();
     private static Quaternion rotation = new Quaternion();
 
-    private static final Vector3 forceVect = new Vector3();
+
+    private static final Vector3 linearForceV = new Vector3();
+    private static final Vector3 angularForceV = new Vector3();
+    private static final Vector3 impulseForceV = new Vector3();
+
 
     @Override
     public void inputSet(Object ioObject) {
@@ -61,6 +65,33 @@ public class TankController extends ICharacterControlManual {
     }
 
 
+    private void calcsteeringOutput(Vector2 inpVect){
+
+        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+
+        // rotate by a constant rate according to stick left or stick right.
+        float degrees = 0;
+        if (inpVect.x < -DZ) {
+            degrees = 1;
+        } else if (inpVect.x > DZ) {
+            degrees = -1;
+        }
+
+        ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
+
+        if (inpVect.y > DZ) {
+            // reverse thrust & "steer" opposite direction !
+            linearForceV.scl(-1);
+            degrees *= -1;
+        } else if (!(inpVect.y < -DZ)) {
+            linearForceV.set(0, 0, 0);
+        }
+
+        angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
+    }
+
+
+
     private Random rnd = new Random();
 
     void applyJump() {
@@ -70,7 +101,7 @@ public class TankController extends ICharacterControlManual {
         else
             tmpV.set(-0.1f, 0, 0);
 
-        body.applyImpulse(forceVect.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+        body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
 
@@ -97,30 +128,15 @@ public class TankController extends ICharacterControlManual {
         }
     }
 
+
+
     private void updateControl(float delta){
 
-        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
-        // rotate by a constant rate according to stick left or stick right.
-        float degrees = 0;
-        if (inpVect.x < -DZ) {
-            degrees = 1;
-        } else if (inpVect.x > DZ) {
-            degrees = -1;
-        }
+        calcsteeringOutput(inpVect);
 
-        ModelInstanceEx.rotateRad(forceVect.set(0, 0, -1), body.getOrientation());
 
-        if (inpVect.y > DZ) {
-            // reverse thrust & "steer" opposite direction !
-            forceVect.scl(-1);
-            degrees *= -1;
-        } else if (!(inpVect.y < -DZ)) {
-            forceVect.set(0, 0, 0);
-        }
-
-        body.getWorldTransform(tmpM);
-        body.applyTorque(tmpV.set(0, degrees * 10, 0)); /// 10 is arbitrary!
+        body.applyTorque(angularForceV);
 
 // eventually we should take time into account not assume 16mS?
     /* somehow the friction application is working out so well that no other limit needs to be
@@ -135,7 +151,7 @@ public class TankController extends ICharacterControlManual {
          * velocity seems to be limited and constant ... go look up the math eventually */
         final float MU = 0.5f;
 
-        body.applyCentralForce(forceVect.cpy().scl(forceMag * this.mass));
+        body.applyCentralForce(linearForceV.scl(forceMag * this.mass));
 
         body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
 
