@@ -51,6 +51,9 @@ public class TankController extends ICharacterControlManual {
         InputStruct io = (InputStruct)ioObject;
         inpVect.set(io.inpVector);
 
+//        calcsteeringOutput(inpVect);
+
+
         InputStruct.ButtonsEnum button = io.buttonPress;
 
         switch (button) {
@@ -65,7 +68,7 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-    private void calcsteeringOutput(Vector2 inpVect){
+    private void calcSteeringOutput(Vector2 inpVect){
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -86,6 +89,13 @@ public class TankController extends ICharacterControlManual {
         } else if (!(inpVect.y < -DZ)) {
             linearForceV.set(0, 0, 0);
         }
+
+
+        // magnitude of force applied (property of "vehicle" type?)
+        final float forceMag = 12.0f;
+
+        linearForceV.scl(forceMag * this.mass);
+
 
         angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
     }
@@ -133,7 +143,7 @@ public class TankController extends ICharacterControlManual {
     private void updateControl(float delta){
 
 
-        calcsteeringOutput(inpVect);
+        calcSteeringOutput(inpVect);
 
 
         body.applyTorque(angularForceV);
@@ -142,8 +152,6 @@ public class TankController extends ICharacterControlManual {
     /* somehow the friction application is working out so well that no other limit needs to be
      imposed on the veloocity ... sometime will try to formalize the math! */
 
-        // magnitude of force applied (property of "vehicle" type?)
-        final float forceMag = 12.0f;
         /* kinetic friction? ... ground/landscape is not dynamic and doesn't provide friction!
          * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
          * passed as parameter to the friction computation .
@@ -151,7 +159,7 @@ public class TankController extends ICharacterControlManual {
          * velocity seems to be limited and constant ... go look up the math eventually */
         final float MU = 0.5f;
 
-        body.applyCentralForce(linearForceV.scl(forceMag * this.mass));
+        body.applyCentralForce(linearForceV);
 
         body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
 
