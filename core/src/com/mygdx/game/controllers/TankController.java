@@ -27,31 +27,31 @@ public class TankController extends ICharacterControlManual {
     private float mass;
     private BulletWorld world;
 
-    public TankController(btRigidBody body, float mass){
+    public TankController(btRigidBody body, float mass) {
         this.body = body;
         this.mass = mass;
         this.world = BulletWorld.getInstance();
     }
 
     // working variables
-    private static Matrix4 tmpM = new Matrix4();
-    private static Vector3 tmpV = new Vector3();
-    private static Vector3 down = new Vector3();
-    private static Quaternion rotation = new Quaternion();
+    private Matrix4 tmpM = new Matrix4();
+    private Vector3 tmpV = new Vector3();
+    private Vector3 down = new Vector3();
+    private Quaternion rotation = new Quaternion();
 
 
-    private static final Vector3 linearForceV = new Vector3();
-    private static final Vector3 angularForceV = new Vector3();
-    private static final Vector3 impulseForceV = new Vector3();
+    private final Vector3 linearForceV = new Vector3();
+    private final Vector3 angularForceV = new Vector3();
+    private final Vector3 impulseForceV = new Vector3();
 
 
     @Override
     public void inputSet(Object ioObject) {
 
-        InputStruct io = (InputStruct)ioObject;
+        InputStruct io = (InputStruct) ioObject;
         inpVect.set(io.inpVector);
 
-//        calcsteeringOutput(inpVect);
+        calcSteeringOutput(inpVect);
 
 
         InputStruct.ButtonsEnum button = io.buttonPress;
@@ -64,11 +64,13 @@ public class TankController extends ICharacterControlManual {
             case BUTTON_C:
                 applyJump();
                 break;
+            default:
+                break;
         }
     }
 
 
-    private void calcSteeringOutput(Vector2 inpVect){
+    private void calcSteeringOutput(Vector2 inpVect) {
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -99,7 +101,6 @@ public class TankController extends ICharacterControlManual {
 
         angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
     }
-
 
 
     private Random rnd = new Random();
@@ -139,11 +140,7 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-
-    private void updateControl(float delta){
-
-
-        calcSteeringOutput(inpVect);
+    private void updateControl(float delta) {
 
 
         body.applyTorque(angularForceV);
