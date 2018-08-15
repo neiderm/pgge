@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
+import com.mygdx.game.characters.EnemyCharacter;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ControllerComponent;
@@ -167,8 +168,8 @@ class GameScreen implements Screen {
 
         addSystems();
         SceneLoader.buildArena(engine);
-        SceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
-        SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
+final Entity tank =        SceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
+final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new GameUI();
         // .... setupUI is passed to CameraMan constructor to add button and handler
@@ -189,6 +190,16 @@ class GameScreen implements Screen {
                                     isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                                     pickedPlayer = picked;
                                     picked.remove(PickRayComponent.class);
+                                    //// tmp .......
+                                    if (tank == pickedPlayer)
+                                        enemyTank = ship;
+                                    else if (ship == pickedPlayer)
+                                        enemyTank = tank;
+                                    else
+                                        enemyTank = null; // wtf?
+
+                                    if (null != enemyTank)
+                                        enemyTank.remove(PickRayComponent.class);
                                 }
                                 break;
                             case RAY_PICK:
@@ -208,7 +219,7 @@ class GameScreen implements Screen {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
-
+    private Entity enemyTank;
 
 
     private void addSystems() {
@@ -272,6 +283,10 @@ class GameScreen implements Screen {
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+
+
+
+        EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer);
     }
 
     /*
