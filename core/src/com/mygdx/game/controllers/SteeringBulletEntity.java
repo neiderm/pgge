@@ -70,6 +70,7 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
     private InputStruct io = new InputStruct();
     private Vector2 touchPadCoords = new Vector2();
 
+    private Vector3 tmpLinearV = new Vector3();
 
     private void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 /*
@@ -87,7 +88,9 @@ GN: this is where I call the TankController:update()
 
 /// this is just a hack right now ... it ain't right
 // need to pass        steering.angular
-        this.ctrl.inputSet(io.set(touchPadCoords.set(steering.linear.x, steering.linear.z), InputStruct.ButtonsEnum.BUTTON_NONE));
+//        this.ctrl.inputSet(io.set(touchPadCoords.set(steering.linear.x, steering.linear.z), InputStruct.ButtonsEnum.BUTTON_NONE));
+
+        this.ctrl.calcSteeringOutput(tmpLinearV.set(steering.linear.x, 0, steering.linear.z), steering.angular);
 
         this.ctrl.update(time);
     }

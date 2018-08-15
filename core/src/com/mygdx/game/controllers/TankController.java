@@ -70,7 +70,22 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-    private void calcSteeringOutput(Vector2 inpVect) {
+    // magnitude of force applied (property of "vehicle" type?)
+    final float forceMag = 12.0f;
+
+
+    // tmp?
+    public void calcSteeringOutput(Vector3 linear, float angular) {
+
+        final float forceMag = 12.0f * 0.75f; // enemy has too much force!
+        linearForceV.set(linear);
+        linearForceV.scl(forceMag * this.mass);
+
+        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
+    }
+
+
+    public void calcSteeringOutput(Vector2 inpVect) {
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -93,11 +108,7 @@ public class TankController extends ICharacterControlManual {
         }
 
 
-        // magnitude of force applied (property of "vehicle" type?)
-        final float forceMag = 12.0f;
-
         linearForceV.scl(forceMag * this.mass);
-
 
         angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
     }
