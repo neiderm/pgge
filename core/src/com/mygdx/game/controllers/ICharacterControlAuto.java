@@ -7,4 +7,9 @@ package com.mygdx.game.controllers;
 public abstract class ICharacterControlAuto {
 
     public void update(float delta){}
+
+    /*
+    this would change to something generic like Object
+     */
+    public void inputSet(Object o){}
 }
