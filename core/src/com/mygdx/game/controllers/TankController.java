@@ -120,8 +120,7 @@ public class TankController extends ICharacterControlManual {
         }
 
         body.getWorldTransform(tmpM);
-        // we should maybe be using torque for this to be consistent in dealing with our rigid body player!
-        tmpM.rotate(0, 1, 0, degrees); // does not touch translation ;)
+        body.applyTorque(tmpV.set(0, degrees * 10, 0)); /// 10 is arbitrary!
 
 // eventually we should take time into account not assume 16mS?
     /* somehow the friction application is working out so well that no other limit needs to be
