@@ -14,6 +14,8 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Random;
 
+import static java.lang.Math.abs;
+
 
 /**
  * Created by mango on 2/10/18.
@@ -71,17 +73,47 @@ public class TankController extends ICharacterControlManual {
 
 
     // magnitude of force applied (property of "vehicle" type?)
-    final float forceMag = 12.0f;
+    static final float FORCE_MAG = 12.0f;
 
+
+    /*
+     * from bulletSteeringUtils
+     */
+    public static float vectorToAngle(Vector3 vector) {
+// return (float)Math.atan2(vector.z, vector.x);
+        return (float) Math.atan2(-vector.z, vector.x);
+    }
 
     // tmp?
+@Override
     public void calcSteeringOutput(Vector3 linear, float angular) {
 
-        final float forceMag = 12.0f * 0.75f; // enemy has too much force!
+        final float adjForce = FORCE_MAG * 0.75f; // enemy has too much force!
         linearForceV.set(linear);
-        linearForceV.scl(forceMag * this.mass);
+        linearForceV.scl(adjForce * this.mass); //
 
-        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
+
+        // angular force not used with Seek behavior
+
+//        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
+        angularForceV.set(0, 0, 0);
+
+
+        body.getWorldTransform(tmpM);
+
+        tmpM.getRotation(rotation);
+
+
+        float bodyYaw = rotation.getYawRad();
+        float forceYaw = vectorToAngle(linearForceV);
+        float error = bodyYaw - forceYaw;
+
+        if (abs(error) > 0.1f) {
+            error = error * 0.9f;
+        }
+
+        tmpM.rotate(0, 1, 0, error); // does not touch translation ;)
+        body.setWorldTransform(tmpM);
     }
 
 
@@ -108,7 +140,7 @@ public class TankController extends ICharacterControlManual {
         }
 
 
-        linearForceV.scl(forceMag * this.mass);
+        linearForceV.scl(FORCE_MAG * this.mass);
 
         angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
     }

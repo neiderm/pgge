@@ -38,8 +38,8 @@ public class EnemyCharacter implements IGameCharacter {
 
 
         character = new SteeringBulletEntity(enemy, ctrl);
-        character.setMaxLinearSpeed(50);
-        character.setMaxLinearAcceleration(1 /* 200 */); // GN: I don't understand
+        character.setMaxLinearSpeed(2); // idfk
+        character.setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
         target = new SteeringBulletEntity(player, ctrl);
 
