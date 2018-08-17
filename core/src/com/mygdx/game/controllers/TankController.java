@@ -5,9 +5,11 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.screens.GameScreen;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -85,35 +87,51 @@ public class TankController extends ICharacterControlManual {
     }
 
     // tmp?
-@Override
+    @Override
     public void calcSteeringOutput(Vector3 linear, float angular) {
 
-        final float adjForce = FORCE_MAG * 0.75f; // enemy has too much force!
-        linearForceV.set(linear);
-        linearForceV.scl(adjForce * this.mass); //
-
-
         // angular force not used with Seek behavior
-
 //        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
-        angularForceV.set(0, 0, 0);
 
-
+        // need our present position and rotation no matter what
         body.getWorldTransform(tmpM);
-
+        tmpM.getTranslation(tmpV);
         tmpM.getRotation(rotation);
 
+        // have to take my position and take linearforce as relatve, sum them vectors and pass that as center
+        Ray ray = new Ray(); // tank direction
+        Vector3 forward = new Vector3();
+        forward.set(0, 0, -1);
+        ray.set(tmpV, forward);
+        final float len = ray.direction.dot(linearForceV.x, linearForceV.y, linearForceV.z);
+        Vector3 adjForceVect = new Vector3();
+        adjForceVect.set(ray.direction.x * len, ray.direction.y * len, ray.direction.z * len);
 
+        float forceMult = FORCE_MAG * 0.75f; // fudge factor .. enemy has too much force!
+// hmm ...
+        linearForceV.set(adjForceVect);
+        linearForceV.scl(forceMult); //
+// ha idea is sound but NFW right now so just do something
+        linearForceV.set(linear);
+        linearForceV.scl(forceMult * this.mass); //
+
+// next we want delta of commanded liniear force V vs. actual and the proportionately apply rotation force
         float bodyYaw = rotation.getYawRad();
         float forceYaw = vectorToAngle(linearForceV);
-        float error = bodyYaw - forceYaw;
+        float error = forceYaw - bodyYaw;
 
-        if (abs(error) > 0.1f) {
-            error = error * 0.9f;
+        float gain = 0.0f;  // arbitrary gain?
+        float deadband = 0.1f; // whatever
+        if (abs(error) > deadband) {
+            error *= gain;
         }
 
-        tmpM.rotate(0, 1, 0, error); // does not touch translation ;)
-        body.setWorldTransform(tmpM);
+        angularForceV.set(0, error, 0);
+
+        GameScreen.linearForceV.set(linearForceV);
+        GameScreen.bodyYaw = bodyYaw;
+        GameScreen.forceYaw = forceYaw;
+        GameScreen.error = error;
     }
 
 
@@ -184,7 +202,6 @@ public class TankController extends ICharacterControlManual {
 
 
     private void updateControl(float delta) {
-
 
         body.applyTorque(angularForceV);
 
