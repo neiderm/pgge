@@ -101,19 +101,28 @@ public class TankController extends ICharacterControlManual {
         // have to take my position and take linearforce as relatve, sum them vectors and pass that as center
         Ray ray = new Ray(); // tank direction
         Vector3 forward = new Vector3();
-        forward.set(0, 0, -1);
-        ray.set(tmpV, forward);
-        final float len = ray.direction.dot(linearForceV.x, linearForceV.y, linearForceV.z);
-        Vector3 adjForceVect = new Vector3();
-        adjForceVect.set(ray.direction.x * len, ray.direction.y * len, ray.direction.z * len);
 
-        float forceMult = FORCE_MAG * 0.75f; // fudge factor .. enemy has too much force!
+if (null != body)
+        ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
+else
+    body = null ; // wtf
+
+        ray.set(tmpV, forward);
+
+        float len = ray.direction.dot(linear.x, 0, linear.z);
+        Vector3 adjForceVect = new Vector3();
+        adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len);
+
+//        float forceMult = 10.0f * FORCE_MAG * 0.75f; // fudge factor .. enemy has too much force!
+        float forceMult = FORCE_MAG * this.mass; // fudge factor .. enemy has too much force!
 // hmm ...
         linearForceV.set(adjForceVect);
         linearForceV.scl(forceMult); //
 // ha idea is sound but NFW right now so just do something
+/*
         linearForceV.set(linear);
-        linearForceV.scl(forceMult * this.mass); //
+        linearForceV.scl(forceMult * this.mass);
+*/
 
 // next we want delta of commanded liniear force V vs. actual and the proportionately apply rotation force
         float bodyYaw = rotation.getYawRad();
@@ -147,7 +156,10 @@ public class TankController extends ICharacterControlManual {
             degrees = -1;
         }
 
-        ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
+if (null != body)
+ ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
+else
+ body = null; // wtf
 
         if (inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !
@@ -185,8 +197,10 @@ public class TankController extends ICharacterControlManual {
         body.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
 
+if (null != body)
         ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
-
+else
+    body = null; // wtf
 
         RenderSystem.otherThings.add(GfxUtil.line(tmpV,
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
