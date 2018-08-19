@@ -1,7 +1,12 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
+import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
 import com.badlogic.gdx.ai.steer.behaviors.Seek;
+import com.badlogic.gdx.ai.steer.limiters.NullLimiter;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -46,6 +51,25 @@ public class EnemyCharacter implements IGameCharacter {
 
         final Seek<Vector3> seekSB = new Seek<Vector3>(character, target);
         character.setSteeringBehavior(seekSB);
+
+/*
+        final LookWhereYouAreGoing<Vector3> lookWhereYouAreGoingSB = new LookWhereYouAreGoing<Vector3>(character) //
+                .setAlignTolerance(.005f) //
+                .setDecelerationRadius(MathUtils.PI) //
+                .setTimeToTarget(.1f);
+
+        Arrive<Vector3> arriveSB = new Arrive<Vector3>(character, target) //
+                .setTimeToTarget(0.1f) //
+                .setArrivalTolerance(0.0002f) //
+                .setDecelerationRadius(3);
+
+        BlendedSteering<Vector3> blendedSteering = new BlendedSteering<Vector3>(character) //
+                .setLimiter(NullLimiter.NEUTRAL_LIMITER) //
+                .add(arriveSB, 1f) //
+                .add(lookWhereYouAreGoingSB, 1f);
+
+        character.setSteeringBehavior(blendedSteering);
+*/
     }
 
 

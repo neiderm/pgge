@@ -1,5 +1,6 @@
 package com.mygdx.game.controllers;
 
+import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -17,5 +18,5 @@ public abstract class ICharacterControlAuto {
     public void inputSet(Object o){}
 
 // tmp?
-    public void calcSteeringOutput(Vector3 linear, float angular) {}
+    public void calcSteeringOutput(SteeringAcceleration<Vector3> steering) {}
 }

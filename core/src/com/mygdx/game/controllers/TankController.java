@@ -1,5 +1,6 @@
 package com.mygdx.game.controllers;
 
+import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -86,9 +87,89 @@ public class TankController extends ICharacterControlManual {
         return (float) Math.atan2(-vector.z, vector.x);
     }
 
+
     // tmp?
     @Override
-    public void calcSteeringOutput(Vector3 linear, float angular) {
+    public void calcSteeringOutput(SteeringAcceleration<Vector3> steering) {
+
+        // idfk
+        if (0 == steering.angular)
+            calcSteeringOutput_private(steering.linear);
+        else
+            calcSteeringOutput_private(steering);
+    }
+
+
+    Vector3 tmpVector3 = new Vector3();
+
+
+    private void calcSteeringOutput_private(SteeringAcceleration<Vector3> steeringOutput) {
+
+/*
+        boolean anyAccelerations = false;
+
+        // Update position and linear velocity
+        if (!steeringOutput.linear.isZero()) {
+            // this method internally scales the force by deltaTime
+            body.applyCentralForce(steeringOutput.linear);
+            anyAccelerations = true;
+        }
+
+        // Update orientation and angular velocity
+        if (isIndependentFacing()) {
+            if (steeringOutput.angular != 0) {
+                // this method internally scales the torque by deltaTime
+                body.applyTorque(tmpVector3.set(0, steeringOutput.angular, 0));
+                anyAccelerations = true;
+            }
+        }
+        else {
+            // If we haven't got any velocity, then we can do nothing.
+            Vector3 linVel = getLinearVelocity();
+            if (!linVel.isZero(getZeroLinearSpeedThreshold())) {
+                //
+                // TODO: Commented out!!!
+                // Looks like the code below creates troubles in combination with the applyCentralForce above
+                // Maybe we should be more consistent by only applying forces or setting velocities.
+                //
+//				float newOrientation = vectorToAngle(linVel);
+//				Vector3 angVel = body.getAngularVelocity();
+//				angVel.y = (newOrientation - oldOrientation) % MathUtils.PI2;
+//				if (angVel.y > MathUtils.PI) angVel.y -= MathUtils.PI2;
+//				angVel.y /= deltaTime;
+//				body.setAngularVelocity(angVel);
+//				anyAccelerations = true;
+//				oldOrientation = newOrientation;
+            }
+        }
+        if (anyAccelerations) {
+            body.activate();
+
+            // TODO:
+            // Looks like truncating speeds here after applying forces doesn't work as expected.
+            // We should likely cap speeds form inside an InternalTickCallback, see
+            // http://www.bulletphysics.org/mediawiki-1.5.8/index.php/Simulation_Tick_Callbacks
+
+            // Cap the linear speed
+            Vector3 velocity = body.getLinearVelocity();
+            float currentSpeedSquare = velocity.len2();
+            float maxLinearSpeed = getMaxLinearSpeed();
+            if (currentSpeedSquare > maxLinearSpeed * maxLinearSpeed) {
+                body.setLinearVelocity(velocity.scl(maxLinearSpeed / (float)Math.sqrt(currentSpeedSquare)));
+            }
+
+            // Cap the angular speed
+            Vector3 angVelocity = body.getAngularVelocity();
+            if (angVelocity.y > getMaxAngularSpeed()) {
+                angVelocity.y = getMaxAngularSpeed();
+                body.setAngularVelocity(angVelocity);
+            }
+        }
+        */
+    }
+
+
+    private void calcSteeringOutput_private(Vector3 linear) {
 
         // angular force not used with Seek behavior
 //        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
@@ -102,10 +183,10 @@ public class TankController extends ICharacterControlManual {
         Ray ray = new Ray(); // tank direction
         Vector3 forward = new Vector3();
 
-if (null != body)
-        ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
-else
-    body = null ; // wtf
+        if (null != body)
+            ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
+        else
+            body = null; // wtf
 
         ray.set(tmpV, forward);
 
@@ -156,10 +237,10 @@ else
             degrees = -1;
         }
 
-if (null != body)
- ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
-else
- body = null; // wtf
+        if (null != body)
+            ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
+        else
+            body = null; // wtf
 
         if (inpVect.y > DZ) {
             // reverse thrust & "steer" opposite direction !
@@ -197,10 +278,10 @@ else
         body.getWorldTransform(tmpM);
         tmpM.getTranslation(tmpV);
 
-if (null != body)
-        ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
-else
-    body = null; // wtf
+        if (null != body)
+            ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
+        else
+            body = null; // wtf
 
         RenderSystem.otherThings.add(GfxUtil.line(tmpV,
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),

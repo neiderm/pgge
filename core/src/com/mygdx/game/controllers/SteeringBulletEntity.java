@@ -90,7 +90,7 @@ GN: this is where I call the TankController:update()
 // need to pass        steering.angular
 //        this.ctrl.inputSet(io.set(touchPadCoords.set(steering.linear.x, steering.linear.z), InputStruct.ButtonsEnum.BUTTON_NONE));
 
-        this.ctrl.calcSteeringOutput(tmpLinearV.set(steering.linear.x, 0, steering.linear.z), steering.angular);
+        this.ctrl.calcSteeringOutput(steering);
 
         this.ctrl.update(time);
     }
@@ -98,6 +98,13 @@ GN: this is where I call the TankController:update()
 
     private static final Matrix4 tmpMatrix4 = new Matrix4();
     private final Vector3 tmpVector3 = new Vector3();
+
+
+    @Override
+    public Vector3 getLinearVelocity () {
+        return body.getLinearVelocity();
+    }
+
 
     @Override
     public Vector3 getPosition () {
