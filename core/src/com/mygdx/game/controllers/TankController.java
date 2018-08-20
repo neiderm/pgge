@@ -93,7 +93,7 @@ public class TankController extends ICharacterControlManual {
     public void calcSteeringOutput(SteeringAcceleration<Vector3> steering) {
 
         // idfk
-        if (0 == steering.angular)
+        if (true)//if (0 == steering.angular)
             calcSteeringOutput_private(steering.linear);
         else
             calcSteeringOutput_private(steering);
@@ -103,13 +103,22 @@ public class TankController extends ICharacterControlManual {
     Vector3 tmpVector3 = new Vector3();
 
 
-    private void calcSteeringOutput_private(SteeringAcceleration<Vector3> steeringOutput) {
 
-/*
+    /*
+     *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
+     *   protected void applySteering (SteeringAcceleration<Vector3> steering, float deltaTime)
+     */
+    private void calcSteeringOutput_private(SteeringAcceleration<Vector3> steeringOutput) {
+///*
         boolean anyAccelerations = false;
 
         // Update position and linear velocity
         if (!steeringOutput.linear.isZero()) {
+
+            float forceMult = FORCE_MAG * this.mass; // fudge factor .. enemy has too much force!
+            linearForceV.set(steeringOutput.linear);
+            linearForceV.scl(forceMult); //
+
             // this method internally scales the force by deltaTime
             body.applyCentralForce(steeringOutput.linear);
             anyAccelerations = true;
@@ -165,7 +174,7 @@ public class TankController extends ICharacterControlManual {
                 body.setAngularVelocity(angVelocity);
             }
         }
-        */
+//*/
     }
 
 
@@ -316,5 +325,42 @@ public class TankController extends ICharacterControlManual {
         body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
 
         body.setWorldTransform(tmpM);
+    }
+
+
+
+//    https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
+
+    private boolean independentFacing;
+    private float maxLinearSpeed;
+    private float maxAngularSpeed;
+
+
+    public boolean isIndependentFacing () {
+        return independentFacing;
+    }
+// from steeringBulletEntity
+    public void setIndependentFacing (boolean independentFacing) {
+        this.independentFacing = independentFacing;
+    }
+
+//    @Override
+    public Vector3 getLinearVelocity () {
+        return body.getLinearVelocity();
+    }
+
+//    @Override
+    public float getMaxLinearSpeed () {
+        return maxLinearSpeed;
+    }
+
+//    @Override
+    public float getMaxAngularSpeed () {
+        return maxAngularSpeed;
+    }
+
+//    @Override
+    public float getZeroLinearSpeedThreshold () {
+        return 0.001f;
     }
 }

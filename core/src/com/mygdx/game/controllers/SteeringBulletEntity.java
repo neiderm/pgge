@@ -28,6 +28,20 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
 
     private ICharacterControlAuto ctrl;
 
+    private boolean independentFacing;
+    private static final Vector3 ANGULAR_LOCK = new Vector3(0, 1, 0);
+
+
+    public SteeringBulletEntity(
+            Entity copyEntity, ICharacterControlAuto ctrl, boolean independentFacing) {
+
+        this(copyEntity, ctrl);
+
+        body.setAngularFactor(ANGULAR_LOCK);
+
+        this.independentFacing = independentFacing;// not actually used
+//        (TankController)ctrl.setIndependentFacing(true);
+    }
 
     public SteeringBulletEntity(Entity copyEntity, ICharacterControlAuto ctrl) {
 
@@ -112,12 +126,6 @@ GN: this is where I call the TankController:update()
         return tmpMatrix4.getTranslation(tmpVector3);
     }
 
-
-    @Override
-    public void setMaxLinearSpeed (float maxLinearSpeed) {
-        this.maxLinearSpeed = maxLinearSpeed;
-    }
-
     @Override
     public float getMaxLinearAcceleration () {
         return maxLinearAcceleration;
@@ -126,5 +134,16 @@ GN: this is where I call the TankController:update()
     @Override
     public void setMaxLinearAcceleration (float maxLinearAcceleration) {
         this.maxLinearAcceleration = maxLinearAcceleration;
+    }
+
+
+    @Override
+    public float getMaxLinearSpeed () {
+        return maxLinearSpeed;
+    }
+
+    @Override
+    public void setMaxLinearSpeed (float maxLinearSpeed) {
+        this.maxLinearSpeed = maxLinearSpeed;
     }
 }

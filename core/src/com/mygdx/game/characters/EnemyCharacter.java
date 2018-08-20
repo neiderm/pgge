@@ -47,12 +47,21 @@ public class EnemyCharacter implements IGameCharacter {
         character.setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
         target = new SteeringBulletEntity(player, ctrl);
-
+//        target = new SteeringBulletEntity(player, ctrl, true);
 
         final Seek<Vector3> seekSB = new Seek<Vector3>(character, target);
         character.setSteeringBehavior(seekSB);
-
 /*
+        character.setMaxLinearAcceleration(500);
+        character.setMaxLinearSpeed(5);
+        character.setMaxAngularAcceleration(50);
+        character.setMaxAngularSpeed(10);
+
+        character.setMaxLinearAcceleration(10);
+        character.setMaxLinearSpeed(2);
+        character.setMaxAngularAcceleration(1);
+        character.setMaxAngularSpeed(1);
+
         final LookWhereYouAreGoing<Vector3> lookWhereYouAreGoingSB = new LookWhereYouAreGoing<Vector3>(character) //
                 .setAlignTolerance(.005f) //
                 .setDecelerationRadius(MathUtils.PI) //
