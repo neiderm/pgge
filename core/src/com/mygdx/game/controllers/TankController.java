@@ -56,12 +56,32 @@ public class TankController extends ICharacterControlManual {
         InputStruct io = (InputStruct) ioObject;
         inpVect.set(io.inpVector);
 
-        calcSteeringOutput(inpVect);
+        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
+        // rotate by a constant rate according to stick left or stick right.
+        float degrees = 0f;
+        float linear = 0f;
 
-        InputStruct.ButtonsEnum button = io.buttonPress;
+        if (inpVect.x < -DZ) {
+            degrees = 1f;
+        } else if (inpVect.x > DZ) {
+            degrees = -1f;
+        }
 
-        switch (button) {
+        if (inpVect.y > DZ) {
+            // reverse thrust & "steer" opposite direction !
+            linear = 1f;
+            degrees *= -1f;
+        } else if (inpVect.y < -DZ) {
+            linear = -1f;
+        }
+        // else ... inside deadzone
+
+        degrees *= 5.0f; // degrees multiplier is arbitrary!
+
+        calcSteeringOutputPlayer(degrees, linear);
+
+        switch (io.buttonPress) {
             case BUTTON_A:
                 break;
             case BUTTON_B:
@@ -76,13 +96,13 @@ public class TankController extends ICharacterControlManual {
 
 
     // magnitude of force applied (property of "vehicle" type?)
-    static final float FORCE_MAG = 12.0f;
+    private static final float FORCE_MAG = 12.0f;
 
 
     /*
      * from bulletSteeringUtils
      */
-    public static float vectorToAngle(Vector3 vector) {
+    private static float vectorToAngle(Vector3 vector) {
 // return (float)Math.atan2(vector.z, vector.x);
         return (float) Math.atan2(-vector.z, vector.x);
     }
@@ -100,8 +120,7 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-    Vector3 tmpVector3 = new Vector3();
-
+    private Vector3 tmpVector3 = new Vector3();
 
 
     /*
@@ -131,8 +150,7 @@ public class TankController extends ICharacterControlManual {
                 body.applyTorque(tmpVector3.set(0, steeringOutput.angular, 0));
                 anyAccelerations = true;
             }
-        }
-        else {
+        } else {
             // If we haven't got any velocity, then we can do nothing.
             Vector3 linVel = getLinearVelocity();
             if (!linVel.isZero(getZeroLinearSpeedThreshold())) {
@@ -164,7 +182,7 @@ public class TankController extends ICharacterControlManual {
             float currentSpeedSquare = velocity.len2();
             float maxLinearSpeed = getMaxLinearSpeed();
             if (currentSpeedSquare > maxLinearSpeed * maxLinearSpeed) {
-                body.setLinearVelocity(velocity.scl(maxLinearSpeed / (float)Math.sqrt(currentSpeedSquare)));
+                body.setLinearVelocity(velocity.scl(maxLinearSpeed / (float) Math.sqrt(currentSpeedSquare)));
             }
 
             // Cap the angular speed
@@ -234,41 +252,25 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-    public void calcSteeringOutput(Vector2 inpVect) {
+    private void calcSteeringOutputPlayer(float degrees, float linear) {
 
-        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+        linearForceV.set(0, 0, 0);
 
-        // rotate by a constant rate according to stick left or stick right.
-        float degrees = 0;
-        if (inpVect.x < -DZ) {
-            degrees = 1;
-        } else if (inpVect.x > DZ) {
-            degrees = -1;
-        }
-
+        // linear force to be applied strictly along the body Z-axis
         if (null != body)
-            ModelInstanceEx.rotateRad(linearForceV.set(0, 0, -1), body.getOrientation());
+            ModelInstanceEx.rotateRad(linearForceV.set(0, 0, linear), body.getOrientation());
         else
             body = null; // wtf
 
-        if (inpVect.y > DZ) {
-            // reverse thrust & "steer" opposite direction !
-            linearForceV.scl(-1);
-            degrees *= -1;
-        } else if (!(inpVect.y < -DZ)) {
-            linearForceV.set(0, 0, 0);
-        }
-
-
         linearForceV.scl(FORCE_MAG * this.mass);
 
-        angularForceV.set(0, degrees * 5.0f, 0);  /// degrees multiplier is arbitrary!
+        angularForceV.set(0, degrees, 0);
     }
 
 
     private Random rnd = new Random();
 
-    void applyJump() {
+    private void applyJump() {
         // random flip left or right
         if (rnd.nextFloat() > 0.5f)
             tmpV.set(0.1f, 0, 0);
@@ -328,7 +330,6 @@ public class TankController extends ICharacterControlManual {
     }
 
 
-
 //    https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
 
     private boolean independentFacing;
@@ -336,31 +337,32 @@ public class TankController extends ICharacterControlManual {
     private float maxAngularSpeed;
 
 
-    public boolean isIndependentFacing () {
+    private boolean isIndependentFacing() {
         return independentFacing;
     }
-// from steeringBulletEntity
-    public void setIndependentFacing (boolean independentFacing) {
+
+    // from steeringBulletEntity
+    public void setIndependentFacing(boolean independentFacing) {
         this.independentFacing = independentFacing;
     }
 
-//    @Override
-    public Vector3 getLinearVelocity () {
+    //    @Override
+    private Vector3 getLinearVelocity() {
         return body.getLinearVelocity();
     }
 
-//    @Override
-    public float getMaxLinearSpeed () {
+    //    @Override
+    private float getMaxLinearSpeed() {
         return maxLinearSpeed;
     }
 
-//    @Override
-    public float getMaxAngularSpeed () {
+    //    @Override
+    private float getMaxAngularSpeed() {
         return maxAngularSpeed;
     }
 
-//    @Override
-    public float getZeroLinearSpeedThreshold () {
+    //    @Override
+    private float getZeroLinearSpeedThreshold() {
         return 0.001f;
     }
 }
