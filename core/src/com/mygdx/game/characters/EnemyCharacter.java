@@ -50,17 +50,17 @@ public class EnemyCharacter implements IGameCharacter {
 //        target = new SteeringBulletEntity(player, ctrl, true);
 
         final Seek<Vector3> seekSB = new Seek<Vector3>(character, target);
-        character.setSteeringBehavior(seekSB);
-/*
+//        character.setSteeringBehavior(seekSB);
+///*
         character.setMaxLinearAcceleration(500);
         character.setMaxLinearSpeed(5);
         character.setMaxAngularAcceleration(50);
         character.setMaxAngularSpeed(10);
 
-        character.setMaxLinearAcceleration(10);
+        character.setMaxLinearAcceleration(1);
         character.setMaxLinearSpeed(2);
-        character.setMaxAngularAcceleration(1);
-        character.setMaxAngularSpeed(1);
+        character.setMaxAngularAcceleration(10);
+        character.setMaxAngularSpeed(10);
 
         final LookWhereYouAreGoing<Vector3> lookWhereYouAreGoingSB = new LookWhereYouAreGoing<Vector3>(character) //
                 .setAlignTolerance(.005f) //
@@ -68,8 +68,8 @@ public class EnemyCharacter implements IGameCharacter {
                 .setTimeToTarget(.1f);
 
         Arrive<Vector3> arriveSB = new Arrive<Vector3>(character, target) //
-                .setTimeToTarget(0.1f) //
-                .setArrivalTolerance(0.0002f) //
+                .setTimeToTarget(0.1f) // 0.1f
+                .setArrivalTolerance(0.2f) // 0.0002f
                 .setDecelerationRadius(3);
 
         BlendedSteering<Vector3> blendedSteering = new BlendedSteering<Vector3>(character) //
@@ -78,7 +78,7 @@ public class EnemyCharacter implements IGameCharacter {
                 .add(lookWhereYouAreGoingSB, 1f);
 
         character.setSteeringBehavior(blendedSteering);
-*/
+//*/
     }
 
 

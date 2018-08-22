@@ -81,11 +81,6 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
     }
 
 
-    private InputStruct io = new InputStruct();
-    private Vector2 touchPadCoords = new Vector2();
-
-    private Vector3 tmpLinearV = new Vector3();
-
     private void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 /*
 GN: this is where I call the TankController:update()
@@ -97,13 +92,7 @@ GN: this is where I call the TankController:update()
      *     and then simple rotates the body 1deg/16mS about the Y axis if there is any left/right component to the touchpad.
      *
      *     Simply throw away Y component of steering output?
-     *
      */
-
-/// this is just a hack right now ... it ain't right
-// need to pass        steering.angular
-//        this.ctrl.inputSet(io.set(touchPadCoords.set(steering.linear.x, steering.linear.z), InputStruct.ButtonsEnum.BUTTON_NONE));
-
         this.ctrl.calcSteeringOutput(steering);
 
         this.ctrl.update(time);
@@ -115,35 +104,50 @@ GN: this is where I call the TankController:update()
 
 
     @Override
-    public Vector3 getLinearVelocity () {
+    public Vector3 getLinearVelocity() {
         return body.getLinearVelocity();
     }
 
 
     @Override
-    public Vector3 getPosition () {
+    public Vector3 getPosition() {
         body.getMotionState().getWorldTransform(tmpMatrix4);
         return tmpMatrix4.getTranslation(tmpVector3);
     }
 
     @Override
-    public float getMaxLinearAcceleration () {
+    public float getMaxLinearAcceleration() {
         return maxLinearAcceleration;
     }
 
     @Override
-    public void setMaxLinearAcceleration (float maxLinearAcceleration) {
+    public void setMaxLinearAcceleration(float maxLinearAcceleration) {
         this.maxLinearAcceleration = maxLinearAcceleration;
     }
 
 
     @Override
-    public float getMaxLinearSpeed () {
+    public float getMaxLinearSpeed() {
         return maxLinearSpeed;
     }
 
     @Override
-    public void setMaxLinearSpeed (float maxLinearSpeed) {
+    public void setMaxLinearSpeed(float maxLinearSpeed) {
         this.maxLinearSpeed = maxLinearSpeed;
     }
+
+
+    /*
+     * from bulletSteeringUtils
+     */
+    @Override
+    public float vectorToAngle(Vector3 vector) {
+//        return BulletSteeringUtils.vectorToAngle(vector);
+        // return (float)Math.atan2(vector.z, vector.x);
+        return (float) Math.atan2(-vector.z, vector.x);
+    }
+
+
+    // getMaxAngularSpeed
+
 }

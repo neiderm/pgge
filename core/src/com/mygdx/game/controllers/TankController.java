@@ -114,9 +114,9 @@ public class TankController extends ICharacterControlManual {
 
         // idfk
         if (true)//if (0 == steering.angular)
-            calcSteeringOutput_private(steering.linear);
+            calcSteeringOutput_oldG(steering);
         else
-            calcSteeringOutput_private(steering);
+            calcSteeringOutput_new(steering);
     }
 
 
@@ -127,7 +127,7 @@ public class TankController extends ICharacterControlManual {
      *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
      *   protected void applySteering (SteeringAcceleration<Vector3> steering, float deltaTime)
      */
-    private void calcSteeringOutput_private(SteeringAcceleration<Vector3> steeringOutput) {
+    private void calcSteeringOutput_new(SteeringAcceleration<Vector3> steeringOutput) {
 ///*
         boolean anyAccelerations = false;
 
@@ -195,8 +195,12 @@ public class TankController extends ICharacterControlManual {
 //*/
     }
 
+    private Vector3 adjForceVect = new Vector3();
+    Vector3 forward = new Vector3();
 
-    private void calcSteeringOutput_private(Vector3 linear) {
+    private void calcSteeringOutput_oldG(SteeringAcceleration<Vector3> steeringOutput) {
+
+        Vector3 linear = steeringOutput.linear;
 
         // angular force not used with Seek behavior
 //        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
@@ -208,7 +212,6 @@ public class TankController extends ICharacterControlManual {
 
         // have to take my position and take linearforce as relatve, sum them vectors and pass that as center
         Ray ray = new Ray(); // tank direction
-        Vector3 forward = new Vector3();
 
         if (null != body)
             ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
@@ -218,10 +221,8 @@ public class TankController extends ICharacterControlManual {
         ray.set(tmpV, forward);
 
         float len = ray.direction.dot(linear.x, 0, linear.z);
-        Vector3 adjForceVect = new Vector3();
         adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len);
-
-//        float forceMult = 10.0f * FORCE_MAG * 0.75f; // fudge factor .. enemy has too much force!
+//adjForceVect.set(forward.x, 0, forward.z);
         float forceMult = FORCE_MAG * this.mass; // fudge factor .. enemy has too much force!
 // hmm ...
         linearForceV.set(adjForceVect);
@@ -232,12 +233,12 @@ public class TankController extends ICharacterControlManual {
         linearForceV.scl(forceMult * this.mass);
 */
 
-// next we want delta of commanded liniear force V vs. actual and the proportionately apply rotation force
+// next we want delta of commanded linear force V vs. actual and the proportionately apply rotation force
         float bodyYaw = rotation.getYawRad();
         float forceYaw = vectorToAngle(linearForceV);
         float error = forceYaw - bodyYaw;
-
-        float gain = 0.0f;  // arbitrary gain?
+error = steeringOutput.angular;//idfk
+        float gain = 4.0f;  // arbitrary gain?
         float deadband = 0.1f; // whatever
         if (abs(error) > deadband) {
             error *= gain;
@@ -260,7 +261,7 @@ public class TankController extends ICharacterControlManual {
         if (null != body)
             ModelInstanceEx.rotateRad(linearForceV.set(0, 0, linear), body.getOrientation());
         else
-            body = null; // wtf
+            body = null; // wtf  8/22 still gettin these :(
 
         linearForceV.scl(FORCE_MAG * this.mass);
 
