@@ -16,10 +16,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.InputStruct;
+import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
@@ -39,21 +38,24 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class PlayerCharacter implements IGameCharacter {
 
-    private ICharacterControlManual ctrlr;
+    private SteeringBulletEntity ctrlr;
+
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent;
 
     public PlayerCharacter(final Entity player, IUserInterface stage,
-                           Signal<GameEvent> gameEventSignal, ICharacterControlManual ctrl) {
+                           Signal<GameEvent> gameEventSignal, SteeringBulletEntity ctrl) {
+
+        this.ctrlr = ctrl;
+
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(ctrlr, io);
+        ctrlr.setSteeringBehavior(playerInpSB);
 
         this.gameEventSignal = gameEventSignal; // local reference to item stored in component
 
-        CharacterComponent comp = new CharacterComponent(this, gameEvent);
-        player.add(comp);
-        player.add(new ControllerComponent(ctrl));
+//        player.add(new ControllerComponent(ctrl));
 
-        // game Event stored in character comp but it probably doesn't need to be
-        comp.gameEvent = this.gameEvent = new GameEvent() {
+        this.gameEvent = new GameEvent() {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
@@ -87,8 +89,12 @@ public class PlayerCharacter implements IGameCharacter {
             }
         };
 
+        // game Event stored in character comp but it probably doesn't need to be but lets be rigorous
+        // and make sure it's valid anyway
+//        comp.gameEvent = this.gameEvent
+        CharacterComponent comp = new CharacterComponent(this, gameEvent);
+        player.add(comp);
 
-        this.ctrlr = ctrl;
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
         stage.addTouchPad(touchPadChangeListener);
@@ -107,18 +113,15 @@ public class PlayerCharacter implements IGameCharacter {
 
     /* need this persistent since we pass it every time but only update on change */
     private Vector2 touchPadCoords = new Vector2();
-    private InputStruct io = new InputStruct();
-
+    private InputStruct io =
+            new InputStruct(touchPadCoords.set(0, 0), InputStruct.ButtonsEnum.BUTTON_NONE);
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
-
         @Override
         public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
                 /*          -1.0
                        -1.0   +   +1.0
                             + 1.0        */
-
             Touchpad t = (Touchpad) actor;
 
             ctrlr.inputSet(
@@ -146,6 +149,9 @@ public class PlayerCharacter implements IGameCharacter {
 
     @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
+
+        ctrlr.update(deltaTime); // tmp? have to call this directly
+
 
         // different things have different means of setting their lookray
         Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;

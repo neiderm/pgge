@@ -11,6 +11,10 @@ public class InputStruct {
     ButtonsEnum buttonPress;
     Vector2 inpVector;
 
+    public InputStruct(Vector2 touchPadCoords, ButtonsEnum button){
+        set(touchPadCoords, button);
+    }
+
     public InputStruct set(Vector2 touchPadCoords, ButtonsEnum button) {
 
         this.inpVector = touchPadCoords;
