@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.InputStruct;
@@ -47,7 +48,8 @@ public class PlayerCharacter implements IGameCharacter {
 
         this.ctrlr = ctrl;
 
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(ctrlr, io);
+        final PlayerInput<Vector3> playerInpSB =
+                new PlayerInput<Vector3>(ctrlr, io, player.getComponent(BulletComponent.class).body);
         ctrlr.setSteeringBehavior(playerInpSB);
 
         this.gameEventSignal = gameEventSignal; // local reference to item stored in component

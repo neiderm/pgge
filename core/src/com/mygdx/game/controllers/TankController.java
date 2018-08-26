@@ -26,9 +26,6 @@ public class TankController extends SteeringBulletEntity {
     private final SteeringAcceleration<Vector3> steeringOutput =
             new SteeringAcceleration<Vector3>(new Vector3());
 
-    final Vector3 linearForceV = new Vector3();
-    final Vector3 angularForceV = new Vector3();
-    private final Vector3 impulseForceV = new Vector3();
 
     // working variables
     private Matrix4 tmpM = new Matrix4();
@@ -50,6 +47,7 @@ public class TankController extends SteeringBulletEntity {
 
 
     private Random rnd = new Random();
+    private final Vector3 impulseForceV = new Vector3();
 
     private void applyJump() {
         // random flip left or right
@@ -80,32 +78,17 @@ public class TankController extends SteeringBulletEntity {
 
             // Apply steering acceleration to move this agent
             applySteering(steeringOutput, deltaTime);
-
-            updateControl(deltaTime); // TODO: merge into applySteering()
         }
     }
+
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
-        // linearF force to be applied strictly along the body Z-axis
-        linearForceV.set(0, 0, steering.linear.z);
-
-        if (null != body) {
-            ModelInstanceEx.rotateRad(linearForceV, body.getOrientation());
-        } else
-            body = null; // wtf  8/22 still gettin these :(
-
-        linearForceV.scl(LINEAR_GAIN * this.mass);
-
-        angularForceV.set(0, steering.angular * ANGULAR_GAIN, 0);
-
-        if (steering.linear.y != 0)
-            applyJump();
-    }
-
-    @Override
-    protected void updateControl(float delta) {
+        if (steering.linear.y != 0) {
+            applyJump(); // do this before scale linear ;)
+            steering.linear.y = 0; // may or may not need zero this out
+        }
 
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
@@ -118,7 +101,7 @@ public class TankController extends SteeringBulletEntity {
 
         if (null != rayPickObject) {
 
-            body.applyTorque(angularForceV);
+            body.applyTorque(tmpV.set(0, steering.angular * ANGULAR_GAIN, 0));
 
 // eventually we should take time into account not assume 16mS?
     /* somehow the friction application is working out so well that no other limit needs to be
@@ -131,10 +114,10 @@ public class TankController extends SteeringBulletEntity {
              * velocity seems to be limited and constant ... go look up the math eventually */
             final float MU = 0.5f;
 
-            body.applyCentralForce(linearForceV);
+            steeringOutput.linear.scl(LINEAR_GAIN * this.mass);
 
+            body.applyCentralForce(steeringOutput.linear);
             body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
-
             body.setWorldTransform(tmpM);
         }
 

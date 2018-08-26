@@ -6,7 +6,9 @@ import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.controllers.InputStruct;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.controllers.InputStruct.ButtonsEnum;
 
@@ -23,6 +25,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      * the input we're tracking
      */
     private InputStruct io;
+    private btRigidBody body; // decide if this belongs here ... ;)
 
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
@@ -30,9 +33,10 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      * @param owner the owner of this behavior
      * @param io    ?.
      */
-    PlayerInput(Steerable<T> owner, InputStruct io) {
+    PlayerInput(Steerable<T> owner, InputStruct io, btRigidBody body) {
         super(owner);
         this.io = io;
+        this.body = body;
     }
 
 
@@ -66,10 +70,19 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
                 break;
         }
 
-        tmpV.set(0f, jump, io.getLinearDirection());
-        steering.linear.set((T) tmpV); // how to fix "Unchecked cast: 'com.badlogic.gdx.math.Vector3' to 'T'
         steering.angular = io.getAngularDirection();
+
         // Output steering acceleration
+        tmpV.set(0, 0, io.getLinearDirection());
+
+        if (null != body) {
+            ModelInstanceEx.rotateRad(tmpV, body.getOrientation());
+        } else
+            body = null; // wtf  8/22 still gettin these :(
+
+        Vector3 steeringLinear = (Vector3)steering.linear;
+        steeringLinear.set(tmpV.x, jump, tmpV.z); // casting help ;)
+
         return steering;
     }
 

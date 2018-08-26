@@ -18,10 +18,10 @@ import static java.lang.Math.abs;
 /**
  * Created by mango on 2/10/18.
  * ref:
- *   https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
+ * https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
  */
 
-public class SteeringTankController extends TankController /*SteeringBulletEntity */{
+public class SteeringTankController extends TankController {
 
     public SteeringTankController(Entity copyEntity, boolean independentFacing) {
 
@@ -42,18 +42,14 @@ public class SteeringTankController extends TankController /*SteeringBulletEntit
     private Quaternion rotation = new Quaternion();
 
 
-    @Override
-    protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
+    //    @Override
+    protected void _applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
         // idfk
         if (true)//if (0 == steering.angular)
-            calcSteeringOutput_oldG(steering);
+            applySteering_oldG(steering);
         else
-            calcSteeringOutput_new(steering);
-
-//super.applySteering(steering, time);  ??? need to factor out the equivalent of the base
-//        class applySteering() which will then have the equivalent of updateControl() added in
-//        since updateControl is already common to the base class anyway.
+            applySteering_new(steering);
     }
 
 
@@ -61,10 +57,10 @@ public class SteeringTankController extends TankController /*SteeringBulletEntit
      *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
      *   protected void applySteering (SteeringAcceleration<Vector3> steering, float deltaTime)
      */
-    private void calcSteeringOutput_new(SteeringAcceleration<Vector3> steeringOutput) {
+    private void applySteering_new(SteeringAcceleration<Vector3> steeringOutput) {
 ///*
         boolean anyAccelerations = false;
-
+        Vector3 linearForceV = null;//tmp
         // Update position and linearF velocity
         if (!steeringOutput.linear.isZero()) {
 
@@ -132,12 +128,11 @@ public class SteeringTankController extends TankController /*SteeringBulletEntit
     private Vector3 adjForceVect = new Vector3();
     private Vector3 forward = new Vector3();
 
-    private void calcSteeringOutput_oldG(SteeringAcceleration<Vector3> steeringOutput) {
+    private void applySteering_oldG(SteeringAcceleration<Vector3> steeringOutput) {
+    } // tmp
 
-        Vector3 linear = steeringOutput.linear;
-
-        // angular force not used with Seek behavior
-//        angularForceV.set(0, angular * 5.0f, 0);  /// degrees multiplier is arbitrary!
+    @Override
+    protected void applySteering(SteeringAcceleration<Vector3> steering, float delta) {
 
         // need our present position and rotation no matter what
         body.getWorldTransform(tmpM);
@@ -154,35 +149,30 @@ public class SteeringTankController extends TankController /*SteeringBulletEntit
 
         ray.set(tmpV, forward);
 
-        float len = ray.direction.dot(linear.x, 0, linear.z);
-        adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len);
-//adjForceVect.set(forward.x, 0, forward.z);
-        float forceMult = LINEAR_GAIN * this.mass; // fudge factor .. enemy has too much force!
-// hmm ...
-        linearForceV.set(adjForceVect);
-        linearForceV.scl(forceMult); //
-// ha idea is sound but NFW right now so just do something
-/*
-        linearForceV.set(linearF);
-        linearForceV.scl(forceMult * this.mass);
-*/
+        float len = ray.direction.dot(steering.linear.x, 0, steering.linear.z);
+        adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len); //adjForceVect.set(forward.x, 0, forward.z); // idfk
+
+        steering.linear.set(adjForceVect);
+
 
 // next we want delta of commanded linearF force V vs. actual and the proportionately apply rotation force
         float bodyYaw = rotation.getYawRad();
-        float forceYaw = vectorToAngle(linearForceV);
-        float error = forceYaw - bodyYaw;
-        error = steeringOutput.angular;//idfk
-        float gain = 4.0f;  // arbitrary gain?
-        float deadband = 0.1f; // whatever
-        if (abs(error) > deadband) {
-            error *= gain;
+        float forceYaw = vectorToAngle(steering.linear);
+
+        // there is no angular steering output genrated by seek behaviour, others may use it
+        steering.angular = forceYaw - bodyYaw; // = steeringOutput.angular;//idfk
+
+        final float deadband = 0.1f; // whatever
+
+        if (abs(steering.angular) < deadband) {
+            steering.angular = 0f;
         }
 
-        angularForceV.set(0, error, 0);
+        super.applySteering(steering, delta);
 
-        GameScreen.linearForceV.set(linearForceV);
+        GameScreen.linearForceV.set(steering.linear);
         GameScreen.bodyYaw = bodyYaw;
         GameScreen.forceYaw = forceYaw;
-        GameScreen.error = error;
+        GameScreen.error = steering.angular;
     }
 }

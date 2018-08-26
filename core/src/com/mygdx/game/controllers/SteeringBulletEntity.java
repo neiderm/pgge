@@ -48,11 +48,6 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
         this.body = copyEntity.getComponent(BulletComponent.class).body;
     }
 
-    /*
-     * this interface should be overridden and implemented to be called thru reference to the base class
-     * provides input from manually controlled (InputListener)
-     */
-    public void inputSet(Object ioObject) { /* empty  you should override this */ }
 
 
     public SteeringBehavior<Vector3> getSteeringBehavior() {
@@ -70,7 +65,6 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
 
     protected void applySteering(SteeringAcceleration<Vector3> steering, float time) { /* empty */ }
 
-    protected void updateControl(float delta) { /* empty */ }
 
 
     private static final Matrix4 tmpMatrix4 = new Matrix4();
@@ -124,7 +118,7 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
         this.independentFacing = independentFacing;
     }
 
-    public boolean isIndependentFacing() {
+    boolean isIndependentFacing() {
         return independentFacing;
     }
 
