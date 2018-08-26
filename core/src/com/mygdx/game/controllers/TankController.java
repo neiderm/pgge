@@ -4,7 +4,6 @@ import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -21,11 +20,8 @@ import java.util.Random;
  */
 public class TankController extends SteeringBulletEntity {
 
-    // magnitude of force applied (property of "vehicle" type?)
-    static final float LINEAR_GAIN = 12.0f;
-    private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
-
-    private Vector2 inpVect = new Vector2(0, 0); // control input vector
+    static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
+    static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
     private final SteeringAcceleration<Vector3> steeringOutput =
             new SteeringAcceleration<Vector3>(new Vector3());
@@ -44,63 +40,12 @@ public class TankController extends SteeringBulletEntity {
     TankController(btRigidBody body) {
         super(body);
     }
+
     public TankController(btRigidBody body, float mass) {
 
         this(body);
         this.mass = mass;
         this.world = BulletWorld.getInstance();
-    }
-
-    /*
-     * steering output is a 2d vector applied to the controller ...
-     *     ctrlr.inputSet(touchPadCoords.set(t.getKnobPercentX(), -t.getKnobPercentY()), buttonStateFlags)
-     *
-     *     ... controller applies as a force vector aligned parallel w/ body Z axis,
-     *     and then simple rotates the body 1deg/16mS about the Y axis if there is any left/right component to the touchpad.
-     *
-     *     Simply throw away Y component of steering output?
-     */
-    @Override
-    public void inputSet(Object ioObject) {
-
-        InputStruct io = (InputStruct) ioObject;
-        inpVect.set(io.inpVector);
-
-        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-
-        // rotate by a constant rate according to stick left or stick right.
-        float angularDirection = 0f;
-        float linearDirection = 0f;
-
-        if (inpVect.x < -DZ) {
-            angularDirection = 1f;
-        } else if (inpVect.x > DZ) {
-            angularDirection = -1f;
-        }
-
-        if (inpVect.y > DZ) {
-            // reverse thrust & "steer" opposite direction !
-            linearDirection = 1f;
-            angularDirection *= -1f;
-        } else if (inpVect.y < -DZ) {
-            linearDirection = -1f;
-        }
-        // else ... inside deadzone
-
-        switch (io.buttonPress) {
-            case BUTTON_A:
-                break;
-            case BUTTON_B:
-                break;
-            case BUTTON_C:
-                applyJump();
-                break;
-            default:
-                break;
-        }
-
-        steeringOutput.linear.set(0f, 0f, linearDirection);
-        steeringOutput.angular = angularDirection * ANGULAR_GAIN;
     }
 
 
@@ -116,7 +61,7 @@ public class TankController extends SteeringBulletEntity {
         body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
-@Override
+    @Override
     public void update(float deltaTime) {
 
         if (steeringBehavior != null) {
@@ -140,6 +85,7 @@ public class TankController extends SteeringBulletEntity {
         }
     }
 
+    @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
         // linearF force to be applied strictly along the body Z-axis
@@ -152,10 +98,13 @@ public class TankController extends SteeringBulletEntity {
 
         linearForceV.scl(LINEAR_GAIN * this.mass);
 
-        angularForceV.set(0, steering.angular, 0);
+        angularForceV.set(0, steering.angular * ANGULAR_GAIN, 0);
+
+        if (steering.linear.y != 0)
+            applyJump();
     }
 
-
+    @Override
     protected void updateControl(float delta) {
 
         // check for contact w/ surface, only apply force if in contact, not falling

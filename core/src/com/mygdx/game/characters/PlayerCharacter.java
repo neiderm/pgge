@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -112,9 +111,9 @@ public class PlayerCharacter implements IGameCharacter {
 
 
     /* need this persistent since we pass it every time but only update on change */
-    private Vector2 touchPadCoords = new Vector2();
+    private Vector3 inpVect = new Vector3(0f, 0f, 0f);
     private InputStruct io =
-            new InputStruct(touchPadCoords.set(0, 0), InputStruct.ButtonsEnum.BUTTON_NONE);
+            new InputStruct(inpVect, InputStruct.ButtonsEnum.BUTTON_NONE);
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -124,22 +123,43 @@ public class PlayerCharacter implements IGameCharacter {
                             + 1.0        */
             Touchpad t = (Touchpad) actor;
 
-            ctrlr.inputSet(
-                    io.set(touchPadCoords.set(t.getKnobPercentX(), -t.getKnobPercentY()),
-                            InputStruct.ButtonsEnum.BUTTON_NONE));
+            final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+
+            // rotate by a constant rate according to stick left or stick right.
+            float angularDirection = 0f;
+            float linearDirection = 0f;
+
+            float knobX = t.getKnobPercentX();
+            float knobY = t.getKnobPercentY();
+
+            if (knobX < -DZ) {
+                angularDirection = 1f;
+            } else if (knobX > DZ) {
+                angularDirection = -1f;
+            }
+
+            if (knobY > DZ) {
+                // reverse thrust & "steer" opposite direction !
+                linearDirection = -1f;
+            } else if (knobY < -DZ) {
+                linearDirection = +1f;
+                angularDirection *= -1f;
+            }
+            // else ... inside deadzone
+
+            io.set(inpVect.set(
+                    angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
         }
     };
 
     private final InputListener actionButtonListener = new InputListener() {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            //Gdx.app.log("my app", "Pressed"); //** Usually used to start Game, etc. **//
-            ctrlr.inputSet(io.set(touchPadCoords, InputStruct.ButtonsEnum.BUTTON_C));
+            io.set(inpVect.set(0f, 0f, 0f), InputStruct.ButtonsEnum.BUTTON_C);
             return true;
         }
         @Override
-        public void touchUp(
-                InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
 
 
@@ -150,7 +170,7 @@ public class PlayerCharacter implements IGameCharacter {
     @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
 
-        ctrlr.update(deltaTime); // tmp? have to call this directly
+        ctrlr.update(deltaTime);
 
 
         // different things have different means of setting their lookray
