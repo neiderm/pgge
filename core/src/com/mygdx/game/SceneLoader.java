@@ -140,7 +140,7 @@ public class SceneLoader /* implements Disposable */ {
 
 
         Entity ls = BulletEntityBuilder.load(landscapeModel);
-//        engine.addEntity(ls);
+        engine.addEntity(ls); //landscape THING
 
         final float yTrans = -10.0f;
 
@@ -154,19 +154,20 @@ public class SceneLoader /* implements Disposable */ {
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
-//        loadDynamicEntiesByName(engine, testCubeModel, "Crate");
+        loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
         PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("not used"); // this constructor could use a size param ?
-/*
+// crate THINGs
+///*
         engine.addEntity(bo.create(0.1f, new Vector3(0, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 6, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 6, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
-*/
+//*/
 
         float r = 16;
         Entity e;
@@ -175,7 +176,7 @@ public class SceneLoader /* implements Disposable */ {
                 0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
 //        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
-//        engine.addEntity(e);
+        engine.addEntity(e); // sphere THING
 
         e = PrimitivesBuilder.getBoxBuilder("not used").create(
                 0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
