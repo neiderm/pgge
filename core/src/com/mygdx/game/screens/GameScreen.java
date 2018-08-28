@@ -25,6 +25,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
+import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.EnemyCharacter;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
@@ -33,7 +34,6 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.ICharacterControlAuto;
-import com.mygdx.game.controllers.ICharacterControlManual;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -273,18 +273,17 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
             }
         };
 
-        ICharacterControlManual playerCtrlr =
-                new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
-                        pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
+        // select the Steering Bullet Entity here and pass it to the character
         PlayerCharacter playerCharacter =
-                new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal, playerCtrlr);
+                new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal,
+                        new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
+                                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */));
+
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
-        SceneLoader.createChaser1(engine, pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
-
-
+        Chaser asdf = new Chaser();
+        engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
         EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer);
     }
@@ -336,7 +335,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
             stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
             stringBuilder.append(" Visible: ").append(visibleCount);
             stringBuilder.append(" / ").append(renderableCount);
-            //label.setText(stringBuilder);
+            label.setText(stringBuilder);
             font.draw(batch, stringBuilder, 0, 10);
         }
 
