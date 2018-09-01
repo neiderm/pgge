@@ -285,7 +285,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         Chaser asdf = new Chaser();
         engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
-        EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer);
+        EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer.getComponent(BulletComponent.class).body);
     }
 
     /*

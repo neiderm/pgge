@@ -8,6 +8,7 @@ import com.badlogic.gdx.ai.steer.behaviors.Seek;
 import com.badlogic.gdx.ai.steer.limiters.NullLimiter;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringTankController;
@@ -22,7 +23,7 @@ public class EnemyCharacter implements IGameCharacter {
 
     private SteeringTankController character;
 
-    public EnemyCharacter(Entity enemy, Entity player ){
+    public EnemyCharacter(Entity enemy, btRigidBody targetBody ){
         /*
           tmp: not going to set the controller comp on the entity for now ... enemy character will call controller methods directly
          */
@@ -37,7 +38,7 @@ public class EnemyCharacter implements IGameCharacter {
         character.setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
         // use the base type here
-        SteeringBulletEntity target = new SteeringBulletEntity(player);
+        SteeringBulletEntity target = new SteeringBulletEntity(targetBody);
 
         final Seek<Vector3> seekSB = new Seek<Vector3>(character, target);
 //        character.setSteeringBehavior(seekSB);

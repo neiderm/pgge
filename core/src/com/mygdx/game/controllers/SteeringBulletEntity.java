@@ -16,8 +16,6 @@
 
 package com.mygdx.game.controllers;
 
-import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.ai.steer.SteerableAdapter;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.math.Matrix4;
@@ -25,44 +23,45 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.BulletComponent;
 
 /**
- * copied from 
- *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
+ * copied from
+ * https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
  * (@author Daniel Holderbaum)
  */
-public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
+public class SteeringBulletEntity extends SteeringEntity {
 
+    // GN:
     BulletWorld world;
     protected float mass;
 
+    protected btRigidBody body;
 
-    public btRigidBody body;
-
-    float maxLinearSpeed;
-    float maxLinearAcceleration;
-    float maxAngularSpeed;
-    float maxAngularAcceleration;
-    float boundingRadius;
-    boolean tagged;
-    boolean independentFacing;
-    protected SteeringBehavior<Vector3> steeringBehavior;
-    private static final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
-
-    private static final Quaternion tmpQuaternion = new Quaternion();
-    private static final Matrix4 tmpMatrix4 = new Matrix4();
+    private float maxLinearSpeed;
+    private float maxLinearAcceleration;
+    private float maxAngularSpeed;
+    private float maxAngularAcceleration;
+    private float boundingRadius;
+    private boolean tagged;
+    private boolean independentFacing;
+    /* GN: in base class
+        protected SteeringBehavior<Vector3> steeringBehavior;
+        private static final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
+    */
+    private final Quaternion tmpQuaternion = new Quaternion();
+    private final Matrix4 tmpMatrix4 = new Matrix4();
     private final Vector3 tmpVector3 = new Vector3();
 
     private static final Vector3 ANGULAR_LOCK = new Vector3(0, 1, 0);
 
-    public SteeringBulletEntity(Entity copyEntity) {
-        this.body = copyEntity.getComponent(BulletComponent.class).body;
+    // GN:
+    public SteeringBulletEntity(btRigidBody body) {
+        this.body = body;
     }
 
-/*
+/* GN:
 	public SteeringBulletEntity (BulletEntity copyEntity, boolean independentFacing) {
-//		super(copyEntity.modelInstance, copyEntity.body);
+		super(copyEntity.modelInstance, copyEntity.body);
 
 		if (!(copyEntity.body instanceof btRigidBody)) {
 			throw new IllegalArgumentException("Body must be a rigid body.");
@@ -78,12 +77,7 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
 		this.independentFacing = independentFacing; 
 	}
 */
-
-    SteeringBulletEntity(btRigidBody body) {
-        this.body = body;
-    }
-
-
+/* GN: base class
     public SteeringBehavior<Vector3> getSteeringBehavior() {
         return steeringBehavior;
     }
@@ -91,9 +85,10 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
     public void setSteeringBehavior(SteeringBehavior<Vector3> steeringBehavior) {
         this.steeringBehavior = steeringBehavior;
     }
-
+*/
 //	float oldOrientation = 0;
 
+    @Override // GN:
     public void update(float deltaTime) {
         if (steeringBehavior != null) {
             // Calculate steering acceleration
@@ -112,6 +107,7 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
         }
     }
 
+    @Override // GN:
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
         boolean anyAccelerations = false;
 
@@ -159,9 +155,9 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
             // Cap the linear speed
             Vector3 velocity = body.getLinearVelocity();
             float currentSpeedSquare = velocity.len2();
-            float maxLinearSpeed = getMaxLinearSpeed();
-            if (currentSpeedSquare > maxLinearSpeed * maxLinearSpeed) {
-                body.setLinearVelocity(velocity.scl(maxLinearSpeed / (float) Math.sqrt(currentSpeedSquare)));
+            float _maxLinearSpeed = getMaxLinearSpeed();
+            if (currentSpeedSquare > _maxLinearSpeed * _maxLinearSpeed) {
+                body.setLinearVelocity(velocity.scl(_maxLinearSpeed / (float) Math.sqrt(currentSpeedSquare)));
             }
 
             // Cap the angular speed
@@ -181,7 +177,8 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
         this.independentFacing = independentFacing;
     }
 
-/*	@Override
+/* GN:?
+	@Override
 	public void setOrientation (float orientation) {
 		transform.setToRotationRad(0, 1, 0, orientation);
 		body.setWorldTransform(transform);
@@ -191,7 +188,8 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
 	public float getOrientation () {
 		transform.getRotation(tmpQuaternion, true);
 		return tmpQuaternion.getYawRad();
-	}*/
+	}
+*/
 
     @Override
     public Vector3 getLinearVelocity() {
@@ -220,22 +218,24 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
         this.tagged = tagged;
     }
 
-//	@Override
-//	public Location<Vector3> newLocation () {
-//		return new BulletLocation();
-//	}
-
+    /* GN: ?
+        @Override
+        public Location<Vector3> newLocation () {
+            return new BulletLocation();
+        }
+    */
     @Override
     public float vectorToAngle(Vector3 vector) {
 //		return BulletSteeringUtils.vectorToAngle(vector);
         return (float) Math.atan2(-vector.z, vector.x); // GN: why negative ?
     }
 
-//	@Override
-//	public Vector3 angleToVector (Vector3 outVector, float angle) {
-//		return BulletSteeringUtils.angleToVector(outVector, angle);
-//	}
-
+    /* GN: ?
+        @Override
+        public Vector3 angleToVector (Vector3 outVector, float angle) {
+            return BulletSteeringUtils.angleToVector(outVector, angle);
+        }
+    */
     @Override
     public Vector3 getPosition() {
         body.getMotionState().getWorldTransform(tmpMatrix4);
@@ -291,5 +291,4 @@ public class SteeringBulletEntity extends SteerableAdapter<Vector3> {
     public void setZeroLinearSpeedThreshold(float value) {
         throw new UnsupportedOperationException();
     }
-
 }

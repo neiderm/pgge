@@ -8,7 +8,7 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.SteeringBulletEntity;
+import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 
@@ -24,14 +24,11 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class Chaser implements IGameCharacter  {
 
-    SteeringBulletEntity character;    //  tmp don't actually need a bullet steerable
+    private SteeringEntity character;
 
 
-    public Chaser(){}
-
-    public Chaser ( SteeringBulletEntity ctrl) {
-    }
-
+    public Chaser(){ /* empty */ }
+    
 
     public Entity create(Matrix4 tgtTransform) {
 
@@ -51,7 +48,7 @@ public class Chaser implements IGameCharacter  {
         // don't really need a bullet component but it needs the transform from the body ... so be it
         e.add(new BulletComponent(new btSphereShape(r), new Matrix4(), 0.f));
 
-        this.character = new SteeringBulletEntity(e);
+        this.character = new SteeringEntity();
 
         character.setSteeringBehavior(new TrackerSB<Vector3>(character, tgtTransform, instance.transform, spOffs));
 
