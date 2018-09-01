@@ -7,14 +7,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.controllers.PIDcontrol;
 import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
@@ -208,26 +205,6 @@ public class SceneLoader /* implements Disposable */ {
         }
     }
 
-    /*
-    a character object that tracks the given "node" ... a position (transform) plus offset for the
-    PID control to track. So if it is handed the the world transform of the camera, it makes for a
-    crude camera controller. "Plant" output is simply an offset displacement added to present position
-    The sphere is just eye candy.
-     */
-    public static Entity createChaser1(Engine engine, Matrix4 tgtTransform) {
-
-        float r = 0.5f;
-        Entity e = PrimitivesBuilder.loadSphere(r, new Vector3(0, 15f, -5f));
-
-        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-
-        instance.userData = 0xaa55;
-        e.add(new ControllerComponent(
-                new PIDcontrol(tgtTransform, instance.transform, new Vector3(0, 1, 2), 0.1f, 0, 0)));
-
-        engine.addEntity(e);
-        return e;
-    }
 
 //    @Override
     public static void dispose() {
