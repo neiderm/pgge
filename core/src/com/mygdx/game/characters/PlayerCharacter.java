@@ -18,7 +18,7 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.InputStruct;
-import com.mygdx.game.controllers.SteeringBulletEntity;
+import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
@@ -38,19 +38,19 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class PlayerCharacter implements IGameCharacter {
 
-    private SteeringBulletEntity ctrlr;
+    private SteeringEntity steerable;
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent;
 
     public PlayerCharacter(final Entity player, IUserInterface stage,
-                           Signal<GameEvent> gameEventSignal, SteeringBulletEntity ctrl) {
+                           Signal<GameEvent> gameEventSignal, SteeringEntity ctrl) {
 
-        this.ctrlr = ctrl;
+        this.steerable = ctrl;
 
         final PlayerInput<Vector3> playerInpSB =
-                new PlayerInput<Vector3>(ctrlr, io, player.getComponent(BulletComponent.class).body);
-        ctrlr.setSteeringBehavior(playerInpSB);
+                new PlayerInput<Vector3>(steerable, io, player.getComponent(BulletComponent.class).body);
+        steerable.setSteeringBehavior(playerInpSB);
 
         this.gameEventSignal = gameEventSignal; // local reference to item stored in component
 
@@ -172,8 +172,7 @@ public class PlayerCharacter implements IGameCharacter {
     @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
 
-        ctrlr.update(deltaTime);
-
+        steerable.update(deltaTime);
 
         // different things have different means of setting their lookray
         Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
