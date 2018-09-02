@@ -233,7 +233,7 @@ create a game event object for signalling to pickray system.     modelinstance r
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        stage.addButton(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        stage.addInputListener(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
     }
 
@@ -251,7 +251,7 @@ create a game event object for signalling to pickray system.     modelinstance r
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillRectangle(0, 0, 150, 150);
-        stage.addButton(buttonGSListener, button,
+        stage.addInputListener(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
 // so this is all not needed?

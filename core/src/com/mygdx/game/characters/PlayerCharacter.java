@@ -98,7 +98,7 @@ public class PlayerCharacter implements IGameCharacter {
 
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
-        stage.addTouchPad(touchPadChangeListener);
+        stage.addChangeListener(touchPadChangeListener);
 
         Pixmap button;
 
@@ -106,7 +106,7 @@ public class PlayerCharacter implements IGameCharacter {
         button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
-        stage.addButton(actionButtonListener, button,
+        stage.addInputListener(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         button.dispose();
     }

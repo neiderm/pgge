@@ -22,7 +22,7 @@ public abstract class IUserInterface extends Stage {
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    public void addTouchPad(ChangeListener touchPadChangeListener) {
+    public void addChangeListener(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
@@ -62,7 +62,7 @@ public abstract class IUserInterface extends Stage {
         background.dispose();
     }
 
-    public void addButton(InputListener listener, Pixmap pixmap, float x, float y) {
+    public void addInputListener(InputListener listener, Pixmap pixmap, float x, float y) {
 
         Texture myTexture = new Texture(pixmap);
         TextureRegion myTextureRegion = new TextureRegion(myTexture);
@@ -75,6 +75,7 @@ public abstract class IUserInterface extends Stage {
         this.addActor(button);
     }
 
+    @Override
     public boolean keyDown(int keycode) {
         if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
 

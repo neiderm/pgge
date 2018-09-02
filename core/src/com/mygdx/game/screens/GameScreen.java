@@ -134,7 +134,7 @@ class GameScreen implements Screen {
         button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
-        gameUI.addButton(buttonBListener, button,
+        gameUI.addInputListener(buttonBListener, button,
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
         button.dispose();
 
