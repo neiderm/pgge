@@ -25,6 +25,7 @@ public class TankController extends SteeringBulletEntity {
 
 
     // working variables
+    private Vector3 trans = new Vector3();
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
     private Vector3 down = new Vector3();
@@ -56,7 +57,6 @@ public class TankController extends SteeringBulletEntity {
         body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
-
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
@@ -68,11 +68,11 @@ public class TankController extends SteeringBulletEntity {
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
         body.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
+        tmpM.getTranslation(trans);
 
         ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
 
-        btCollisionObject rayPickObject = world.rayTest(tmpV, down, 1.0f);
+        btCollisionObject rayPickObject = world.rayTest(trans, down, 1.0f);
 
         if (null != rayPickObject) {
 
@@ -96,8 +96,11 @@ public class TankController extends SteeringBulletEntity {
             body.setWorldTransform(tmpM);
         }
 
-        RenderSystem.otherThings.add(GfxUtil.line(tmpV,
+        RenderSystem.otherThings.add(GfxUtil.line(trans,
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
                 Color.RED));
+
+//Gdx.app.log(this.getClass().getName(), String.format("GfxUtil.line x = %f y = %f, z = %f", trans.x, trans. y, trans.z));
     }
 }
+
