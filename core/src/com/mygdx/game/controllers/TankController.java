@@ -23,9 +23,6 @@ public class TankController extends SteeringBulletEntity {
     static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
-    private final SteeringAcceleration<Vector3> steeringOutput =
-            new SteeringAcceleration<Vector3>(new Vector3());
-
 
     // working variables
     private Matrix4 tmpM = new Matrix4();
@@ -57,28 +54,6 @@ public class TankController extends SteeringBulletEntity {
             tmpV.set(-0.1f, 0, 0);
 
         body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
-    }
-
-    @Override
-    public void update(float deltaTime) {
-
-        if (steeringBehavior != null) {
-            // Calculate steering acceleration
-            steeringBehavior.calculateSteering(steeringOutput);
-
-            /*
-             * Here you might want to add a motor control layer filtering steering accelerations.
-             *
-             * For instance, a car in a driving game has physical constraints on its movement:
-             * - it cannot turn while stationary
-             * - the faster it moves, the slower it can turn (without going into a skid)
-             * - it can brake much more quickly than it can accelerate
-             * - it only moves in the direction it is facing (ignoring power slides)
-             */
-
-            // Apply steering acceleration to move this agent
-            applySteering(steeringOutput, deltaTime);
-        }
     }
 
 

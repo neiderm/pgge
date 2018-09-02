@@ -17,7 +17,6 @@
 package com.mygdx.game.controllers;
 
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
-import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -88,24 +87,25 @@ public class SteeringBulletEntity extends SteeringEntity {
 */
 //	float oldOrientation = 0;
 
-    @Override // GN:
+/* GN: in base class
     public void update(float deltaTime) {
         if (steeringBehavior != null) {
             // Calculate steering acceleration
             steeringBehavior.calculateSteering(steeringOutput);
 
-            /*
+            *//*
              * Here you might want to add a motor control layer filtering steering accelerations.
              *
              * For instance, a car in a driving game has physical constraints on its movement: it cannot turn while stationary; the
              * faster it moves, the slower it can turn (without going into a skid); it can brake much more quickly than it can
              * accelerate; and it only moves in the direction it is facing (ignoring power slides).
-             */
+             *//*
 
             // Apply steering acceleration
             applySteering(steeringOutput, deltaTime);
         }
     }
+    */
 
     @Override // GN:
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
