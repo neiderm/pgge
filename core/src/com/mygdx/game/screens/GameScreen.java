@@ -108,24 +108,7 @@ class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-
-        final InputListener buttonBListener = new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // assert null != cameraMan
-                if (cameraMan.nextOpMode())
-                    multiplexer.addProcessor(camController);
-                else
-                    multiplexer.removeProcessor(camController);
-
-                return true;
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
-        };
-
-
+/*
         Pixmap button;
 
         gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
@@ -137,6 +120,7 @@ class GameScreen implements Screen {
         gameUI.addInputListener(buttonBListener, button,
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
         button.dispose();
+*/
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -163,6 +147,37 @@ class GameScreen implements Screen {
         label = new Label("Loading ...", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
     }
+
+    void makeCameraSwitchHandler(GameUI ui)
+    {
+        Pixmap button;
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+
+        ui.addInputListener(buttonBListener, button,
+                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
+        button.dispose();
+    }
+
+    private final InputListener buttonBListener = new InputListener() {
+        @Override
+        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+            // assert null != cameraMan
+            if (cameraMan.nextOpMode())
+                multiplexer.addProcessor(camController);
+            else
+                multiplexer.removeProcessor(camController);
+
+            return true;
+        }
+
+        @Override
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
+    };
+
 
     private void newRound() {
 
@@ -242,17 +257,9 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
     }
 
     private void onPlayerPicked() {
-
-        multiplexer.removeProcessor(camController);
-        multiplexer.removeProcessor(setupUI);
-        multiplexer.addProcessor(gameUI);
-        stage = gameUI;
-
+        
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
-
-        cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
-                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
         isPicked = false;
         SceneLoader.createObjects(engine);
@@ -273,6 +280,8 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
             }
         };
 
+        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
+
         // select the Steering Bullet Entity here and pass it to the character
         PlayerCharacter playerCharacter =
                 new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal,
@@ -286,6 +295,16 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
         EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer.getComponent(BulletComponent.class).body);
+
+        makeCameraSwitchHandler(gameUI);
+
+        multiplexer.removeProcessor(camController);
+        multiplexer.removeProcessor(setupUI);
+        multiplexer.addProcessor(gameUI);
+        this.stage = gameUI;
+
+        cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
+                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
     }
 
     /*
