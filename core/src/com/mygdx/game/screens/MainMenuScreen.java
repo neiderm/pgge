@@ -1,6 +1,7 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -27,7 +28,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java#L37
 // make sure this not visible outside of com.mygdx.game.screens
-class MainMenuScreen implements Screen {
+class MainMenuScreen implements Screen /* extends Stage */ {
 
     private BitmapFont font;
 
@@ -44,7 +45,20 @@ class MainMenuScreen implements Screen {
 
         //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
         // create stage and set it as input processor
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new ScreenViewport()){
+            @Override
+            public boolean keyDown(int keycode) {
+                if (keycode == Input.Keys.SPACE) {
+                    GameWorld.getInstance().showScreen(new GameScreen());
+                    Gdx.input.setCatchBackKey(true);
+                }
+
+                if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
+                        GameWorld.getInstance().showScreen(new SplashScreen());
+                }
+                return false;
+            }
+        };
 
     // create table to layout items we will add
     Table table = new Table();
