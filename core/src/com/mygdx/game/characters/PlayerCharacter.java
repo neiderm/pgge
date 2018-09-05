@@ -1,14 +1,11 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -23,9 +20,6 @@ import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
-
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 /**
  * Created by utf1247 on 5/17/2018.
@@ -36,31 +30,21 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
  * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
  */
 
-public class PlayerCharacter implements IGameCharacter {
+public class PlayerCharacter {
 
-    private SteeringEntity steerable;
-
-    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    private GameEvent gameEvent;
-
-    public PlayerCharacter(final Entity player, IUserInterface stage,
-                           Signal<GameEvent> gameEventSignal, SteeringEntity ctrl) {
-
-        this.steerable = ctrl;
+    public PlayerCharacter(final Entity player, IUserInterface stage, SteeringEntity steerable) {
 
         final PlayerInput<Vector3> playerInpSB =
                 new PlayerInput<Vector3>(steerable, io, player.getComponent(BulletComponent.class).body);
         steerable.setSteeringBehavior(playerInpSB);
 
-        this.gameEventSignal = gameEventSignal; // local reference to item stored in component
 
-//        player.add(new ControllerComponent(ctrl));
-
-        this.gameEvent = new GameEvent() {
+        GameEvent gameEvent = new GameEvent() {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
             private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
+
             /*
             we have no way to invoke a callback to the picked component.
             Pickable component required to implment some kind of interface to provide a
@@ -92,10 +76,10 @@ public class PlayerCharacter implements IGameCharacter {
 
         // game Event stored in character comp but it probably doesn't need to be but lets be rigorous
         // and make sure it's valid anyway
-//        comp.gameEvent = this.gameEvent
-        CharacterComponent comp = new CharacterComponent(this, gameEvent);
+        CharacterComponent comp = new CharacterComponent(null, gameEvent);
         player.add(comp);
 
+        comp.steerable = steerable;
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
         stage.addChangeListener(touchPadChangeListener);
@@ -160,19 +144,17 @@ public class PlayerCharacter implements IGameCharacter {
             io.set(inpVect.set(0f, 0f, 0f), InputStruct.ButtonsEnum.BUTTON_C);
             return true;
         }
+
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
 
 
-    private Vector3 position = new Vector3();
-    private Quaternion rotation = new Quaternion();
-    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-
-    @Override
+//    @Override
     public void update(Entity entity, float deltaTime, Object whatever) {
-
-        steerable.update(deltaTime);
+/*
+        CharacterComponent comp = entity.getComponent(CharacterComponent.class);
+        comp.steerable.update(deltaTime);
 
         // different things have different means of setting their lookray
         Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
@@ -182,5 +164,6 @@ public class PlayerCharacter implements IGameCharacter {
         Ray lookRay = entity.getComponent(CharacterComponent.class).lookRay;
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
         gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, lookRay, 0));
+*/
     }
 }

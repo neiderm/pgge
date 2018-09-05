@@ -19,17 +19,13 @@ import com.mygdx.game.controllers.SteeringTankController;
  *   https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
  *   https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/tests/BulletSeekTest.java
  */
-public class EnemyCharacter implements IGameCharacter {
+public class EnemyCharacter {
 
     private SteeringTankController character;
 
     public EnemyCharacter(Entity enemy, btRigidBody targetBody ){
-        /*
-          tmp: not going to set the controller comp on the entity for now ... enemy character will call controller methods directly
-         */
-        //e.add(new ControllerComponent(this.ctrl));
 
-        CharacterComponent comp = new CharacterComponent(this, null /* tmp? */);
+        CharacterComponent comp = new CharacterComponent();
         enemy.add(comp);
 
 
@@ -70,12 +66,7 @@ public class EnemyCharacter implements IGameCharacter {
 
         character.setSteeringBehavior(blendedSteering);
 //*/
-    }
 
-
-    @Override
-    public void update(Entity entity, float deltaTime, Object whatever /* comp.lookRay */) {
-
-        this.character.update(deltaTime);
+        comp.steerable = character;
     }
 }

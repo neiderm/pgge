@@ -244,7 +244,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
 
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new CharacterSystem());
+        engine.addSystem(new CharacterSystem(pickRayEventSignal));
         engine.addSystem(new ControllerSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
@@ -283,8 +283,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
 
         // select the Steering Bullet Entity here and pass it to the character
-        PlayerCharacter playerCharacter =
-                new PlayerCharacter(pickedPlayer, gameUI, pickRayEventSignal,
+        PlayerCharacter playerCharacter = new PlayerCharacter(pickedPlayer, gameUI,
                         new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
                                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */));
 
