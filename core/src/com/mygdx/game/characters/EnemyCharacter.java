@@ -21,15 +21,9 @@ import com.mygdx.game.controllers.SteeringTankController;
  */
 public class EnemyCharacter {
 
-    private SteeringTankController character;
-
     public EnemyCharacter(Entity enemy, btRigidBody targetBody ){
 
-        CharacterComponent comp = new CharacterComponent();
-        enemy.add(comp);
-
-
-        character = new SteeringTankController(enemy, false);
+        SteeringTankController character = new SteeringTankController(enemy, false);
         character.setMaxLinearSpeed(2); // idfk
         character.setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
@@ -67,6 +61,6 @@ public class EnemyCharacter {
         character.setSteeringBehavior(blendedSteering);
 //*/
 
-        comp.steerable = character;
+        enemy.add(new CharacterComponent(character));
     }
 }

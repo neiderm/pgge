@@ -76,10 +76,8 @@ public class PlayerCharacter {
 
         // game Event stored in character comp but it probably doesn't need to be but lets be rigorous
         // and make sure it's valid anyway
-        CharacterComponent comp = new CharacterComponent(null, gameEvent);
+        CharacterComponent comp = new CharacterComponent(steerable, gameEvent);
         player.add(comp);
-
-        comp.steerable = steerable;
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
         stage.addChangeListener(touchPadChangeListener);
@@ -148,22 +146,4 @@ public class PlayerCharacter {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
-
-
-//    @Override
-    public void update(Entity entity, float deltaTime, Object whatever) {
-/*
-        CharacterComponent comp = entity.getComponent(CharacterComponent.class);
-        comp.steerable.update(deltaTime);
-
-        // different things have different means of setting their lookray
-        Matrix4 transform = entity.getComponent(ModelComponent.class).modelInst.transform;
-        transform.getTranslation(position);
-        transform.getRotation(rotation);
-
-        Ray lookRay = entity.getComponent(CharacterComponent.class).lookRay;
-        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-        gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, lookRay, 0));
-*/
-    }
 }
