@@ -13,7 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
@@ -196,7 +195,7 @@ public class CameraMan implements IGameCharacter {
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc) {
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm) {
 
                 final GameEvent event =                 new GameEvent() {
         /* 
@@ -223,16 +222,15 @@ create a game event object for signalling to pickray system.     modelinstance r
 
         this.cam = cam;
         setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
-        setCameraNode("chaser1", camTransform, cc.transform, 0);
+        setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
         setOpModeByKey("chaser1");
 
-        cameraMan.add(cc);
+//        cameraMan.add(cc);
 //        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
 
 
         SteeringEntity steerable = new SteeringEntity();
-        steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, cc.transform, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
-
+        steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
 
 /////////
         CharacterComponent comp = new CharacterComponent(this, steerable, event);
@@ -244,7 +242,6 @@ create a game event object for signalling to pickray system.     modelinstance r
 
         setCameraLocation(positionV, lookAtV);
 //////////
-
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);

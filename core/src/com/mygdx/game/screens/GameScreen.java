@@ -29,7 +29,6 @@ import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.EnemyCharacter;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -307,7 +306,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         engine.addEntity(cameraEntity);
 
         cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
-                new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
+                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
     }
 
     /*
