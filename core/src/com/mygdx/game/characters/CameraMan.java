@@ -272,7 +272,7 @@ create a game event object for signalling to pickray system.     modelinstance r
     private Vector3 tmpLookAt = new Vector3();
 
     @Override
-    public void update(Entity entity, float delta, Object whatever) {
+    public void update(float delta) {
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
             // nothing
