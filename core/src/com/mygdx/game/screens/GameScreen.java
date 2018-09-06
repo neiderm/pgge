@@ -33,11 +33,9 @@ import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.controllers.ICharacterControlAuto;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
-import com.mygdx.game.systems.ControllerSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
@@ -179,6 +177,8 @@ class GameScreen implements Screen {
     };
 
 
+    private Entity setupUICameraEntity;
+
     private void newRound() {
 
         addSystems();
@@ -190,12 +190,13 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         // .... setupUI is passed to CameraMan constructor to add button and handler
 
         // now we can make camera Man (depends on setupUI)
-        Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
-        engine.addEntity(cameraEntity);
+//        Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
+        setupUICameraEntity = new Entity();
 
-        cameraMan = new CameraMan(cameraEntity, this.setupUI, pickRayEventSignal, cam,
+        engine.addEntity(setupUICameraEntity);
+
+        cameraMan = new CameraMan(setupUICameraEntity, this.setupUI, pickRayEventSignal, cam,
                 camDefPosition, camDefLookAt,
-                new ControllerComponent(new ICharacterControlAuto() {}), // dummy
                 new GameEvent() {
                     @Override
                     public void callback(Entity picked, EventType eventType) {
@@ -245,7 +246,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem(pickRayEventSignal));
-        engine.addSystem(new ControllerSystem());
+//        engine.addSystem(new ControllerSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
     }
@@ -257,9 +258,6 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
     }
 
     private void onPlayerPicked() {
-        
-        Entity cameraEntity = new Entity();
-        engine.addEntity(cameraEntity);
 
         isPicked = false;
         SceneLoader.createObjects(engine);
@@ -301,6 +299,12 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         multiplexer.removeProcessor(setupUI);
         multiplexer.addProcessor(gameUI);
         this.stage = gameUI;
+
+
+        engine.removeEntity(setupUICameraEntity); /// BAH
+
+        Entity cameraEntity = new Entity();
+        engine.addEntity(cameraEntity);
 
         cameraMan = new CameraMan(cameraEntity, gameUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
                 new ControllerComponent(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));

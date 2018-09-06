@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ControllerComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.PIDcontrol;
+import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -48,6 +48,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
  */
 
 public class CameraMan implements IGameCharacter {
+//    public class CameraMan extends SteeringEntity {
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent; // stored in Character comp but does it need to be?
@@ -180,7 +181,6 @@ public class CameraMan implements IGameCharacter {
         cam.update();
     }
 
-
     private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
                      Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
@@ -189,7 +189,6 @@ public class CameraMan implements IGameCharacter {
 
         this.gameEvent = comp.gameEvent;
         this.gameEventSignal = gameEventSignal;
-
         this.pickRay = comp.lookRay;
         this.cam = cam;
 
@@ -199,7 +198,7 @@ public class CameraMan implements IGameCharacter {
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
                      PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc) {
 
-        this(cameraMan, gameEventSignal, cam, positionV, lookAtV, new GameEvent() {
+                final GameEvent event =                 new GameEvent() {
         /* 
 create a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
     simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
@@ -217,17 +216,35 @@ create a game event object for signalling to pickray system.     modelinstance r
                         break;
                 }
             }
-        });
+        };
 
-        cameraMan.add(cc);
 
         Matrix4 camTransform = new Matrix4();
 
+        this.cam = cam;
         setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
         setCameraNode("chaser1", camTransform, cc.transform, 0);
         setOpModeByKey("chaser1");
 
-        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
+        cameraMan.add(cc);
+//        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
+
+
+        SteeringEntity steerable = new SteeringEntity();
+        steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, cc.transform, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
+
+
+/////////
+        CharacterComponent comp = new CharacterComponent(this, steerable, event);
+        cameraMan.add(comp);
+
+        this.gameEvent = comp.gameEvent;
+        this.gameEventSignal = gameEventSignal;
+        this.pickRay = comp.lookRay;
+
+        setCameraLocation(positionV, lookAtV);
+//////////
+
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -238,12 +255,9 @@ create a game event object for signalling to pickray system.     modelinstance r
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, ControllerComponent cc,
-                     GameEvent event) {
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,  GameEvent event) {
 
         this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
-
-        cameraMan.add(cc);
 
 //        setOpModeByKey("fixed"); // this returns FALSE here so it is apparently useless!
 
@@ -254,10 +268,6 @@ create a game event object for signalling to pickray system.     modelinstance r
         stage.addInputListener(buttonGSListener, button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
-// so this is all not needed?
-//        cc.transform = new Matrix4(); /* doesn't matter */
-//        setCameraNode("chaser1", camPositionMatrix, cc.transform, 0);
-//        pidControl = new PIDcontrol(cc.transform, camPositionMatrix, new Vector3(0, 2, 3), 0.1f, 0, 0);
     }
 
 
