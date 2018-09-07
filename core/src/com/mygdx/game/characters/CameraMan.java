@@ -53,6 +53,13 @@ public class CameraMan implements IGameCharacter {
     private GameEvent gameEvent; // stored in Character comp but does it need to be?
     private Ray pickRay;
     private PerspectiveCamera cam;
+    private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
+    private int nodeIndex = 0;
+
+    // tmp variables
+    private Vector3 tmpPosition = new Vector3();
+    private Vector3 tmpLookAt = new Vector3();
+
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
     public enum CameraOpMode {
@@ -88,6 +95,14 @@ public class CameraMan implements IGameCharacter {
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
         }
+
+        Matrix4 getPositionRef() {
+            return positionRef;
+        }
+
+        Matrix4 getLookAtRef() {
+            return lookAtRef;
+        }
     }
 
     private ArrayMap<String, CameraNode> cameraNodes =
@@ -105,40 +120,26 @@ public class CameraMan implements IGameCharacter {
             cameraNodes.put(key, cameraNode);
     }
 
-    // remove camera node
-
-
-    private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
-
-    // these reference whatever the camera is supposed to be chasing
-    private Matrix4 positionMatrixRef;
-    private Matrix4 lookAtMatrixRef;
-
-    private int nodeIndex = 0;
-
-
-    /*
-     */
     private boolean setOpModeByKey(String key) {
         int index = cameraNodes.indexOfKey(key);
-
         if (index > -1) {
-            nodeIndex = index;
             return setOpModeByIndex(index);
         }
         return false;
     }
 
-
     public boolean nextOpMode() {
-
-        if (++nodeIndex >= cameraNodes.size) {
-            nodeIndex = 0;
+        int index = nodeIndex;
+        if (++index >= cameraNodes.size) {
+            index = 0;
         }
-        return setOpModeByIndex(nodeIndex);
+        return setOpModeByIndex(index);
     }
 
     private boolean setOpModeByIndex(int index) {
+
+        CameraNode prevNode = cameraNodes.getValueAt(nodeIndex);
+        nodeIndex = index;
 
         boolean isController = false;
         CameraNode node = cameraNodes.getValueAt(index);
@@ -150,27 +151,17 @@ public class CameraMan implements IGameCharacter {
             cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
 
             tmp.y += 1;
-            setCameraLocation(tmp, lookAtMatrixRef.getTranslation(tmpLookAt));
+            setCameraLocation(tmp, prevNode.getLookAtRef().getTranslation(tmpLookAt));
 
             isController = true;
 
-            // they way it's setup right now, these don't matter for fixed camera
-            positionMatrixRef = null;
-            lookAtMatrixRef = null;
-
         } else {
-
-            // set working refs to the selected node
-            positionMatrixRef = node.positionRef;
-            lookAtMatrixRef = node.lookAtRef;
-
             // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
             // this would be nicer if we could "un-stiffen" the control gain during this zoom!
-            positionMatrixRef.setToTranslation(tmp);
+            node.getPositionRef().setToTranslation(tmp);
         }
         return isController;
     }
-
 
     private void setCameraLocation(Vector3 position, Vector3 lookAt) {
 
@@ -181,7 +172,7 @@ public class CameraMan implements IGameCharacter {
     }
 
     private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
-                     Vector3 positionV, Vector3 lookAtV, GameEvent event) {
+                      Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
         CharacterComponent comp = new CharacterComponent(this, event);
         cameraMan.add(comp);
@@ -197,11 +188,11 @@ public class CameraMan implements IGameCharacter {
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
                      PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm) {
 
-                final GameEvent event =                 new GameEvent() {
-        /* 
-create a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-    simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
-     */
+        final GameEvent event = new GameEvent() {
+            /*
+    create a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+        simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
+         */
             @Override
             public void callback(Entity picked, EventType eventType) {
                 switch (eventType) {
@@ -217,7 +208,6 @@ create a game event object for signalling to pickray system.     modelinstance r
             }
         };
 
-
         Matrix4 camTransform = new Matrix4();
 
         this.cam = cam;
@@ -227,7 +217,6 @@ create a game event object for signalling to pickray system.     modelinstance r
 
 //        cameraMan.add(cc);
 //        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
-
 
         SteeringEntity steerable = new SteeringEntity();
         steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
@@ -252,7 +241,7 @@ create a game event object for signalling to pickray system.     modelinstance r
     }
 
     public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV,  GameEvent event) {
+                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
         this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
 
@@ -267,19 +256,20 @@ create a game event object for signalling to pickray system.     modelinstance r
         button.dispose();
     }
 
-
-    private Vector3 tmpPosition = new Vector3();
-    private Vector3 tmpLookAt = new Vector3();
-
     @Override
     public void update(float delta) {
+
+        CameraNode node;
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
             // nothing
         } else if (CameraOpMode.CHASE == cameraOpMode) {
+
+            node = cameraNodes.getValueAt(nodeIndex);
+
             setCameraLocation(
-                    positionMatrixRef.getTranslation(tmpPosition),
-                    lookAtMatrixRef.getTranslation(tmpLookAt));
+                    node.getPositionRef().getTranslation(tmpPosition),
+                    node.getLookAtRef().getTranslation(tmpLookAt));
         }
     }
 
@@ -296,7 +286,8 @@ create a game event object for signalling to pickray system.     modelinstance r
             return pickRay.set(rayTmp.origin, rayTmp.direction);
         }
         @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button)
+        { /*empty*/ }
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
