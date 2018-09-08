@@ -2,7 +2,6 @@ package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
 import com.badlogic.gdx.math.collision.Ray;
-import com.mygdx.game.characters.IGameCharacter;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.util.GameEvent;
 
@@ -18,10 +17,7 @@ public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
     public GameEvent gameEvent;
-    public IGameCharacter character;
     public Ray lookRay = new Ray();
-private static int count = 0;
-public int counter = 0;
 
     public CharacterComponent(SteeringEntity steeringEntity) {
 
@@ -35,25 +31,5 @@ public int counter = 0;
 
         this(steeringEntity);
         this.gameEvent = gameEvent;
-
-        counter = count++; // tmp
-    }
-
-    // tmp
-    public CharacterComponent(IGameCharacter character, GameEvent gameEvent) {
-
-        this.character = character;
-        this.gameEvent = gameEvent;
-
-        counter = count++; // tmp
-    }
-    // tmp
-    public CharacterComponent(IGameCharacter character, SteeringEntity steeringEntity, GameEvent gameEvent) {
-
-        this(steeringEntity);
-        this.character = character;
-        this.gameEvent = gameEvent;
-
-        counter = count++; // tmp
     }
 }
