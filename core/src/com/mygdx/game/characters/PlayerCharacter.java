@@ -14,7 +14,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.controllers.InputStruct;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.systems.RenderSystem;

@@ -7,10 +7,9 @@ import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.controllers.InputStruct;
 import com.mygdx.game.util.ModelInstanceEx;
 
-import static com.mygdx.game.controllers.InputStruct.ButtonsEnum;
+import static com.mygdx.game.characters.InputStruct.ButtonsEnum;
 
 
 /**
