@@ -3,6 +3,7 @@ package com.mygdx.game.characters;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -46,8 +47,8 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
  * Chase type would be constructed with a reference to the chasee
  */
 
-public class CameraMan implements IGameCharacter {
-//    public class CameraMan extends SteeringEntity {
+//public class CameraMan implements IGameCharacter {
+public class CameraMan extends SteeringEntity {
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
     private GameEvent gameEvent; // stored in Character comp but does it need to be?
@@ -65,6 +66,7 @@ public class CameraMan implements IGameCharacter {
     public enum CameraOpMode {
         FIXED_PERSPECTIVE,
         CHASE
+// TODO: fixed+lookAT (only implementes the facing part of seek behavior i.e. doesn' update position
                 // FP_PERSPECTIVE,
                 // FOLLOW
                 // ABOVE
@@ -149,7 +151,7 @@ public class CameraMan implements IGameCharacter {
         if (node.flags == FIXED) {
 
             cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
-
+// offset the cam position on y axis. LookAt doesn't change so grab it from the previous node.
             tmp.y += 1;
             setCameraLocation(tmp, prevNode.getLookAtRef().getTranslation(tmpLookAt));
 
@@ -215,14 +217,12 @@ public class CameraMan implements IGameCharacter {
         setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
         setOpModeByKey("chaser1");
 
-//        cameraMan.add(cc);
-//        cc.controller = new PIDcontrol(cc.transform, camTransform, new Vector3(0, 2, 3), 0.1f, 0, 0);
+//        SteeringEntity steerable = new SteeringEntity();
+        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
+//       steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
 
-        SteeringEntity steerable = new SteeringEntity();
-        steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
-
-/////////
-        CharacterComponent comp = new CharacterComponent(this, steerable, event);
+        CharacterComponent comp = new CharacterComponent(this, event);
+//       CharacterComponent comp = new CharacterComponent(this, steerable, event);
         cameraMan.add(comp);
 
         this.gameEvent = comp.gameEvent;
@@ -230,7 +230,6 @@ public class CameraMan implements IGameCharacter {
         this.pickRay = comp.lookRay;
 
         setCameraLocation(positionV, lookAtV);
-//////////
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -257,8 +256,8 @@ public class CameraMan implements IGameCharacter {
     }
 
     @Override
-    public void update(float delta) {
-
+    protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
+//    public void update(float delta) {
         CameraNode node;
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
@@ -285,9 +284,10 @@ public class CameraMan implements IGameCharacter {
             Ray rayTmp = cam.getPickRay(nX, nY);
             return pickRay.set(rayTmp.origin, rayTmp.direction);
         }
+
         @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button)
-        { /*empty*/ }
+        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
+
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)

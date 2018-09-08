@@ -21,7 +21,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class CharacterSystem extends IteratingSystem implements EntityListener {
 
-    Signal<GameEvent> gameEventSignal;
+    private Signal<GameEvent> gameEventSignal;
 
     public CharacterSystem(Signal<GameEvent> gameEventSignal) {
 
@@ -66,8 +66,7 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
         CharacterComponent comp = entity.getComponent(CharacterComponent.class);
         ModelComponent mc = entity.getComponent(ModelComponent.class);
 
-        if (null != comp.character)
-            comp.character.update(deltaTime); // cameraMan!
+//        if (null != comp.character) comp.character.update(deltaTime); // cameraMan!
 
         if (null != comp.steerable) {
             comp.steerable.update(deltaTime);
