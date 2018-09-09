@@ -2,6 +2,7 @@ package com.mygdx.game.characters;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
@@ -29,9 +30,9 @@ import com.mygdx.game.util.GfxUtil;
  * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
  */
 
-public class PlayerCharacter {
+public class PlayerCharacter extends IUserInterface {
 
-    public PlayerCharacter(final Entity player, IUserInterface stage, SteeringEntity steerable) {
+    public PlayerCharacter(final Entity player, SteeringEntity steerable) {
 
         final PlayerInput<Vector3> playerInpSB =
                 new PlayerInput<Vector3>(steerable, io, player.getComponent(BulletComponent.class).body);
@@ -79,7 +80,7 @@ public class PlayerCharacter {
         player.add(comp);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
-        stage.addChangeListener(touchPadChangeListener);
+                addChangeListener(touchPadChangeListener);
 
         Pixmap button;
 
@@ -87,7 +88,7 @@ public class PlayerCharacter {
         button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
-        stage.addInputListener(actionButtonListener, button,
+                addInputListener(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         button.dispose();
     }
@@ -95,8 +96,7 @@ public class PlayerCharacter {
 
     /* need this persistent since we pass it every time but only update on change */
     private Vector3 inpVect = new Vector3(0f, 0f, 0f);
-    private InputStruct io =
-            new InputStruct(inpVect, InputStruct.ButtonsEnum.BUTTON_NONE);
+    private InputStruct io = new InputStruct(inpVect, InputStruct.ButtonsEnum.BUTTON_NONE);
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -145,4 +145,34 @@ public class PlayerCharacter {
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
+
+    @Override
+    public boolean keyDown(int keycode) {
+// this needs work ... then we can refactor
+        super.keyDown(keycode);
+
+        // rotate by a constant rate according to stick left or stick right.
+        float angularDirection = 0f;
+        float linearDirection = 0f;
+
+        if (keycode == Input.Keys.A) {
+            angularDirection = 1f;
+        } else if (keycode == Input.Keys.D) {
+            angularDirection = -1f;
+        }
+
+        if (keycode == Input.Keys.W) {
+            // reverse thrust & "steer" opposite direction !
+            linearDirection = -1f;
+        } else if (keycode == Input.Keys.S) {
+            linearDirection = +1f;
+            angularDirection *= -1f;
+        }
+        // else ... inside deadzone
+
+        io.set(inpVect.set(
+                angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+
+        return false;
+    }
 }
