@@ -105,20 +105,6 @@ class GameScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-/*
-        Pixmap button;
-
-        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-        gameUI.addInputListener(buttonBListener, button,
-                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-        button.dispose();
-*/
-
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
@@ -145,7 +131,7 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-    void makeCameraSwitchHandler(GameUI ui)
+    private void makeCameraSwitchHandler(GameUI ui)
     {
         Pixmap button;
 
@@ -189,9 +175,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         // .... setupUI is passed to CameraMan constructor to add button and handler
 
         // now we can make camera Man (depends on setupUI)
-//        Entity cameraEntity = new Entity(); // // TODO: add a proper ControllerComponent to this entity!!!!!!!
         setupUICameraEntity = new Entity();
-
         engine.addEntity(setupUICameraEntity);
 
         cameraMan = new CameraMan(setupUICameraEntity, this.setupUI, pickRayEventSignal, cam,
@@ -245,7 +229,6 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem(pickRayEventSignal));
-//        engine.addSystem(new ControllerSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
     }
@@ -299,7 +282,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         multiplexer.addProcessor(gameUI);
         this.stage = gameUI;
 
-
+//setupUI.dispose(); // catch this when we trash() ...
         engine.removeEntity(setupUICameraEntity); /// BAH
 
         Entity cameraEntity = new Entity();
@@ -431,8 +414,13 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-        gameUI.dispose();
-        setupUI.dispose();
+//maybe we should do something more elegant here ...
+// fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
+        if (null != gameUI)
+            gameUI.dispose();
+        if (null != setupUI)
+            setupUI.dispose();
+
 //        SceneLoader.dispose();
     }
 
