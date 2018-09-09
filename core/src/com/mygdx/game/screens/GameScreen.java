@@ -72,8 +72,8 @@ class GameScreen implements Screen {
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private IUserInterface stage;
-    private GameUI gameUI;
-    private GameUI setupUI;
+    private IUserInterface gameUI;
+    private IUserInterface setupUI;
 
     private InputMultiplexer multiplexer;
 
@@ -131,7 +131,7 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-    private void makeCameraSwitchHandler(GameUI ui)
+    private void makeCameraSwitchHandler(IUserInterface ui)
     {
         Pixmap button;
 
@@ -171,7 +171,7 @@ class GameScreen implements Screen {
 final Entity tank =        SceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
 final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
-        stage = setupUI = new GameUI();
+        stage = setupUI = new IUserInterface();
         // .... setupUI is passed to CameraMan constructor to add button and handler
 
         // now we can make camera Man (depends on setupUI)
@@ -260,7 +260,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
             }
         };
 
-        gameUI = new GameUI(); // UI is not fully create()'d yet, but we can pass out the references anyways
+        gameUI = new IUserInterface(); // UI is not fully create()'d yet, but we can pass out the references anyways
 
         // select the Steering Bullet Entity here and pass it to the character
         PlayerCharacter playerCharacter = new PlayerCharacter(pickedPlayer, gameUI,

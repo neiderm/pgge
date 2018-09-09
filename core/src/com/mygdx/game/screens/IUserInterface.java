@@ -17,7 +17,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
  * Created by utf1247 on 6/22/2018.
  */
 
-public abstract class IUserInterface extends Stage {
+public class IUserInterface extends Stage {
 
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
