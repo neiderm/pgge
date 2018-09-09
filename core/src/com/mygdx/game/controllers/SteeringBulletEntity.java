@@ -44,8 +44,8 @@ public class SteeringBulletEntity extends SteeringEntity {
     private boolean tagged;
     private boolean independentFacing;
     /* GN: in base class
-        protected SteeringBehavior<Vector3> steeringBehavior;
-        private static final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
+    protected SteeringBehavior<Vector3> steeringBehavior;
+    private static final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
     */
     private final Quaternion tmpQuaternion = new Quaternion();
     private final Matrix4 tmpMatrix4 = new Matrix4();
@@ -58,7 +58,7 @@ public class SteeringBulletEntity extends SteeringEntity {
         this.body = body;
     }
 
-/* GN:
+/* GN: not used
 	public SteeringBulletEntity (BulletEntity copyEntity, boolean independentFacing) {
 		super(copyEntity.modelInstance, copyEntity.body);
 
@@ -69,8 +69,7 @@ public class SteeringBulletEntity extends SteeringEntity {
 // throw new IllegalArgumentException("Body must be a dynamic body.");
 // }
 
-//		this.body = (btRigidBody)copyEntity.body;
-        this.body = copyEntity.getComponent(BulletComponent.class).body;
+		this.body = (btRigidBody)copyEntity.body;
 		body.setAngularFactor(ANGULAR_LOCK);
 		
 		this.independentFacing = independentFacing; 
@@ -107,6 +106,7 @@ public class SteeringBulletEntity extends SteeringEntity {
     }
     */
 
+/*
     @Override // GN:
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
         boolean anyAccelerations = false;
@@ -168,6 +168,7 @@ public class SteeringBulletEntity extends SteeringEntity {
             }
         }
     }
+*/
 
     public boolean isIndependentFacing() {
         return independentFacing;
@@ -177,7 +178,7 @@ public class SteeringBulletEntity extends SteeringEntity {
         this.independentFacing = independentFacing;
     }
 
-/* GN:?
+/* GN:? where was transform defined?
 	@Override
 	public void setOrientation (float orientation) {
 		transform.setToRotationRad(0, 1, 0, orientation);
