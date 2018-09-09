@@ -66,28 +66,25 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
         CharacterComponent comp = entity.getComponent(CharacterComponent.class);
         ModelComponent mc = entity.getComponent(ModelComponent.class);
 
-//        if (null != comp.character) comp.character.update(deltaTime); // cameraMan!
-
         if (null != comp.steerable) {
             comp.steerable.update(deltaTime);
+        }
 
-            // different things have different means of setting their lookray
+        // different things have different means of setting their lookray
+        if (null != mc) {
 
-            if (null != mc) {
+            mc.modelInst.transform.getTranslation(position);
+            mc.modelInst.transform.getRotation(rotation);
 
-                mc.modelInst.transform.getTranslation(position);
-                mc.modelInst.transform.getRotation(rotation);
+            if (null != comp.gameEvent) { // not all support gameeventsignal
 
-                if (null != comp.gameEvent) { // not all support gameeventsignal
-
-                    comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
 
 //                        try {
-                    gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
+                gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
 //                        } catch (NullPointerException ex) {
 //                            System.out.println("NumberFormatException is occured");
 //                        }
-                }
             }
         }
     }
