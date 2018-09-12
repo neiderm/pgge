@@ -29,6 +29,7 @@ import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.EnemyCharacter;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -270,7 +271,9 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
         Chaser asdf = new Chaser();
         engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
-        EnemyCharacter enemyCharacter = new EnemyCharacter(enemyTank, pickedPlayer.getComponent(BulletComponent.class).body);
+        EnemyCharacter enemyCharacter =
+                new EnemyCharacter(enemyTank, pickedPlayer.getComponent(BulletComponent.class).body);
+        enemyTank.add(new CharacterComponent(enemyCharacter));
 
         makeCameraSwitchHandler(playerUI);
 
