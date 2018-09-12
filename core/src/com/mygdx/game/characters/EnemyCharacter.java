@@ -19,16 +19,13 @@ import com.mygdx.game.controllers.SteeringTankController;
  */
 public class EnemyCharacter extends SteeringTankController {
 
-    public EnemyCharacter(Entity enemyTank, btRigidBody targetBody ){
+    public EnemyCharacter(Entity enemyTank, SteeringBulletEntity target ){
 
         super(enemyTank, false);
 
 // TODO: toss all this crap in Steering Tank Controller !!!!
         setMaxLinearSpeed(2); // idfk
         setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
-
-        // use the base type here
-        SteeringBulletEntity target = new SteeringBulletEntity(targetBody);
 
         final Seek<Vector3> seekSB = new Seek<Vector3>(this, target);
 //        character.setSteeringBehavior(seekSB);
