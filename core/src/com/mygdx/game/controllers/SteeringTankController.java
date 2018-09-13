@@ -2,6 +2,12 @@ package com.mygdx.game.controllers;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
+import com.badlogic.gdx.ai.steer.behaviors.Arrive;
+import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
+import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
+import com.badlogic.gdx.ai.steer.behaviors.Seek;
+import com.badlogic.gdx.ai.steer.limiters.NullLimiter;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -9,7 +15,6 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.screens.GameScreen;
 import com.mygdx.game.util.ModelInstanceEx;
 
 import static java.lang.Math.abs;
@@ -18,18 +23,55 @@ import static java.lang.Math.abs;
 /**
  * Created by mango on 2/10/18.
  * ref:
- * https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
+ *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
+ *  https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
+ *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/tests/BulletSeekTest.java
  */
 
 public class SteeringTankController extends TankController {
 
-    public SteeringTankController(Entity copyEntity, boolean independentFacing) {
+    public SteeringTankController(Entity copyEntity, boolean independentFacing, SteeringBulletEntity target) {
 
         this(copyEntity.getComponent(BulletComponent.class).body,
                 copyEntity.getComponent(BulletComponent.class).mass);
+
+
+// TODO: toss all this crap in Steering Tank Controller !!!!
+        setMaxLinearSpeed(2); // idfk
+        setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
+
+        final Seek<Vector3> seekSB = new Seek<Vector3>(this, target);
+//        character.setSteeringBehavior(seekSB);
+
+        setMaxLinearAcceleration(500);
+        setMaxLinearSpeed(5);
+        setMaxAngularAcceleration(50);
+        setMaxAngularSpeed(10);
+
+        setMaxLinearAcceleration(1);
+        setMaxLinearSpeed(2);
+        setMaxAngularAcceleration(10);
+        setMaxAngularSpeed(10);
+
+        final LookWhereYouAreGoing<Vector3> lookWhereYouAreGoingSB = new LookWhereYouAreGoing<Vector3>(this) //
+                .setAlignTolerance(.005f) //
+                .setDecelerationRadius(MathUtils.PI) //
+                .setTimeToTarget(.1f);
+
+        Arrive<Vector3> arriveSB = new Arrive<Vector3>(this, target) //
+                .setTimeToTarget(0.1f) // 0.1f
+                .setArrivalTolerance(0.2f) // 0.0002f
+                .setDecelerationRadius(3);
+
+        BlendedSteering<Vector3> blendedSteering = new BlendedSteering<Vector3>(this) //
+                .setLimiter(NullLimiter.NEUTRAL_LIMITER) //
+                .add(arriveSB, 1f) //
+                .add(lookWhereYouAreGoingSB, 1f);
+
+        setSteeringBehavior(blendedSteering);
     }
 
-    private SteeringTankController(btRigidBody body, float mass) {
+    public SteeringTankController(btRigidBody body, float mass) {
 
         super(body);
         this.mass = mass;
@@ -40,96 +82,9 @@ public class SteeringTankController extends TankController {
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
     private Quaternion rotation = new Quaternion();
-
-
-    //    @Override
-    protected void _applySteering(SteeringAcceleration<Vector3> steering, float time) {
-
-        // idfk
-        if (true)//if (0 == steering.angular)
-            applySteering_oldG(steering);
-        else
-            applySteering_new(steering);
-    }
-
-
-    /*
-     *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/SteeringBulletEntity.java
-     *   protected void applySteering (SteeringAcceleration<Vector3> steering, float deltaTime)
-     */
-    private void applySteering_new(SteeringAcceleration<Vector3> steeringOutput) {
-///*
-        boolean anyAccelerations = false;
-        Vector3 linearForceV = null;//tmp
-        // Update position and linearF velocity
-        if (!steeringOutput.linear.isZero()) {
-
-            float forceMult = LINEAR_GAIN * this.mass; // fudge factor .. enemy has too much force!
-            linearForceV.set(steeringOutput.linear);
-            linearForceV.scl(forceMult); //
-
-            // this method internally scales the force by deltaTime
-            body.applyCentralForce(steeringOutput.linear);
-            anyAccelerations = true;
-        }
-
-        // Update orientation and angular velocity
-        if (isIndependentFacing()) {
-            if (steeringOutput.angular != 0) {
-                // this method internally scales the torque by deltaTime
-                body.applyTorque(tmpV.set(0, steeringOutput.angular, 0));
-                anyAccelerations = true;
-            }
-        } else {
-            // If we haven't got any velocity, then we can do nothing.
-            Vector3 linVel = getLinearVelocity();
-            if (!linVel.isZero(getZeroLinearSpeedThreshold())) {
-                //
-                // TODO: Commented out!!!
-                // Looks like the code below creates troubles in combination with the applyCentralForce above
-                // Maybe we should be more consistent by only applying forces or setting velocities.
-                //
-//				float newOrientation = vectorToAngle(linVel);
-//				Vector3 angVel = body.getAngularVelocity();
-//				angVel.y = (newOrientation - oldOrientation) % MathUtils.PI2;
-//				if (angVel.y > MathUtils.PI) angVel.y -= MathUtils.PI2;
-//				angVel.y /= deltaTime;
-//				body.setAngularVelocity(angVel);
-//				anyAccelerations = true;
-//				oldOrientation = newOrientation;
-            }
-        }
-        if (anyAccelerations) {
-            body.activate();
-
-            // TODO:
-            // Looks like truncating speeds here after applying forces doesn't work as expected.
-            // We should likely cap speeds form inside an InternalTickCallback, see
-            // http://www.bulletphysics.org/mediawiki-1.5.8/index.php/Simulation_Tick_Callbacks
-
-            // Cap the linearF speed
-            Vector3 velocity = body.getLinearVelocity();
-            float currentSpeedSquare = velocity.len2();
-            float maxLinearSpeed = getMaxLinearSpeed();
-            if (currentSpeedSquare > maxLinearSpeed * maxLinearSpeed) {
-                body.setLinearVelocity(velocity.scl(maxLinearSpeed / (float) Math.sqrt(currentSpeedSquare)));
-            }
-
-            // Cap the angular speed
-            Vector3 angVelocity = body.getAngularVelocity();
-            if (angVelocity.y > getMaxAngularSpeed()) {
-                angVelocity.y = getMaxAngularSpeed();
-                body.setAngularVelocity(angVelocity);
-            }
-        }
-//*/
-    }
-
     private Vector3 adjForceVect = new Vector3();
     private Vector3 forward = new Vector3();
 
-    private void applySteering_oldG(SteeringAcceleration<Vector3> steeringOutput) {
-    } // tmp
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float delta) {
@@ -169,10 +124,5 @@ public class SteeringTankController extends TankController {
         }
 
         super.applySteering(steering, delta);
-
-        GameScreen.linearForceV.set(steering.linear);
-        GameScreen.bodyYaw = bodyYaw;
-        GameScreen.forceYaw = forceYaw;
-        GameScreen.error = steering.angular;
     }
 }
