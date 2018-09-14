@@ -54,6 +54,8 @@ public class SteeringBulletEntity extends SteeringEntity {
     private static final Vector3 ANGULAR_LOCK = new Vector3(0, 1, 0);
 
     // GN:
+    SteeringBulletEntity(){}
+
     public SteeringBulletEntity(btRigidBody body) {
         this.body = body;
     }

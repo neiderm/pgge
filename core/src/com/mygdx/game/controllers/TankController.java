@@ -32,6 +32,8 @@ public class TankController extends SteeringBulletEntity {
     private Quaternion rotation = new Quaternion();
 
 
+    TankController(){}
+
     TankController(btRigidBody body) {
         super(body);
     }
