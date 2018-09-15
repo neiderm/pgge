@@ -30,16 +30,12 @@ import static java.lang.Math.abs;
 
 public class SteeringTankController extends TankController {
 
-    public SteeringTankController(Entity copyEntity, btRigidBody body) {
-
-        SteeringBulletEntity target = new SteeringBulletEntity(body);
-    } //////////
-
-    public SteeringTankController(Entity copyEntity, SteeringBulletEntity target) {
+    public SteeringTankController(Entity copyEntity, btRigidBody targetBody) {
 
         this(copyEntity.getComponent(BulletComponent.class).body,
                 copyEntity.getComponent(BulletComponent.class).mass);
 
+        SteeringBulletEntity target = new SteeringBulletEntity(targetBody);
 
 // TODO: toss all this crap in Steering Tank Controller !!!!
         setMaxLinearSpeed(2); // idfk
