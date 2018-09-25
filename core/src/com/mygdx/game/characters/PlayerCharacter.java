@@ -96,7 +96,7 @@ public class PlayerCharacter extends IUserInterface {
 
     /* need this persistent since we pass it every time but only update on change */
     private Vector3 inpVect = new Vector3(0f, 0f, 0f);
-    private InputStruct io = new InputStruct(inpVect, InputStruct.ButtonsEnum.BUTTON_NONE);
+    private InputStruct io = new InputStruct();
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -130,8 +130,7 @@ public class PlayerCharacter extends IUserInterface {
             }
             // else ... inside deadzone
 
-            io.set(inpVect.set(
-                    angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+            io.set(inpVect.set(angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
         }
     };
 

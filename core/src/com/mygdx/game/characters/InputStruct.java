@@ -8,17 +8,13 @@ import com.badlogic.gdx.math.Vector3;
 
 class InputStruct {
 
-    public ButtonsEnum buttonPress;
-    private Vector3 inpVector;
+    public ButtonsEnum buttonPress = InputStruct.ButtonsEnum.BUTTON_NONE;
+    private Vector3 inpVector = new Vector3();
 
-
-    InputStruct(Vector3 touchPadCoords, ButtonsEnum button){
-        set(touchPadCoords, button);
-    }
 
     public InputStruct set(Vector3 touchPadCoords, ButtonsEnum button) {
 
-        this.inpVector = touchPadCoords;
+        this.inpVector.set(touchPadCoords);
         this.buttonPress = button;
         return this;
     }
