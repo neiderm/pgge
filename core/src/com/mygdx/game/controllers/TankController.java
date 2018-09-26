@@ -91,9 +91,9 @@ public class TankController extends SteeringBulletEntity {
              * velocity seems to be limited and constant ... go look up the math eventually */
             final float MU = 0.5f;
 
-            steeringOutput.linear.scl(LINEAR_GAIN * this.mass);
+            steering.linear.scl(LINEAR_GAIN * this.mass);
 
-            body.applyCentralForce(steeringOutput.linear);
+            body.applyCentralForce(steering.linear);
             body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
             body.setWorldTransform(tmpM);
         }
