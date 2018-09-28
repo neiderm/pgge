@@ -40,14 +40,8 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
  * <p>
  * LATEST IDEA:
  * multiple camera system instances and types ...
- * <p>
- * <p>
- * Perspective type, most basic
- * <p>
- * Chase type would be constructed with a reference to the chasee
  */
 
-//public class CameraMan implements IGameCharacter {
 public class CameraMan extends SteeringEntity {
 
     private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
@@ -217,15 +211,12 @@ public class CameraMan extends SteeringEntity {
         setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
         setOpModeByKey("chaser1");
 
-//        SteeringEntity steerable = new SteeringEntity();
         setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
-//       steerable.setSteeringBehavior(new TrackerSB<Vector3>(steerable, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
 
         CharacterComponent comp = new CharacterComponent(this, event);
-//       CharacterComponent comp = new CharacterComponent(this, steerable, event);
         cameraMan.add(comp);
 
-        this.gameEvent = comp.gameEvent;
+        this.gameEvent = event;
         this.gameEventSignal = gameEventSignal;
         this.pickRay = comp.lookRay;
 
@@ -257,7 +248,7 @@ public class CameraMan extends SteeringEntity {
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
-//    public void update(float delta) {
+
         CameraNode node;
 
         if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
