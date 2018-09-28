@@ -62,9 +62,9 @@ public class TankController extends SteeringBulletEntity {
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
-        if (steering.linear.y != 0) {
-            applyJump(); // do this before scale linear ;)
-            steering.linear.y = 0; // may or may not need zero this out
+        if (steering.linear.y >= 100) { // what a hack
+            applyJump(); // do this before scale linear ;)       ... may not matter
+            steering.linear.y = 0; // may still allow linear movement
         }
 
         // check for contact w/ surface, only apply force if in contact, not falling

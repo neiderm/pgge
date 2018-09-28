@@ -39,8 +39,6 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     }
 
 
-    private Vector3 tmpV = new Vector3();
-
     /*
      * steering output is a 2d vector applied to the controller ...
      *     ctrlr.inputSet(touchPadCoords.set(t.getKnobPercentX(), -t.getKnobPercentY()), buttonStateFlags)
@@ -53,7 +51,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
-        int jump = 0;
+        boolean jump = false;
 
         switch (io.buttonPress) {
             case BUTTON_A:
@@ -61,8 +59,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
             case BUTTON_B:
                 break;
             case BUTTON_C:
-//                applyJump();
-                jump = 1;
+                jump = true;
                 io.buttonPress = ButtonsEnum.BUTTON_NONE; // why need this now ... is it fixzed?  handle on touchUp()  doesn't fix it :(    have to "debounce" it!
                 break;
             default:
@@ -71,16 +68,18 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
 
         steering.angular = io.getAngularDirection();
 
+        Vector3 steeringLinear = (Vector3) steering.linear;
+
         // Output steering acceleration
-        tmpV.set(0, 0, io.getLinearDirection());
+        steeringLinear.set(0, 0, io.getLinearDirection());
 
-        if (null != body) {
-            ModelInstanceEx.rotateRad(tmpV, body.getOrientation());
-        } else
-            body = null; // wtf  8/22 still gettin these :(
+        if (null != body)
+            ModelInstanceEx.rotateRad(steeringLinear, body.getOrientation());
+//        else
+//            body = null; // wtf  8/22 still gettin these :(
 
-        Vector3 steeringLinear = (Vector3)steering.linear;
-        steeringLinear.set(tmpV.x, jump, tmpV.z); // casting help ;)
+        if (jump)
+            steeringLinear.y = 100f; // idfk
 
         return steering;
     }
