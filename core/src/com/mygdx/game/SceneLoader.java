@@ -20,13 +20,14 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
 
+
 /**
  * Created by mango on 12/18/17.
  */
 
 public class SceneLoader /* implements Disposable */ {
 
-    public static final SceneLoader instance = new SceneLoader();
+//    public static final SceneLoader instance = new SceneLoader();
 //public static SceneLoader instance;
 
     private static boolean useTestObjects = true;
@@ -36,6 +37,7 @@ public class SceneLoader /* implements Disposable */ {
     private static  Model sceneModel;
     private static  Model testCubeModel;
 
+    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
     private SceneLoader() {
     }
@@ -54,7 +56,7 @@ public class SceneLoader /* implements Disposable */ {
             return assets;
     }
 
-    public static void doneLoading () {
+    public static void doneLoading() {
 
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
         shipModel = assets.get("data/panzerwagen.g3db", Model.class);
@@ -107,26 +109,44 @@ public class SceneLoader /* implements Disposable */ {
 
     public static Entity createTank(Engine engine, Vector3 trans) {
 
-        Entity player;
-        btCollisionShape boxshape; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = shipModel;
-        String node = null;
-            final Mesh mesh = shipModel.meshes.get(0);
-            boxshape = MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
-        player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
-        addPickObject(engine, player);
-        return player;
+        final Mesh mesh = model.meshes.get(0);
+
+        Entity e = new Entity();
+
+        // leave translation null if using translation from the model layout ??
+        ModelInstance instance = new ModelInstance(model);
+        e.add(new ModelComponent(instance, null, trans ));
+
+// btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+        btCollisionShape shape =
+                MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+
+        e.add(new BulletComponent(shape , instance.transform, DEFAULT_TANK_MASS));
+        addPickObject(engine, e);
+
+        return e;
     }
 
     public static Entity createShip(Engine engine, Vector3 trans) {
 
-        Entity player;
-        btCollisionShape boxshape = null; // new btBoxShape(new Vector3(0.5f, 0.35f, 0.75f)); // test ;)
         Model model = sceneModel;
         String node = "ship";
-        player = BulletEntityBuilder.load(model, node, null, 5.1f, trans, boxshape);
-        addPickObject(engine, player);
-        return player;
+
+        Entity e = new Entity();
+
+        // leave translation null if using translation from the model layout ??
+        ModelInstance instance = MeshHelper.getModelInstance(model, node);
+        e.add(new ModelComponent(instance, null, trans));
+
+// btCollisionShape shape = createConvexHullShape__Instance(  model, node  );
+        btCollisionShape shape  =
+                MeshHelper.createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);
+
+        e.add(new BulletComponent(shape, instance.transform, DEFAULT_TANK_MASS));
+        addPickObject(engine, e);
+
+        return e;
     }
 
     public static void buildArena(Engine engine) {

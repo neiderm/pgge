@@ -21,14 +21,15 @@ public class ModelComponent implements Component {
     public int id = 0;
     private static int instcnt = 0;
 
-/*    public ModelComponent(Model model) {
-
-        this(new ModelInstance(model), new Vector3(1, 1, 1));
-    }*/
-
     public ModelComponent(Model model, Vector3 scale) {
 
         this(new ModelInstance(model), scale);
+    }
+
+    public ModelComponent(ModelInstance instance, Vector3 scale, Vector3 trans) {
+
+        this(instance, scale);
+        modelInst.transform.trn(trans);
     }
 
     public ModelComponent(ModelInstance instance, Vector3 scale) {
