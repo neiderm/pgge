@@ -16,7 +16,7 @@ public class GameWorld {
 
     private Game game;
     public static AssetManager assets;
-    //    public Engine engine = new Engine();
+    public static SceneLoader sceneLoader;
 
     private static GameWorld instance;
 
@@ -25,7 +25,9 @@ public class GameWorld {
 
     public void initialize(Game game){
 
-        assets = SceneLoader.init();
+        sceneLoader = SceneLoader.getInstance();
+
+        assets = sceneLoader.init();
 
         this.game = game;
         game.setScreen(new SplashScreen()); // game.setScreen(new MainMenuScreen());
@@ -54,7 +56,7 @@ public class GameWorld {
 
         game.getScreen().dispose();
 
-        SceneLoader.dispose();
+        sceneLoader.dispose();
 
         instance = null;
     }

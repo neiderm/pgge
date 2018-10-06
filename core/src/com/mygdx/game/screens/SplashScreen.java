@@ -6,7 +6,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.mygdx.game.SceneLoader;
 
 /**
  * Created by utf1247 on 7/16/2018.
@@ -25,12 +24,14 @@ public class SplashScreen implements Screen {
     private boolean isLoaded;
 
 
-    public SplashScreen() {
+    SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         spinner = new Texture("ship_icon.png");
         region = new TextureRegion(spinner);
         isLoaded = false;
+
+// TODO: maybe not need to go thru Stage, but set a minimal InputProcessor for keyDown()   .... hit the any ket to begin!
     }
 
     @Override
@@ -45,8 +46,8 @@ public class SplashScreen implements Screen {
         float height = region.getRegionWidth();
         if (!isLoaded) {
             batch.draw(region,
-                    Gdx.graphics.getWidth() / 2 - width / 2,
-                    Gdx.graphics.getHeight() / 2 - height / 2,
+                    Gdx.graphics.getWidth() / 2.0f - width / 2.0f,
+                    Gdx.graphics.getHeight() / 2.0f - height / 2.0f,
                     width / 2, height / 2, // originX, originY,
                     width, height,
                     1, 1, // scaleX, scaleY,
@@ -58,13 +59,13 @@ public class SplashScreen implements Screen {
 
         if (!isLoaded) {
             if (GameWorld.assets.update()) {
-                SceneLoader.doneLoading();
+                GameWorld.sceneLoader.doneLoading();
                 isLoaded = true;
             }
         } else {
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)) {
-                GameWorld.getInstance().showScreen(new GameScreen());
+                GameWorld.getInstance().showScreen(new GameScreen()); // could show MainMenuScreen here?
                 Gdx.input.setCatchBackKey(true);
             }
         }

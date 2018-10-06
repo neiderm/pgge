@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -24,38 +25,44 @@ import java.util.Random;
  * Created by mango on 12/18/17.
  */
 
-public class SceneLoader /* implements Disposable */ {
+public class SceneLoader implements Disposable {
 
-//    public static final SceneLoader instance = new SceneLoader();
-//public static SceneLoader instance;
+    public static SceneLoader instance = null;
 
     private static boolean useTestObjects = true;
-    private static  AssetManager assets;
-    private static  Model landscapeModel;
-    private static  Model shipModel;
-    private static  Model sceneModel;
-    private static  Model testCubeModel;
+    private static AssetManager assets;
+    private static Model landscapeModel;
+    private static Model shipModel;
+    private static Model sceneModel;
+    private static Model testCubeModel;
 
     private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
     private SceneLoader() {
+        //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
     }
 
+    public static SceneLoader getInstance() {
 
-    public static AssetManager init()
-    {
-            PrimitivesBuilder.init();
-
-            assets = new AssetManager();
-            assets.load("data/cubetest.g3dj", Model.class);
-            assets.load("data/landscape.g3db", Model.class);
-            assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-            assets.load("data/scene.g3dj", Model.class);
-
-            return assets;
+        if (null == instance) {
+            instance = new SceneLoader();
+        }
+        return instance;
     }
 
-    public static void doneLoading() {
+    public static AssetManager init() {
+        PrimitivesBuilder.init();
+
+        assets = new AssetManager();
+        assets.load("data/cubetest.g3dj", Model.class);
+        assets.load("data/landscape.g3db", Model.class);
+        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
+        assets.load("data/scene.g3dj", Model.class);
+
+        return assets;
+    }
+
+    public void doneLoading() {
 
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
         shipModel = assets.get("data/panzerwagen.g3db", Model.class);
@@ -63,7 +70,7 @@ public class SceneLoader /* implements Disposable */ {
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
     }
 
-    public static void createObjects(Engine engine) {
+    public void createObjects(Engine engine) {
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
@@ -106,7 +113,7 @@ public class SceneLoader /* implements Disposable */ {
         }
     }
 
-    public static Entity createTank(Engine engine, Vector3 trans) {
+    public Entity createTank(Engine engine, Vector3 trans) {
 
         Model model = shipModel;
 
@@ -114,17 +121,17 @@ public class SceneLoader /* implements Disposable */ {
 
         // leave translation null if using translation from the model layout ??
         ModelInstance instance = new ModelInstance(model);
-        e.add(new ModelComponent(instance, null, trans ));
+        e.add(new ModelComponent(instance, null, trans));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
 
-        e.add(new BulletComponent(shape , instance.transform, DEFAULT_TANK_MASS));
+        e.add(new BulletComponent(shape, instance.transform, DEFAULT_TANK_MASS));
         addPickObject(engine, e);
 
         return e;
     }
 
-    public static Entity createShip(Engine engine, Vector3 trans) {
+    public Entity createShip(Engine engine, Vector3 trans) {
 
         Model model = sceneModel;
         String node = "ship";
@@ -220,8 +227,8 @@ public class SceneLoader /* implements Disposable */ {
     }
 
 
-//    @Override
-    public static void dispose() {
+    @Override
+    public void dispose() {
 
         PrimitivesBuilder.dispose(); // hack, call static method
 

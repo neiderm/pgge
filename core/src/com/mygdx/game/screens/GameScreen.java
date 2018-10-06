@@ -87,7 +87,7 @@ class GameScreen implements Screen {
     private boolean roundOver = false;
 
 
-    public GameScreen() {
+    GameScreen() {
 
         pickRayEventSignal = new Signal<GameEvent>();
 
@@ -168,9 +168,9 @@ class GameScreen implements Screen {
     private void newRound() {
 
         addSystems();
-        SceneLoader.buildArena(engine);
-final Entity tank =        SceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
-final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
+        GameWorld.sceneLoader.buildArena(engine);
+final Entity tank =        GameWorld.sceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
+final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new IUserInterface();
         // .... setupUI is passed to CameraMan constructor to add button and handler
@@ -243,7 +243,7 @@ final Entity ship =        SceneLoader.createShip(engine, new Vector3(-1, 13f, -
     private void onPlayerPicked() {
 
         isPicked = false;
-        SceneLoader.createObjects(engine);
+        GameWorld.sceneLoader.createObjects(engine);
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
