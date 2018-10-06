@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
@@ -110,7 +109,6 @@ public class SceneLoader /* implements Disposable */ {
     public static Entity createTank(Engine engine, Vector3 trans) {
 
         Model model = shipModel;
-        final Mesh mesh = model.meshes.get(0);
 
         Entity e = new Entity();
 
@@ -118,9 +116,7 @@ public class SceneLoader /* implements Disposable */ {
         ModelInstance instance = new ModelInstance(model);
         e.add(new ModelComponent(instance, null, trans ));
 
-// btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-        btCollisionShape shape =
-                MeshHelper.createConvexHullShape(mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
+        btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
 
         e.add(new BulletComponent(shape , instance.transform, DEFAULT_TANK_MASS));
         addPickObject(engine, e);
@@ -136,12 +132,10 @@ public class SceneLoader /* implements Disposable */ {
         Entity e = new Entity();
 
         // leave translation null if using translation from the model layout ??
-        ModelInstance instance = MeshHelper.getModelInstance(model, node);
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
         e.add(new ModelComponent(instance, null, trans));
 
-// btCollisionShape shape = createConvexHullShape__Instance(  model, node  );
-        btCollisionShape shape  =
-                MeshHelper.createConvexHullShape(instance.getNode(node).parts.get(0).meshPart);
+        btCollisionShape shape = MeshHelper.createConvexHullShape(instance.getNode(node));
 
         e.add(new BulletComponent(shape, instance.transform, DEFAULT_TANK_MASS));
         addPickObject(engine, e);

@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -93,4 +95,28 @@ mat.remove(ColorAttribute.Diffuse);
 mat.remove(BlendingAttribute.Type);
         mat.set(TextureAttribute.createDiffuse(tex));
     }*/
+
+
+
+    /*
+     * IN:
+     *   Matrix4 transform: transform must be linked to Bullet Rigid Body
+     * RETURN:
+     *   ModelInstance ... which would be passed in to ModelComponent()
+     */
+    public static ModelInstance getModelInstance(Model model, String node) {
+
+        Matrix4 transform = new Matrix4();
+        ModelInstance instance = new ModelInstance(model, transform, node);
+        Node modelNode = instance.getNode(node);
+
+// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+        instance.transform.set(modelNode.globalTransform);
+        modelNode.translation.set(0, 0, 0);
+        modelNode.scale.set(1, 1, 1);
+        modelNode.rotation.idt();
+        instance.calculateTransforms();
+
+        return instance;
+    }
 }

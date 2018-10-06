@@ -35,7 +35,7 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
     }
 
 
-    public static Entity load(
+    static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
         Entity e = load(model, nodeID, size, translation);
@@ -43,10 +43,8 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
 
         if (null != nodeID) {
             if (null == shape) { // "Platform001"
-                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID).parts.get(0).meshPart);
+                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
             }
-        }else{
-//            nodeID = null; // does it?
         }
 
         e.add(new BulletComponent(shape, instance.transform, mass));

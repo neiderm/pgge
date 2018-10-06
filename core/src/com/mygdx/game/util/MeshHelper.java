@@ -1,10 +1,9 @@
 package com.mygdx.game.util;
 
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btShapeHull;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -16,38 +15,17 @@ import java.nio.FloatBuffer;
  * Created by mango on 3/24/18.
  */
 
-public class MeshHelper {
+public class MeshHelper /* extends btConvexHullShape */ {
 
     private MeshHelper() {
     }
 
     /*
-     * IN:
-     *   Matrix4 transform: transform must be linked to Bullet Rigid Body
-     * RETURN:
-     *   ModelInstance ... which would be passed in to ModelComponent()
-     */
-    public static ModelInstance getModelInstance(Model model, String node) {
-
-        Matrix4 transform = new Matrix4();
-        ModelInstance instance = new ModelInstance(model, transform, node);
-        Node modelNode = instance.getNode(node);
-
-// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-        instance.transform.set(modelNode.globalTransform);
-        modelNode.translation.set(0, 0, 0);
-        modelNode.scale.set(1, 1, 1);
-        modelNode.rotation.idt();
-        instance.calculateTransforms();
-
-        return instance;
-    }
-
-
-    /*
       http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
      */
-    public static btConvexHullShape createConvexHullShape(MeshPart meshPart) {
+    public static btConvexHullShape createConvexHullShape(Node node) {
+
+        MeshPart meshPart = node.parts.get(0).meshPart;
 
 //        int numVertices  = meshPart.mesh.getNumVertices();    // no only works where our subject is the only node in the mesh!
         int numVertices = meshPart.size;
@@ -59,9 +37,7 @@ public class MeshHelper {
         FloatBuffer buffer = ByteBuffer.allocateDirect(size * 4).asFloatBuffer();
         BufferUtils.copy(nVerts, 0, buffer, size);
 
-        btConvexHullShape shape = createConvexHullShape(buffer, numVertices, vertexSize, true);
-
-        return shape;
+        return createConvexHullShape(buffer, numVertices, vertexSize, true);
     }
 
     /*
@@ -89,7 +65,7 @@ public class MeshHelper {
     /*
       https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/bullet/ConvexHullTest.java
      */
-    public static btConvexHullShape createConvexHullShape(
+    private static btConvexHullShape createConvexHullShape(
             FloatBuffer points, int numPoints, int stride, boolean optimize) {
 
         final btConvexHullShape shape = new btConvexHullShape(points, numPoints, stride);
@@ -103,5 +79,13 @@ public class MeshHelper {
         shape.dispose();
         hull.dispose();
         return result;
+    }
+
+    public static btConvexHullShape createConvexHullShape(Model model, boolean optimize) {
+
+        final Mesh mesh = model.meshes.get(0);
+
+        return MeshHelper.createConvexHullShape(
+                mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), optimize);
     }
 }

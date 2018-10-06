@@ -35,7 +35,7 @@ public class BaseEntityBuilder extends EntityBuilder  {
         Entity e = new Entity();
 
         if (null != rootNodeId) {
-            ModelInstance instance = MeshHelper.getModelInstance(model, rootNodeId);
+            ModelInstance instance = ModelInstanceEx.getModelInstance(model, rootNodeId);
             e.add(new ModelComponent(instance, size));
         } else {
             e.add(new ModelComponent(model, size));
