@@ -35,7 +35,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
     private static /*final */Model primitivesModel;
 
-    protected PrimitivesBuilder() {
+    private PrimitivesBuilder() {
         model = primitivesModel;
     }
 
@@ -102,13 +102,6 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return getSphereBuilder().create(mass, trans, new Vector3(r, r, r));
     }
 
-    // not sure to keep these
-    private static Entity loadBoxTex(float mass, Vector3 trans, Vector3 size) {
-        return getBoxBuilder("data/crate.png").create(mass, trans, size);
-    }
-    private static Entity loadSphereTex(float mass, Vector3 trans, float r) {
-        return getSphereBuilder("data/day.png").create(mass, trans, new Vector3(r, r, r));
-    }
 
     /*
     Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh.
@@ -134,7 +127,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    public static PrimitivesBuilder getSphereBuilder() {
+    private static PrimitivesBuilder getSphereBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -142,7 +135,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
-    public static PrimitivesBuilder getBoxBuilder() {
+    private static PrimitivesBuilder getBoxBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -150,7 +143,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
-    public static PrimitivesBuilder getConeBuilder() {
+    private static PrimitivesBuilder getConeBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -158,7 +151,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
-    public static PrimitivesBuilder getCapsuleBuilder() {
+    private static PrimitivesBuilder getCapsuleBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -174,7 +167,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
-    public static PrimitivesBuilder getCylinderBuilder() {
+    private static PrimitivesBuilder getCylinderBuilder() {
         return new PrimitivesBuilder() {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
