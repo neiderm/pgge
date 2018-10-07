@@ -13,29 +13,25 @@ public class ModelComponent implements Component {
 
     public ModelInstance modelInst;
     public float boundingRadius = 0;
-    public Vector3 center = new Vector3(); // idfk
     public boolean isShadowed = true;
-    private Vector3 dimensions = new Vector3();
-    private BoundingBox boundingBox;
+    public Vector3 center = new Vector3();
+
     public int id = 0;
     private static int instcnt = 0;
 
 
-    public ModelComponent(ModelInstance instance, Vector3 scale) {
+    public ModelComponent(ModelInstance instance) {
+
+        Vector3 dimensions = new Vector3();
+        BoundingBox boundingBox;
 
         this.id = ++instcnt;
 
         this.modelInst = instance;
 
-        if (null != scale) {
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-            instance.nodes.get(0).scale.set(scale);
-            instance.calculateTransforms();
-        }
-
         boundingBox = instance.calculateBoundingBox(new BoundingBox());
-        boundingBox.getDimensions(this.dimensions);
-        boundingBox.getCenter(this.center);
-        boundingRadius = this.dimensions.len() / 2f;
+        boundingBox.getDimensions(dimensions);
+        boundingBox.getCenter(center);
+        boundingRadius = dimensions.len() / 2f;
     }
 }

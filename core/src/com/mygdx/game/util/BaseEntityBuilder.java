@@ -10,7 +10,7 @@ import com.mygdx.game.components.ModelComponent;
  * Created by mango on 4/1/18.
  */
 
-public class BaseEntityBuilder extends EntityBuilder  {
+public class BaseEntityBuilder extends EntityBuilder {
 
     BaseEntityBuilder() {
     }
@@ -20,13 +20,12 @@ public class BaseEntityBuilder extends EntityBuilder  {
         return null;//new Entity(); // useless
     }
 
-    public static Entity load(Model model, String rootNodeId){
+    public static Entity load(Model model, String rootNodeId) {
         // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
         return load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
     }
 
-    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
-    {
+    public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation) {
         Entity e = new Entity();
         ModelInstance instance;
         if (null != rootNodeId) {
@@ -34,7 +33,17 @@ public class BaseEntityBuilder extends EntityBuilder  {
         } else {
             instance = new ModelInstance(model);
         }
-        e.add(new ModelComponent(instance, size));
+
+
+        if (null != size) {
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+            // note : modelComponent creating bouding box
+            instance.nodes.get(0).scale.set(size);
+            instance.calculateTransforms();
+        }
+
+        e.add(new ModelComponent(instance));
+
 
         // leave translation null if using translation from the model layout 
         if (null != translation) {

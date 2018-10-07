@@ -128,7 +128,7 @@ public class SceneLoader implements Disposable {
         // leave translation null if using translation from the model layout ??
         ModelInstance inst = new ModelInstance(model);
         inst.transform.trn(trans);
-        e.add(new ModelComponent(inst, null));
+        e.add(new ModelComponent(inst));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
         e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
@@ -148,7 +148,7 @@ public class SceneLoader implements Disposable {
         // leave translation null if using translation from the model layout ??
         ModelInstance inst = ModelInstanceEx.getModelInstance(model, node);
         inst.transform.trn(trans);
-        e.add(new ModelComponent(inst, null));
+        e.add(new ModelComponent(inst));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(inst.getNode(node));
         e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
@@ -168,7 +168,7 @@ public class SceneLoader implements Disposable {
 
         // put the landscape at an angle so stuff falls of it...
         inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
-        e.add(new ModelComponent(inst, null));
+        e.add(new ModelComponent(inst));
 
         btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
         e.add(new BulletComponent(shape, inst.transform, 0f));
