@@ -159,7 +159,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private void createLandscape(Engine engine, Vector3 trans) {
+    private Entity createLandscape(Vector3 trans) {
 
         Model model = landscapeModel;
 
@@ -182,11 +182,35 @@ public class SceneLoader implements Disposable {
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-        bc.body.setWorldTransform(inst.transform);
 
-        engine.addEntity(e);
+        return e;
     }
 
+    private Entity createPlatform() {
+
+        // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+
+        Model model = testCubeModel;
+        String node = "Platform001";
+
+        Entity e = new Entity();
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+
+        e.add(new ModelComponent(instance));
+
+        btCollisionShape shape = MeshHelper.createConvexHullShape(instance.getNode(node));
+        e.add(new BulletComponent(shape, instance.transform, 0f));
+
+        // special sauce here for static entity
+        BulletComponent bc = e.getComponent(BulletComponent.class);
+
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+        return e;
+    }
 
     public void buildArena(Engine engine) {
 
@@ -195,12 +219,10 @@ public class SceneLoader implements Disposable {
         engine.addEntity(skybox);
 
         final float yTrans = -10.0f;
-        createLandscape(engine, new Vector3(0, yTrans, 0));
+        engine.addEntity(createLandscape(new Vector3(0, yTrans, 0)));
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
-        engine.addEntity(
-                BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))
-        ); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+        engine.addEntity(createPlatform());
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
