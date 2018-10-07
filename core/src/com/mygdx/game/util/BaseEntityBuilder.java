@@ -15,11 +15,6 @@ public class BaseEntityBuilder extends EntityBuilder  {
     BaseEntityBuilder() {
     }
 
-    BaseEntityBuilder(Model model, Vector3 size) {
-        this.model = model;
-        this.size = size;
-    }
-
     @Override
     public Entity create(float mass, Vector3 trans, Vector3 size) {
         return null;//new Entity(); // useless
@@ -33,13 +28,13 @@ public class BaseEntityBuilder extends EntityBuilder  {
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation)
     {
         Entity e = new Entity();
-
+        ModelInstance instance;
         if (null != rootNodeId) {
-            ModelInstance instance = ModelInstanceEx.getModelInstance(model, rootNodeId);
-            e.add(new ModelComponent(instance, size));
+            instance = ModelInstanceEx.getModelInstance(model, rootNodeId);
         } else {
-            e.add(new ModelComponent(model, size));
+            instance = new ModelInstance(model);
         }
+        e.add(new ModelComponent(instance, size));
 
         // leave translation null if using translation from the model layout 
         if (null != translation) {

@@ -127,11 +127,12 @@ public class SceneLoader implements Disposable {
 
         // leave translation null if using translation from the model layout ??
         ModelInstance inst = new ModelInstance(model);
-        e.add(new ModelComponent(inst, null, trans));
+        inst.transform.trn(trans);
+        e.add(new ModelComponent(inst, null));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-
         e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
+
         addPickObject(engine, e);
 
         return e;
@@ -146,11 +147,12 @@ public class SceneLoader implements Disposable {
 
         // leave translation null if using translation from the model layout ??
         ModelInstance inst = ModelInstanceEx.getModelInstance(model, node);
-        e.add(new ModelComponent(inst, null, trans));
+        inst.transform.trn(trans);
+        e.add(new ModelComponent(inst, null));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(inst.getNode(node));
-
         e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
+
         addPickObject(engine, e);
 
         return e;
@@ -159,11 +161,17 @@ public class SceneLoader implements Disposable {
 
     private void createLandscape(Engine engine, Vector3 trans) {
 
-        Entity e = BulletEntityBuilder.load(landscapeModel, null, null, new Vector3(0, 0, 0));
-        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+        Model model = landscapeModel;
 
-        e.add(new BulletComponent(
-                Bullet.obtainStaticNodeShape(landscapeModel.nodes), inst.transform, 0f));
+        Entity e = new Entity();
+        ModelInstance inst = new ModelInstance(model);
+
+        // put the landscape at an angle so stuff falls of it...
+        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
+        e.add(new ModelComponent(inst, null));
+
+        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
+        e.add(new BulletComponent(shape, inst.transform, 0f));
 
         // special sauce here for static entity
         BulletComponent bc = e.getComponent(BulletComponent.class);
@@ -172,13 +180,9 @@ public class SceneLoader implements Disposable {
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        bc.body.setWorldTransform(inst.transform);
 
         engine.addEntity(e);
-
-        // put the landscape at an angle so stuff falls of it...
-        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
-
-        e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
     }
 
 
