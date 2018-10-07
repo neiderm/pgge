@@ -7,6 +7,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
@@ -51,6 +56,7 @@ public class SceneLoader implements Disposable {
     }
 
     public static AssetManager init() {
+
         PrimitivesBuilder.init();
 
         assets = new AssetManager();
@@ -120,12 +126,12 @@ public class SceneLoader implements Disposable {
         Entity e = new Entity();
 
         // leave translation null if using translation from the model layout ??
-        ModelInstance instance = new ModelInstance(model);
-        e.add(new ModelComponent(instance, null, trans));
+        ModelInstance inst = new ModelInstance(model);
+        e.add(new ModelComponent(inst, null, trans));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
 
-        e.add(new BulletComponent(shape, instance.transform, DEFAULT_TANK_MASS));
+        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
         addPickObject(engine, e);
 
         return e;
@@ -139,35 +145,51 @@ public class SceneLoader implements Disposable {
         Entity e = new Entity();
 
         // leave translation null if using translation from the model layout ??
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
-        e.add(new ModelComponent(instance, null, trans));
+        ModelInstance inst = ModelInstanceEx.getModelInstance(model, node);
+        e.add(new ModelComponent(inst, null, trans));
 
-        btCollisionShape shape = MeshHelper.createConvexHullShape(instance.getNode(node));
+        btCollisionShape shape = MeshHelper.createConvexHullShape(inst.getNode(node));
 
-        e.add(new BulletComponent(shape, instance.transform, DEFAULT_TANK_MASS));
+        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
         addPickObject(engine, e);
 
         return e;
     }
 
-    public static void buildArena(Engine engine) {
+
+    private void createLandscape(Engine engine, Vector3 trans) {
+
+        Entity e = BulletEntityBuilder.load(landscapeModel, null, null, new Vector3(0, 0, 0));
+        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+
+        e.add(new BulletComponent(
+                Bullet.obtainStaticNodeShape(landscapeModel.nodes), inst.transform, 0f));
+
+        // special sauce here for static entity
+        BulletComponent bc = e.getComponent(BulletComponent.class);
+
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+        engine.addEntity(e);
+
+        // put the landscape at an angle so stuff falls of it...
+        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
+
+        e.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
+    }
+
+
+    public void buildArena(Engine engine) {
 
         Entity skybox = BaseEntityBuilder.load(sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
-
-        Entity ls = BulletEntityBuilder.load(landscapeModel);
-        engine.addEntity(ls); //landscape THING
-
         final float yTrans = -10.0f;
-
-        // put the landscape at an angle so stuff falls of it...
-        ModelInstance inst = ls.getComponent(ModelComponent.class).modelInst;
-        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(0, 0 + yTrans, 0);
-
-        ls.getComponent(BulletComponent.class).body.setWorldTransform(inst.transform);
-
+        createLandscape(engine, new Vector3(0, yTrans, 0));
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
@@ -221,7 +243,20 @@ public class SceneLoader implements Disposable {
         for (int i = 0; i < model.nodes.size; i++) {
             String id = model.nodes.get(i).id;
             if (id.startsWith(rootNodeId)) {
-                engine.addEntity(BulletEntityBuilder.load(model, id, 0.1f));
+
+                Entity e = BaseEntityBuilder.load(model, id, null, null);
+                ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+
+                BoundingBox boundingBox = new BoundingBox();
+//        Vector3 center = new Vector3();
+                Vector3 dimensions = new Vector3();
+                instance.calculateBoundingBox(boundingBox);
+//        boundingBox.getCenter(center);
+//        boundingBox.getDimensions(dimensions);
+                e.add(new BulletComponent(
+                        new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f)), instance.transform, 0.1f));
+
+                engine.addEntity(e);
             }
         }
     }

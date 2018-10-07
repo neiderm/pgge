@@ -4,10 +4,8 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.components.BulletComponent;
@@ -50,34 +48,6 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
         e.add(new BulletComponent(shape, instance.transform, mass));
 
         return e;
-    }
-
-    // call this method last resort
-// private static void eMakeBulletComp(Entity e, Model model, String nodeID, Vector3 size, float mass, Vector3 translation)
-    /*
-       work around for "gaps" around convex hull cube shapes created from mesh :(
-    */
-    public static Entity load(Model model, String nodeID, float mass) {
-
-        Entity e = load(model, nodeID, null, null);
-        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-
-        BoundingBox boundingBox = new BoundingBox();
-//        Vector3 center = new Vector3();
-        Vector3 dimensions = new Vector3();
-        instance.calculateBoundingBox(boundingBox);
-//        boundingBox.getCenter(center);
-//        boundingBox.getDimensions(dimensions);
-        e.add(new BulletComponent(
-                new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f)), instance.transform, mass));
-
-        return e;
-    }
-
-    public static Entity load(Model model) {
-        btCollisionShape shape = null;
-        //shape = new btBvhTriangleMeshShape(model.meshParts);
-        return load(model, null, shape, new Vector3(0, 0, 0), null);
     }
 
     /*
