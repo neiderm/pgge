@@ -170,6 +170,8 @@ public class SceneLoader implements Disposable {
         inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
         e.add(new ModelComponent(inst));
 
+        //            shape = new btBvhTriangleMeshShape(model.meshParts);
+        // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
         btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
         e.add(new BulletComponent(shape, inst.transform, 0f));
 
@@ -196,7 +198,9 @@ public class SceneLoader implements Disposable {
         createLandscape(engine, new Vector3(0, yTrans, 0));
 
         engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
-        engine.addEntity(BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
+        engine.addEntity(
+                BulletEntityBuilder.load(testCubeModel, "Platform001", null, null, new Vector3(1, 1, 1))
+        ); // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
@@ -245,18 +249,20 @@ public class SceneLoader implements Disposable {
     private static void loadDynamicEntiesByName(Engine engine, Model model, String rootNodeId) {
 
         for (int i = 0; i < model.nodes.size; i++) {
+
             String id = model.nodes.get(i).id;
+
             if (id.startsWith(rootNodeId)) {
 
-                Entity e = BaseEntityBuilder.load(model, id, null, null);
-                ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+                Entity e = new Entity();
+                ModelInstance instance = ModelInstanceEx.getModelInstance(model, id);
 
                 BoundingBox boundingBox = new BoundingBox();
-//        Vector3 center = new Vector3();
                 Vector3 dimensions = new Vector3();
                 instance.calculateBoundingBox(boundingBox);
-//        boundingBox.getCenter(center);
-//        boundingBox.getDimensions(dimensions);
+
+                e.add(new ModelComponent(instance));
+
                 e.add(new BulletComponent(
                         new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f)), instance.transform, 0.1f));
 

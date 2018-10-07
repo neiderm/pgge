@@ -17,30 +17,14 @@ import com.mygdx.game.components.ModelComponent;
 
 public class BulletEntityBuilder extends BaseEntityBuilder {
 
-    private btCollisionShape shape;
-
-    BulletEntityBuilder() {
-    }
-
-/*    public BulletEntityBuilder(Model model, Vector3 size, btCollisionShape shape) {
-        super(model, size);
-        this.shape = shape;
-    }*/
-
-
-    public Entity create(float mass, Vector3 translation) {
-        return load(this.model, this.rootNodeId, this.size, mass, translation, shape);
-    }
-
-
     static Entity load(
             Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
 
         Entity e = load(model, nodeID, size, translation);
         ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
 
-        if (null != nodeID) {
-            if (null == shape) { // "Platform001"
+        if (null == shape) { // "Platform001"
+            if (null != nodeID) {
                 shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
             }
         }
@@ -58,19 +42,6 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
-
-        if (null != shape) {
-            // have a shape so use it
-        } else if (null != size) {
-            // Convex Hull
-        } else /* if ( null == size &&   null == shape) */ {
-//            shape = new btBvhTriangleMeshShape(model.meshParts);
-            // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill.
-            shape = Bullet.obtainStaticNodeShape(model.nodes);
-
-            //TODO: check conditions and validity of obtain static shape, last resort, bounding box
-            //entity = load(model, nodeID, size, 0, translation);
-        }
 
         Entity entity = load(model, nodeID, size, 0, translation, shape);
 

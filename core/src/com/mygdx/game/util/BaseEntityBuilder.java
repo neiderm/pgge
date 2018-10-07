@@ -34,7 +34,6 @@ public class BaseEntityBuilder extends EntityBuilder {
             instance = new ModelInstance(model);
         }
 
-
         if (null != size) {
 // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
             // note : modelComponent creating bouding box
@@ -44,10 +43,9 @@ public class BaseEntityBuilder extends EntityBuilder {
 
         e.add(new ModelComponent(instance));
 
-
         // leave translation null if using translation from the model layout 
         if (null != translation) {
-            e.getComponent(ModelComponent.class).modelInst.transform.trn(translation);
+            instance.transform.trn(translation);
         }
 
         return e;
