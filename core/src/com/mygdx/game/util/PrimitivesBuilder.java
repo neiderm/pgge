@@ -8,16 +8,21 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 12/18/17.
@@ -185,14 +190,82 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
         Entity e;
 
-        if (0 != mass)
-            e = load(model, nodeID, size, mass, translation, shape);
-        else
-            e = load(model, nodeID, shape, translation, size);
+        if (0 != mass) {
+
+            e = BaseEntityBuilder.load(model, nodeID, size, translation);
+//            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
+            ///////////
+            e = new Entity();
+
+            ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
+            e.add(new ModelComponent(instance));
+//        if (null != size)
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+            // note : modelComponent creating bounding box
+            instance.nodes.get(0).scale.set(size);
+            instance.calculateTransforms();
+
+            // leave translation null if using translation from the model layout
+//        if (null != translation)
+            instance.transform.trn(translation);
+///////
+            e.add(new BulletComponent(shape, instance.transform, mass));
+        }
+        else {
+            e = loadBulletEntity(model, nodeID, shape, translation, size);
+        }
+
+/*
+        // special sauce here for static entity
+        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
+        entity.add(bc);
+
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+ */
 
         return e;
     }
 
+    /*
+     *  For the case of a static model, the Bullet wrapper provides a convenient method to create a
+     *  collision shape of it:
+     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
+     *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
+     */
+     private static Entity loadBulletEntity(
+            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size) {
+
+//         Entity entity =  BaseEntityBuilder.load(model, nodeID, size, translation);
+///////////
+         Entity entity = new Entity();
+         ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
+
+//        if (null != size)
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+        // note : modelComponent creating bounding box
+        instance.nodes.get(0).scale.set(size);
+        instance.calculateTransforms();
+
+        // leave translation null if using translation from the model layout
+//        if (null != translation)
+        instance.transform.trn(translation);
+///////
+        entity.add(new ModelComponent(instance));
+
+        // special sauce here for static entity
+        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
+        entity.add(bc);
+
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+        return entity;
+    }
 
     public static void dispose(){
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances

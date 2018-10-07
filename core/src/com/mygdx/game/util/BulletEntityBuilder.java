@@ -17,22 +17,6 @@ import com.mygdx.game.components.ModelComponent;
 
 public class BulletEntityBuilder extends BaseEntityBuilder {
 
-    static Entity load(
-            Model model, String nodeID, Vector3 size, float mass, Vector3 translation, btCollisionShape shape) {
-
-        Entity e = load(model, nodeID, size, translation);
-        ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-
-        if (null == shape) { // "Platform001"
-            if (null != nodeID) {
-                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
-            }
-        }
-
-        e.add(new BulletComponent(shape, instance.transform, mass));
-
-        return e;
-    }
 
     /*
      *  For the case of a static model, the Bullet wrapper provides a convenient method to create a
@@ -41,12 +25,26 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
      *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
     public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size){
+            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size) {
 
-        Entity entity = load(model, nodeID, size, 0, translation, shape);
+        Entity entity = new Entity();
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
+
+//        if (null != size)
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+        // note : modelComponent creating bounding box
+        instance.nodes.get(0).scale.set(size);
+        instance.calculateTransforms();
+
+        // leave translation null if using translation from the model layout
+//        if (null != translation)
+        instance.transform.trn(translation);
+
+        entity.add(new ModelComponent(instance));
 
         // special sauce here for static entity
-        BulletComponent bc = entity.getComponent(BulletComponent.class);
+        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
+        entity.add(bc);
 
 // set these flags in bullet comp?
         bc.body.setCollisionFlags(

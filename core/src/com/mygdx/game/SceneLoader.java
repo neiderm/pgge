@@ -212,16 +212,22 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
+    public static Entity load(Model model, String rootNodeId) {
+        // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
+        return BaseEntityBuilder.load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
+    }
+
+
     public void buildArena(Engine engine) {
 
-        Entity skybox = BaseEntityBuilder.load(sceneModel, "space");
+        Entity skybox = load(sceneModel, "space");
         skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
         engine.addEntity(skybox);
 
         final float yTrans = -10.0f;
         engine.addEntity(createLandscape(new Vector3(0, yTrans, 0)));
 
-        engine.addEntity(BaseEntityBuilder.load(testCubeModel, "Cube"));  // "static" cube
+        engine.addEntity(load(testCubeModel, "Cube"));  // "static" cube
         engine.addEntity(createPlatform());
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING

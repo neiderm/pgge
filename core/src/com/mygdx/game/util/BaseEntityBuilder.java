@@ -20,33 +20,23 @@ public class BaseEntityBuilder extends EntityBuilder {
         return null;//new Entity(); // useless
     }
 
-    public static Entity load(Model model, String rootNodeId) {
-        // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
-        return load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
-    }
 
     public static Entity load(Model model, String rootNodeId, Vector3 size, Vector3 translation) {
-        Entity e = new Entity();
-        ModelInstance instance;
-        if (null != rootNodeId) {
-            instance = ModelInstanceEx.getModelInstance(model, rootNodeId);
-        } else {
-            instance = new ModelInstance(model);
-        }
 
-        if (null != size) {
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-            // note : modelComponent creating bouding box
-            instance.nodes.get(0).scale.set(size);
-            instance.calculateTransforms();
-        }
+        Entity e = new Entity();
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, rootNodeId);
 
         e.add(new ModelComponent(instance));
 
+//        if (null != size)
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+        // note : modelComponent creating bouding box
+        instance.nodes.get(0).scale.set(size);
+        instance.calculateTransforms();
+
         // leave translation null if using translation from the model layout 
-        if (null != translation) {
-            instance.transform.trn(translation);
-        }
+        //    if (null != translation)
+        instance.transform.trn(translation);
 
         return e;
     }
