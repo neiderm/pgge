@@ -13,6 +13,9 @@ import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 4/1/18.
+
+ * abandoned 10/2018
+
  */
 
 public class BulletEntityBuilder extends BaseEntityBuilder {
@@ -24,33 +27,4 @@ public class BulletEntityBuilder extends BaseEntityBuilder {
      *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
      *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
-    public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size) {
-
-        Entity entity = new Entity();
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
-
-//        if (null != size)
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-        // note : modelComponent creating bounding box
-        instance.nodes.get(0).scale.set(size);
-        instance.calculateTransforms();
-
-        // leave translation null if using translation from the model layout
-//        if (null != translation)
-        instance.transform.trn(translation);
-
-        entity.add(new ModelComponent(instance));
-
-        // special sauce here for static entity
-        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
-        entity.add(bc);
-
-// set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-        return entity;
-    }
 }

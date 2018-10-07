@@ -38,7 +38,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
-    private static /*final */Model primitivesModel;
+    private static /*final */ Model primitivesModel;
 
     private PrimitivesBuilder() {
         model = primitivesModel;
@@ -70,7 +70,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
-         attributes |=  VertexAttributes.Usage.TextureCoordinates;
+        attributes |= VertexAttributes.Usage.TextureCoordinates;
 
         tex = new Texture(Gdx.files.internal("data/crate.png"), false);
         mb.node().id = "boxTex";
@@ -86,7 +86,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     }
 
 
-    public static Entity loadSphere(float r, Vector3 pos){
+    public static Entity loadSphere(float r, Vector3 pos) {
         return BaseEntityBuilder.load(
                 primitivesModel, "sphere", new Vector3(r, r, r), pos);
     }
@@ -94,15 +94,19 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static Entity loadCone(float mass, Vector3 trans, Vector3 size) {
         return getConeBuilder().create(mass, trans, size);
     }
+
     public static Entity loadCapsule(float mass, Vector3 trans, Vector3 size) {
         return getCapsuleBuilder().create(mass, trans, size);
     }
+
     public static Entity loadCylinder(float mass, Vector3 trans, Vector3 size) {
         return getCylinderBuilder().create(mass, trans, size);
     }
+
     public static Entity loadBox(float mass, Vector3 trans, Vector3 size) {
         return getBoxBuilder().create(mass, trans, size);
     }
+
     public static Entity loadSphere(float mass, Vector3 trans, float r) {
         return getSphereBuilder().create(mass, trans, new Vector3(r, r, r));
     }
@@ -123,6 +127,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
+
     public static PrimitivesBuilder getBoxBuilder(String texFile) {
         return new PrimitivesBuilder() {
             @Override
@@ -140,6 +145,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
+
     private static PrimitivesBuilder getBoxBuilder() {
         return new PrimitivesBuilder() {
             @Override
@@ -148,6 +154,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
+
     private static PrimitivesBuilder getConeBuilder() {
         return new PrimitivesBuilder() {
             @Override
@@ -156,6 +163,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
+
     private static PrimitivesBuilder getCapsuleBuilder() {
         return new PrimitivesBuilder() {
             @Override
@@ -172,6 +180,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
             }
         };
     }
+
     private static PrimitivesBuilder getCylinderBuilder() {
         return new PrimitivesBuilder() {
             @Override
@@ -182,68 +191,19 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-// another load method for "static" objects
-    // Entity load(Model primitivesModel, String rootNodeId, Vector3 size, Vector3 translation)
-
-    public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
-
-        Entity e;
-
-        if (0 != mass) {
-
-            e = BaseEntityBuilder.load(model, nodeID, size, translation);
-//            ModelInstance instance = e.getComponent(ModelComponent.class).modelInst;
-            ///////////
-            e = new Entity();
-
-            ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
-            e.add(new ModelComponent(instance));
-//        if (null != size)
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-            // note : modelComponent creating bounding box
-            instance.nodes.get(0).scale.set(size);
-            instance.calculateTransforms();
-
-            // leave translation null if using translation from the model layout
-//        if (null != translation)
-            instance.transform.trn(translation);
-///////
-            e.add(new BulletComponent(shape, instance.transform, mass));
-        }
-        else {
-            e = loadBulletEntity(model, nodeID, shape, translation, size);
-        }
-
-/*
-        // special sauce here for static entity
-        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
-        entity.add(bc);
-
-// set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
- */
-
-        return e;
-    }
-
     /*
      *  For the case of a static model, the Bullet wrapper provides a convenient method to create a
      *  collision shape of it:
      *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
      *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
-     private static Entity loadBulletEntity(
-            Model model, String nodeID, btCollisionShape shape, Vector3 translation, Vector3 size) {
+    public static Entity load(
+            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
-//         Entity entity =  BaseEntityBuilder.load(model, nodeID, size, translation);
-///////////
-         Entity entity = new Entity();
-         ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
+        // we can roll the instance scale transform into the getModelInstance ;)
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
 
-//        if (null != size)
+        //        if (null != size)
 // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         // note : modelComponent creating bounding box
         instance.nodes.get(0).scale.set(size);
@@ -252,22 +212,26 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         // leave translation null if using translation from the model layout
 //        if (null != translation)
         instance.transform.trn(translation);
-///////
-        entity.add(new ModelComponent(instance));
 
-        // special sauce here for static entity
-        BulletComponent bc = new BulletComponent(shape, instance.transform, 0);
-        entity.add(bc);
 
+        BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+
+        if (0 == mass) {
+            // special sauce here for static entity
 // set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+            bc.body.setCollisionFlags(
+                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        }
 
-        return entity;
+        Entity e  = new Entity();
+        e.add(new ModelComponent(instance));
+        e.add(bc);
+
+        return e;
     }
 
-    public static void dispose(){
+    public static void dispose() {
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
         primitivesModel.dispose();
