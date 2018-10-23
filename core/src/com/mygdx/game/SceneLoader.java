@@ -111,11 +111,7 @@ public class SceneLoader implements Disposable {
             addPickObject(engine, PrimitivesBuilder.loadCone(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.loadCapsule(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.loadCylinder(5f, t, s));
-            Entity pickObject = // tmp hack
-                    addPickObject(engine, PrimitivesBuilder.loadBox(5f, t, s));
-
-            ModelComponent tmp = pickObject.getComponent(ModelComponent.class);
-            tmp.id = 65535;
+            addPickObject(engine, PrimitivesBuilder.loadBox(5f, t, s));
         }
     }
 
@@ -140,7 +136,7 @@ public class SceneLoader implements Disposable {
 
     public Entity createShip(Engine engine, Vector3 trans) {
 
-        Model model = sceneModel;
+        Model model = testCubeModel;
         String node = "ship";
 
         Entity e = new Entity();
@@ -190,7 +186,7 @@ public class SceneLoader implements Disposable {
 
         // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
 
-        Model model = testCubeModel;
+        Model model = sceneModel;
         String node = "Platform001";
 
         Entity e = new Entity();
@@ -227,7 +223,7 @@ public class SceneLoader implements Disposable {
         final float yTrans = -10.0f;
         engine.addEntity(createLandscape(new Vector3(0, yTrans, 0)));
 
-        engine.addEntity(load(testCubeModel, "Cube"));  // "static" cube
+        engine.addEntity(load(sceneModel, "Cube"));  // "static" cube
         engine.addEntity(createPlatform());
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
