@@ -18,7 +18,6 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.util.BaseEntityBuilder;
-import com.mygdx.game.util.BulletEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -37,6 +36,7 @@ public class SceneLoader implements Disposable {
     private static boolean useTestObjects = true;
     private static AssetManager assets;
     private static Model landscapeModel;
+    private static Model tankModel;
     private static Model shipModel;
     private static Model sceneModel;
     private static Model testCubeModel;
@@ -62,7 +62,8 @@ public class SceneLoader implements Disposable {
         assets = new AssetManager();
         assets.load("data/cubetest.g3dj", Model.class);
         assets.load("data/landscape.g3db", Model.class);
-        assets.load("data/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
+        assets.load("tanks/ship.g3db", Model.class);
+        assets.load("tanks/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
         assets.load("data/scene.g3dj", Model.class);
 
         return assets;
@@ -71,7 +72,8 @@ public class SceneLoader implements Disposable {
     public void doneLoading() {
 
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        shipModel = assets.get("data/panzerwagen.g3db", Model.class);
+        tankModel = assets.get("tanks/panzerwagen.g3db", Model.class);
+        shipModel = assets.get("tanks/ship.g3db", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
     }
@@ -117,6 +119,24 @@ public class SceneLoader implements Disposable {
 
     public Entity createTank(Engine engine, Vector3 trans) {
 
+        Model model = tankModel;
+
+        Entity e = new Entity();
+
+        // leave translation null if using translation from the model layout ??
+        ModelInstance inst = new ModelInstance(model);
+        inst.transform.trn(trans);
+        e.add(new ModelComponent(inst));
+
+        btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
+
+        addPickObject(engine, e);
+
+        return e;
+    }
+    public Entity createShip(Engine engine, Vector3 trans) {
+
         Model model = shipModel;
 
         Entity e = new Entity();
@@ -133,8 +153,7 @@ public class SceneLoader implements Disposable {
 
         return e;
     }
-
-    public Entity createShip(Engine engine, Vector3 trans) {
+    public Entity _createShip(Engine engine, Vector3 trans) {
 
         Model model = testCubeModel;
         String node = "ship";
