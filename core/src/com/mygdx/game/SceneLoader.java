@@ -22,6 +22,11 @@ import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Random;
 
 
@@ -32,7 +37,7 @@ import java.util.Random;
 public class SceneLoader implements Disposable {
 
     public static SceneLoader instance = null;
-
+    private static Properties loadProps;
     private static boolean useTestObjects = true;
     private static AssetManager assets;
     private static Model landscapeModel;
@@ -55,19 +60,95 @@ public class SceneLoader implements Disposable {
         return instance;
     }
 
-    public static AssetManager init() {
+    public AssetManager init() {
 
         PrimitivesBuilder.init();
 
+        readConfig();
+
         assets = new AssetManager();
-        assets.load("data/cubetest.g3dj", Model.class);
-        assets.load("data/landscape.g3db", Model.class);
-        assets.load("tanks/ship.g3db", Model.class);
-        assets.load("tanks/panzerwagen.g3db", Model.class); // https://opengameart.org/content/tankcar
-        assets.load("data/scene.g3dj", Model.class);
+        assets.load(loadProps.getProperty("objectsModel"), Model.class);
+        assets.load(loadProps.getProperty("landscapeModel"), Model.class);
+        assets.load(loadProps.getProperty("shipModel"), Model.class);
+        assets.load(loadProps.getProperty("tankModel"), Model.class); // https://opengameart.org/content/tankcar
+        assets.load(loadProps.getProperty("sceneModel"), Model.class);
 
         return assets;
     }
+
+
+    /*
+ https://beginnersbook.com/2014/01/how-to-write-to-a-file-in-java-using-fileoutputstream/
+ */
+    private void writeConfig()
+    {
+        FileOutputStream fos = null;
+        File file;
+//        String mycontent = "This is my Data which needs" + " to be written into the file";
+
+        try {
+            //Specify the file path here
+            file = new File("settings.xml");
+            fos = new FileOutputStream(file);
+
+            /* This logic will check whether the file
+             * exists or not. If the file is not found
+             * at the specified location it would create
+             * a new file*/
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            /*String content cannot be directly written into
+             * a file. It needs to be converted into bytes
+             */
+//            byte[] bytesArray = mycontent.getBytes();
+
+//            fos.write(bytesArray);
+//            fos.flush();
+
+// https://stackoverflow.com/questions/4580005/what-is-the-simplest-way-to-do-settings-files-in-java
+
+            // Save Settings
+            Properties saveProps = new Properties();
+            saveProps.setProperty("objectsModel", "data/cubetest.g3dj");
+            saveProps.setProperty("landscapeModel", "data/landscape.g3db");
+            saveProps.setProperty("shipModel", "tanks/ship.g3db");
+            saveProps.setProperty("tankModel", "tanks/panzerwagen.g3db");
+            saveProps.setProperty("sceneModel", "data/scene.g3dj");
+            saveProps.storeToXML(fos, "");
+
+
+            System.out.println("File Written Successfully");
+        }
+        catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        finally {
+            try {
+                if (fos != null)
+                {
+                    fos.close();
+                }
+            }
+            catch (IOException ioe) {
+                System.out.println("Error in closing the Stream");
+            }
+        }
+    }
+
+    private void readConfig() {
+        try {
+            // Load Settings
+            loadProps = new Properties();
+            loadProps.loadFromXML(new FileInputStream("settings.xml"));
+        }
+        catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+
 
     public void doneLoading() {
 

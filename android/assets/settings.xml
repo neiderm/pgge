@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment/>
+<entry key="tankModel">tanks/panzerwagen.g3db</entry>
+<entry key="shipModel">tanks/ship.g3db</entry>
+<entry key="landscapeModel">data/landscape.g3db</entry>
+<entry key="objectsModel">data/cubetest.g3dj</entry>
+<entry key="sceneModel">data/scene.g3dj</entry>
+</properties>
