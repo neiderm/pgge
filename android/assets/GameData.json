@@ -1,0 +1,24 @@
+{
+modelsList: [
+	{
+		class: java.lang.String
+		value: data/cubetest.g3dj
+	}
+	{
+		class: java.lang.String
+		value: data/landscape.g3db
+	}
+	{
+		class: java.lang.String
+		value: tanks/ship.g3db
+	}
+	{
+		class: java.lang.String
+		value: tanks/panzerwagen.g3db
+	}
+	{
+		class: java.lang.String
+		value: data/scene.g3dj
+	}
+]
+}

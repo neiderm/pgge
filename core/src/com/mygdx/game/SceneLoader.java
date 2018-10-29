@@ -2,7 +2,9 @@ package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -14,6 +16,7 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -22,11 +25,7 @@ import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
+import java.util.ArrayList;
 import java.util.Random;
 
 
@@ -36,17 +35,19 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    public static SceneLoader instance = null;
-    private static Properties loadProps;
+    public static SceneLoader globalInstance = null;
+    public static GameData gameData;
+    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
     private static AssetManager assets;
     private static Model landscapeModel;
-    private static Model tankModel;
+    private static Model tankModel;  // opengameart.org/content/tankcar
     private static Model shipModel;
     private static Model sceneModel;
     private static Model testCubeModel;
 
     private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
+
 
     private SceneLoader() {
         //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
@@ -54,100 +55,90 @@ public class SceneLoader implements Disposable {
 
     public static SceneLoader getInstance() {
 
-        if (null == instance) {
-            instance = new SceneLoader();
+        if (null == globalInstance) {
+            globalInstance = new SceneLoader();
         }
-        return instance;
+        return globalInstance;
     }
 
     public AssetManager init() {
 
         PrimitivesBuilder.init();
 
-        readConfig();
+        gameData = new GameData();
+        /*
+        gameData.objectsModel = "data/cubetest.g3dj";
+        gameData.landscapeModel = "data/landscape.g3db";
+        gameData.shipModel = "tanks/ship.g3db";
+        gameData.tankModel = "tanks/panzerwagen.g3db";
+        gameData.sceneModel = "data/scene.g3dj";
+        gameData.tanksList = new ArrayList();
+        gameData.tanksList.add("tanks/panzerwagen.g3db");
+        gameData.tanksList.add("tanks/ship.g3db");
+        // build a list of models to load
+        gameData.modelsList = new ArrayList();
+        gameData.modelsList.add("data/cubetest.g3dj");
+        gameData.modelsList.add("data/landscape.g3db");
+        gameData.modelsList.add("tanks/ship.g3db");
+        gameData.modelsList.add("tanks/panzerwagen.g3db");
+        gameData.modelsList.add("data/scene.g3dj");
+*/
+        saveData(); // tmp: saving to temp file, don't overwrite what we have
+//        initializeGameData();
+
+        loadData();
 
         assets = new AssetManager();
-        assets.load(loadProps.getProperty("objectsModel"), Model.class);
-        assets.load(loadProps.getProperty("landscapeModel"), Model.class);
-        assets.load(loadProps.getProperty("shipModel"), Model.class);
-        assets.load(loadProps.getProperty("tankModel"), Model.class); // https://opengameart.org/content/tankcar
-        assets.load(loadProps.getProperty("sceneModel"), Model.class);
+/*
+        assets.load(gameData.objectsModel, Model.class);
+        assets.load(gameData.landscapeModel, Model.class);
+        assets.load(gameData.shipModel, Model.class);
+        assets.load(gameData.tankModel, Model.class);
+        assets.load(gameData.sceneModel, Model.class);
+*/
+        for (int i = 0; i < gameData.modelsList.size(); i++) {
+            assets.load((String) gameData.modelsList.get(i), Model.class);
+        }
 
         return assets;
     }
 
 
+    public static class GameData {
+
+        private ArrayList tanksList;
+        private ArrayList modelsList;
+    }
+
     /*
- https://beginnersbook.com/2014/01/how-to-write-to-a-file-in-java-using-fileoutputstream/
- */
-    private void writeConfig()
-    {
-        FileOutputStream fos = null;
-        File file;
-//        String mycontent = "This is my Data which needs" + " to be written into the file";
+        http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
+    */
 
-        try {
-            //Specify the file path here
-            file = new File("settings.xml");
-            fos = new FileOutputStream(file);
+    public void initializeGameData() {
+        if (!fileHandle.exists()) {
+            gameData = new GameData();
 
-            /* This logic will check whether the file
-             * exists or not. If the file is not found
-             * at the specified location it would create
-             * a new file*/
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-
-            /*String content cannot be directly written into
-             * a file. It needs to be converted into bytes
-             */
-//            byte[] bytesArray = mycontent.getBytes();
-
-//            fos.write(bytesArray);
-//            fos.flush();
-
-// https://stackoverflow.com/questions/4580005/what-is-the-simplest-way-to-do-settings-files-in-java
-
-            // Save Settings
-            Properties saveProps = new Properties();
-            saveProps.setProperty("objectsModel", "data/cubetest.g3dj");
-            saveProps.setProperty("landscapeModel", "data/landscape.g3db");
-            saveProps.setProperty("shipModel", "tanks/ship.g3db");
-            saveProps.setProperty("tankModel", "tanks/panzerwagen.g3db");
-            saveProps.setProperty("sceneModel", "data/scene.g3dj");
-            saveProps.storeToXML(fos, "");
-
-
-            System.out.println("File Written Successfully");
-        }
-        catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-        finally {
-            try {
-                if (fos != null)
-                {
-                    fos.close();
-                }
-            }
-            catch (IOException ioe) {
-                System.out.println("Error in closing the Stream");
-            }
+            saveData();
+        } else {
+            loadData();
         }
     }
 
-    private void readConfig() {
-        try {
-            // Load Settings
-            loadProps = new Properties();
-            loadProps.loadFromXML(new FileInputStream("settings.xml"));
-        }
-        catch (IOException ioe) {
-            ioe.printStackTrace();
+    public void saveData() {
+        Json json = new Json();
+        FileHandle fileHandle = Gdx.files.local("GameData_out.json");
+        if (gameData != null) {
+            //fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
+            fileHandle.writeString(json.prettyPrint(gameData), false);
+            //System.out.println(json.prettyPrint(gameData));
         }
     }
 
+    public void loadData() {
+        Json json = new Json();
+//        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
+        gameData = json.fromJson(GameData.class, fileHandle.readString());
+    }
 
 
     public void doneLoading() {
@@ -216,6 +207,7 @@ public class SceneLoader implements Disposable {
 
         return e;
     }
+
     public Entity createShip(Engine engine, Vector3 trans) {
 
         Model model = shipModel;
@@ -234,6 +226,7 @@ public class SceneLoader implements Disposable {
 
         return e;
     }
+
     public Entity _createShip(Engine engine, Vector3 trans) {
 
         Model model = testCubeModel;
