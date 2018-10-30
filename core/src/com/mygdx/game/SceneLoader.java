@@ -248,7 +248,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private Entity createLandscape(Vector3 trans) {
+    private Entity _createLandscape(Vector3 trans) {
 
         Model model = landscapeModel;
 
@@ -263,6 +263,30 @@ public class SceneLoader implements Disposable {
         // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
         btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
         e.add(new BulletComponent(shape, inst.transform, 0f));
+
+        // special sauce here for static entity
+        BulletComponent bc = e.getComponent(BulletComponent.class);
+
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+        return e;
+    }
+
+    private Entity createLandscape(Vector3 trans) {
+
+        Model model = sceneModel;
+        String node = "Plane";
+
+        Entity e = new Entity();
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+
+        e.add(new ModelComponent(instance));
+
+        btCollisionShape shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
+        e.add(new BulletComponent(shape, instance.transform, 0f));
 
         // special sauce here for static entity
         BulletComponent bc = e.getComponent(BulletComponent.class);
