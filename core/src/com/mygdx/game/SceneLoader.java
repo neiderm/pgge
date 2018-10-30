@@ -67,7 +67,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-/*
+///*
         // build a list of models to load
         gameData.modelsList = new ArrayList();
         gameData.modelsList.add("data/cubetest.g3dj");
@@ -81,8 +81,12 @@ public class SceneLoader implements Disposable {
         gameData.tanks = new Array<GameData.GameObject>();
         gameData.tanks.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
         gameData.tanks.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
+gameData.gameModels = new Array<GameData.ModelInfo>();
+        gameData.gameModels.add(new GameData.ModelInfo("tanks/ship.g3db"));
+
+        gameData.gameModels.add(new GameData.ModelInfo("tanks/panzerwagen.g3db"));
         saveData(); // tmp: saving to temp file, don't overwrite what we have
-*/
+//*/
 //        initializeGameData();
 
         loadData();
@@ -105,6 +109,18 @@ public class SceneLoader implements Disposable {
 
     public static class GameData {
 
+        Array<ModelInfo> gameModels;
+
+        static class ModelInfo {
+            ModelInfo(){}
+            ModelInfo(String modelName){
+                this.modelName = modelName;
+                gameObjects = new Array<GameObject>();
+            }
+            String modelName;
+            Array<GameObject> gameObjects;
+        }
+
         static class GameObject {
             GameObject(){}
             GameObject(String name, String model, Vector3 translation) {
@@ -116,7 +132,9 @@ public class SceneLoader implements Disposable {
             String file;
             Vector3 translation;
         }
+
         Array<GameObject> tanks;
+
 
         ArrayList tanksList;
         ArrayList modelsList;

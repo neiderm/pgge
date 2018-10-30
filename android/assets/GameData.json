@@ -1,8 +1,18 @@
 {
+gameModels: [
+	{
+		modelName: tanks/ship.g3db
+		gameObjects: []
+	}
+	{
+		modelName: tanks/panzerwagen.g3db
+		gameObjects: []
+	}
+]
 tanks: [
 	{
 		name: ship
-		model: tanks/ship.g3db
+		file: tanks/ship.g3db
 		translation: {
 			x: -1
 			y: 13
@@ -11,7 +21,7 @@ tanks: [
 	}
 	{
 		name: tank
-		model: tanks/panzerwagen.g3db
+		file: tanks/panzerwagen.g3db
 		translation: {
 			x: 1
 			y: 11
