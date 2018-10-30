@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.components.BulletComponent;
@@ -66,15 +67,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-        /*
-        gameData.objectsModel = "data/cubetest.g3dj";
-        gameData.landscapeModel = "data/landscape.g3db";
-        gameData.shipModel = "tanks/ship.g3db";
-        gameData.tankModel = "tanks/panzerwagen.g3db";
-        gameData.sceneModel = "data/scene.g3dj";
-        gameData.tanksList = new ArrayList();
-        gameData.tanksList.add("tanks/panzerwagen.g3db");
-        gameData.tanksList.add("tanks/ship.g3db");
+/*
         // build a list of models to load
         gameData.modelsList = new ArrayList();
         gameData.modelsList.add("data/cubetest.g3dj");
@@ -82,8 +75,14 @@ public class SceneLoader implements Disposable {
         gameData.modelsList.add("tanks/ship.g3db");
         gameData.modelsList.add("tanks/panzerwagen.g3db");
         gameData.modelsList.add("data/scene.g3dj");
-*/
+        gameData.tanksList = new ArrayList();
+        gameData.tanksList.add("tanks/panzerwagen.g3db");
+        gameData.tanksList.add("tanks/ship.g3db");
+        gameData.tanks = new Array<GameData.GameObject>();
+        gameData.tanks.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
+        gameData.tanks.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
         saveData(); // tmp: saving to temp file, don't overwrite what we have
+*/
 //        initializeGameData();
 
         loadData();
@@ -92,7 +91,7 @@ public class SceneLoader implements Disposable {
 /*
         assets.load(gameData.objectsModel, Model.class);
         assets.load(gameData.landscapeModel, Model.class);
-        assets.load(gameData.shipModel, Model.class);
+        assets. load(gameData.shipModel, Model.class);
         assets.load(gameData.tankModel, Model.class);
         assets.load(gameData.sceneModel, Model.class);
 */
@@ -106,8 +105,21 @@ public class SceneLoader implements Disposable {
 
     public static class GameData {
 
-        private ArrayList tanksList;
-        private ArrayList modelsList;
+        static class GameObject {
+            GameObject(){}
+            GameObject(String name, String model, Vector3 translation) {
+                this.file = model;
+                this.name = name;
+                this.translation = new Vector3(translation);
+            }
+            String name;
+            String file;
+            Vector3 translation;
+        }
+        Array<GameObject> tanks;
+
+        ArrayList tanksList;
+        ArrayList modelsList;
     }
 
     /*
@@ -195,7 +207,7 @@ public class SceneLoader implements Disposable {
 
         Entity e = new Entity();
 
-        // leave translation null if using translation from the model layout ??
+        // leave translation null if using translation from the file layout ??
         ModelInstance inst = new ModelInstance(model);
         inst.transform.trn(trans);
         e.add(new ModelComponent(inst));
@@ -214,7 +226,7 @@ public class SceneLoader implements Disposable {
 
         Entity e = new Entity();
 
-        // leave translation null if using translation from the model layout ??
+        // leave translation null if using translation from the file layout ??
         ModelInstance inst = new ModelInstance(model);
         inst.transform.trn(trans);
         e.add(new ModelComponent(inst));
@@ -234,7 +246,7 @@ public class SceneLoader implements Disposable {
 
         Entity e = new Entity();
 
-        // leave translation null if using translation from the model layout ??
+        // leave translation null if using translation from the file layout ??
         ModelInstance inst = ModelInstanceEx.getModelInstance(model, node);
         inst.transform.trn(trans);
         e.add(new ModelComponent(inst));
@@ -259,7 +271,7 @@ public class SceneLoader implements Disposable {
         inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
         e.add(new ModelComponent(inst));
 
-        //            shape = new btBvhTriangleMeshShape(model.meshParts);
+        //            shape = new btBvhTriangleMeshShape(file.meshParts);
         // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
         btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
         e.add(new BulletComponent(shape, inst.transform, 0f));
@@ -419,7 +431,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.dispose(); // hack, call static method
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-        //  Disposing the model will automatically make all instances invalid!
+        //  Disposing the file will automatically make all instances invalid!
         assets.dispose();
     }
 
