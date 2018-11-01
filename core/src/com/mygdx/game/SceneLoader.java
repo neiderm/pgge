@@ -90,9 +90,9 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
-
-        saveData(); // tmp: saving to temp file, don't overwrite what we have
 */
+//        saveData(); // tmp: saving to temp file, don't overwrite what we have
+
 //        initializeGameData();
 
         loadData();
@@ -110,7 +110,7 @@ public class SceneLoader implements Disposable {
             assets.load(gameData.modelInfo.get(key).fileName, Model.class);
         }
 
-//        saveData();
+        saveData();
 
         return assets;
     }
@@ -158,6 +158,7 @@ public class SceneLoader implements Disposable {
                 this.translation = null;
                 this.meshShape = meshShape;
                 this.isShadowed = true;
+                this.isKinematic = true;
             }
 
             GameObject(String objectName, String modelName, Vector3 translation) {
@@ -170,6 +171,7 @@ public class SceneLoader implements Disposable {
             String objectName;
             Vector3 translation;
             String meshShape; // triangleMeshShape, convexHullShape
+            boolean isKinematic;
             boolean isShadowed;
         }
     }
@@ -418,6 +420,8 @@ int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points
 
         engine.addEntity(load(sceneModel, "Cube"));  // "static" cube
         engine.addEntity(createPlatform());
+
+
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 

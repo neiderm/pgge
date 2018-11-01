@@ -39,17 +39,18 @@ modelGroups: [
 			{
 				objectName: Platform001
 				meshShape: convexHullShape
+				isKinematic: true
 				isShadowed: true
 			}
 			{
 				objectName: Plane
 				meshShape: triangleMeshShape
+				isKinematic: true
 				isShadowed: true
 			}
 			{
 				objectName: space
 				meshShape: none
-				isShadowed: false
 			}
 		]
 	}
