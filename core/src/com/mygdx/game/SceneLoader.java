@@ -26,7 +26,7 @@ import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 
@@ -67,77 +67,106 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-///*
-        // build a list of models to load
-        gameData.modelsList = new ArrayList();
-        gameData.modelsList.add("data/cubetest.g3dj");
-        gameData.modelsList.add("data/landscape.g3db");
-        gameData.modelsList.add("tanks/ship.g3db");
-        gameData.modelsList.add("tanks/panzerwagen.g3db");
-        gameData.modelsList.add("data/scene.g3dj");
-        gameData.tanksList = new ArrayList();
-        gameData.tanksList.add("tanks/panzerwagen.g3db");
-        gameData.tanksList.add("tanks/ship.g3db");
-        gameData.tanks = new Array<GameData.GameObject>();
-        gameData.tanks.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
-        gameData.tanks.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
-gameData.gameModels = new Array<GameData.ModelInfo>();
-        gameData.gameModels.add(new GameData.ModelInfo("tanks/ship.g3db"));
+/*
+        ModelGroup tanksGroup = new ModelGroup("tanks");
+        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
+        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
+        gameData.modelGroups.add(tanksGroup);
 
-        gameData.gameModels.add(new GameData.ModelInfo("tanks/panzerwagen.g3db"));
-        saveData(); // tmp: saving to temp file, don't overwrite what we have
-//*/
+        ModelGroup sceneGroup = new ModelGroup("scene", "scene");
+        sceneGroup.gameObjects.add(new GameData.GameObject("Cube"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Platform001"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Plane"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Crate*"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("space"));
+        gameData.modelGroups.add(sceneGroup);
+
+        ModelGroup objectsGroup = new ModelGroup("objects", "objects");
+        objectsGroup.gameObjects.add(new GameData.GameObject("Crate*"));
+        gameData.modelGroups.add(objectsGroup);
+
+        gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
+        gameData.modelInfo.put("landscape", new ModelInfo("landscape", "data/landscape.g3db"));
+        gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
+        gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
+        gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
+*/
+//        saveData(); // tmp: saving to temp file, don't overwrite what we have
 //        initializeGameData();
 
         loadData();
 
         assets = new AssetManager();
 /*
-        assets.load(gameData.objectsModel, Model.class);
-        assets.load(gameData.landscapeModel, Model.class);
-        assets. load(gameData.shipModel, Model.class);
-        assets.load(gameData.tankModel, Model.class);
-        assets.load(gameData.sceneModel, Model.class);
+        assets.load("data/cubetest.g3dj", Model.class);
+        assets.load("data/landscape.g3db", Model.class);
+        assets. load("tanks/ship.g3db", Model.class);
+        assets.load("tanks/panzerwagen.g3db", Model.class);
+        assets.load("data/scene.g3dj", Model.class);
 */
-        for (int i = 0; i < gameData.modelsList.size(); i++) {
-            assets.load((String) gameData.modelsList.get(i), Model.class);
+        int i = gameData.modelInfo.values().size();
+        for (String key : gameData.modelInfo.keySet()) {
+            assets.load(gameData.modelInfo.get(key).fileName, Model.class);
         }
+
+        saveData();
 
         return assets;
     }
 
 
+    public static class ModelGroup {
+        ModelGroup() {
+        }
+        ModelGroup(String groupName){
+            this.groupName = groupName; // could be null if the objects in the group load their own individual models e.g. tanks
+        }
+        ModelGroup(String groupName, String modelName) {
+            this(groupName );
+            this.modelName = modelName;
+        }
+        String modelName;
+        String groupName;
+        Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
+    }
+
+    public static class ModelInfo {
+        ModelInfo(){}
+        ModelInfo(String modelName, String fileName) {
+            this.modelName = modelName;
+            this.fileName = fileName;
+        }
+        String modelName;
+        String fileName;
+            Model model;
+    }
+
     public static class GameData {
 
-        Array<ModelInfo> gameModels;
-
-        static class ModelInfo {
-            ModelInfo(){}
-            ModelInfo(String modelName){
-                this.modelName = modelName;
-                gameObjects = new Array<GameObject>();
-            }
-            String modelName;
-            Array<GameObject> gameObjects;
-        }
+        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
+        //        Array<ModelInfo> modelInfo = new Array<ModelInfo>();
+        HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
         static class GameObject {
-            GameObject(){}
-            GameObject(String name, String model, Vector3 translation) {
-                this.file = model;
-                this.name = name;
+            GameObject() {
+            }
+
+            GameObject(String objectName) {
+                this.objectName = objectName;
+                this.modelName = null;
+                this.translation = null;
+            }
+
+            GameObject(String objectName, String modelName, Vector3 translation) {
+                this(objectName);
+                this.modelName = modelName;
                 this.translation = new Vector3(translation);
             }
-            String name;
-            String file;
+
+            String modelName;
+            String objectName;
             Vector3 translation;
         }
-
-        Array<GameObject> tanks;
-
-
-        ArrayList tanksList;
-        ArrayList modelsList;
     }
 
     /*
@@ -178,6 +207,13 @@ gameData.gameModels = new Array<GameData.ModelInfo>();
         shipModel = assets.get("tanks/ship.g3db", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
+
+        gameData.modelInfo.get("landscape").model = landscapeModel;
+        gameData.modelInfo.get("tank").model = tankModel;
+        gameData.modelInfo.get("ship").model = shipModel;
+        gameData.modelInfo.get("scene").model = sceneModel;
+        gameData.modelInfo.get("objects").model = testCubeModel;
+
     }
 
     public void createObjects(Engine engine) {

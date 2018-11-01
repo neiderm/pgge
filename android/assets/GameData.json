@@ -1,64 +1,79 @@
 {
-gameModels: [
+modelGroups: [
 	{
-		modelName: tanks/ship.g3db
-		gameObjects: []
+		groupName: tanks
+		gameObjects: [
+			{
+				modelName: tanks/ship.g3db
+				objectName: ship
+				translation: {
+					x: -1
+					y: 13
+					z: -5
+				}
+			}
+			{
+				modelName: tanks/panzerwagen.g3db
+				objectName: tank
+				translation: {
+					x: 1
+					y: 11
+					z: -5
+				}
+			}
+		]
 	}
 	{
-		modelName: tanks/panzerwagen.g3db
-		gameObjects: []
-	}
-]
-tanks: [
-	{
-		name: ship
-		file: tanks/ship.g3db
-		translation: {
-			x: -1
-			y: 13
-			z: -5
-		}
-	}
-	{
-		name: tank
-		file: tanks/panzerwagen.g3db
-		translation: {
-			x: 1
-			y: 11
-			z: -5
-		}
-	}
-]
-tanksList: [
-	{
-		class: java.lang.String
-		value: tanks/panzerwagen.g3db
+		modelName: scene
+		groupName: scene
+		gameObjects: [
+			{
+				objectName: Cube
+			}
+			{
+				objectName: Platform001
+			}
+			{
+				objectName: Plane
+			}
+			{
+				objectName: Crate*
+			}
+			{
+				objectName: space
+			}
+		]
 	}
 	{
-		class: java.lang.String
-		value: tanks/ship.g3db
-	}
-]
-modelsList: [
-	{
-		class: java.lang.String
-		value: data/cubetest.g3dj
-	}
-	{
-		class: java.lang.String
-		value: data/landscape.g3db
-	}
-	{
-		class: java.lang.String
-		value: tanks/ship.g3db
-	}
-	{
-		class: java.lang.String
-		value: tanks/panzerwagen.g3db
-	}
-	{
-		class: java.lang.String
-		value: data/scene.g3dj
+		modelName: objects
+		groupName: objects
+		gameObjects: [
+			{
+				objectName: Crate*
+			}
+		]
 	}
 ]
+modelInfo: {
+	objects: {
+		modelName: objects
+		fileName: data/cubetest.g3dj
+	}
+	ship: {
+		modelName: ship
+		fileName: tanks/ship.g3db
+	}
+	tank: {
+		modelName: tank
+		fileName: tanks/panzerwagen.g3db
+	}
+	landscape: {
+		modelName: landscape
+		fileName: data/landscape.g3db
+	}
+	scene: {
+		modelName: scene
+		fileName: data/scene.g3dj
+	}
+}
 }
