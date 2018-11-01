@@ -11,6 +11,8 @@ modelGroups: [
 					y: 13
 					z: -5
 				}
+				meshShape: convexHullShape
+				isShadowed: true
 			}
 			{
 				modelName: tanks/panzerwagen.g3db
@@ -20,6 +22,8 @@ modelGroups: [
 					y: 11
 					z: -5
 				}
+				meshShape: convexHullShape
+				isShadowed: true
 			}
 		]
 	}
@@ -29,18 +33,23 @@ modelGroups: [
 		gameObjects: [
 			{
 				objectName: Cube
+				meshShape: none
+				isShadowed: true
 			}
 			{
 				objectName: Platform001
+				meshShape: convexHullShape
+				isShadowed: true
 			}
 			{
 				objectName: Plane
-			}
-			{
-				objectName: Crate*
+				meshShape: triangleMeshShape
+				isShadowed: true
 			}
 			{
 				objectName: space
+				meshShape: none
+				isShadowed: false
 			}
 		]
 	}
@@ -50,6 +59,8 @@ modelGroups: [
 		gameObjects: [
 			{
 				objectName: Crate*
+				meshShape: btBoxShape
+				isShadowed: true
 			}
 		]
 	}

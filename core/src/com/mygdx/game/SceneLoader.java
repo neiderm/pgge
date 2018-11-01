@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
@@ -74,15 +75,14 @@ public class SceneLoader implements Disposable {
         gameData.modelGroups.add(tanksGroup);
 
         ModelGroup sceneGroup = new ModelGroup("scene", "scene");
-        sceneGroup.gameObjects.add(new GameData.GameObject("Cube"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("Platform001"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("Plane"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("Crate*"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("space"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Cube", "none"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Platform001", "convexHullShape"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("Plane", "triangleMeshShape"));
+        sceneGroup.gameObjects.add(new GameData.GameObject("space", "none"));
         gameData.modelGroups.add(sceneGroup);
 
         ModelGroup objectsGroup = new ModelGroup("objects", "objects");
-        objectsGroup.gameObjects.add(new GameData.GameObject("Crate*"));
+        objectsGroup.gameObjects.add(new GameData.GameObject("Crate*", "btBoxShape")); // could be convexHull? (gaps?)
         gameData.modelGroups.add(objectsGroup);
 
         gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
@@ -90,8 +90,9 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
+
+        saveData(); // tmp: saving to temp file, don't overwrite what we have
 */
-//        saveData(); // tmp: saving to temp file, don't overwrite what we have
 //        initializeGameData();
 
         loadData();
@@ -109,7 +110,7 @@ public class SceneLoader implements Disposable {
             assets.load(gameData.modelInfo.get(key).fileName, Model.class);
         }
 
-        saveData();
+//        saveData();
 
         return assets;
     }
@@ -151,14 +152,16 @@ public class SceneLoader implements Disposable {
             GameObject() {
             }
 
-            GameObject(String objectName) {
+            GameObject(String objectName, String meshShape) {
                 this.objectName = objectName;
                 this.modelName = null;
                 this.translation = null;
+                this.meshShape = meshShape;
+                this.isShadowed = true;
             }
 
             GameObject(String objectName, String modelName, Vector3 translation) {
-                this(objectName);
+                this(objectName, "convexHullShape"); // convex hull shape default
                 this.modelName = modelName;
                 this.translation = new Vector3(translation);
             }
@@ -166,6 +169,8 @@ public class SceneLoader implements Disposable {
             String modelName;
             String objectName;
             Vector3 translation;
+            String meshShape; // triangleMeshShape, convexHullShape
+            boolean isShadowed;
         }
     }
 
@@ -201,19 +206,23 @@ public class SceneLoader implements Disposable {
 
 
     public void doneLoading() {
-
+/*
         landscapeModel = assets.get("data/landscape.g3db", Model.class);
         tankModel = assets.get("tanks/panzerwagen.g3db", Model.class);
         shipModel = assets.get("tanks/ship.g3db", Model.class);
         sceneModel = assets.get("data/scene.g3dj", Model.class);
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
-
-        gameData.modelInfo.get("landscape").model = landscapeModel;
-        gameData.modelInfo.get("tank").model = tankModel;
-        gameData.modelInfo.get("ship").model = shipModel;
-        gameData.modelInfo.get("scene").model = sceneModel;
-        gameData.modelInfo.get("objects").model = testCubeModel;
-
+*/
+        for (String key : gameData.modelInfo.keySet()) {
+            gameData.modelInfo.get(key).model =
+                    assets.get(gameData.modelInfo.get(key).fileName, Model.class);
+        }
+// tmp
+        landscapeModel = gameData.modelInfo.get("landscape").model;
+        tankModel = gameData.modelInfo.get("tank").model;
+        shipModel = gameData.modelInfo.get("ship").model;
+        sceneModel = gameData.modelInfo.get("scene").model ;
+        testCubeModel = gameData.modelInfo.get("objects").model;
     }
 
     public void createObjects(Engine engine) {
@@ -378,6 +387,7 @@ public class SceneLoader implements Disposable {
         e.add(new ModelComponent(instance));
 
         btCollisionShape shape = MeshHelper.createConvexHullShape(instance.getNode(node));
+int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
         e.add(new BulletComponent(shape, instance.transform, 0f));
 
         // special sauce here for static entity
