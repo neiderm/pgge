@@ -1,6 +1,18 @@
 {
-modelGroups: [
-	{
+modelGroups: {
+	objects: {
+		modelName: objects
+		groupName: objects
+		gameObjects: [
+			{
+				objectName: Crate*
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+		]
+	}
+	tanks: {
 		groupName: tanks
 		gameObjects: [
 			{
@@ -12,6 +24,7 @@ modelGroups: [
 					z: -5
 				}
 				meshShape: convexHullShape
+				isKinematic: false
 				isShadowed: true
 			}
 			{
@@ -23,17 +36,19 @@ modelGroups: [
 					z: -5
 				}
 				meshShape: convexHullShape
+				isKinematic: false
 				isShadowed: true
 			}
 		]
 	}
-	{
+	scene: {
 		modelName: scene
 		groupName: scene
 		gameObjects: [
 			{
 				objectName: Cube
 				meshShape: none
+				isKinematic: false
 				isShadowed: true
 			}
 			{
@@ -51,21 +66,12 @@ modelGroups: [
 			{
 				objectName: space
 				meshShape: none
+				isKinematic: false
+				isShadowed: false
 			}
 		]
 	}
-	{
-		modelName: objects
-		groupName: objects
-		gameObjects: [
-			{
-				objectName: Crate*
-				meshShape: btBoxShape
-				isShadowed: true
-			}
-		]
-	}
-]
+}
 modelInfo: {
 	objects: {
 		modelName: objects

@@ -68,30 +68,30 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-/*
+///*
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
         tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
-        gameData.modelGroups.add(tanksGroup);
+        gameData.modelGroups.put("tanks", tanksGroup);
 
         ModelGroup sceneGroup = new ModelGroup("scene", "scene");
         sceneGroup.gameObjects.add(new GameData.GameObject("Cube", "none"));
         sceneGroup.gameObjects.add(new GameData.GameObject("Platform001", "convexHullShape"));
         sceneGroup.gameObjects.add(new GameData.GameObject("Plane", "triangleMeshShape"));
         sceneGroup.gameObjects.add(new GameData.GameObject("space", "none"));
-        gameData.modelGroups.add(sceneGroup);
+        gameData.modelGroups.put("scene", sceneGroup);
 
         ModelGroup objectsGroup = new ModelGroup("objects", "objects");
         objectsGroup.gameObjects.add(new GameData.GameObject("Crate*", "btBoxShape")); // could be convexHull? (gaps?)
-        gameData.modelGroups.add(objectsGroup);
+        gameData.modelGroups.put("objects", objectsGroup);
 
         gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
         gameData.modelInfo.put("landscape", new ModelInfo("landscape", "data/landscape.g3db"));
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
-*/
-//        saveData(); // tmp: saving to temp file, don't overwrite what we have
+//*/
+        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
 
@@ -110,7 +110,7 @@ public class SceneLoader implements Disposable {
             assets.load(gameData.modelInfo.get(key).fileName, Model.class);
         }
 
-        saveData();
+//        saveData();
 
         return assets;
     }
@@ -137,15 +137,16 @@ public class SceneLoader implements Disposable {
             this.modelName = modelName;
             this.fileName = fileName;
         }
+
         String modelName;
         String fileName;
-            Model model;
+        Model model;
     }
 
     public static class GameData {
 
-        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
-        //        Array<ModelInfo> modelInfo = new Array<ModelInfo>();
+//        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
+HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
         static class GameObject {
@@ -352,53 +353,51 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-    private Entity createLandscape(Vector3 trans) {
 
-        Model model = sceneModel;
-        String node = "Plane";
 
+    /* could end up "modelGroup.build()" */
+    private Entity buildObject(GameData.GameObject gameObject, Model model){
+
+//        Model model; // if null then get model reference from object
+
+        Vector3 size = new Vector3(1, 1, 1);
+        Vector3 trans = new Vector3(0, 0, 0);
+        btCollisionShape shape = null;
+
+        String node = gameObject.objectName;
+
+/// BaseEntityBuilder.load ??
         Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
 
         e.add(new ModelComponent(instance));
+///
 
-        btCollisionShape shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
-        e.add(new BulletComponent(shape, instance.transform, 0f));
+        if (gameObject.meshShape.equals("none")){
+          // no mesh, no bullet
+        }
+        else {
+            if (gameObject.meshShape.contains("convexHullShape")) {
+                shape = MeshHelper.createConvexHullShape(instance.getNode(node));
+                int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+            } else if (gameObject.meshShape.contains("triangleMeshShape")) {
+                shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
+            }
 
-        // special sauce here for static entity
-        BulletComponent bc = e.getComponent(BulletComponent.class);
+            e.add(new BulletComponent(shape, instance.transform, 0f));
 
+            // special sauce here for static entity
+            BulletComponent bc = e.getComponent(BulletComponent.class);
+
+            if (true == gameObject.isKinematic) {
 // set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                bc.body.setCollisionFlags(
+                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+            }
+        }
 
-        return e;
-    }
-
-    private Entity createPlatform() {
-
-        // somehow the convex hull shape works ok on this one (no gaps ??? ) ~~~ !!!
-
-        Model model = sceneModel;
-        String node = "Platform001";
-
-        Entity e = new Entity();
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
-
-        e.add(new ModelComponent(instance));
-
-        btCollisionShape shape = MeshHelper.createConvexHullShape(instance.getNode(node));
-int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-        e.add(new BulletComponent(shape, instance.transform, 0f));
-
-        // special sauce here for static entity
-        BulletComponent bc = e.getComponent(BulletComponent.class);
-
-// set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        e.getComponent(ModelComponent.class).isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
 
         return e;
     }
@@ -411,17 +410,14 @@ int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points
 
     public void buildArena(Engine engine) {
 
-        Entity skybox = load(sceneModel, "space");
-        skybox.getComponent(ModelComponent.class).isShadowed = false; // disable shadowing of skybox
-        engine.addEntity(skybox);
-
         final float yTrans = -10.0f;
-        engine.addEntity(createLandscape(new Vector3(0, yTrans, 0)));
 
-        engine.addEntity(load(sceneModel, "Cube"));  // "static" cube
-        engine.addEntity(createPlatform());
+        ModelGroup mg = gameData.modelGroups.get("scene");
+        Model model = gameData.modelInfo.get("scene").model;
 
-
+        for (GameData.GameObject gameObject : mg.gameObjects) {
+            engine.addEntity(buildObject(gameObject, model));
+        }
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
