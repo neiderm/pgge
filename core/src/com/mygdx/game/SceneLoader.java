@@ -90,6 +90,7 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
+        gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
 //*/
         saveData(); // tmp: saving to temp file, don't overwrite what we have
 
@@ -107,7 +108,9 @@ public class SceneLoader implements Disposable {
 */
         int i = gameData.modelInfo.values().size();
         for (String key : gameData.modelInfo.keySet()) {
-            assets.load(gameData.modelInfo.get(key).fileName, Model.class);
+            if (null != gameData.modelInfo.get(key).fileName) {
+                assets.load(gameData.modelInfo.get(key).fileName, Model.class);
+            }
         }
 
 //        saveData();
@@ -217,9 +220,11 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
 */
         for (String key : gameData.modelInfo.keySet()) {
-            gameData.modelInfo.get(key).model =
-                    assets.get(gameData.modelInfo.get(key).fileName, Model.class);
+            if (null != gameData.modelInfo.get(key).fileName) {
+                gameData.modelInfo.get(key).model = assets.get(gameData.modelInfo.get(key).fileName, Model.class);
+            }
         }
+        gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // special sauce hakakakakakak
 // tmp
         landscapeModel = gameData.modelInfo.get("landscape").model;
         tankModel = gameData.modelInfo.get("tank").model;

@@ -38,7 +38,8 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
-    private static /*final */ Model primitivesModel;
+    /* private */ public // hakakakakakakak
+    static /*final */ Model primitivesModel;
 
     private PrimitivesBuilder() {
         model = primitivesModel;
@@ -119,20 +120,20 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     Constant "DIM_HE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
 
-    public static PrimitivesBuilder getSphereBuilder(final String texFile) {
+    public static PrimitivesBuilder getSphereBuilder(final String nodeID) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, texFile, new btSphereShape(size.x * DIM_HE), size, mass, trans);
+                return load(this.model, nodeID, new btSphereShape(size.x * DIM_HE), size, mass, trans);
             }
         };
     }
 
-    public static PrimitivesBuilder getBoxBuilder(final String texFile) {
+    public static PrimitivesBuilder getBoxBuilder(final String nodeID) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, texFile, new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
+                return load(this.model, nodeID, new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
             }
         };
     }

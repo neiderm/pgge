@@ -73,6 +73,9 @@ modelGroups: {
 	}
 }
 modelInfo: {
+	primitives: {
+		modelName: primitivesModel
+	}
 	objects: {
 		modelName: objects
 		fileName: data/cubetest.g3dj
