@@ -119,20 +119,20 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     Constant "DIM_HE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
 
-    public static PrimitivesBuilder getSphereBuilder(String texFile) {
+    public static PrimitivesBuilder getSphereBuilder(final String texFile) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "sphereTex", new btSphereShape(size.x * DIM_HE), size, mass, trans);
+                return load(this.model, texFile, new btSphereShape(size.x * DIM_HE), size, mass, trans);
             }
         };
     }
 
-    public static PrimitivesBuilder getBoxBuilder(String texFile) {
+    public static PrimitivesBuilder getBoxBuilder(final String texFile) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, "boxTex", new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
+                return load(this.model, texFile, new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
             }
         };
     }

@@ -236,8 +236,8 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         Vector3 size = new Vector3();
         Random rnd = new Random();
 
-        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder("not_used");
-        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder("not_used");
+        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder("boxTex");
+        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder("sphereTex");
 
         for (int i = 0; i < N_ENTITIES; i++) {
 
@@ -377,10 +377,10 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
           // no mesh, no bullet
         }
         else {
-            if (gameObject.meshShape.contains("convexHullShape")) {
+            if (gameObject.meshShape.equals("convexHullShape")) {
                 shape = MeshHelper.createConvexHullShape(instance.getNode(node));
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-            } else if (gameObject.meshShape.contains("triangleMeshShape")) {
+            } else if (gameObject.meshShape.equals("triangleMeshShape")) {
                 shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
             }
 
@@ -423,7 +423,7 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
 
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
-        PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("not used"); // this constructor could use a size param ?
+        PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("boxTex"); // this constructor could use a size param ?
 // crate THINGs
 ///*
         engine.addEntity(bo.create(0.1f, new Vector3(0, 4, -15f), sz));
@@ -437,13 +437,13 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         float r = 16;
         Entity e;
 
-        e = PrimitivesBuilder.getSphereBuilder("not used").create(
+        e = PrimitivesBuilder.getSphereBuilder("sphereTex").create(
                 0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
 //        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
         engine.addEntity(e); // sphere THING
 
-        e = PrimitivesBuilder.getBoxBuilder("not used").create(
+        e = PrimitivesBuilder.getBoxBuilder("boxTex").create(
                 0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
 //        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
         //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
