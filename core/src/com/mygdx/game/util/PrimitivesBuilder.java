@@ -91,7 +91,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         return BaseEntityBuilder.load(
                 primitivesModel, "sphere", new Vector3(r, r, r), pos);
     }
-
+/*
     public static Entity loadCone(float mass, Vector3 trans, Vector3 size) {
         return getConeBuilder().create(mass, trans, size);
     }
@@ -111,7 +111,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
     public static Entity loadSphere(float mass, Vector3 trans, float r) {
         return getSphereBuilder().create(mass, trans, new Vector3(r, r, r));
     }
-
+*/
 
     /*
     Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh.
@@ -147,7 +147,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    private static PrimitivesBuilder getBoxBuilder() {
+    public static PrimitivesBuilder getBoxBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -156,7 +156,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    private static PrimitivesBuilder getConeBuilder() {
+    public static PrimitivesBuilder getConeBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -165,7 +165,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    private static PrimitivesBuilder getCapsuleBuilder() {
+    public static PrimitivesBuilder getCapsuleBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
@@ -182,7 +182,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    private static PrimitivesBuilder getCylinderBuilder() {
+    public static PrimitivesBuilder getCylinderBuilder() {
         return new PrimitivesBuilder() {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified

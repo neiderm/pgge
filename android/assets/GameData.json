@@ -12,6 +12,175 @@ modelGroups: {
 			}
 		]
 	}
+	primitivesGroup: {
+		modelName: primitivesModel
+		groupName: primitivesGroup
+		gameObjects: [
+			{
+				instanceData: [
+					{
+						mass: 0.0
+						scale: {
+							x: 4
+							y: 1
+							z: 4
+						}
+						rotation: {}
+						translation: {
+							x: 0
+							y: 10
+							z: -5
+						}
+						color: {
+							r: 1
+							g: 0.49803922
+							b: 0.3137255
+							a: 1
+						}
+					}
+				]
+				objectName: box
+				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
+				instanceData: [
+					{
+						mass: 0.0
+						scale: {
+							x: 40
+							y: 2
+							z: 40
+						}
+						rotation: {}
+						translation: {
+							x: 0
+							y: -14
+							z: 0
+						}
+					}
+				]
+				objectName: boxTex
+				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
+				instanceData: [
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							y: 4
+							z: -15
+						}
+					}
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							x: -2
+							y: 4
+							z: -15
+						}
+					}
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							x: -4
+							y: 4
+							z: -15
+						}
+					}
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							x: 0
+							y: 6
+							z: -15
+						}
+					}
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							x: -2
+							y: 6
+							z: -15
+						}
+					}
+					{
+						mass: 0.1
+						scale: {
+							x: 2
+							y: 2
+							z: 2
+						}
+						rotation: {}
+						translation: {
+							x: -4
+							y: 6
+							z: -15
+						}
+					}
+				]
+				objectName: boxTex
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				instanceData: [
+					{
+						mass: 0.0
+						scale: {
+							x: 16
+							y: 16
+							z: 16
+						}
+						rotation: {}
+						translation: {
+							x: 10
+							y: -5
+							z: 0
+						}
+					}
+				]
+				objectName: sphereTex
+				meshShape: btSphereShape
+				isKinematic: true
+				isShadowed: true
+			}
+		]
+	}
 	tanks: {
 		groupName: tanks
 		gameObjects: [

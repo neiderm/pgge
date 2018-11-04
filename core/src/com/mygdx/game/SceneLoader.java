@@ -68,10 +68,10 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-///*
+/*
         ModelGroup tanksGroup = new ModelGroup("tanks");
-        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-1, 13f, -5f)));
-        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(1, 11f, -5f)));
+        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-111, 13f, -5f)));
+        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(111, 11f, -5f)));
         gameData.modelGroups.put("tanks", tanksGroup);
 
         ModelGroup sceneGroup = new ModelGroup("scene", "scene");
@@ -85,14 +85,26 @@ public class SceneLoader implements Disposable {
         objectsGroup.gameObjects.add(new GameData.GameObject("Crate*", "btBoxShape")); // could be convexHull? (gaps?)
         gameData.modelGroups.put("objects", objectsGroup);
 
+        ModelGroup primitivesGroup = new ModelGroup("primitivesGroup", "primitivesModel");
+        GameData.GameObject object = new GameData.GameObject("boxTex", "btBoxShape"); // could be convexHull? (gaps?)
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        primitivesGroup.gameObjects.add(object);
+        gameData.modelGroups.put("primitivesGroup", primitivesGroup);
+
+
         gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
         gameData.modelInfo.put("landscape", new ModelInfo("landscape", "data/landscape.g3db"));
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
         gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-//*/
-        saveData(); // tmp: saving to temp file, don't overwrite what we have
+*/
+//        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
 
@@ -113,7 +125,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-//        saveData();
+        saveData();
 
         return assets;
     }
@@ -122,20 +134,25 @@ public class SceneLoader implements Disposable {
     public static class ModelGroup {
         ModelGroup() {
         }
-        ModelGroup(String groupName){
+
+        ModelGroup(String groupName) {
             this.groupName = groupName; // could be null if the objects in the group load their own individual models e.g. tanks
         }
+
         ModelGroup(String groupName, String modelName) {
-            this(groupName );
+            this(groupName);
             this.modelName = modelName;
         }
+
         String modelName;
         String groupName;
         Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
     }
 
     public static class ModelInfo {
-        ModelInfo(){}
+        ModelInfo() {
+        }
+
         ModelInfo(String modelName, String fileName) {
             this.modelName = modelName;
             this.fileName = fileName;
@@ -148,8 +165,8 @@ public class SceneLoader implements Disposable {
 
     public static class GameData {
 
-//        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
-HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
+        //        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
+        HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
         static class GameObject {
@@ -158,8 +175,6 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
 
             GameObject(String objectName, String meshShape) {
                 this.objectName = objectName;
-                this.modelName = null;
-                this.translation = null;
                 this.meshShape = meshShape;
                 this.isShadowed = true;
                 this.isKinematic = true;
@@ -169,8 +184,28 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
                 this(objectName, "convexHullShape"); // convex hull shape default
                 this.modelName = modelName;
                 this.translation = new Vector3(translation);
+                this.instanceData = new Array<InstanceData>();
             }
 
+            static class InstanceData {
+                InstanceData() {
+                }
+
+                InstanceData(Vector3 translation, Vector3 rotation, Vector3 scale) {
+                    this.translation = new Vector3(translation);
+                    this.rotation = new Vector3(rotation);
+                    this.scale = new Vector3(scale);
+                    this.color = Color.CORAL;
+                }
+
+                float mass;
+                Vector3 scale;
+                Vector3 rotation;
+                Vector3 translation;
+                Color color;
+            }
+
+            Array<InstanceData> instanceData = new Array<InstanceData>();
             String modelName;
             String objectName;
             Vector3 translation;
@@ -229,7 +264,7 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         landscapeModel = gameData.modelInfo.get("landscape").model;
         tankModel = gameData.modelInfo.get("tank").model;
         shipModel = gameData.modelInfo.get("ship").model;
-        sceneModel = gameData.modelInfo.get("scene").model ;
+        sceneModel = gameData.modelInfo.get("scene").model;
         testCubeModel = gameData.modelInfo.get("objects").model;
     }
 
@@ -264,11 +299,10 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
             // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-
-            addPickObject(engine, PrimitivesBuilder.loadCone(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.loadCapsule(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.loadCylinder(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.loadBox(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.getConeBuilder().create(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.getCapsuleBuilder().create(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.getCylinderBuilder().create(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.getBoxBuilder().create(5f, t, s));
         }
     }
 
@@ -359,9 +393,8 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
     }
 
 
-
     /* could end up "modelGroup.build()" */
-    private Entity buildObject(GameData.GameObject gameObject, Model model){
+    private Entity buildObject(GameData.GameObject gameObject, Model model) {
 
 //        Model model; // if null then get model reference from object
 
@@ -378,10 +411,9 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         e.add(new ModelComponent(instance));
 ///
 
-        if (gameObject.meshShape.equals("none")){
-          // no mesh, no bullet
-        }
-        else {
+        if (gameObject.meshShape.equals("none")) {
+            // no mesh, no bullet
+        } else {
             if (gameObject.meshShape.equals("convexHullShape")) {
                 shape = MeshHelper.createConvexHullShape(instance.getNode(node));
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
@@ -426,40 +458,57 @@ HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
 
         loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
+// crate THINGs
         // these are same size so this will allow them to share a collision shape
         Vector3 sz = new Vector3(2, 2, 2);
+/*
         PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("boxTex"); // this constructor could use a size param ?
-// crate THINGs
-///*
         engine.addEntity(bo.create(0.1f, new Vector3(0, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 4, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(0, 6, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 6, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
-//*/
+*/
+        ModelGroup mmm = gameData.modelGroups.get("primitivesGroup");
+        for (GameData.GameObject o : mmm.gameObjects) {
+
+            PrimitivesBuilder pb = null;
+            if (o.objectName.contains("box")) {
+// bulletshape given in file but get box builder is tied to it already
+                pb = PrimitivesBuilder.getBoxBuilder(o.objectName); // this constructor could use a size param ?
+            }
+            if (o.objectName.contains("sphere")) {
+// bulletshape given in file but get Sphere builder is tied to it already
+                pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
+            }
+
+            if (null != pb) {
+                for (GameData.GameObject.InstanceData i : o.instanceData) {
+                    Entity e = pb.create(i.mass, i.translation, i.scale);
+                    if (null != i.color)
+                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, 0.5f); // kind of a hack ;)
+                    engine.addEntity(e);
+                }
+            }
+        }
 
         float r = 16;
         Entity e;
-
-        e = PrimitivesBuilder.getSphereBuilder("sphereTex").create(
-                0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
-//        e = PrimitivesBuilder.loadSphereTex(0, new Vector3(10, 5 + yTrans, 0), r);
-        //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, sphereTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+/*
+        e = PrimitivesBuilder.getSphereBuilder("sphereTex").create(0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
         engine.addEntity(e); // sphere THING
-
-        e = PrimitivesBuilder.getBoxBuilder("boxTex").create(
-                0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-//        e = PrimitivesBuilder.loadBoxTex(0f, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-        //        setObjectMatlTex(e.getComponent(ModelComponent.class).modelInst, cubeTex); // new Material(TextureAttribute.createDiffuse(sphereTex))
+*/
+/*
+        e = PrimitivesBuilder.getBoxBuilder("boxTex").create(0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
         engine.addEntity(e);
-
+*/
 
 // we can do primitive dynamic object (with 0 mass for platform)
-        e = PrimitivesBuilder.loadBox(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+//        e = PrimitivesBuilder.getBoxBuilder().create(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
+//        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
+//        engine.addEntity(e);
 
-        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
-        engine.addEntity(e);
     }
 
 
