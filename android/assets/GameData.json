@@ -275,6 +275,51 @@ modelGroups: {
 				isKinematic: false
 				isShadowed: false
 			}
+
+
+			{
+				objectName: Crate
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.001
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.002
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.003
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.004
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.005
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+
 		]
 	}
 }
