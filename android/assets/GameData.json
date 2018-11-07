@@ -5,12 +5,73 @@ modelGroups: {
 		groupName: objects
 		gameObjects: [
 			{
-				objectName: Crate*
+				objectName: Crate.000
 				scale: {
 					x: 1
 					y: 1
 					z: 1
 				}
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.001
+				scale: {
+					x: 1
+					y: 1
+					z: 1
+				}
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.002
+				scale: {
+					x: 1
+					y: 1
+					z: 1
+				}
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.003
+				scale: {
+					x: 1
+					y: 1
+					z: 1
+				}
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.004
+				scale: {
+					x: 1
+					y: 1
+					z: 1
+				}
+				mass: 0.1
+				meshShape: btBoxShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: Crate.005
+				scale: {
+					x: 1
+					y: 1
+					z: 1
+				}
+				mass: 0.1
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true

@@ -179,14 +179,14 @@ public class SceneLoader implements Disposable {
                 this.isKinematic = true;
                 this.scale = new Vector3(1, 1, 1); // placeholder
             }
-/*
-            GameObject(String objectName, String modelName ) {
-                this(objectName, "convexHullShape"); // convex hull shape default
-                this.modelName = modelName;
-                this.translation = new Vector3(translation);
-                this.instanceData = new Array<InstanceData>();
-            }
-*/
+            /*
+                        GameObject(String objectName, String modelName ) {
+                            this(objectName, "convexHullShape"); // convex hull shape default
+                            this.modelName = modelName;
+                            this.translation = new Vector3(translation);
+                            this.instanceData = new Array<InstanceData>();
+                        }
+            */
             static class InstanceData {
                 InstanceData() {
                 }
@@ -392,16 +392,29 @@ public class SceneLoader implements Disposable {
     }
 
 
+    private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
+
+        if (0 == gameObject.instanceData.size) {
+            // no instance data ... default translation etc.
+            Entity e = buildObjectInstance(gameObject, model, new Vector3(0, 0, 0));
+            engine.addEntity(e);
+// tmp ... get location of node to store in data file
+/*
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            Vector3 translation= new Vector3();
+            mc.modelInst.transform.getTranslation(translation);
+            gameObject.instanceData.add(
+                    new GameData.GameObject.InstanceData(new Vector3(translation), new Vector3(0, 0, 0)));
+*/
+        } else {
+            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+                engine.addEntity(buildObjectInstance(gameObject, model, i.translation));
+            }
+        }
+    }
+
     /* could end up "modelGroup.build()" */
-    private Entity buildObject(GameData.GameObject gameObject, Model model) {
-
-        Vector3 size = new Vector3(1, 1, 1);
-        Vector3 trans = new Vector3(0, 0, 0);
-
-//return buildObjectInstance(gameObject, model, size, trans);
-//    }
-//
-//    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 size, Vector3 trans) {
+    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 trans) {
 
 //        Model model; // if null then get model reference from object
 
@@ -425,9 +438,14 @@ public class SceneLoader implements Disposable {
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
             } else if (gameObject.meshShape.equals("triangleMeshShape")) {
                 shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
+            } else if (gameObject.meshShape.equals("btBoxShape")) {
+                BoundingBox boundingBox = new BoundingBox();
+                Vector3 dimensions = new Vector3();
+                instance.calculateBoundingBox(boundingBox);
+                shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
             }
 
-            float mass = 0f;
+            float mass = gameObject.mass;
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
             e.add(bc);
 
@@ -457,10 +475,16 @@ public class SceneLoader implements Disposable {
         Model model = gameData.modelInfo.get("scene").model;
 
         for (GameData.GameObject gameObject : mg.gameObjects) {
-            engine.addEntity(buildObject(gameObject, model));
+            buildObject(engine, gameObject, model);
         }
 
-        loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
+//        loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
+
+        model = gameData.modelInfo.get("objects").model;
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
+            buildObject(engine, gameObject, model);
+        }
+
 
 // crate THINGs
         // these are same size so this will allow them to share a collision shape
@@ -515,6 +539,7 @@ public class SceneLoader implements Disposable {
 //        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
 //        engine.addEntity(e);
 
+//        saveData();// why this blow up?
     }
 
 
