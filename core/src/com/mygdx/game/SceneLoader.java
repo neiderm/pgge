@@ -70,8 +70,8 @@ public class SceneLoader implements Disposable {
         gameData = new GameData();
 /*
         ModelGroup tanksGroup = new ModelGroup("tanks");
-        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db", new Vector3(-111, 13f, -5f)));
-        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db", new Vector3(111, 11f, -5f)));
+        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db"));
+        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db"));
         gameData.modelGroups.put("tanks", tanksGroup);
 
         ModelGroup sceneGroup = new ModelGroup("scene", "scene");
@@ -87,12 +87,12 @@ public class SceneLoader implements Disposable {
 
         ModelGroup primitivesGroup = new ModelGroup("primitivesGroup", "primitivesModel");
         GameData.GameObject object = new GameData.GameObject("boxTex", "btBoxShape"); // could be convexHull? (gaps?)
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 4, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 6, -15), new Vector3(0, 0, 0), new Vector3(1, 1, 1)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 4, -15), new Vector3(0, 0, 0)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 4, -15), new Vector3(0, 0, 0)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 4, -15), new Vector3(0, 0, 0)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 6, -15), new Vector3(0, 0, 0)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 6, -15), new Vector3(0, 0, 0)));
+        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 6, -15), new Vector3(0, 0, 0)));
         primitivesGroup.gameObjects.add(object);
         gameData.modelGroups.put("primitivesGroup", primitivesGroup);
 
@@ -165,7 +165,6 @@ public class SceneLoader implements Disposable {
 
     public static class GameData {
 
-        //        Array<ModelGroup> modelGroups = new Array<ModelGroup>();
         HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
@@ -178,28 +177,26 @@ public class SceneLoader implements Disposable {
                 this.meshShape = meshShape;
                 this.isShadowed = true;
                 this.isKinematic = true;
+                this.scale = new Vector3(1, 1, 1); // placeholder
             }
-
-            GameObject(String objectName, String modelName, Vector3 translation) {
+/*
+            GameObject(String objectName, String modelName ) {
                 this(objectName, "convexHullShape"); // convex hull shape default
                 this.modelName = modelName;
                 this.translation = new Vector3(translation);
                 this.instanceData = new Array<InstanceData>();
             }
-
+*/
             static class InstanceData {
                 InstanceData() {
                 }
 
-                InstanceData(Vector3 translation, Vector3 rotation, Vector3 scale) {
+                InstanceData(Vector3 translation, Vector3 rotation) {
                     this.translation = new Vector3(translation);
                     this.rotation = new Vector3(rotation);
-                    this.scale = new Vector3(scale);
                     this.color = Color.CORAL;
                 }
 
-                float mass;
-                Vector3 scale;
                 Vector3 rotation;
                 Vector3 translation;
                 Color color;
@@ -208,7 +205,9 @@ public class SceneLoader implements Disposable {
             Array<InstanceData> instanceData = new Array<InstanceData>();
             String modelName;
             String objectName;
-            Vector3 translation;
+            Vector3 translation; // needs to be only per-instance
+            Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
+            float mass;
             String meshShape; // triangleMeshShape, convexHullShape
             boolean isKinematic;
             boolean isShadowed;
@@ -396,10 +395,16 @@ public class SceneLoader implements Disposable {
     /* could end up "modelGroup.build()" */
     private Entity buildObject(GameData.GameObject gameObject, Model model) {
 
-//        Model model; // if null then get model reference from object
-
         Vector3 size = new Vector3(1, 1, 1);
         Vector3 trans = new Vector3(0, 0, 0);
+
+//return buildObjectInstance(gameObject, model, size, trans);
+//    }
+//
+//    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 size, Vector3 trans) {
+
+//        Model model; // if null then get model reference from object
+
         btCollisionShape shape = null;
 
         String node = gameObject.objectName;
@@ -408,8 +413,9 @@ public class SceneLoader implements Disposable {
         Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
 
-        e.add(new ModelComponent(instance));
-///
+        ModelComponent mc = new ModelComponent(instance);
+        mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
+        e.add(mc);
 
         if (gameObject.meshShape.equals("none")) {
             // no mesh, no bullet
@@ -421,11 +427,11 @@ public class SceneLoader implements Disposable {
                 shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
             }
 
-            e.add(new BulletComponent(shape, instance.transform, 0f));
+            float mass = 0f;
+            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+            e.add(bc);
 
             // special sauce here for static entity
-            BulletComponent bc = e.getComponent(BulletComponent.class);
-
             if (true == gameObject.isKinematic) {
 // set these flags in bullet comp?
                 bc.body.setCollisionFlags(
@@ -433,8 +439,6 @@ public class SceneLoader implements Disposable {
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
         }
-
-        e.getComponent(ModelComponent.class).isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
 
         return e;
     }
@@ -484,8 +488,10 @@ public class SceneLoader implements Disposable {
             }
 
             if (null != pb) {
+                Vector3 scale = o.scale;
+//                if (null == scale) scale = new Vector3(1, 1,1);
                 for (GameData.GameObject.InstanceData i : o.instanceData) {
-                    Entity e = pb.create(i.mass, i.translation, i.scale);
+                    Entity e = pb.create(o.mass, i.translation, scale);
                     if (null != i.color)
                         ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, 0.5f); // kind of a hack ;)
                     engine.addEntity(e);
