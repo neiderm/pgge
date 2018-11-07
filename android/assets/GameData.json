@@ -78,9 +78,9 @@ modelGroups: {
 			}
 		]
 	}
-	primitivesGroup: {
+	primitives: {
 		modelName: primitivesModel
-		groupName: primitivesGroup
+		groupName: primitives
 		gameObjects: [
 			{
 				instanceData: [

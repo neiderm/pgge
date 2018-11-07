@@ -39,7 +39,7 @@ public class SceneLoader implements Disposable {
 
     public static SceneLoader globalInstance = null;
     public static GameData gameData;
-    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
+//    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
     private static AssetManager assets;
     private static Model landscapeModel;
@@ -68,10 +68,10 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-/*
+///*
         ModelGroup tanksGroup = new ModelGroup("tanks");
-        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "tanks/ship.g3db"));
-        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "tanks/panzerwagen.g3db"));
+        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
+        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
         gameData.modelGroups.put("tanks", tanksGroup);
 
         ModelGroup sceneGroup = new ModelGroup("scene", "scene");
@@ -85,7 +85,7 @@ public class SceneLoader implements Disposable {
         objectsGroup.gameObjects.add(new GameData.GameObject("Crate*", "btBoxShape")); // could be convexHull? (gaps?)
         gameData.modelGroups.put("objects", objectsGroup);
 
-        ModelGroup primitivesGroup = new ModelGroup("primitivesGroup", "primitivesModel");
+        ModelGroup primitivesGroup = new ModelGroup("primitives", "primitivesModel");
         GameData.GameObject object = new GameData.GameObject("boxTex", "btBoxShape"); // could be convexHull? (gaps?)
         object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 4, -15), new Vector3(0, 0, 0)));
         object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 4, -15), new Vector3(0, 0, 0)));
@@ -94,7 +94,7 @@ public class SceneLoader implements Disposable {
         object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 6, -15), new Vector3(0, 0, 0)));
         object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 6, -15), new Vector3(0, 0, 0)));
         primitivesGroup.gameObjects.add(object);
-        gameData.modelGroups.put("primitivesGroup", primitivesGroup);
+        gameData.modelGroups.put("primitives", primitivesGroup);
 
 
         gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
@@ -103,7 +103,7 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
         gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-*/
+//*/
 //        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
@@ -125,7 +125,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-        saveData();
+//        saveData();
 
         return assets;
     }
@@ -218,7 +218,7 @@ public class SceneLoader implements Disposable {
         http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
     */
 
-    public void initializeGameData() {
+/*    public void initializeGameData() {
         if (!fileHandle.exists()) {
             gameData = new GameData();
 
@@ -226,21 +226,22 @@ public class SceneLoader implements Disposable {
         } else {
             loadData();
         }
-    }
+    }*/
 
-    public void saveData() {
+    public void saveData(GameData data) {
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.local("GameData_out.json");
         if (gameData != null) {
-            //fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
-            fileHandle.writeString(json.prettyPrint(gameData), false);
+//            fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
+            fileHandle.writeString(json.prettyPrint(data), false);
             //System.out.println(json.prettyPrint(gameData));
         }
     }
 
     public void loadData() {
         Json json = new Json();
-//        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
+        FileHandle fileHandle = Gdx.files.local("GameData.json");
+        //        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
         gameData = json.fromJson(GameData.class, fileHandle.readString());
     }
 
@@ -399,13 +400,13 @@ public class SceneLoader implements Disposable {
             Entity e = buildObjectInstance(gameObject, model, new Vector3(0, 0, 0));
             engine.addEntity(e);
 // tmp ... get location of node to store in data file
-/*
+///*
             ModelComponent mc = e.getComponent(ModelComponent.class);
             Vector3 translation= new Vector3();
             mc.modelInst.transform.getTranslation(translation);
             gameObject.instanceData.add(
                     new GameData.GameObject.InstanceData(new Vector3(translation), new Vector3(0, 0, 0)));
-*/
+//*/
         } else {
             for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
                 engine.addEntity(buildObjectInstance(gameObject, model, i.translation));
@@ -498,7 +499,7 @@ public class SceneLoader implements Disposable {
         engine.addEntity(bo.create(0.1f, new Vector3(-2, 6, -15f), sz));
         engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
 */
-        ModelGroup mmm = gameData.modelGroups.get("primitivesGroup");
+        ModelGroup mmm = gameData.modelGroups.get("primitives");
         for (GameData.GameObject o : mmm.gameObjects) {
 
             PrimitivesBuilder pb = null;
@@ -582,6 +583,31 @@ public class SceneLoader implements Disposable {
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
         //  Disposing the file will automatically make all instances invalid!
         assets.dispose();
+
+
+
+
+        GameData cpGameData = new GameData();
+
+        for (String key : gameData.modelGroups.keySet()) {
+
+            ModelGroup mg = new ModelGroup(gameData.modelGroups.get(key).groupName);
+
+            for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
+
+                GameData.GameObject cpObject =  new GameData.GameObject(o.objectName, o.meshShape);
+//                GameData.GameObject.InstanceData i = o.instanceData.
+                for (GameData.GameObject.InstanceData i : o.instanceData) {
+
+                    cpObject.instanceData.add(i);
+                }
+                mg.gameObjects.add(cpObject);
+            }
+            cpGameData.modelGroups.put(gameData.modelGroups.get(key).groupName, mg);
+
+        }
+
+saveData(cpGameData);// ???
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
