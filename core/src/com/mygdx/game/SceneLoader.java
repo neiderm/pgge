@@ -68,7 +68,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-///*
+/*
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
         tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
@@ -103,7 +103,7 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
         gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-//*/
+*/
 //        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
@@ -397,9 +397,10 @@ public class SceneLoader implements Disposable {
 
         if (0 == gameObject.instanceData.size) {
             // no instance data ... default translation etc.
-            Entity e = buildObjectInstance(gameObject, model, new Vector3(0, 0, 0));
+            Entity e = buildObjectInstance(gameObject, model, /* new Vector3(0, 0, 0) */ null );
             engine.addEntity(e);
-// tmp ... get location of node to store in data file
+
+            // tmp ... get location of node to store in data file
 ///*
             ModelComponent mc = e.getComponent(ModelComponent.class);
             Vector3 translation= new Vector3();
@@ -415,7 +416,7 @@ public class SceneLoader implements Disposable {
     }
 
     /* could end up "modelGroup.build()" */
-    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 trans) {
+    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 translation) {
 
 //        Model model; // if null then get model reference from object
 
@@ -426,6 +427,12 @@ public class SceneLoader implements Disposable {
 /// BaseEntityBuilder.load ??
         Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+        // leave translation null if using translation from the model layout
+        if (null != translation) {
+ // nullify any translation from the model, apply instance translation
+            instance.transform.setTranslation(0, 0, 0);
+            instance.transform.trn(translation);
+        }
 
         ModelComponent mc = new ModelComponent(instance);
         mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
@@ -451,7 +458,7 @@ public class SceneLoader implements Disposable {
             e.add(bc);
 
             // special sauce here for static entity
-            if (true == gameObject.isKinematic) {
+            if (true == gameObject.isKinematic) {  // if (0 == mass) ??
 // set these flags in bullet comp?
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -585,8 +592,7 @@ public class SceneLoader implements Disposable {
         assets.dispose();
 
 
-
-
+// new test file writer
         GameData cpGameData = new GameData();
 
         for (String key : gameData.modelGroups.keySet()) {
@@ -606,8 +612,7 @@ public class SceneLoader implements Disposable {
             cpGameData.modelGroups.put(gameData.modelGroups.get(key).groupName, mg);
 
         }
-
-saveData(cpGameData);// ???
+//        saveData(cpGameData);
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
