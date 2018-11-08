@@ -2,7 +2,6 @@
 modelGroups: {
 	primitives: {
 		modelName: primitivesModel
-		groupName: primitives
 		gameObjects: [
 			{
 				instanceData: [
@@ -142,7 +141,6 @@ modelGroups: {
 	}
 	objects: {
 		modelName: objects
-		groupName: objects
 		gameObjects: [
 			{
 				instanceData: [
@@ -205,7 +203,6 @@ modelGroups: {
 		]
 	}
 	tanks: {
-		groupName: tanks
 		gameObjects: [
 			{
 				modelName: tanks/ship.g3db
@@ -235,7 +232,6 @@ modelGroups: {
 	}
 	scene: {
 		modelName: scene
-		groupName: scene
 		gameObjects: [
 			{
 				objectName: Cube
@@ -371,26 +367,20 @@ modelGroups: {
 }
 modelInfo: {
 	primitives: {
-		modelName: primitivesModel
 	}
 	objects: {
-		modelName: objects
 		fileName: data/cubetest.g3dj
 	}
 	ship: {
-		modelName: ship
 		fileName: tanks/ship.g3db
 	}
 	tank: {
-		modelName: tank
 		fileName: tanks/panzerwagen.g3db
 	}
 	landscape: {
-		modelName: landscape
 		fileName: data/landscape.g3db
 	}
 	scene: {
-		modelName: scene
 		fileName: data/scene.g3dj
 	}
 }

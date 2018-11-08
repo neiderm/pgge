@@ -68,7 +68,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-/*
+///*
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
         tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
@@ -103,7 +103,7 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
         gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-*/
+//*/
 //        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
@@ -136,7 +136,7 @@ public class SceneLoader implements Disposable {
         }
 
         ModelGroup(String groupName) {
-            this.groupName = groupName; // could be null if the objects in the group load their own individual models e.g. tanks
+//            this.groupName = groupName; // could be null if the objects in the group load their own individual models e.g. tanks
         }
 
         ModelGroup(String groupName, String modelName) {
@@ -145,7 +145,7 @@ public class SceneLoader implements Disposable {
         }
 
         String modelName;
-        String groupName;
+//        String groupName;
         Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
     }
 
@@ -154,11 +154,11 @@ public class SceneLoader implements Disposable {
         }
 
         ModelInfo(String modelName, String fileName) {
-            this.modelName = modelName;
+  //          this.modelName = modelName;
             this.fileName = fileName;
         }
 
-        String modelName;
+//        String modelName;
         String fileName;
         Model model;
     }
@@ -597,7 +597,7 @@ public class SceneLoader implements Disposable {
 
         for (String key : gameData.modelGroups.keySet()) {
 
-            ModelGroup mg = new ModelGroup(gameData.modelGroups.get(key).groupName);
+            ModelGroup mg = new ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
 
             for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
@@ -609,10 +609,10 @@ public class SceneLoader implements Disposable {
                 }
                 mg.gameObjects.add(cpObject);
             }
-            cpGameData.modelGroups.put(gameData.modelGroups.get(key).groupName, mg);
+            cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
 
         }
-//        saveData(cpGameData);
+        saveData(cpGameData);
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
