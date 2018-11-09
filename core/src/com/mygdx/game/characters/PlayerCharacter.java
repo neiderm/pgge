@@ -31,17 +31,16 @@ import com.mygdx.game.util.GfxUtil;
 
 public class PlayerCharacter extends IUserInterface {
 
-    public PlayerCharacter(btRigidBody btRigidBodyPlayer, final Matrix4 playerTransform, SteeringEntity steerable) {
+    public PlayerCharacter(final btRigidBody btRigidBodyPlayer, SteeringEntity steerable) {
 
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, btRigidBodyPlayer);
         steerable.setSteeringBehavior(playerInpSB);
-
 
         this.gameEvent = new GameEvent() {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
-            private Matrix4 transform = playerTransform;
+//            private Matrix4 transform = playerTransform;
 
             /*
             we have no way to invoke a callback to the picked component.
@@ -60,7 +59,8 @@ public class PlayerCharacter extends IUserInterface {
                             // we have an object in sight so kil it, bump the score, whatever
                             RenderSystem.otherThings.add(
                                     GfxUtil.lineTo(
-                                            transform.getTranslation(posV),
+                                            btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
+//                                            transform.getTranslation(posV),
                                             picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                             Color.LIME));
                         }

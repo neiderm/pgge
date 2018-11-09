@@ -269,8 +269,18 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         // select the Steering Bullet Entity here and pass it to the character
         SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        playerUI = new PlayerCharacter(btRigidBodyPlayer, playerTransform, sbe);
+        playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
         pickedPlayer.add(new CharacterComponent(sbe, playerUI.gameEvent));
+
+
+        /*
+        for ( Entity e in sceneloader.getCharacterEntities() ){
+                  SteeringEntity character = e.getComponent(CharacterComponent.class).SteeringEntity; // new SteeringEntity();
+                  character.setSteeringBehavior(new TrackerSB<Vector3>(character, tgtTransform, instance.transform, .... ));
+                  e.add(new CharacterComponent(character, null ));
+        }
+         */
+
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
