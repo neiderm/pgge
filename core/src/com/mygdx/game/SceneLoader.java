@@ -68,7 +68,7 @@ public class SceneLoader implements Disposable {
         PrimitivesBuilder.init();
 
         gameData = new GameData();
-///*
+/*
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
         tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
@@ -103,7 +103,7 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
         gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
         gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-//*/
+*/
 //        saveData(); // tmp: saving to temp file, don't overwrite what we have
 
 //        initializeGameData();
@@ -268,7 +268,7 @@ public class SceneLoader implements Disposable {
         testCubeModel = gameData.modelInfo.get("objects").model;
     }
 
-    public void createObjects(Engine engine) {
+    public void onPlayerPicked(Engine engine) {
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
@@ -525,7 +525,7 @@ public class SceneLoader implements Disposable {
                 for (GameData.GameObject.InstanceData i : o.instanceData) {
                     Entity e = pb.create(o.mass, i.translation, scale);
                     if (null != i.color)
-                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, 0.5f); // kind of a hack ;)
+                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
                     engine.addEntity(e);
                 }
             }

@@ -23,7 +23,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.PlayerCharacter;
@@ -168,6 +167,7 @@ class GameScreen implements Screen {
     private void newRound() {
 
         addSystems();
+
         GameWorld.sceneLoader.buildArena(engine);
 final Entity tank =        GameWorld.sceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
 final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
@@ -243,7 +243,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
     private void onPlayerPicked() {
 
         isPicked = false;
-        GameWorld.sceneLoader.createObjects(engine);
+        GameWorld.sceneLoader.onPlayerPicked(engine);
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
@@ -269,6 +269,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         Chaser asdf = new Chaser();
+
         engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
         enemyTank.add(new CharacterComponent(
