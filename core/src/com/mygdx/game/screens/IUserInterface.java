@@ -12,12 +12,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.mygdx.game.util.GameEvent;
 
 /**
  * Created by utf1247 on 6/22/2018.
  */
 
 public class IUserInterface extends Stage {
+
+    public GameEvent gameEvent;
 
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"

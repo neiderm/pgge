@@ -7,13 +7,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
@@ -32,18 +31,17 @@ import com.mygdx.game.util.GfxUtil;
 
 public class PlayerCharacter extends IUserInterface {
 
-    public PlayerCharacter(final Entity player, SteeringEntity steerable) {
+    public PlayerCharacter(btRigidBody btRigidBodyPlayer, final Matrix4 playerTransform, SteeringEntity steerable) {
 
-        final PlayerInput<Vector3> playerInpSB =
-                new PlayerInput<Vector3>(steerable, io, player.getComponent(BulletComponent.class).body);
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, btRigidBodyPlayer);
         steerable.setSteeringBehavior(playerInpSB);
 
 
-        GameEvent gameEvent = new GameEvent() {
+        this.gameEvent = new GameEvent() {
 
             private Vector3 tmpV = new Vector3();
             private Vector3 posV = new Vector3();
-            private Matrix4 transform = player.getComponent(ModelComponent.class).modelInst.transform;
+            private Matrix4 transform = playerTransform;
 
             /*
             we have no way to invoke a callback to the picked component.
@@ -74,13 +72,8 @@ public class PlayerCharacter extends IUserInterface {
             }
         };
 
-        // game Event stored in character comp but it probably doesn't need to be but lets be rigorous
-        // and make sure it's valid anyway
-        CharacterComponent comp = new CharacterComponent(steerable, gameEvent);
-        player.add(comp);
-
 // UI pixmaps etc. should eventually come from a user-selectable skin
-                addChangeListener(touchPadChangeListener);
+        addChangeListener(touchPadChangeListener);
 
         Pixmap button;
 
@@ -88,7 +81,7 @@ public class PlayerCharacter extends IUserInterface {
         button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
-                addInputListener(actionButtonListener, button,
+        addInputListener(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         button.dispose();
     }

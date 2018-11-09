@@ -18,7 +18,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -31,6 +33,7 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
@@ -261,19 +264,21 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
             }
         };
 
+        Matrix4 playerTransform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+        btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
-        playerUI = new PlayerCharacter(pickedPlayer,
-                        new TankController(pickedPlayer.getComponent(BulletComponent.class).body,
-                                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */));
+        SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+        playerUI = new PlayerCharacter(btRigidBodyPlayer, playerTransform, sbe);
+        pickedPlayer.add(new CharacterComponent(sbe, playerUI.gameEvent));
+
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         Chaser asdf = new Chaser();
+        engine.addEntity(asdf.create(playerTransform));
 
-        engine.addEntity(asdf.create(pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
-
-        enemyTank.add(new CharacterComponent(
-                new SteeringTankController(enemyTank, pickedPlayer.getComponent(BulletComponent.class).body)));
+        enemyTank.add(new CharacterComponent(new SteeringTankController(enemyTank, btRigidBodyPlayer)));
 
         makeCameraSwitchHandler(playerUI);
 
