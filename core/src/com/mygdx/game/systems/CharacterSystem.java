@@ -66,10 +66,6 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
         CharacterComponent comp = entity.getComponent(CharacterComponent.class);
         ModelComponent mc = entity.getComponent(ModelComponent.class);
 
-        if (null != comp.steerable) {
-            comp.steerable.update(deltaTime);
-        }
-
         // different things have different means of setting their lookray
         if (null != mc) {
 
@@ -81,11 +77,17 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
                 comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
 
 //                        try {
+//                gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, mc.modelInst.transform, 0));
                 gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
 //                        } catch (NullPointerException ex) {
 //                            System.out.println("NumberFormatException is occured");
 //                        }
             }
         }
+
+        if (null != comp.steerable) {
+            comp.steerable.update(deltaTime);
+        }
+
     }
 }

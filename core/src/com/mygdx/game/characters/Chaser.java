@@ -4,6 +4,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
@@ -33,7 +34,7 @@ public class Chaser {
 
         character.setSteeringBehavior(new TrackerSB<Vector3>(character, tgtTransform, instance.transform, /*spOffs*/new Vector3(0, 1, 2)));
 
-        e.add(new CharacterComponent(character, null /* tmp? */));
+        e.add(new CharacterComponent(character, null, new Ray()));
 
         return e;
     }

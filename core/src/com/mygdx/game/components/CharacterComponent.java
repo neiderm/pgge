@@ -17,7 +17,7 @@ public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
     public GameEvent gameEvent;
-    public Ray lookRay = new Ray();
+    public Ray lookRay;
 
     public CharacterComponent(SteeringEntity steeringEntity) {
 
@@ -27,9 +27,10 @@ public class CharacterComponent implements Component {
     /*
      every entity instance must have its own gameEvent instance
      */
-    public CharacterComponent(SteeringEntity steeringEntity, GameEvent gameEvent) {
+    public CharacterComponent(SteeringEntity steeringEntity, GameEvent gameEvent, Ray lookRay) {
 
         this(steeringEntity);
         this.gameEvent = gameEvent;
+        this.lookRay = lookRay;
     }
 }

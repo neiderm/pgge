@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -188,7 +189,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                     @Override
                     public void callback(Entity picked, EventType eventType) {
                         switch (eventType) {
-                            case RAY_DETECT:
+                            case RAY_PICK:
                                 if (null != picked) {
                                     isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                                     pickedPlayer = picked;
@@ -205,7 +206,6 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                                         enemyTank.remove(PickRayComponent.class);
                                 }
                                 break;
-                            case RAY_PICK:
                             default:
                                 break;
                         }
@@ -270,7 +270,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
         playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
-        pickedPlayer.add(new CharacterComponent(sbe, playerUI.gameEvent));
+        pickedPlayer.add(new CharacterComponent(sbe, playerUI.gameEvent, new Ray()));
 
 
         /*

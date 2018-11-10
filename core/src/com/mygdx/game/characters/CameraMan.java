@@ -21,6 +21,7 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
+import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 /**
@@ -170,12 +171,13 @@ public class CameraMan extends SteeringEntity {
     private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
                       Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
-        CharacterComponent comp = new CharacterComponent(this, event);
+        this.pickRay =  new Ray();
+        CharacterComponent comp = new CharacterComponent(this, event, this.pickRay );
         cameraMan.add(comp);
 
         this.gameEvent = comp.gameEvent;
         this.gameEventSignal = gameEventSignal;
-        this.pickRay = comp.lookRay;
+//        this.pickRay = comp.lookRay;
         this.cam = cam;
 
         setCameraLocation(positionV, lookAtV);
@@ -192,12 +194,11 @@ public class CameraMan extends SteeringEntity {
             @Override
             public void callback(Entity picked, EventType eventType) {
                 switch (eventType) {
-                    case RAY_DETECT:
+                    case RAY_PICK:
                         if (null != picked)
                             ModelInstanceEx.setMaterialColor(
                                     picked.getComponent(ModelComponent.class).modelInst, Color.RED);
                         break;
-                    case RAY_PICK:
                     default:
                         break;
                 }
@@ -213,12 +214,13 @@ public class CameraMan extends SteeringEntity {
 
         setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
 
-        CharacterComponent comp = new CharacterComponent(this, event);
+        this.pickRay = new Ray();
+        CharacterComponent comp = new CharacterComponent(this, event, this.pickRay);
         cameraMan.add(comp);
 
         this.gameEvent = event;
         this.gameEventSignal = gameEventSignal;
-        this.pickRay = comp.lookRay;
+//        this.pickRay = comp.lookRay;
 
         setCameraLocation(positionV, lookAtV);
 
@@ -284,7 +286,7 @@ public class CameraMan extends SteeringEntity {
             // only do this if FPV mode (i.e. cam controller is not handling game window input)
 //            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
             {
-                gameEventSignal.dispatch(gameEvent.set(RAY_DETECT, setPickRay(x, y), 0));
+                gameEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
                 //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
             }
             return true;
