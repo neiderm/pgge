@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -44,8 +45,11 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
 import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Locale;
+
+import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 /**
  * Created by mango on 12/18/17.
@@ -168,6 +172,10 @@ class GameScreen implements Screen {
 
     private Entity setupUICameraEntity;
 
+
+//    GameEvent camGameEvent;
+
+
     private void newRound() {
 
         addSystems();
@@ -182,6 +190,8 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         // now we can make camera Man (depends on setupUI)
         setupUICameraEntity = new Entity();
         engine.addEntity(setupUICameraEntity);
+
+//        camGameEvent = new GameEvent() {
 
         cameraMan = new CameraMan(setupUICameraEntity, this.setupUI, pickRayEventSignal, cam,
                 camDefPosition, camDefLookAt,
@@ -232,7 +242,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
 
         engine.addSystem(renderSystem = new RenderSystem(environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new CharacterSystem(pickRayEventSignal));
+        engine.addSystem(new CharacterSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
     }
@@ -307,6 +317,11 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
     }
 
+
+    private Vector3 position = new Vector3();
+    private Quaternion rotation = new Quaternion();
+    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -328,8 +343,19 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
 
         camController.update();
         engine.update(delta);
-
-
+///*
+        // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
+        if (null != pickedPlayer) {
+            CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
+            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+            if (null != comp) {
+                mc.modelInst.transform.getTranslation(position);
+                mc.modelInst.transform.getRotation(rotation);
+                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                pickRayEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
+            }
+        }
+ //*/
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();

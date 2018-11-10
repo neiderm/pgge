@@ -4,16 +4,8 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.ModelInstanceEx;
-
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 /**
  * Created by mango on 2/10/18.
@@ -21,12 +13,10 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 
 public class CharacterSystem extends IteratingSystem implements EntityListener {
 
-    private Signal<GameEvent> gameEventSignal;
 
-    public CharacterSystem(Signal<GameEvent> gameEventSignal) {
+    public CharacterSystem() {
 
         super(Family.all(CharacterComponent.class).get());
-        this.gameEventSignal = gameEventSignal;
     }
 
     @Override
@@ -55,35 +45,10 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
     }
 
 
-    private Vector3 position = new Vector3();
-    private Quaternion rotation = new Quaternion();
-    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-
-
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
 
         CharacterComponent comp = entity.getComponent(CharacterComponent.class);
-        ModelComponent mc = entity.getComponent(ModelComponent.class);
-
-        // different things have different means of setting their lookray
-        if (null != mc) {
-
-            mc.modelInst.transform.getTranslation(position);
-            mc.modelInst.transform.getRotation(rotation);
-
-            if (null != comp.gameEvent) { // not all support gameeventsignal
-
-                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-
-//                        try {
-//                gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, mc.modelInst.transform, 0));
-                gameEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
-//                        } catch (NullPointerException ex) {
-//                            System.out.println("NumberFormatException is occured");
-//                        }
-            }
-        }
 
         if (null != comp.steerable) {
             comp.steerable.update(deltaTime);
