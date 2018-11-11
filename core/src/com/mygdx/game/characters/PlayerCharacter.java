@@ -1,11 +1,8 @@
 package com.mygdx.game.characters;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -13,12 +10,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
-import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.GfxUtil;
 
 /**
  * Created by utf1247 on 5/17/2018.
@@ -35,42 +28,6 @@ public class PlayerCharacter extends IUserInterface {
 
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, btRigidBodyPlayer);
         steerable.setSteeringBehavior(playerInpSB);
-
-        this.gameEvent = new GameEvent() {
-
-            private Vector3 tmpV = new Vector3();
-            private Vector3 posV = new Vector3();
-//            private Matrix4 transform = playerTransform;
-
-            /*
-            we have no way to invoke a callback to the picked component.
-            Pickable component required to implment some kind of interface to provide a
-            callback method e.g.
-              pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
-              if (null != pickedComp.pickedInterface)
-                 pickInterface.picked( myEntityReference );
-             */
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-
-                switch (eventType) {
-                    case RAY_DETECT:
-                        if (null != picked) {
-                            // we have an object in sight so kil it, bump the score, whatever
-                            RenderSystem.otherThings.add(
-                                    GfxUtil.lineTo(
-                                            btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
-//                                            transform.getTranslation(posV),
-                                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                                            Color.LIME));
-                        }
-                        break;
-                    case RAY_PICK:
-                    default:
-                        break;
-                }
-            }
-        };
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
         addChangeListener(touchPadChangeListener);

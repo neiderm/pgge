@@ -45,6 +45,7 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
 import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
 import java.util.Locale;
@@ -173,9 +174,6 @@ class GameScreen implements Screen {
     private Entity setupUICameraEntity;
 
 
-//    GameEvent camGameEvent;
-
-
     private void newRound() {
 
         addSystems();
@@ -190,8 +188,6 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         // now we can make camera Man (depends on setupUI)
         setupUICameraEntity = new Entity();
         engine.addEntity(setupUICameraEntity);
-
-//        camGameEvent = new GameEvent() {
 
         cameraMan = new CameraMan(setupUICameraEntity, this.setupUI, pickRayEventSignal, cam,
                 camDefPosition, camDefLookAt,
@@ -275,13 +271,12 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         };
 
         Matrix4 playerTransform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-        btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
+        final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
         SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
         playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
-        pickedPlayer.add(new CharacterComponent(sbe, playerUI.gameEvent, new Ray()));
-
+        pickedPlayer.add(new CharacterComponent(sbe, new Ray()));
 
         /*
         for ( Entity e in sceneloader.getCharacterEntities() ){
@@ -290,7 +285,6 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                   e.add(new CharacterComponent(character, null ));
         }
          */
-
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
@@ -317,6 +311,42 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
     }
 
+
+/*
+ * this is kind of a hack to test some ray casting
+ */
+    GameEvent playerGameEvent = new GameEvent() {
+
+        private Vector3 tmpV = new Vector3();
+        private Vector3 posV = new Vector3();
+            /*
+            we have no way to invoke a callback to the picked component.
+            Pickable component required to implment some kind of interface to provide a
+            callback method e.g.
+              pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
+              if (null != pickedComp.pickedInterface)
+                 pickInterface.picked( myEntityReference );
+             */
+        @Override
+        public void callback(Entity picked, GameEvent.EventType eventType) {
+
+            final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
+
+            switch (eventType) {
+                case RAY_DETECT:
+                    if (null != picked) {
+                        // we have an object in sight so kil it, bump the score, whatever
+                        RenderSystem.otherThings.add(
+                                GfxUtil.lineTo(
+                                        btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
+//                                            transform.getTranslation(posV),
+                                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                        Color.LIME));
+                    }
+                    break;
+            }
+        }
+    };
 
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
@@ -352,7 +382,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                 mc.modelInst.transform.getTranslation(position);
                 mc.modelInst.transform.getRotation(rotation);
                 comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                pickRayEventSignal.dispatch(comp.gameEvent.set(RAY_DETECT, comp.lookRay, 0));
+                pickRayEventSignal.dispatch(playerGameEvent.set(RAY_DETECT, comp.lookRay, 0));
             }
         }
  //*/

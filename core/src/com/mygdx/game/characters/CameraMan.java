@@ -172,10 +172,10 @@ public class CameraMan extends SteeringEntity {
                       Vector3 positionV, Vector3 lookAtV, GameEvent event) {
 
         this.pickRay =  new Ray();
-        CharacterComponent comp = new CharacterComponent(this, event, this.pickRay );
+        CharacterComponent comp = new CharacterComponent(this, this.pickRay );
         cameraMan.add(comp);
 
-        this.gameEvent = comp.gameEvent;
+        this.gameEvent = event;
         this.gameEventSignal = gameEventSignal;
 //        this.pickRay = comp.lookRay;
         this.cam = cam;
@@ -215,7 +215,7 @@ public class CameraMan extends SteeringEntity {
         setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
 
         this.pickRay = new Ray();
-        CharacterComponent comp = new CharacterComponent(this, event, this.pickRay);
+        CharacterComponent comp = new CharacterComponent(this, this.pickRay);
         cameraMan.add(comp);
 
         this.gameEvent = event;

@@ -34,7 +34,7 @@ public class Chaser {
 
         character.setSteeringBehavior(new TrackerSB<Vector3>(character, tgtTransform, instance.transform, /*spOffs*/new Vector3(0, 1, 2)));
 
-        e.add(new CharacterComponent(character, null, new Ray()));
+        e.add(new CharacterComponent(character, new Ray()));
 
         return e;
     }
