@@ -240,7 +240,7 @@ public class SceneLoader implements Disposable {
 
     public void loadData() {
         Json json = new Json();
-        FileHandle fileHandle = Gdx.files.local("GameData.json");
+        FileHandle fileHandle = Gdx.files.internal("GameData.json");
         //        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
         gameData = json.fromJson(GameData.class, fileHandle.readString());
     }
