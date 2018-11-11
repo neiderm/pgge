@@ -51,6 +51,7 @@ import com.mygdx.game.util.ModelInstanceEx;
 import java.util.Locale;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
+import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 /**
  * Created by mango on 12/18/17.
@@ -140,8 +141,7 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-    private void makeCameraSwitchHandler(IUserInterface ui)
-    {
+    private void makeCameraSwitchHandler(IUserInterface ui) {
         Pixmap button;
 
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -171,7 +171,42 @@ class GameScreen implements Screen {
     };
 
 
+    /*
+"gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
+*/
+    private InputListener makeButtonGSListener(final GameEvent gameEvent) {
+
+        final Ray pickRay = new Ray();
+
+        return new InputListener() {
+
+            private Ray setPickRay(float x, float y) {
+                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+                Ray rayTmp = cam.getPickRay(nX, nY);
+                return pickRay.set(rayTmp.origin, rayTmp.direction);
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // only do this if FPV mode (i.e. cam controller is not handling game window input)
+//            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
+                {
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
+                    //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
+                }
+                return true;
+            }
+        };
+    }
+
+
     private Entity setupUICameraEntity;
+    //tmp
 
 
     private void newRound() {
@@ -179,8 +214,8 @@ class GameScreen implements Screen {
         addSystems();
 
         GameWorld.sceneLoader.buildArena(engine);
-final Entity tank =        GameWorld.sceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
-final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
+        final Entity tank = GameWorld.sceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
+        final Entity ship = GameWorld.sceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new IUserInterface();
         // .... setupUI is passed to CameraMan constructor to add button and handler
@@ -189,34 +224,49 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         setupUICameraEntity = new Entity();
         engine.addEntity(setupUICameraEntity);
 
-        cameraMan = new CameraMan(setupUICameraEntity, this.setupUI, pickRayEventSignal, cam,
-                camDefPosition, camDefLookAt,
-                new GameEvent() {
-                    @Override
-                    public void callback(Entity picked, EventType eventType) {
-                        switch (eventType) {
-                            case RAY_PICK:
-                                if (null != picked) {
-                                    isPicked = true; // onPlayerPicked(); ... can't do it in this context??
-                                    pickedPlayer = picked;
-                                    picked.remove(PickRayComponent.class);
-                                    //// tmp .......
-                                    if (tank == pickedPlayer)
-                                        enemyTank = ship;
-                                    else if (ship == pickedPlayer)
-                                        enemyTank = tank;
-                                    else
-                                        enemyTank = null; // wtf?
 
-                                    if (null != enemyTank)
-                                        enemyTank.remove(PickRayComponent.class);
-                                }
-                                break;
-                            default:
-                                break;
+        GameEvent playerPickedGameEvent = new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_PICK:
+                        if (null != picked) {
+                            isPicked = true; // onPlayerPicked(); ... can't do it in this context??
+                            pickedPlayer = picked;
+                            picked.remove(PickRayComponent.class);
+                            //// tmp .......
+                            if (tank == pickedPlayer)
+                                enemyTank = ship;
+                            else if (ship == pickedPlayer)
+                                enemyTank = tank;
+                            else
+                                enemyTank = null; // wtf?
+
+                            if (null != enemyTank)
+                                enemyTank.remove(PickRayComponent.class);
                         }
-                    }
-                });
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillRectangle(0, 0, 150, 150);
+        stage.addInputListener(
+                makeButtonGSListener(playerPickedGameEvent),
+                button,
+                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        button.dispose();
+
+
+        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
+        CharacterComponent comp = new CharacterComponent(cameraMan);
+        setupUICameraEntity.add(comp);
 
         multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(stage);
@@ -261,6 +311,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
 
         sc.statusUpdater = new BulletEntityStatusUpdate() {
             private Vector3 v = new Vector3();
+
             @Override
             public void update() {
                 v = sc.transform.getTranslation(v);
@@ -276,7 +327,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
         playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
-        pickedPlayer.add(new CharacterComponent(sbe, new Ray()));
+        pickedPlayer.add(new CharacterComponent(sbe));
 
         /*
         for ( Entity e in sceneloader.getCharacterEntities() ){
@@ -307,26 +358,56 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
 
-        cameraMan = new CameraMan(cameraEntity, playerUI, pickRayEventSignal, cam, camDefPosition, camDefLookAt,
+            /*
+     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
+         */
+        final GameEvent gameEvent = new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_PICK:
+                        if (null != picked)
+                            ModelInstanceEx.setMaterialColor(
+                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+
+        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt,
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
+        CharacterComponent comp = new CharacterComponent(cameraMan);
+        cameraEntity.add(comp);
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        stage.addInputListener(makeButtonGSListener(gameEvent),
+                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        button.dispose();
     }
 
 
-/*
- * this is kind of a hack to test some ray casting
- */
-    GameEvent playerGameEvent = new GameEvent() {
+    /*
+     * this is kind of a hack to test some ray casting
+     */
+    private GameEvent nearestObjectToPlayerEvent = new GameEvent() {
 
         private Vector3 tmpV = new Vector3();
         private Vector3 posV = new Vector3();
-            /*
-            we have no way to invoke a callback to the picked component.
-            Pickable component required to implment some kind of interface to provide a
-            callback method e.g.
-              pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
-              if (null != pickedComp.pickedInterface)
-                 pickInterface.picked( myEntityReference );
-             */
+
+        /*
+        we have no way to invoke a callback to the picked component.
+        Pickable component required to implment some kind of interface to provide a
+        callback method e.g.
+          pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
+          if (null != pickedComp.pickedInterface)
+             pickInterface.picked( myEntityReference );
+         */
         @Override
         public void callback(Entity picked, GameEvent.EventType eventType) {
 
@@ -344,6 +425,8 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
                                         Color.LIME));
                     }
                     break;
+                default:
+                    break;
             }
         }
     };
@@ -351,6 +434,7 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+    private Ray lookRay = new Ray();
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -381,11 +465,11 @@ final Entity ship =        GameWorld.sceneLoader.createShip(engine, new Vector3(
             if (null != comp) {
                 mc.modelInst.transform.getTranslation(position);
                 mc.modelInst.transform.getRotation(rotation);
-                comp.lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                pickRayEventSignal.dispatch(playerGameEvent.set(RAY_DETECT, comp.lookRay, 0));
+                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
             }
         }
- //*/
+        //*/
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();

@@ -1,27 +1,11 @@
 package com.mygdx.game.characters;
 
-import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.signals.Signal;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
-import com.mygdx.game.screens.IUserInterface;
-import com.mygdx.game.util.GameEvent;
-import com.mygdx.game.util.ModelInstanceEx;
-
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
-import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 /**
@@ -45,9 +29,6 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 public class CameraMan extends SteeringEntity {
 
-    private Signal<GameEvent> gameEventSignal; // signal queue of pickRaySystem
-    private GameEvent gameEvent; // stored in Character comp but does it need to be?
-    private Ray pickRay;
     private PerspectiveCamera cam;
     private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
     private int nodeIndex = 0;
@@ -168,85 +149,25 @@ public class CameraMan extends SteeringEntity {
         cam.update();
     }
 
-    private CameraMan(Entity cameraMan, Signal<GameEvent> gameEventSignal, PerspectiveCamera cam,
-                      Vector3 positionV, Vector3 lookAtV, GameEvent event) {
+    public CameraMan(PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV) {
 
-        this.pickRay =  new Ray();
-        CharacterComponent comp = new CharacterComponent(this, this.pickRay );
-        cameraMan.add(comp);
-
-        this.gameEvent = event;
-        this.gameEventSignal = gameEventSignal;
-//        this.pickRay = comp.lookRay;
         this.cam = cam;
-
         setCameraLocation(positionV, lookAtV);
     }
 
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm) {
+    public CameraMan(final PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm){
 
-        final GameEvent event = new GameEvent() {
-            /*
-    create a game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-        simply have the "client" of this class pass a gameEvent along witht the gameEventSignal into the constructor.
-         */
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked)
-                            ModelInstanceEx.setMaterialColor(
-                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
+        this(cam, positionV, lookAtV);
 
         Matrix4 camTransform = new Matrix4();
 
-        this.cam = cam;
         setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
         setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
         setOpModeByKey("chaser1");
 
         setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
-
-        this.pickRay = new Ray();
-        CharacterComponent comp = new CharacterComponent(this, this.pickRay);
-        cameraMan.add(comp);
-
-        this.gameEvent = event;
-        this.gameEventSignal = gameEventSignal;
-//        this.pickRay = comp.lookRay;
-
-        setCameraLocation(positionV, lookAtV);
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        stage.addInputListener(buttonGSListener, button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
     }
 
-    public CameraMan(Entity cameraMan, IUserInterface stage, Signal<GameEvent> gameEventSignal,
-                     PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, GameEvent event) {
-
-        this(cameraMan, gameEventSignal, cam, positionV, lookAtV, event);
-
-//        setOpModeByKey("fixed"); // this returns FALSE here so it is apparently useless!
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, 150, 150);
-        stage.addInputListener(buttonGSListener, button,
-                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
-    }
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
@@ -264,32 +185,4 @@ public class CameraMan extends SteeringEntity {
                     node.getLookAtRef().getTranslation(tmpLookAt));
         }
     }
-
-    /*
- "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
-  */
-    private final InputListener buttonGSListener = new InputListener() {
-
-        private Ray setPickRay(float x, float y) {
-            // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-            float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-            float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-            Ray rayTmp = cam.getPickRay(nX, nY);
-            return pickRay.set(rayTmp.origin, rayTmp.direction);
-        }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
-
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            // only do this if FPV mode (i.e. cam controller is not handling game window input)
-//            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
-            {
-                gameEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
-            }
-            return true;
-        }
-    };
 }
