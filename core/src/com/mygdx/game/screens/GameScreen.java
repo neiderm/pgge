@@ -26,6 +26,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.Chaser;
@@ -214,8 +215,6 @@ class GameScreen implements Screen {
         addSystems();
 
         GameWorld.sceneLoader.buildArena(engine);
-        final Entity tank = GameWorld.sceneLoader.createTank(engine, new Vector3(1, 11f, -5f));
-        final Entity ship = GameWorld.sceneLoader.createShip(engine, new Vector3(-1, 13f, -5f));
 
         stage = setupUI = new IUserInterface();
         // .... setupUI is passed to CameraMan constructor to add button and handler
@@ -234,16 +233,6 @@ class GameScreen implements Screen {
                             isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                             pickedPlayer = picked;
                             picked.remove(PickRayComponent.class);
-                            //// tmp .......
-                            if (tank == pickedPlayer)
-                                enemyTank = ship;
-                            else if (ship == pickedPlayer)
-                                enemyTank = tank;
-                            else
-                                enemyTank = null; // wtf?
-
-                            if (null != enemyTank)
-                                enemyTank.remove(PickRayComponent.class);
                         }
                         break;
                     default:
@@ -278,7 +267,6 @@ class GameScreen implements Screen {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
-    private Entity enemyTank;
 
 
     private void addSystems() {
@@ -324,11 +312,20 @@ class GameScreen implements Screen {
         Matrix4 playerTransform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
-        SteeringBulletEntity sbe = new TankController(btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+        SteeringBulletEntity sbe = new TankController(
+                btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
         playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
         pickedPlayer.add(new CharacterComponent(sbe));
 
+
+
+        Array<Entity> characters = new Array<Entity>();
+        GameWorld.sceneLoader.getCharacters(characters);
+for (Entity e : characters){
+    e.add(new CharacterComponent(new SteeringTankController(e, btRigidBodyPlayer)));
+    engine.addEntity(e);
+}
         /*
         for ( Entity e in sceneloader.getCharacterEntities() ){
                   SteeringEntity character = e.getComponent(CharacterComponent.class).SteeringEntity; // new SteeringEntity();
@@ -343,7 +340,7 @@ class GameScreen implements Screen {
         Chaser asdf = new Chaser();
         engine.addEntity(asdf.create(playerTransform));
 
-        enemyTank.add(new CharacterComponent(new SteeringTankController(enemyTank, btRigidBodyPlayer)));
+//        enemyTank.add(new CharacterComponent(new SteeringTankController(enemyTank, btRigidBodyPlayer)));
 
         makeCameraSwitchHandler(playerUI);
 

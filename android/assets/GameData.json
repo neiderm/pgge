@@ -232,8 +232,60 @@ modelGroups: {
 
 		]
 	}
+	characters: {
+		gameObjects: [
+			{
+				modelName: tanks/ship.g3db
+				objectName: ship
+				translation: {
+					x: 1
+					y: 53
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				modelName: tanks/panzerwagen.g3db
+				objectName: tank
+				translation: {
+					x: 2
+					y: 53
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				modelName: tanks/panzerwagen.g3db
+				objectName: tank
+				translation: {
+					x: 3
+					y: 51
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+		]
+	}
 	tanks: {
 		gameObjects: [
+			{
+				modelName: tanks/ship.g3db
+				objectName: ship
+				translation: {
+					x: 0
+					y: 13
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
 			{
 				modelName: tanks/ship.g3db
 				objectName: ship

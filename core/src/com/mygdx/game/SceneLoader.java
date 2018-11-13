@@ -22,7 +22,6 @@ import com.badlogic.gdx.utils.Json;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.util.BaseEntityBuilder;
 import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -42,11 +41,6 @@ public class SceneLoader implements Disposable {
 //    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
     private static AssetManager assets;
-    private static Model landscapeModel;
-    private static Model tankModel;  // opengameart.org/content/tankcar
-    private static Model shipModel;
-    private static Model sceneModel;
-    private static Model testCubeModel;
 
     private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
@@ -247,25 +241,13 @@ public class SceneLoader implements Disposable {
 
 
     public void doneLoading() {
-/*
-        landscapeModel = assets.get("data/landscape.g3db", Model.class);
-        tankModel = assets.get("tanks/panzerwagen.g3db", Model.class);
-        shipModel = assets.get("tanks/ship.g3db", Model.class);
-        sceneModel = assets.get("data/scene.g3dj", Model.class);
-        testCubeModel = assets.get("data/cubetest.g3dj", Model.class);
-*/
+
         for (String key : gameData.modelInfo.keySet()) {
             if (null != gameData.modelInfo.get(key).fileName) {
                 gameData.modelInfo.get(key).model = assets.get(gameData.modelInfo.get(key).fileName, Model.class);
             }
         }
         gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // special sauce hakakakakakak
-// tmp
-        landscapeModel = gameData.modelInfo.get("landscape").model;
-        tankModel = gameData.modelInfo.get("tank").model;
-        shipModel = gameData.modelInfo.get("ship").model;
-        sceneModel = gameData.modelInfo.get("scene").model;
-        testCubeModel = gameData.modelInfo.get("objects").model;
     }
 
     public void onPlayerPicked(Engine engine) {
@@ -306,89 +288,31 @@ public class SceneLoader implements Disposable {
         }
     }
 
-    public Entity createTank(Engine engine, Vector3 trans) {
 
-        Model model = tankModel;
+    private Entity buildTank(GameData.GameObject gameObject) {
 
-        Entity e = new Entity();
+        Entity e = null;
+        Model model = gameData.modelInfo.get(gameObject.objectName).model;
 
-        // leave translation null if using translation from the file layout ??
-        ModelInstance inst = new ModelInstance(model);
-        inst.transform.trn(trans);
-        e.add(new ModelComponent(inst));
+        if (0 == gameObject.instanceData.size) {
 
-        btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
+            e = new Entity();
 
-        addPickObject(engine, e);
+            // leave translation null if using translation from the file layout ??
+            ModelInstance inst = new ModelInstance(model);
+// can be loaded this way but the tank can't ;(
+            //        ModelInstance inst = ModelInstanceEx.getModelInstance(model, "ship");
+            inst.transform.trn(gameObject.translation);
+            e.add(new ModelComponent(inst));
 
-        return e;
-    }
-
-    public Entity createShip(Engine engine, Vector3 trans) {
-
-        Model model = shipModel;
-
-        Entity e = new Entity();
-
-        // leave translation null if using translation from the file layout ??
-        ModelInstance inst = new ModelInstance(model);
-        inst.transform.trn(trans);
-        e.add(new ModelComponent(inst));
-
-        btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
-
-        addPickObject(engine, e);
-
-        return e;
-    }
-
-    public Entity _createShip(Engine engine, Vector3 trans) {
-
-        Model model = testCubeModel;
-        String node = "ship";
-
-        Entity e = new Entity();
-
-        // leave translation null if using translation from the file layout ??
-        ModelInstance inst = ModelInstanceEx.getModelInstance(model, node);
-        inst.transform.trn(trans);
-        e.add(new ModelComponent(inst));
-
-        btCollisionShape shape = MeshHelper.createConvexHullShape(inst.getNode(node));
-        e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
-
-        addPickObject(engine, e);
-
-        return e;
-    }
+            btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+            e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
 
 
-    private Entity _createLandscape(Vector3 trans) {
-
-        Model model = landscapeModel;
-
-        Entity e = new Entity();
-        ModelInstance inst = new ModelInstance(model);
-
-        // put the landscape at an angle so stuff falls of it...
-        inst.transform.idt().rotate(new Vector3(1, 0, 0), 20f).trn(trans);
-        e.add(new ModelComponent(inst));
-
-        //            shape = new btBvhTriangleMeshShape(file.meshParts);
-        // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
-        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
-        e.add(new BulletComponent(shape, inst.transform, 0f));
-
-        // special sauce here for static entity
-        BulletComponent bc = e.getComponent(BulletComponent.class);
-
-// set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
+        } else {
+//            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+//                engine.addEntity(buildObjectInstance(gameObject, model, i.translation));
+        }
         return e;
     }
 
@@ -458,7 +382,7 @@ public class SceneLoader implements Disposable {
             e.add(bc);
 
             // special sauce here for static entity
-            if (true == gameObject.isKinematic) {  // if (0 == mass) ??
+            if (gameObject.isKinematic) {  // if (0 == mass) ??
 // set these flags in bullet comp?
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -469,15 +393,19 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-    public static Entity load(Model model, String rootNodeId) {
-        // we can set trans default value as do-nothing 0,0,0 so long as .trn() is used (adds offset onto present trans value)
-        return BaseEntityBuilder.load(model, rootNodeId, new Vector3(1, 1, 1), new Vector3(0, 0, 0));
+
+    public void getCharacters(Array<Entity> characters ){
+
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("characters").gameObjects) {
+
+            Entity e = buildTank(gameObject);
+
+            characters.add(e);
+        }
     }
 
 
     public void buildArena(Engine engine) {
-
-        final float yTrans = -10.0f;
 
         ModelGroup mg = gameData.modelGroups.get("scene");
         Model model = gameData.modelInfo.get("scene").model;
@@ -486,11 +414,15 @@ public class SceneLoader implements Disposable {
             buildObject(engine, gameObject, model);
         }
 
-//        loadDynamicEntiesByName(engine, testCubeModel, "Crate"); // platform THING
 
         model = gameData.modelInfo.get("objects").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
             buildObject(engine, gameObject, model);
+        }
+
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
+            Entity e = buildTank(gameObject);
+            addPickObject(engine, e);
         }
 
 
@@ -548,37 +480,6 @@ public class SceneLoader implements Disposable {
 //        engine.addEntity(e);
 
 //        saveData();// why this blow up?
-    }
-
-
-    /*
-     Model nodes loaded by name - can't assume they are same size, but fair to say they
-     are all e.g. "cube00x" etc., so safe to assume all cube shapes. Thus, by default we
-     create a cube shape sized by taking the bounding box of the mesh.
-     */
-    private static void loadDynamicEntiesByName(Engine engine, Model model, String rootNodeId) {
-
-        for (int i = 0; i < model.nodes.size; i++) {
-
-            String id = model.nodes.get(i).id;
-
-            if (id.startsWith(rootNodeId)) {
-
-                Entity e = new Entity();
-                ModelInstance instance = ModelInstanceEx.getModelInstance(model, id);
-
-                BoundingBox boundingBox = new BoundingBox();
-                Vector3 dimensions = new Vector3();
-                instance.calculateBoundingBox(boundingBox);
-
-                e.add(new ModelComponent(instance));
-
-                e.add(new BulletComponent(
-                        new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f)), instance.transform, 0.1f));
-
-                engine.addEntity(e);
-            }
-        }
     }
 
 
