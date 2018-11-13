@@ -1,6 +1,44 @@
 {
 modelGroups: {
 	characters: {
+		gameObjects: [
+			{
+				objectName: ship
+				mass: 5.1
+				translation: {
+					x: 1
+					y: 53
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: tank
+				mass: 5.1
+				translation: {
+					x: 2
+					y: 53
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: tank
+				mass: 5.1
+				translation: {
+					x: 3
+					y: 51
+					z: -5
+				}
+				meshShape: convexHullShape
+				isKinematic: false
+				isShadowed: true
+			}
+		]
 	}
 	primitives: {
 		modelName: primitivesModel
@@ -232,47 +270,11 @@ modelGroups: {
 
 		]
 	}
-	characters: {
-		gameObjects: [
-			{
-				objectName: ship
-				translation: {
-					x: 1
-					y: 53
-					z: -5
-				}
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: tank
-				translation: {
-					x: 2
-					y: 53
-					z: -5
-				}
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: tank
-				translation: {
-					x: 3
-					y: 51
-					z: -5
-				}
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-			}
-		]
-	}
 	tanks: {
 		gameObjects: [
 			{
 				objectName: ship
+				mass: 5.1
 				translation: {
 					x: 0
 					y: 13
@@ -284,6 +286,7 @@ modelGroups: {
 			}
 			{
 				objectName: ship
+				mass: 5.1
 				translation: {
 					x: -1
 					y: 13
@@ -295,6 +298,7 @@ modelGroups: {
 			}
 			{
 				objectName: tank
+				mass: 5.1
 				translation: {
 					x: 1
 					y: 11
@@ -452,9 +456,6 @@ modelInfo: {
 	}
 	tank: {
 		fileName: tanks/panzerwagen.g3db
-	}
-	landscape: {
-		fileName: data/landscape.g3db
 	}
 	scene: {
 		fileName: data/scene.g3dj

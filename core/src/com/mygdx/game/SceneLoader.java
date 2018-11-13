@@ -306,7 +306,7 @@ public class SceneLoader implements Disposable {
             e.add(new ModelComponent(inst));
 
             btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-            e.add(new BulletComponent(shape, inst.transform, DEFAULT_TANK_MASS));
+            e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
 
 
         } else {
