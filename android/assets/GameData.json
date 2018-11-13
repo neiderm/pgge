@@ -235,7 +235,6 @@ modelGroups: {
 	characters: {
 		gameObjects: [
 			{
-				modelName: tanks/ship.g3db
 				objectName: ship
 				translation: {
 					x: 1
@@ -247,7 +246,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				modelName: tanks/panzerwagen.g3db
 				objectName: tank
 				translation: {
 					x: 2
@@ -259,7 +257,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				modelName: tanks/panzerwagen.g3db
 				objectName: tank
 				translation: {
 					x: 3
@@ -275,7 +272,6 @@ modelGroups: {
 	tanks: {
 		gameObjects: [
 			{
-				modelName: tanks/ship.g3db
 				objectName: ship
 				translation: {
 					x: 0
@@ -287,7 +283,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				modelName: tanks/ship.g3db
 				objectName: ship
 				translation: {
 					x: -1
@@ -299,7 +294,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				modelName: tanks/panzerwagen.g3db
 				objectName: tank
 				translation: {
 					x: 1
