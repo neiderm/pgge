@@ -8,6 +8,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -36,13 +37,13 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    public static SceneLoader globalInstance = null;
-    public static GameData gameData;
+    private static SceneLoader globalInstance = null;
+    private GameData gameData;
 //    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
-    private static AssetManager assets;
+    private AssetManager assets;
 
-    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
+//    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
 
     private SceneLoader() {
@@ -130,7 +131,6 @@ public class SceneLoader implements Disposable {
         }
 
         ModelGroup(String groupName) {
-//            this.groupName = groupName; // could be null if the objects in the group load their own individual models e.g. tanks
         }
 
         ModelGroup(String groupName, String modelName) {
@@ -139,7 +139,6 @@ public class SceneLoader implements Disposable {
         }
 
         String modelName;
-//        String groupName;
         Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
     }
 
@@ -147,12 +146,10 @@ public class SceneLoader implements Disposable {
         ModelInfo() {
         }
 
-        ModelInfo(String modelName, String fileName) {
-  //          this.modelName = modelName;
+        ModelInfo(String fileName) {
             this.fileName = fileName;
         }
 
-//        String modelName;
         String fileName;
         Model model;
     }
@@ -173,33 +170,24 @@ public class SceneLoader implements Disposable {
                 this.isKinematic = true;
                 this.scale = new Vector3(1, 1, 1); // placeholder
             }
-            /*
-                        GameObject(String objectName, String modelName ) {
-                            this(objectName, "convexHullShape"); // convex hull shape default
-                            this.modelName = modelName;
-                            this.translation = new Vector3(translation);
-                            this.instanceData = new Array<InstanceData>();
-                        }
-            */
             static class InstanceData {
                 InstanceData() {
                 }
 
-                InstanceData(Vector3 translation, Vector3 rotation) {
+                InstanceData(Vector3 translation, Quaternion rotation) {
                     this.translation = new Vector3(translation);
-                    this.rotation = new Vector3(rotation);
+                    this.rotation = new Quaternion(rotation);
                     this.color = Color.CORAL;
                 }
 
-                Vector3 rotation;
+                Quaternion rotation;
                 Vector3 translation;
                 Color color;
             }
 
             Array<InstanceData> instanceData = new Array<InstanceData>();
-            String modelName;
             String objectName;
-            Vector3 translation; // needs to be only per-instance
+//            Vector3 translation; // needs to be only per-instance
             Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
             float mass;
             String meshShape; // triangleMeshShape, convexHullShape
@@ -250,13 +238,14 @@ public class SceneLoader implements Disposable {
         gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // special sauce hakakakakakak
     }
 
+    private final Random rnd = new Random();
+
     public void onPlayerPicked(Engine engine) {
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
         if (!useTestObjects) N_ENTITIES = 0;
         Vector3 size = new Vector3();
-        Random rnd = new Random();
 
         PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder("boxTex");
         PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder("sphereTex");
@@ -295,23 +284,22 @@ public class SceneLoader implements Disposable {
         Model model = gameData.modelInfo.get(gameObject.objectName).model;
 
         if (0 == gameObject.instanceData.size) {
-
-            e = new Entity();
-
-            // leave translation null if using translation from the file layout ??
-            ModelInstance inst = new ModelInstance(model);
-// can be loaded this way but the tank can't ;(
-            //        ModelInstance inst = ModelInstanceEx.getModelInstance(model, "ship");
-            inst.transform.trn(gameObject.translation);
-            e.add(new ModelComponent(inst));
-
-            btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-            e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-
-
+            // no instance data ... default translation etc.
         } else {
-//            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-//                engine.addEntity(buildObjectInstance(gameObject, model, i.translation));
+            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+
+                e = new Entity();
+
+                // leave translation null if using translation from the file layout ??
+                ModelInstance inst = new ModelInstance(model);
+// can be loaded this way but the tank can't ;(
+                //        ModelInstance inst = ModelInstanceEx.getModelInstance(model, "ship");
+                inst.transform.trn(i.translation);
+                e.add(new ModelComponent(inst));
+
+                btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+                e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+            }
         }
         return e;
     }
@@ -321,26 +309,30 @@ public class SceneLoader implements Disposable {
 
         if (0 == gameObject.instanceData.size) {
             // no instance data ... default translation etc.
-            Entity e = buildObjectInstance(gameObject, model, /* new Vector3(0, 0, 0) */ null );
+            Entity e = buildObjectInstance(gameObject, null, model );
             engine.addEntity(e);
 
-            // tmp ... get location of node to store in data file
+            // Use this code to get location of node to store in data file.
+            // normally only want this to obtain instance trans/rotation from scene model .
 ///*
             ModelComponent mc = e.getComponent(ModelComponent.class);
             Vector3 translation= new Vector3();
             mc.modelInst.transform.getTranslation(translation);
-            gameObject.instanceData.add(
-                    new GameData.GameObject.InstanceData(new Vector3(translation), new Vector3(0, 0, 0)));
+            Quaternion rotation = new Quaternion();
+            mc.modelInst.transform.getRotation(rotation);
+            gameObject.instanceData.add(new GameData.GameObject.InstanceData(translation, rotation));
 //*/
         } else {
             for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-                engine.addEntity(buildObjectInstance(gameObject, model, i.translation));
+                Entity e = buildObjectInstance(gameObject, i, model);
+                engine.addEntity(e);
             }
         }
     }
 
     /* could end up "modelGroup.build()" */
-    private Entity buildObjectInstance(GameData.GameObject gameObject, Model model, Vector3 translation) {
+    private Entity buildObjectInstance(
+            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model) {
 
 //        Model model; // if null then get model reference from object
 
@@ -352,10 +344,16 @@ public class SceneLoader implements Disposable {
         Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
         // leave translation null if using translation from the model layout
-        if (null != translation) {
- // nullify any translation from the model, apply instance translation
-            instance.transform.setTranslation(0, 0, 0);
-            instance.transform.trn(translation);
+        if (null != i ) {
+            if (null != i.rotation) {
+                instance.transform.idt();
+                instance.transform.rotate(i.rotation);
+            }
+            if (null != i.translation) {
+                // nullify any translation from the model, apply instance translation
+                instance.transform.setTranslation(0, 0, 0);
+                instance.transform.trn(i.translation);
+            }
         }
 
         ModelComponent mc = new ModelComponent(instance);
@@ -505,7 +503,7 @@ public class SceneLoader implements Disposable {
             for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
                 GameData.GameObject cpObject =  new GameData.GameObject(o.objectName, o.meshShape);
-//                GameData.GameObject.InstanceData i = o.instanceData.
+
                 for (GameData.GameObject.InstanceData i : o.instanceData) {
 
                     cpObject.instanceData.add(i);

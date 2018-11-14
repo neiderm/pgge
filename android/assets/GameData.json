@@ -5,38 +5,53 @@ modelGroups: {
 			{
 				objectName: ship
 				mass: 5.1
-				translation: {
-					x: 1
-					y: 53
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: 1
+							y: 53
+							z: -5
+						}
+					}
+				]
 			}
 			{
 				objectName: tank
 				mass: 5.1
-				translation: {
-					x: 2
-					y: 53
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: 2
+							y: 53
+							z: -5
+						}
+					}
+				]				
 			}
 			{
 				objectName: tank
 				mass: 5.1
-				translation: {
-					x: 3
-					y: 51
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: 3
+							y: 51
+							z: -5
+						}
+					}
+				]
 			}
 		]
 	}
@@ -224,11 +239,17 @@ modelGroups: {
 			{
 				instanceData: [
 					{
-						rotation: {}
+						rotation: {
+							x: -0.5337417
+							y: 0.21164389
+							z: 0.28331086
+							w: 0.7681544
+						}
 						translation: {
-							x: -6.19434
-							y: -7.943398
-							z: -5.851998						}
+							x: -16
+							y: -7.843969
+							z: -6
+						}
 					}
 				]
 				objectName: mushroom
@@ -300,38 +321,53 @@ modelGroups: {
 			{
 				objectName: ship
 				mass: 5.1
-				translation: {
-					x: 0
-					y: 13
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: 0
+							y: 13
+							z: -5
+						}
+					}
+				]
 			}
 			{
 				objectName: ship
 				mass: 5.1
-				translation: {
-					x: -1
-					y: 13
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: -1
+							y: 13
+							z: -5
+						}
+					}
+				]
 			}
 			{
 				objectName: tank
 				mass: 5.1
-				translation: {
-					x: 1
-					y: 11
-					z: -5
-				}
 				meshShape: convexHullShape
 				isKinematic: false
 				isShadowed: true
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: 1
+							y: 11
+							z: -5
+						}
+					}
+				]
 			}
 		]
 	}
@@ -368,16 +404,6 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 0
-							y: 4
-							z: -25
-						}
-					}
-				]
 			}
 			{
 				objectName: Crate.001
@@ -385,16 +411,6 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: -2
-							y: 4
-							z: -25
-						}
-					}
-				]
 			}
 			{
 				objectName: Crate.002
@@ -402,16 +418,6 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: -4
-							y: 4
-							z: -25
-						}
-					}
-				]
 			}
 			{
 				objectName: Crate.003
@@ -419,16 +425,6 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 0
-							y: 6
-							z: -25
-						}
-					}
-				]
 			}
 			{
 				objectName: Crate.004
@@ -436,16 +432,6 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: -2
-							y: 6
-							z: -25
-						}
-					}
-				]
 			}
 			{
 				objectName: Crate.005
@@ -453,18 +439,7 @@ modelGroups: {
 				meshShape: btBoxShape
 				isKinematic: false
 				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: -4
-							y: 6
-							z: -25
-						}
-					}
-				]				
 			}
-
 		]
 	}
 }
