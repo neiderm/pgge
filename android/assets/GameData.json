@@ -207,9 +207,35 @@ modelGroups: {
 			}
 		]
 	}
+	skybox: {
+		modelName: skybox
+		gameObjects: [
+			{
+				objectName: space
+				meshShape: none
+				isKinematic: false
+				isShadowed: false
+			}
+		]
+	}
 	objects: {
 		modelName: objects
 		gameObjects: [
+			{
+				instanceData: [
+					{
+						rotation: {}
+						translation: {
+							x: -6.19434
+							y: -7.943398
+							z: -5.851998						}
+					}
+				]
+				objectName: mushroom
+				meshShape: convexHullShape
+				isKinematic: true
+				isShadowed: true
+			}
 			{
 				instanceData: [
 					{
@@ -267,7 +293,6 @@ modelGroups: {
 				isKinematic: false
 				isShadowed: true
 			}
-
 		]
 	}
 	tanks: {
@@ -317,6 +342,12 @@ modelGroups: {
 				objectName: Cube
 				meshShape: none
 				isKinematic: false
+				isShadowed: true
+			}
+			{
+				objectName: mushroom
+				meshShape: convexHullShape
+				isKinematic: true
 				isShadowed: true
 			}
 			{
@@ -434,17 +465,6 @@ modelGroups: {
 				]				
 			}
 
-		]
-	}
-	skybox: {
-		modelName: skybox
-		gameObjects: [
-			{
-				objectName: space
-				meshShape: none
-				isKinematic: false
-				isShadowed: false
-			}
 		]
 	}
 }
