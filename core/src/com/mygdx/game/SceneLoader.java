@@ -407,13 +407,15 @@ public class SceneLoader implements Disposable {
 
     public void buildArena(Engine engine) {
 
-        ModelGroup mg = gameData.modelGroups.get("scene");
-        Model model = gameData.modelInfo.get("scene").model;
-
-        for (GameData.GameObject gameObject : mg.gameObjects) {
+        Model model = gameData.modelInfo.get("skybox").model;
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("skybox").gameObjects) {
             buildObject(engine, gameObject, model);
         }
 
+        model = gameData.modelInfo.get("scene").model;
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
+            buildObject(engine, gameObject, model);
+        }
 
         model = gameData.modelInfo.get("objects").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {

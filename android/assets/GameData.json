@@ -332,14 +332,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				objectName: space
-				meshShape: none
-				isKinematic: false
-				isShadowed: false
-			}
-
-
-			{
 				objectName: Crate
 				mass: 0.1
 				meshShape: btBoxShape
@@ -444,9 +436,23 @@ modelGroups: {
 
 		]
 	}
+	skybox: {
+		modelName: skybox
+		gameObjects: [
+			{
+				objectName: space
+				meshShape: none
+				isKinematic: false
+				isShadowed: false
+			}
+		]
+	}
 }
 modelInfo: {
 	primitives: {
+	}
+	skybox: {
+		fileName: data/skybox.g3db
 	}
 	objects: {
 		fileName: data/cubetest.g3dj
