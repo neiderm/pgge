@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -321,7 +322,15 @@ public class SceneLoader implements Disposable {
             Quaternion rotation = new Quaternion();
             mc.modelInst.transform.getRotation(rotation);
             gameObject.instanceData.add(new GameData.GameObject.InstanceData(translation, rotation));
-//*/
+
+Vector3 v = new Vector3(rotation.getPitch(), rotation.getYaw(), rotation.getRoll());
+float angle = rotation.getAngle();
+rotation.getAxisAngle(v);
+Quaternion q = new Quaternion(v, angle);
+angle = rotation.getAngle();
+rotation.getAxisAngle(v);
+
+            //*/
         } else {
             for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
                 Entity e = buildObjectInstance(gameObject, i, model);
@@ -403,6 +412,34 @@ public class SceneLoader implements Disposable {
     }
 
 
+    /* normally loading entire model.meshparts and tying together w/ single triangle mesh shape
+     but trans and rotation are provided for models that I don't have object to modify or if
+     instances are used (don't anticipate instances being typical on this one)
+     */
+    private Entity /* createLandscape*/ objectFromMeshParts(Model model, Vector3 trans, Quaternion rotation) {
+
+        Entity e = new Entity();
+        ModelInstance inst = new ModelInstance(model);
+        inst.transform.idt().rotate(rotation).trn(trans);
+        e.add(new ModelComponent(inst));
+
+        btCollisionShape         shape = new btBvhTriangleMeshShape(model.meshParts);
+
+        // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
+//        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
+        BulletComponent bc = new BulletComponent(shape, inst.transform, 0f);
+        e.add(bc);
+
+        // special sauce here for static entity
+// set these flags in bullet comp?
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+
+        return e;
+    }
+
+
     public void buildArena(Engine engine) {
 
         Model model = gameData.modelInfo.get("skybox").model;
@@ -425,19 +462,26 @@ public class SceneLoader implements Disposable {
             addPickObject(engine, e);
         }
 
+        /*
+         * refer to buildTank: entire model is taken and bullet shape applied to whole model.
+         * so each model is a chunk of or possibly even the entire arena .
+         * Allowing them to be instanced and offset/rotated as can be done with "ordinary" objects.
+         */
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("areeners").gameObjects) {
+            Entity e = null;
 
-// crate THINGs
-        // these are same size so this will allow them to share a collision shape
-        Vector3 sz = new Vector3(2, 2, 2);
-/*
-        PrimitivesBuilder bo = PrimitivesBuilder.getBoxBuilder("boxTex"); // this constructor could use a size param ?
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 4, -15f), sz));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 4, -15f), sz));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 4, -15f), sz));
-        engine.addEntity(bo.create(0.1f, new Vector3(0, 6, -15f), sz));
-        engine.addEntity(bo.create(0.1f, new Vector3(-2, 6, -15f), sz));
-        engine.addEntity(bo.create(0.1f, new Vector3(-4, 6, -15f), sz));
-*/
+            if (0 == gameObject.instanceData.size) {
+                // no instance data ... default translation etc.
+            } else {
+                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+
+                    e = objectFromMeshParts(
+                            gameData.modelInfo.get(gameObject.objectName).model, i.translation, i.rotation);
+                    engine.addEntity(e);
+                }
+            }
+        }
+
         ModelGroup mmm = gameData.modelGroups.get("primitives");
         for (GameData.GameObject o : mmm.gameObjects) {
 
@@ -462,24 +506,6 @@ public class SceneLoader implements Disposable {
                 }
             }
         }
-
-        float r = 16;
-        Entity e;
-/*
-        e = PrimitivesBuilder.getSphereBuilder("sphereTex").create(0, new Vector3(10, 5 + yTrans, 0), new Vector3(r, r, r));
-        engine.addEntity(e); // sphere THING
-*/
-/*
-        e = PrimitivesBuilder.getBoxBuilder("boxTex").create(0, new Vector3(0, -4 + yTrans, 0), new Vector3(40f, 2f, 40f));
-        engine.addEntity(e);
-*/
-
-// we can do primitive dynamic object (with 0 mass for platform)
-//        e = PrimitivesBuilder.getBoxBuilder().create(0f, new Vector3(0, 10, -5), new Vector3(4f, 1f, 4f));
-//        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, Color.CORAL, 0.5f);
-//        engine.addEntity(e);
-
-//        saveData();// why this blow up?
     }
 
 

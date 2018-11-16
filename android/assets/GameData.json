@@ -34,7 +34,7 @@ modelGroups: {
 							z: -5
 						}
 					}
-				]				
+				]
 			}
 			{
 				objectName: tank
@@ -240,10 +240,10 @@ modelGroups: {
 				instanceData: [
 					{
 						rotation: {
-							x: -0.5337417
-							y: 0.21164389
-							z: 0.28331086
-							w: 0.7681544
+							x: -0.6532809
+							y: 0.27059796
+							z: 0.27059796
+							w: 0.65328205
 						}
 						translation: {
 							x: -16
@@ -393,12 +393,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				objectName: Plane
-				meshShape: triangleMeshShape
-				isKinematic: true
-				isShadowed: true
-			}
-			{
 				objectName: Crate
 				mass: 0.1
 				meshShape: btBoxShape
@@ -442,6 +436,31 @@ modelGroups: {
 			}
 		]
 	}
+	areeners: {
+		gameObjects: [
+			{
+				instanceData: [
+					{
+						rotation: {
+							x: 0.17364818
+							y: 0
+							z: 0
+							w: 0.9848077
+						}
+						translation: {
+							x: 0
+							y: -10
+							z: 0
+						}
+					}
+				]
+				objectName: landscape
+				meshShape: triangleMeshShape
+				isKinematic: true
+				isShadowed: true
+			}
+		]
+	}
 }
 modelInfo: {
 	primitives: {
@@ -460,6 +479,9 @@ modelInfo: {
 	}
 	scene: {
 		fileName: data/scene.g3dj
+	}
+	landscape: {
+		fileName: data/landscape.g3db
 	}
 }
 }
