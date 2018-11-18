@@ -40,7 +40,7 @@ public class RenderSystem extends IteratingSystem {
     }
 
 
-    public RenderSystem(Environment environment, PerspectiveCamera cam ) {
+    public RenderSystem(DirectionalShadowLight shadowLight, Environment environment, PerspectiveCamera cam ) {
 
         this();
         this.environment = environment;
@@ -48,10 +48,7 @@ public class RenderSystem extends IteratingSystem {
 
         modelBatch = new ModelBatch();
 
-        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, -1f, -.8f, -.2f);
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
+        this.shadowLight = shadowLight;
         shadowBatch = new ModelBatch(new DepthShaderProvider());
     }
 

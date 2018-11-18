@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -72,6 +73,7 @@ class GameScreen implements Screen {
     private CameraInputController camController;
     //    public FirstPersonCameraController camController;
     private Environment environment;
+    private DirectionalShadowLight shadowLight;
 
     private BitmapFont font;
     private OrthographicCamera guiCam;
@@ -103,11 +105,22 @@ class GameScreen implements Screen {
 
         engine = new Engine(); // GameWorld.getInstance().engine;
 
+        // been using same light setup as ever
+        //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+        // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
+        Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
+
         environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(
-                new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
+                new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
+
+        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+
+        environment.add(shadowLight);
+        environment.shadowMap = shadowLight;
 
         cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
 //        cam.position.set(3f, 7f, 10f);
@@ -274,7 +287,7 @@ class GameScreen implements Screen {
         // must be done before any bullet object can be created
         BulletWorld.getInstance().initialize(cam);
 
-        engine.addSystem(renderSystem = new RenderSystem(environment, cam));
+        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new CharacterSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
