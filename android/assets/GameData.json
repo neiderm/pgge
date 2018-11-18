@@ -75,16 +75,16 @@ modelGroups: {
 						}
 					}
 				]
-				objectName: sphere
+				objectName: skySphere
 				scale: {
-					x: 1
-					y: 1
-					z: 1
+					x: 200
+					y: 200
+					z: 200
 				}
 				mass: 0.0
 				meshShape: none
 				isKinematic: false
-				isShadowed: true
+				isShadowed: false
 			}
 			{
 				instanceData: [
@@ -219,17 +219,6 @@ modelGroups: {
 				meshShape: btSphereShape
 				isKinematic: true
 				isShadowed: true
-			}
-		]
-	}
-	skybox: {
-		modelName: skybox
-		gameObjects: [
-			{
-				objectName: space
-				meshShape: none
-				isKinematic: false
-				isShadowed: false
 			}
 		]
 	}
@@ -464,9 +453,6 @@ modelGroups: {
 }
 modelInfo: {
 	primitives: {
-	}
-	skybox: {
-		fileName: data/skybox.g3db
 	}
 	objects: {
 		fileName: data/cubetest.g3dj

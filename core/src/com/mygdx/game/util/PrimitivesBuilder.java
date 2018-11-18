@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -23,6 +24,9 @@ import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+
+import static com.badlogic.gdx.graphics.GL20.GL_BACK;
+import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 /**
  * Created by mango on 12/18/17.
@@ -83,6 +87,10 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
+        tex = new Texture(Gdx.files.internal("data/sky.jpg"), false);
+        mb.node().id = "skySphere";
+        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
+        new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
         primitivesModel = mb.end();
     }
 
@@ -198,7 +206,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
      *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
      *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
-    public static Entity load(
+    static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
         // we can roll the instance scale transform into the getModelInstance ;)

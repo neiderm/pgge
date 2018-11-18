@@ -352,6 +352,18 @@ rotation.getAxisAngle(v);
 /// BaseEntityBuilder.load ??
         Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+
+        /*
+Note only skySphere object using this right now
+        scale is in parent object (not instances) because object should be able to share same bullet shape!
+        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
+         */
+        if (null != gameObject.scale){
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+            instance.nodes.get(0).scale.set(gameObject.scale);
+            instance.calculateTransforms();
+        }
+
         // leave translation null if using translation from the model layout
         if (null != i ) {
             if (null != i.rotation) {
@@ -442,10 +454,7 @@ rotation.getAxisAngle(v);
 
     public void buildArena(Engine engine) {
 
-        Model model = gameData.modelInfo.get("skybox").model;
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("skybox").gameObjects) {
-            buildObject(engine, gameObject, model);
-        }
+        Model model;
 
         model = gameData.modelInfo.get("scene").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
@@ -504,6 +513,11 @@ rotation.getAxisAngle(v);
                         ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
                     engine.addEntity(e);
                 }
+                // hmmm .. here is for the skybox - generalize it? (anything else, load it this way?)
+            } else // if (o.objectName.equals("skySphere"))
+                 {
+                // hack this is here only to get the model name
+                buildObject(engine, o, PrimitivesBuilder.primitivesModel);
             }
         }
     }
