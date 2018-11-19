@@ -318,8 +318,13 @@ public class SceneLoader implements Disposable {
                 for (Iterator<Node> iterator = model.nodes.iterator(); iterator.hasNext();)
                 {
                     Node node = iterator.next();
-                    Entity e = buildObjectInstance(gameObject, null, model, node.id);
-                    engine.addEntity(e);
+                    String gameObjectName = gameObject.objectName;
+                    String unGlobbedObjectName = gameObjectName.replaceAll("\\*$", "");
+                    if (node.id.contains(unGlobbedObjectName )) {
+
+                        Entity e = buildObjectInstance(gameObject, null, model, node.id);
+                        engine.addEntity(e);
+                    }
                 }
             } else {
                 Entity e = buildObjectInstance(gameObject, null, model, gameObject.objectName);
