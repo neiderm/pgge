@@ -74,6 +74,7 @@ class GameScreen implements Screen {
     //    public FirstPersonCameraController camController;
     private Environment environment;
     private DirectionalShadowLight shadowLight;
+    private Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
 
     private BitmapFont font;
     private OrthographicCamera guiCam;
@@ -108,19 +109,12 @@ class GameScreen implements Screen {
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
         // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
-        Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
-
+//        Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
         environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
         environment.add(
                 new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
-
-        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
-
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
 
         cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
 //        cam.position.set(3f, 7f, 10f);
@@ -224,6 +218,13 @@ class GameScreen implements Screen {
 
 
     private void newRound() {
+
+        if (null != shadowLight)  // if this is a new round but not new gamescreen
+            environment.remove(shadowLight);
+        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+        environment.add(shadowLight);
+        environment.shadowMap = shadowLight;
 
         addSystems();
 
