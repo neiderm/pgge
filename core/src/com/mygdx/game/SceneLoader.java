@@ -8,6 +8,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -29,6 +30,7 @@ import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 
 
@@ -309,31 +311,26 @@ public class SceneLoader implements Disposable {
     private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
 
         if (0 == gameObject.instanceData.size) {
-            // no instance data ... default translation etc.
-            Entity e = buildObjectInstance(gameObject, null, model );
-            engine.addEntity(e);
+                        // no instance data ... default translation etc.
 
-            // Use this code to get location of node to store in data file.
-            // normally only want this to obtain instance trans/rotation from scene model .
-///*
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            Vector3 translation= new Vector3();
-            mc.modelInst.transform.getTranslation(translation);
-            Quaternion rotation = new Quaternion();
-            mc.modelInst.transform.getRotation(rotation);
-            gameObject.instanceData.add(new GameData.GameObject.InstanceData(translation, rotation));
-
-Vector3 v = new Vector3(rotation.getPitch(), rotation.getYaw(), rotation.getRoll());
-float angle = rotation.getAngle();
-rotation.getAxisAngle(v);
-Quaternion q = new Quaternion(v, angle);
-angle = rotation.getAngle();
-rotation.getAxisAngle(v);
-
-            //*/
+            if (gameObject.objectName.endsWith("*")){
+                /* load all nodes from model that match /objectName.*/
+                for (Iterator<Node> iterator = model.nodes.iterator(); iterator.hasNext();)
+                {
+                    Node node = iterator.next();
+                    Entity e = buildObjectInstance(gameObject, null, model, node.id);
+                    engine.addEntity(e);
+                }
+            } else {
+                Entity e = buildObjectInstance(gameObject, null, model, gameObject.objectName);
+                engine.addEntity(e);
+            }
         } else {
             for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-                Entity e = buildObjectInstance(gameObject, i, model);
+/*
+instances should be same size/scale so that we can pass one collision shape to share between them
+ */
+                Entity e = buildObjectInstance(gameObject, i, model, gameObject.objectName);
                 engine.addEntity(e);
             }
         }
@@ -341,13 +338,12 @@ rotation.getAxisAngle(v);
 
     /* could end up "modelGroup.build()" */
     private Entity buildObjectInstance(
-            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model) {
+            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String node) {
 
 //        Model model; // if null then get model reference from object
 
         btCollisionShape shape = null;
-
-        String node = gameObject.objectName;
+//        String node = gameObject.objectName;
 
 /// BaseEntityBuilder.load ??
         Entity e = new Entity();

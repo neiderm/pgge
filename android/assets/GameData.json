@@ -377,47 +377,12 @@ modelGroups: {
 			}
 			{
 				objectName: Platform001
-				meshShape: convexHullShape
+				meshShape: btBoxShape
 				isKinematic: true
 				isShadowed: true
 			}
 			{
-				objectName: Crate
-				mass: 0.1
-				meshShape: btBoxShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: Crate.001
-				mass: 0.1
-				meshShape: btBoxShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: Crate.002
-				mass: 0.1
-				meshShape: btBoxShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: Crate.003
-				mass: 0.1
-				meshShape: btBoxShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: Crate.004
-				mass: 0.1
-				meshShape: btBoxShape
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: Crate.005
+				objectName: Crate*
 				mass: 0.1
 				meshShape: btBoxShape
 				isKinematic: false
