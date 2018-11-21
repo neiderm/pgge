@@ -364,7 +364,13 @@ modelGroups: {
 		modelName: scene
 		gameObjects: [
 			{
-				objectName: Cube
+				objectName: Wall*
+				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
+				objectName: cube_static*
 				meshShape: none
 				isKinematic: false
 				isShadowed: true
@@ -376,8 +382,14 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				objectName: Platform001
+				objectName: Platform.*
 				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
+				objectName: Plane*
+				meshShape: triangleMeshShape
 				isKinematic: true
 				isShadowed: true
 			}
