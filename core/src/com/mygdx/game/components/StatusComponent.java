@@ -18,7 +18,7 @@ public class StatusComponent implements Component {
 
     public StatusComponent() {
 
-        Vector3 bounds = new Vector3(20, 20, 20);
+        Vector3 bounds = new Vector3(50, 50, 50);
         boundsDst2 = bounds.dst2(origin);
     }
 }
