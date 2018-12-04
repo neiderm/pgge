@@ -5381,45 +5381,9 @@
 			]
 		}, 
 		{
-			"id": "Wall.slab1.017", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -33.653473], 
-			"parts": [
-				{
-					"meshpartid": "Cube.007_part1", 
-					"materialid": "Wall.slab1.005", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.016", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651829, -29.653473], 
-			"parts": [
-				{
-					"meshpartid": "Cube.007_part1", 
-					"materialid": "Wall.slab1.005", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
 			"id": "Wall.slab1.015", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651828, -21.653473], 
-			"parts": [
-				{
-					"meshpartid": "Cube.007_part1", 
-					"materialid": "Wall.slab1.005", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.014", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -25.653473], 
 			"parts": [
 				{
 					"meshpartid": "Cube.007_part1", 
@@ -5559,18 +5523,6 @@
 			]
 		}, 
 		{
-			"id": "Wall.slab1.024", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -21.653473], 
-			"parts": [
-				{
-					"meshpartid": "Cube.009_part1", 
-					"materialid": "Wall.slab1.007", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
 			"id": "Wall.slab1.023", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651829, -29.653473], 
@@ -5586,18 +5538,6 @@
 			"id": "Wall.slab1.022", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651828, -33.653473], 
-			"parts": [
-				{
-					"meshpartid": "Cube.009_part1", 
-					"materialid": "Wall.slab1.007", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.021", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651829, -37.653473], 
 			"parts": [
 				{
 					"meshpartid": "Cube.009_part1", 
@@ -5651,30 +5591,6 @@
 			]
 		}, 
 		{
-			"id": "Wall.slab1.038", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -1.495295], 
-			"parts": [
-				{
-					"meshpartid": "Cube.014_part1", 
-					"materialid": "Wall.slab1.010", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.037", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651829, -9.495295], 
-			"parts": [
-				{
-					"meshpartid": "Cube.014_part1", 
-					"materialid": "Wall.slab1.010", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
 			"id": "Wall.slab1.036", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651828, -13.495295], 
@@ -5687,33 +5603,9 @@
 			]
 		}, 
 		{
-			"id": "Wall.slab1.035", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651829, -17.495295], 
-			"parts": [
-				{
-					"meshpartid": "Cube.014_part1", 
-					"materialid": "Wall.slab1.010", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
 			"id": "Wall.slab1.034", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651829, -17.495295], 
-			"parts": [
-				{
-					"meshpartid": "Cube.013_part1", 
-					"materialid": "Wall.slab1.009", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.033", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -13.495295], 
 			"parts": [
 				{
 					"meshpartid": "Cube.013_part1", 
@@ -5738,18 +5630,6 @@
 			"id": "Wall.slab1.031", 
 			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
 			"translation": [-31.483414,  6.651828, -1.495295], 
-			"parts": [
-				{
-					"meshpartid": "Cube.013_part1", 
-					"materialid": "Wall.slab1.009", 
-					"uvMapping": [[]]
-				}
-			]
-		}, 
-		{
-			"id": "Wall.slab1.030", 
-			"rotation": [-0.707107,  0.000000, -0.000000,  0.707107], 
-			"translation": [-31.483414,  6.651828, -5.495295], 
 			"parts": [
 				{
 					"meshpartid": "Cube.013_part1", 
@@ -5881,7 +5761,7 @@
 		{
 			"id": "Platform.002", 
 			"rotation": [-0.000000,  1.000000, -0.000000, -0.000000], 
-			"translation": [-22.181522,  4.126566, -20.072262], 
+			"translation": [-22.181522, -25.898449, -20.072262], 
 			"parts": [
 				{
 					"meshpartid": "Platform.002_part1", 
