@@ -165,7 +165,7 @@ public class CameraMan extends SteeringEntity {
         setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
         setOpModeByKey("chaser1");
 
-        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 2, 3)));
+        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 3)));
     }
 
 
