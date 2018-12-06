@@ -2,8 +2,9 @@ package com.mygdx.game.systems;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -16,9 +17,13 @@ import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by mango on 12/18/17.
+ *
+ * Separate into separate RenderSystem, ShadowSystem as not all renderables are shadowed,
+ * and since the shadow batch necessitates a 2nd separate iteration of entities anyway.
+ * Or not. Because I don't know how to assert the order of systems update in the frame.
  */
 
-public class RenderSystem extends IteratingSystem {
+public class RenderSystem extends EntitySystem {
 
     public int visibleCount;
     public int renderableCount;
@@ -31,12 +36,15 @@ public class RenderSystem extends IteratingSystem {
     private ModelBatch shadowBatch;
 
     private Vector3 position = new Vector3();
+
+// going around the entity system by stashing references to model instances of graphics that are supposed to be debugging only,
     public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
 
+    private ImmutableArray<Entity> entities;
 
-    private RenderSystem()
-    {
-        super(Family.all(ModelComponent.class).get());
+
+    private RenderSystem() {
+//        super(Family.all(ModelComponent.class).get());
     }
 
 
@@ -53,16 +61,22 @@ public class RenderSystem extends IteratingSystem {
     }
 
     @Override
+    public void addedToEngine(Engine engine) {
+        // Grabs all entities with desired components
+        entities = engine.getEntitiesFor(Family.all(ModelComponent.class).get());
+    }
+
+    @Override
     public void removedFromEngine(Engine engine) {
 
-        super.removedFromEngine(engine);
+        entities = null;// super.removedFromEngine(engine);
         modelBatch.dispose();
 
         shadowBatch.dispose();
         shadowLight.dispose();
     }
 
-    @Override
+//    @Override
     protected void processEntity (Entity entity, float deltaTime){
 
         ModelComponent mc = entity.getComponent(ModelComponent.class);
@@ -88,7 +102,9 @@ public class RenderSystem extends IteratingSystem {
 
         modelBatch.begin(cam);
 
-        super.update(deltaTime);
+//        super.update(deltaTime);
+        for (Entity e : entities)
+            processEntity(e, deltaTime);
 
         for (ModelInstance modelInst : otherThings) {
             modelBatch.render(modelInst, environment);
@@ -97,24 +113,24 @@ public class RenderSystem extends IteratingSystem {
 
         modelBatch.end();
 
-
-        // now the modelinstance is (re)scaled, so do shadows now
+        // shadows or model batch first ... doesn't seem to matter
+        // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/g3d/ShadowMappingTest.java
         shadowLight.begin(Vector3.Zero, cam.direction);
         shadowBatch.begin(shadowLight.getCamera());
 
-        for (Entity e : getEntities()) {
+        for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
             //assert null != mc;
             //assert null != mc.modelInst;
-            if (mc.isShadowed &&
-                    isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius)) {
+            if (mc.isShadowed
+                    && isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius)
+                    ) {
                 shadowBatch.render(mc.modelInst);
             }
         }
         shadowBatch.end();
         shadowLight.end();
     }
-
 
     /*
        https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
