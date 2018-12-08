@@ -38,7 +38,7 @@ public class RenderSystem extends EntitySystem {
     private Vector3 position = new Vector3();
 
 // going around the entity system by stashing references to model instances of graphics that are supposed to be debugging only,
-    public static final Array<ModelInstance> otherThings = new Array<ModelInstance>();
+    public static final Array<ModelInstance> debugGraphics = new Array<ModelInstance>();
 
     private ImmutableArray<Entity> entities;
 
@@ -77,7 +77,7 @@ public class RenderSystem extends EntitySystem {
     }
 
 //    @Override
-    protected void processEntity (Entity entity, float deltaTime){
+    private void processEntity (Entity entity, float deltaTime){
 
         ModelComponent mc = entity.getComponent(ModelComponent.class);
         ModelInstance modelInst = mc.modelInst;
@@ -106,16 +106,16 @@ public class RenderSystem extends EntitySystem {
         for (Entity e : entities)
             processEntity(e, deltaTime);
 
-        for (ModelInstance modelInst : otherThings) {
+        for (ModelInstance modelInst : debugGraphics) {
             modelBatch.render(modelInst, environment);
         }
-        otherThings.clear();
+        debugGraphics.clear();
 
         modelBatch.end();
 
         // shadows or model batch first ... doesn't seem to matter
         // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/g3d/ShadowMappingTest.java
-        shadowLight.begin(Vector3.Zero, cam.direction);
+        shadowLight.begin(Vector3.Zero.cpy(), cam.direction);
         shadowBatch.begin(shadowLight.getCamera());
 
         for (Entity e : entities) {

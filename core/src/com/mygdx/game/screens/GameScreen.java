@@ -15,7 +15,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -74,7 +73,8 @@ class GameScreen implements Screen {
     //    public FirstPersonCameraController camController;
     private Environment environment;
     private DirectionalShadowLight shadowLight;
-    private Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
+//    private Vector3 lightDirection = new Vector3(1f, -0.8f, 0f); // new Vector3(-1f, -0.8f, -0.2f);
+    private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
 
     private BitmapFont font;
     private OrthographicCamera guiCam;
@@ -113,8 +113,7 @@ class GameScreen implements Screen {
         environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-        environment.add(
-                new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
+//        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
 
         cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
 //        cam.position.set(3f, 7f, 10f);
@@ -221,7 +220,7 @@ class GameScreen implements Screen {
 
         if (null != shadowLight)  // if this is a new round but not new gamescreen
             environment.remove(shadowLight);
-        shadowLight = new DirectionalShadowLight(1024, 1024, 60, 60, 1f, 300);
+        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
         shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
@@ -428,7 +427,7 @@ for (Entity e : characters){
                 case RAY_DETECT:
                     if (null != picked) {
                         // we have an object in sight so kil it, bump the score, whatever
-                        RenderSystem.otherThings.add(
+                        RenderSystem.debugGraphics.add(
                                 GfxUtil.lineTo(
                                         btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
 //                                            transform.getTranslation(posV),

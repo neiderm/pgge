@@ -20,8 +20,8 @@ import java.util.Random;
  */
 public class TankController extends SteeringBulletEntity {
 
-    static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
-    static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
+    private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
+    private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
 
     // working variables
@@ -98,7 +98,7 @@ public class TankController extends SteeringBulletEntity {
             body.setWorldTransform(tmpM);
         }
 
-        RenderSystem.otherThings.add(GfxUtil.line(trans,
+        RenderSystem.debugGraphics.add(GfxUtil.line(trans,
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
                 Color.RED));
 
