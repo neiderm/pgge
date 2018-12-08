@@ -59,28 +59,28 @@ public class PlayerCharacter extends IUserInterface {
             final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
             // rotate by a constant rate according to stick left or stick right.
-            float angularDirection = 0f;
-            float linearDirection = 0f;
+            float angularD = 0f;
+            float linearD = 0f;
 
             float knobX = t.getKnobPercentX();
             float knobY = t.getKnobPercentY();
 
             if (knobX < -DZ) {
-                angularDirection = 1f;
+                angularD = 1f;  // left (ccw)
             } else if (knobX > DZ) {
-                angularDirection = -1f;
+                angularD = -1f;   // right (cw)
             }
 
             if (knobY > DZ) {
-                // reverse thrust & "steer" opposite direction !
-                linearDirection = -1f;
+                linearD = -1f;
             } else if (knobY < -DZ) {
-                linearDirection = +1f;
-                angularDirection *= -1f;
+                // reverse thrust & "steer" opposite direction !
+                linearD = +1f;
+                angularD *= -1f;
             }
             // else ... inside deadzone
 
-            io.set(inpVect.set(angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+            io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
         }
     };
 
@@ -95,29 +95,62 @@ public class PlayerCharacter extends IUserInterface {
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
 
+
+    private float angularDirection = 0f;
+    private float linearDirection = 0f;
+
     @Override
     public boolean keyDown(int keycode) {
 // this needs work ... then we can refactor
         super.keyDown(keycode);
-
-        // rotate by a constant rate according to stick left or stick right.
-        float angularDirection = 0f;
-        float linearDirection = 0f;
-
-        if (keycode == Input.Keys.A) {
-            angularDirection = 1f;
-        } else if (keycode == Input.Keys.D) {
+        /*
+         * steering rotate by a constant rate according to stick left or stick right.
+         */
+        if (Input.Keys.A == keycode ) {
+            angularDirection = 1f;   // left
+        }
+        if (Input.Keys.D == keycode ) {
             angularDirection = -1f;
         }
 
-        if (keycode == Input.Keys.W) {
-            // reverse thrust & "steer" opposite direction !
+        if (Input.Keys.W == keycode ) {
             linearDirection = -1f;
-        } else if (keycode == Input.Keys.S) {
-            linearDirection = +1f;
-            angularDirection *= -1f;
         }
-        // else ... inside deadzone
+        if (Input.Keys.S == keycode ) {
+            // reverse thrust !
+            linearDirection = +1f;
+        }
+
+        float tmpAngularDir = angularDirection;
+        if (Gdx.input.isKeyPressed(Input.Keys.S) /* linearDirection > 0 */){
+            // reverse thrust so "steer" opposite direction !
+            tmpAngularDir = -angularDirection;
+        }
+
+        io.set(inpVect.set(
+                tmpAngularDir, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+
+//        Gdx.app.log("KeyDown", String.format("key=%d angular=%f linear=%f", keycode, angularDirection, linearDirection));
+
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+
+        if (Input.Keys.A == keycode && !Gdx.input.isKeyPressed(Input.Keys.D) /* +1 == angularDirection */) {
+            angularDirection = 0;
+        }
+        if (Input.Keys.D == keycode && !Gdx.input.isKeyPressed(Input.Keys.A) /* -1 == angularDirection */) {
+            angularDirection = 0;
+        }
+
+        if (Input.Keys.W == keycode && !Gdx.input.isKeyPressed(Input.Keys.S) /* -1 == linearDirection */) {
+            linearDirection = 0;
+        }
+        if (Input.Keys.S == keycode && !Gdx.input.isKeyPressed(Input.Keys.W) /* +1 == linearDirection */) {
+            linearDirection = 0;
+        }
 
         io.set(inpVect.set(
                 angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
