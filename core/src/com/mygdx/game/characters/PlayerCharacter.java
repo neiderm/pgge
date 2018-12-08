@@ -2,6 +2,10 @@ package com.mygdx.game.characters;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.ControllerListener;
+import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -41,6 +45,8 @@ public class PlayerCharacter extends IUserInterface {
         addInputListener(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
         button.dispose();
+
+        initController();
     }
 
 
@@ -76,7 +82,7 @@ public class PlayerCharacter extends IUserInterface {
             } else if (knobY < -DZ) {
                 // reverse thrust & "steer" opposite direction !
                 linearD = +1f;
-                angularD *= -1f;
+                angularD = -angularD;  // <---- note negative sign
             }
             // else ... inside deadzone
 
@@ -130,8 +136,6 @@ public class PlayerCharacter extends IUserInterface {
         io.set(inpVect.set(
                 tmpAngularDir, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
 
-//        Gdx.app.log("KeyDown", String.format("key=%d angular=%f linear=%f", keycode, angularDirection, linearDirection));
-
         return false;
     }
 
@@ -156,5 +160,140 @@ public class PlayerCharacter extends IUserInterface {
                 angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
 
         return false;
+    }
+
+
+    void print (String message) {
+        Gdx.app.log("Input", message);
+    }
+
+    private void initController() {
+
+        // print the currently connected controllers to the console
+        print("Controllers: " + Controllers.getControllers().size);
+        int i = 0;
+        for (Controller controller : Controllers.getControllers()) {
+            print("#" + i++ + ": " + controller.getName());
+        }
+        if (Controllers.getControllers().size == 0) print("No controllers attached");
+
+        // setup the listener that prints events to the console
+        Controllers.addListener(new ControllerListener() {
+
+            public int indexOf (Controller controller) {
+                return Controllers.getControllers().indexOf(controller, true);
+            }
+
+            @Override
+            public void connected (Controller controller) {
+                print("connected " + controller.getName());
+                int i = 0;
+                for (Controller c : Controllers.getControllers()) {
+                    print("#" + i++ + ": " + c.getName());
+                }
+            }
+
+            @Override
+            public void disconnected (Controller controller) {
+                print("disconnected " + controller.getName());
+                int i = 0;
+                for (Controller c : Controllers.getControllers()) {
+                    print("#" + i++ + ": " + c.getName());
+                }
+                if (Controllers.getControllers().size == 0) print("No controllers attached");
+            }
+
+            @Override
+            public boolean buttonDown (Controller controller, int buttonIndex) {
+                print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
+                return false;
+            }
+
+            @Override
+            public boolean buttonUp (Controller controller, int buttonIndex) {
+                print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
+                return false;
+            }
+
+            @Override
+            public boolean axisMoved(Controller controller, int axisIndex, float value) {
+                /*          -1.0
+                       -1.0   +   +1.0  (0)
+                            + 1.0        */
+                final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+
+                // rotate by a constant rate according to stick left or stick right.
+                float angularD = 0f;
+                float linearD = 0f;
+
+                float knobX = controller.getAxis(0);
+                float knobY = -controller.getAxis(1);  //   <---- note negative sign
+
+                if (knobX < -DZ) {
+                    angularD = 1f;  // left (ccw)
+                } else if (knobX > DZ) {
+                    angularD = -1f;   // right (cw)
+                }
+
+                if (knobY > DZ) {
+                    linearD = -1f;
+                } else if (knobY < -DZ) {
+                    // reverse thrust & "steer" opposite direction !
+                    linearD = +1f;
+                    angularD = -angularD;  //   <---- note negative sign
+                }
+                // else ... inside deadzone
+
+                io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
+
+                return false;
+            }
+
+            @Override
+            public boolean povMoved (Controller controller, int povIndex, PovDirection value) {
+                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
+
+                float angularD = 0, linearD = 0;
+
+                if (value ==  PovDirection.west || value ==  PovDirection.southWest || value ==  PovDirection.northWest) {
+                    angularD = 1f;  // left (ccw)
+                }
+                if (value ==  PovDirection.east  || value ==  PovDirection.southEast  || value ==  PovDirection.northEast) {
+                    angularD = -1f;   // right (cw)
+                }
+
+                if (value ==  PovDirection.north  || value ==  PovDirection.northWest || value ==  PovDirection.northEast){
+                    linearD = -1f;
+                }
+                if (value ==  PovDirection.south  || value ==  PovDirection.southWest || value ==  PovDirection.southEast){
+                    // reverse thrust & "steer" opposite direction !
+                    linearD = +1f;
+                    angularD *= -1f;
+                }
+                // else ... inside deadzone
+
+                io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
+
+                return false;
+            }
+
+            @Override
+            public boolean xSliderMoved (Controller controller, int sliderIndex, boolean value) {
+                print("#" + indexOf(controller) + ", x slider " + sliderIndex + ": " + value);
+                return false;
+            }
+
+            @Override
+            public boolean ySliderMoved (Controller controller, int sliderIndex, boolean value) {
+                print("#" + indexOf(controller) + ", y slider " + sliderIndex + ": " + value);
+                return false;
+            }
+
+            @Override
+            public boolean accelerometerMoved (Controller controller, int accelerometerIndex, Vector3 value) {
+                // not printing this as we get to many values
+                return false;
+            }
+        });
     }
 }
