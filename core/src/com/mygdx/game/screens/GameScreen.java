@@ -148,7 +148,7 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-    private void makeCameraSwitchHandler(IUserInterface ui) {
+/*    private void makeCameraSwitchHandler(IUserInterface ui) {
         Pixmap button;
 
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -159,7 +159,7 @@ class GameScreen implements Screen {
         ui.addInputListener(buttonBListener, button,
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
         button.dispose();
-    }
+    }*/
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -212,7 +212,7 @@ class GameScreen implements Screen {
     }
 
 
-    private Entity setupUICameraEntity;
+    private Entity setupUICameraEntity;   ////////// aaaaaaarrrrrrrrrtgggggggggghhhhhhhh wttttttttffffffff is this
     //tmp
 
 
@@ -328,7 +328,11 @@ class GameScreen implements Screen {
         SteeringBulletEntity sbe = new TankController(
                 btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        playerUI = new PlayerCharacter(btRigidBodyPlayer, sbe);
+
+        Array<InputListener> listeners = new Array<InputListener>();
+        listeners.add(buttonBListener);
+        playerUI = new PlayerCharacter(btRigidBodyPlayer,sbe, listeners);
+
         pickedPlayer.add(new CharacterComponent(sbe));
 
 
@@ -353,9 +357,7 @@ for (Entity e : characters){
         Chaser asdf = new Chaser();
         engine.addEntity(asdf.create(playerTransform));
 
-//        enemyTank.add(new CharacterComponent(new SteeringTankController(enemyTank, btRigidBodyPlayer)));
-
-        makeCameraSwitchHandler(playerUI);
+//        makeCameraSwitchHandler(playerUI);
 
         multiplexer.removeProcessor(camController);
         multiplexer.removeProcessor(setupUI);

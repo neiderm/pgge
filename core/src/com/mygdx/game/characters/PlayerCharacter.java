@@ -14,21 +14,29 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
 
 /**
  * Created by utf1247 on 5/17/2018.
- * <p>
- * Character implements the intelligence "glue" between Game Character, a virtual input device (player
- * control input, or possibly from an AI) and a "Character Controller" (a poor term for the essence of
- * what is in and interacting with the game model).  Character can be attached to a Game Event Signal.
- * There will likely be multiple enemy actors integrated to an Enemy System and Enemy Component.
+ * This adapter has become specific to "tank" vehicle, it provides multiple controls - keyboard, touch screen, dpad etc.
  */
 
 public class PlayerCharacter extends IUserInterface {
 
-    public PlayerCharacter(final btRigidBody btRigidBodyPlayer, SteeringEntity steerable) {
+    // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
+    // handled in here, or subsystem controls e.g. dpad controls go to tank steering, function buttons go to
+    // guided missile susbsystem, cannon button inputs go to cannon etc.
+    // maybe do a controller abstraction?
+    // https://gist.github.com/nhydock/dc0501f34f89686ddf34
+    // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
+
+    InputListener buttonBListener;
+
+    public PlayerCharacter(final btRigidBody btRigidBodyPlayer, SteeringEntity steerable, Array<InputListener> buttonListeners) {
+
+        // why must we pass a ridig body .... how about a transform?
 
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, btRigidBodyPlayer);
         steerable.setSteeringBehavior(playerInpSB);
@@ -44,6 +52,28 @@ public class PlayerCharacter extends IUserInterface {
         button.fillCircle(25, 25, 25);
         addInputListener(actionButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
+
+
+
+///////////
+// mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
+        // how to order the InputListener Array
+////////////
+        for (InputListener listenr : buttonListeners){
+            this.buttonBListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
+        }
+
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+
+        addInputListener(buttonBListener, button,
+                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
+//////////////
+
+
         button.dispose();
 
         initController();
@@ -206,6 +236,10 @@ public class PlayerCharacter extends IUserInterface {
             @Override
             public boolean buttonDown (Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
+
+if (8 == buttonIndex)
+    buttonBListener.touchDown(null, 0, 0, 0, 0);
+
                 return false;
             }
 
