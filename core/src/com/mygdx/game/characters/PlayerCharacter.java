@@ -7,8 +7,8 @@ import com.badlogic.gdx.controllers.ControllerListener;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -34,11 +34,9 @@ public class PlayerCharacter extends IUserInterface {
 
     InputListener buttonBListener;
 
-    public PlayerCharacter(final btRigidBody btRigidBodyPlayer, SteeringEntity steerable, Array<InputListener> buttonListeners) {
+    public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners) {
 
-        // why must we pass a ridig body .... how about a transform?
-
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, btRigidBodyPlayer);
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, transform);
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
@@ -287,7 +285,8 @@ if (8 == buttonIndex)
             public boolean povMoved (Controller controller, int povIndex, PovDirection value) {
                 print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
-                float angularD = 0, linearD = 0;
+                float angularD = 0;
+                float linearD = 0;
 
                 if (value ==  PovDirection.west || value ==  PovDirection.southWest || value ==  PovDirection.northWest) {
                     angularD = 1f;  // left (ccw)

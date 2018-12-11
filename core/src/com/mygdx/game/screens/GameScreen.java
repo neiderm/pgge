@@ -331,7 +331,7 @@ class GameScreen implements Screen {
 
         Array<InputListener> listeners = new Array<InputListener>();
         listeners.add(buttonBListener);
-        playerUI = new PlayerCharacter(btRigidBodyPlayer,sbe, listeners);
+        playerUI = new PlayerCharacter(playerTransform, sbe, listeners);
 
         pickedPlayer.add(new CharacterComponent(sbe));
 

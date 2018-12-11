@@ -4,9 +4,10 @@ import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.characters.InputStruct.ButtonsEnum;
@@ -20,11 +21,9 @@ import static com.mygdx.game.characters.InputStruct.ButtonsEnum;
  */
 public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
 
-    /**
-     * the input we're tracking
-     */
-    private InputStruct io;
-    private btRigidBody body; // decide if this belongs here ... ;)
+    private InputStruct io; // the input we're tracking
+    private Matrix4 transform; // link to model instance transform
+    private Quaternion q = new Quaternion();
 
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
@@ -32,12 +31,11 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      * @param owner the owner of this behavior
      * @param io    ?.
      */
-    PlayerInput(Steerable<T> owner, InputStruct io, btRigidBody body) {
+    PlayerInput(Steerable<T> owner, InputStruct io, Matrix4 transform) {
         super(owner);
         this.io = io;
-        this.body = body;
+        this.transform = transform;
     }
-
 
     /*
      * steering output is a 2d vector applied to the controller ...
@@ -73,10 +71,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
         // Output steering acceleration
         steeringLinear.set(0, 0, io.getLinearDirection());
 
-        if (null != body)
-            ModelInstanceEx.rotateRad(steeringLinear, body.getOrientation());
-//        else
-//            body = null; // wtf  8/22 still gettin these :(
+        ModelInstanceEx.rotateRad(steeringLinear, transform.getRotation(q));
 
         if (jump)
             steeringLinear.y = 100f; // idfk
