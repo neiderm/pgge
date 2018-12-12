@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.controllers.SteeringEntity;
+import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.screens.IUserInterface;
 
 import java.util.Arrays;
@@ -29,7 +30,10 @@ import static java.lang.Math.abs;
 
 public class PlayerCharacter extends IUserInterface {
 
-    float [] axes = new float[4];
+    final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
+
+
+    private float [] axes = new float[4];
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -41,9 +45,11 @@ public class PlayerCharacter extends IUserInterface {
 
     InputListener cameraSwitchListener;
 
-    public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners) {
+    public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners,
+                           TankController tc) {
 
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, transform);
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, transform,
+                tc);
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
@@ -123,8 +129,6 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-        final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
-
             io.buttonSet( BUTTON_CODE_1 /* InputStruct.ButtonsEnum.BUTTON_1 */ );
             return true;
         }
@@ -153,6 +157,10 @@ public class PlayerCharacter extends IUserInterface {
         if (Input.Keys.S == keycode ) {
             axes[1] = +1;
         }
+
+
+        if (Input.Keys.SPACE == keycode)
+            io.buttonSet( BUTTON_CODE_1 );
 
         io.setAxis(axisIndex, axes);
 

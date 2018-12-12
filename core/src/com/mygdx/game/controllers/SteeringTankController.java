@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -28,7 +29,11 @@ import static java.lang.Math.abs;
  *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/tests/BulletSeekTest.java
  */
 
-public class SteeringTankController extends TankController {
+public class SteeringTankController extends /*TankController */ SteeringBulletEntity {
+
+    // GN: was in steering bullet entity
+    BulletWorld world;
+    protected float mass;
 
     public SteeringTankController(Entity copyEntity, btRigidBody targetBody) {
 
@@ -86,6 +91,14 @@ public class SteeringTankController extends TankController {
     private Vector3 adjForceVect = new Vector3();
     private Vector3 forward = new Vector3();
 
+    private float [] axes = new float[4];
+
+
+    /*
+    TODO: a reference to a e.g. "SimpleVehicleModel", or the "trackedVehicleModel" derived from it
+     */
+    private InputStruct io = new InputStruct();
+
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float delta) {
@@ -98,10 +111,8 @@ public class SteeringTankController extends TankController {
         // have to take my position and take linearforce as relatve, sum them vectors and pass that as center
         Ray ray = new Ray(); // tank direction
 
-        if (null != body)
+//        if (null != body) // ok now i guess
             ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
-        else
-            body = null; // wtf
 
         ray.set(tmpV, forward);
 
@@ -124,6 +135,18 @@ public class SteeringTankController extends TankController {
             steering.angular = 0f;
         }
 
-        super.applySteering(steering, delta);
+
+
+/*  pretend we're using the information above in a meaningful way, I don't even care if NPC AIs even works right now
+ */
+        axes[0] = steering.angular > 0 ? 1 : -1;
+        axes[1] =         steering.linear.x + steering.linear.y;
+
+        /*
+         update the "VehicleModel" wiht he new virtual controller inputs
+         */
+        io.setAxis(-1, axes);
+
+//        super.applySteering(steering, delta);
     }
 }

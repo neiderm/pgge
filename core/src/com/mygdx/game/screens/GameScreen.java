@@ -331,7 +331,10 @@ class GameScreen implements Screen {
 
         Array<InputListener> listeners = new Array<InputListener>();
         listeners.add(buttonBListener);
-        playerUI = new PlayerCharacter(playerTransform, sbe, listeners);
+        playerUI = new PlayerCharacter(playerTransform, sbe, listeners,
+                new TankController(
+                        btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */)
+        );
 
         pickedPlayer.add(new CharacterComponent(sbe));
 

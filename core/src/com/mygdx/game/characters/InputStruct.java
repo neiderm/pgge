@@ -17,13 +17,12 @@ import com.badlogic.gdx.math.Vector3;
 /      +  /     \     +  /
 ---------/       \------/
  */
-//public
-class InputStruct {
+public class InputStruct {
 
     public int buttonPress = 0; // InputStruct.ButtonsEnum.BUTTON_NONE;
 
-    private Vector3 inpVector = new Vector3();
-
+    private float angularD = 0f;
+    private float linearD = 0f;
 
 //    public InputStruct()    { axis = new float[4]; }
 
@@ -34,9 +33,9 @@ class InputStruct {
         return this;
     }
 
-    public float getLinearDirection(){ return inpVector.z; }
+    public float getLinearDirection(){ return linearD; }
 
-    public float getAngularDirection(){ return inpVector.x; }
+    public float getAngularDirection(){ return angularD; }
 
     public enum ButtonsEnum { // idfk
 /*        BUTTON_NONE,
@@ -66,8 +65,8 @@ class InputStruct {
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
         // rotate by a constant rate according to stick left or stick right.
-        float angularD = 0f;
-        float linearD = 0f;
+        angularD = 0f;
+        linearD = 0f;
 
         float knobX = values[0];
         float knobY = -values[1];  //   <---- note negative sign
@@ -87,6 +86,5 @@ class InputStruct {
         }
         // else ... inside deadzone
 
-        this.inpVector.set(angularD, 0f, linearD);
     }
 }

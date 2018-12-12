@@ -17,12 +17,19 @@ import java.util.Random;
 
 /**
  * Created by mango on 2/10/18.
+ *
+ * TODO: rename this "SimpleVehicleModel" or something ... leading to
+ *   e.g. "trackedDifferentialVehicleModel" whatever
  */
-public class TankController extends SteeringBulletEntity {
-
+public class TankController extends SteeringBulletEntity
+//    implements SimpleVehicleModel
+{
     private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
+    protected btRigidBody body;
+    BulletWorld world;
+    protected float mass;
 
     // working variables
     private Vector3 trans = new Vector3();
@@ -35,7 +42,9 @@ public class TankController extends SteeringBulletEntity {
     TankController(){}
 
     TankController(btRigidBody body) {
-        super(body);
+//        super(body);
+
+        this.body = body;
     }
 
     public TankController(btRigidBody body, float mass) {
@@ -60,7 +69,8 @@ public class TankController extends SteeringBulletEntity {
     }
 
     @Override
-    protected void applySteering(SteeringAcceleration<Vector3> steering, float time) {
+//    protected
+public void applySteering(SteeringAcceleration<Vector3> steering, float time) {
 
         if (steering.linear.y >= 100) { // what a hack
             applyJump(); // do this before scale linear ;)       ... may not matter

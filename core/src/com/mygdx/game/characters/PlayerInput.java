@@ -8,9 +8,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.util.ModelInstanceEx;
-
-import static com.mygdx.game.characters.InputStruct.ButtonsEnum;
 
 
 /**
@@ -24,6 +23,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     private InputStruct io; // the input we're tracking
     private Matrix4 transform; // link to model instance transform
     private Quaternion q = new Quaternion();
+    TankController tc;
 
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
@@ -31,10 +31,13 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      * @param owner the owner of this behavior
      * @param io    ?.
      */
-    PlayerInput(Steerable<T> owner, InputStruct io, Matrix4 transform) {
-        super(owner);
+    PlayerInput(Steerable<T> owner, InputStruct io, Matrix4 transform,
+                TankController tc) {
+//GN: idfk        super(owner);
+        super(null);
         this.io = io;
         this.transform = transform;
+this.tc = tc;
     }
 
     /*
@@ -46,6 +49,11 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      *
      *     Simply throw away Y component of steering output?
      */
+
+    private Vector3 steeringLinear = new Vector3();
+    private float steeringAngular;
+    SteeringAcceleration<Vector3> mySteering = new SteeringAcceleration<Vector3>(steeringLinear, steeringAngular);
+
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
@@ -62,21 +70,32 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
                 break;
         }
 
-        steering.angular = io.getAngularDirection();
+        mySteering.angular = io.getAngularDirection();
 
-        Vector3 steeringLinear = (Vector3) steering.linear;
+// tmp!
+        mySteering.linear = (Vector3)steering.linear;
 
         // Output steering acceleration
         // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
         // the vehicle orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
         // a pushing force to the vehicle along tt's Z axes. This gets a desired effect of i.e. magnitude
         // of applied force reduces proportionately the more that the vehicle is on an incline
-        steeringLinear.set(0, 0, io.getLinearDirection());
+        mySteering.linear.set(0, 0, io.getLinearDirection());
 
-        ModelInstanceEx.rotateRad(steeringLinear, transform.getRotation(q));
+        ModelInstanceEx.rotateRad(mySteering.linear, transform.getRotation( q ));
 
         if (jump)
-            steeringLinear.y = 100f; // idfk
+            mySteering.linear.y = 100f; // idfk
+
+
+//        tc.applySteering(mySteering, 0);
+
+        // tmp
+//        steering.angular = 0;
+//        ((Vector3) steering.linear).set(0, 0, 0);
+
+//        steering.linear.set(mySteering.linear);
+        steering.angular = mySteering.angular;
 
         return steering;
     }
