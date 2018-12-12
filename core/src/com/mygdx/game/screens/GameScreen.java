@@ -36,7 +36,7 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.controllers.SteeringBulletEntity;
+import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
@@ -325,13 +325,15 @@ class GameScreen implements Screen {
         Matrix4 playerTransform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
-        SteeringBulletEntity sbe = new TankController(
-                btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
+//        SteeringBulletEntity sbe = new TankController( btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+        SteeringEntity sbe = new SteeringEntity();
 
         Array<InputListener> listeners = new Array<InputListener>();
         listeners.add(buttonBListener);
-        playerUI = new PlayerCharacter(playerTransform, sbe, listeners,
+
+        //playerTransform = btRigidBodyPlayer.getWorldTransform();
+
+                playerUI = new PlayerCharacter(playerTransform, sbe, listeners,
                 new TankController(
                         btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */)
         );
@@ -339,11 +341,14 @@ class GameScreen implements Screen {
         pickedPlayer.add(new CharacterComponent(sbe));
 
 
-
         Array<Entity> characters = new Array<Entity>();
         GameWorld.sceneLoader.getCharacters(characters);
 for (Entity e : characters){
-    e.add(new CharacterComponent(new SteeringTankController(e, btRigidBodyPlayer)));
+
+    TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
+            e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
+
+    e.add(new CharacterComponent(new SteeringTankController(tc, e, btRigidBodyPlayer)));
     engine.addEntity(e);
 }
         /*

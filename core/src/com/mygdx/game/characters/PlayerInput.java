@@ -23,7 +23,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     private InputStruct io; // the input we're tracking
     private Matrix4 transform; // link to model instance transform
     private Quaternion q = new Quaternion();
-    TankController tc;
+    private TankController tc;
 
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
@@ -31,8 +31,9 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      * @param owner the owner of this behavior
      * @param io    ?.
      */
-    PlayerInput(Steerable<T> owner, InputStruct io, Matrix4 transform,
-                TankController tc) {
+    PlayerInput(
+//            Steerable<T> owner,
+            InputStruct io, Matrix4 transform, TankController tc) {
 //GN: idfk        super(owner);
         super(null);
         this.io = io;
@@ -52,7 +53,7 @@ this.tc = tc;
 
     private Vector3 steeringLinear = new Vector3();
     private float steeringAngular;
-    SteeringAcceleration<Vector3> mySteering = new SteeringAcceleration<Vector3>(steeringLinear, steeringAngular);
+    private SteeringAcceleration<Vector3> mySteering = new SteeringAcceleration<Vector3>(steeringLinear, steeringAngular);
 
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
@@ -73,7 +74,7 @@ this.tc = tc;
         mySteering.angular = io.getAngularDirection();
 
 // tmp!
-        mySteering.linear = (Vector3)steering.linear;
+//        mySteering.linear = (Vector3)steering.linear;
 
         // Output steering acceleration
         // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
@@ -88,15 +89,14 @@ this.tc = tc;
             mySteering.linear.y = 100f; // idfk
 
 
-//        tc.applySteering(mySteering, 0);
+        tc.applySteering(mySteering, 0);
 
         // tmp
-//        steering.angular = 0;
-//        ((Vector3) steering.linear).set(0, 0, 0);
+        steering.angular = 0;
+        ((Vector3) steering.linear).set(0, 0, 0);
 
 //        steering.linear.set(mySteering.linear);
-        steering.angular = mySteering.angular;
-
+//        steering.angular = mySteering.angular;
         return steering;
     }
 

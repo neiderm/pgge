@@ -21,14 +21,15 @@ import java.util.Random;
  * TODO: rename this "SimpleVehicleModel" or something ... leading to
  *   e.g. "trackedDifferentialVehicleModel" whatever
  */
-public class TankController extends SteeringBulletEntity
-//    implements SimpleVehicleModel
+public class TankController
+//        extends SteeringBulletEntity
+    implements SimpleVehicleModel
 {
     private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
     protected btRigidBody body;
-    BulletWorld world;
+    private BulletWorld world;
     protected float mass;
 
     // working variables
@@ -41,7 +42,7 @@ public class TankController extends SteeringBulletEntity
 
     TankController(){}
 
-    TankController(btRigidBody body) {
+    private TankController(btRigidBody body) {
 //        super(body);
 
         this.body = body;

@@ -31,18 +31,17 @@ import static java.lang.Math.abs;
 
 public class SteeringTankController extends /*TankController */ SteeringBulletEntity {
 
-    // GN: was in steering bullet entity
-    BulletWorld world;
-    protected float mass;
+private TankController tc;
 
-    public SteeringTankController(Entity copyEntity, btRigidBody targetBody) {
+    public SteeringTankController(TankController tc, Entity copyEntity, btRigidBody targetBody) {
 
         this(copyEntity.getComponent(BulletComponent.class).body,
                 copyEntity.getComponent(BulletComponent.class).mass);
 
+        this.tc = tc;
+
         SteeringBulletEntity target = new SteeringBulletEntity(targetBody);
 
-// TODO: toss all this crap in Steering Tank Controller !!!!
         setMaxLinearSpeed(2); // idfk
         setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
@@ -77,11 +76,11 @@ public class SteeringTankController extends /*TankController */ SteeringBulletEn
         setSteeringBehavior(blendedSteering);
     }
 
-    public SteeringTankController(btRigidBody body, float mass) {
+    private SteeringTankController(btRigidBody body, float mass) {
 
         super(body);
-        this.mass = mass;
-        this.world = BulletWorld.getInstance();
+//        this.mass = mass;
+//        this.world = BulletWorld.getInstance();
     }
 
     // working variables
@@ -148,5 +147,7 @@ public class SteeringTankController extends /*TankController */ SteeringBulletEn
         io.setAxis(-1, axes);
 
 //        super.applySteering(steering, delta);
+
+        tc.applySteering(steering, 0);
     }
 }

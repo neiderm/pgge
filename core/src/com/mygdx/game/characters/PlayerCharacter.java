@@ -30,7 +30,7 @@ import static java.lang.Math.abs;
 
 public class PlayerCharacter extends IUserInterface {
 
-    final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
+    private static final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
 
 
     private float [] axes = new float[4];
@@ -43,13 +43,15 @@ public class PlayerCharacter extends IUserInterface {
     // https://gist.github.com/nhydock/dc0501f34f89686ddf34
     // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
 
-    InputListener cameraSwitchListener;
+    private InputListener cameraSwitchListener;
 
     public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners,
                            TankController tc) {
-
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(steerable, io, transform,
-                tc);
+/*
+        body.getOrientation()     ... hhhhmmmmmmmmmmmmm
+*/
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>( // steerable,
+                 io, transform, tc);
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
@@ -194,7 +196,7 @@ public class PlayerCharacter extends IUserInterface {
     https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
      */
 
-    void print (String message) {
+    private void print (String message) {
         Gdx.app.log("Input", message);
     }
 
@@ -211,7 +213,8 @@ public class PlayerCharacter extends IUserInterface {
         // setup the listener that prints events to the console
         Controllers.addListener(new ControllerListener() {
 
-            public int indexOf (Controller controller) {
+            //public
+            int indexOf (Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
             }
 

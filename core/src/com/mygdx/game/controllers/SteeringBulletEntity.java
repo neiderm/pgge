@@ -30,10 +30,6 @@ import com.mygdx.game.BulletWorld;
  */
 public class SteeringBulletEntity extends SteeringEntity {
 
-    // GN:
-    BulletWorld world;
-    protected float mass;
-
     protected btRigidBody body;
 
     private float maxLinearSpeed;
@@ -56,7 +52,8 @@ public class SteeringBulletEntity extends SteeringEntity {
     // GN:
     SteeringBulletEntity(){}
 
-    public SteeringBulletEntity(btRigidBody body) {
+//    public
+    SteeringBulletEntity(btRigidBody body) {
         this.body = body;
     }
 
