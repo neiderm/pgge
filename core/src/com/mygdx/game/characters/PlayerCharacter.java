@@ -18,12 +18,19 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.IUserInterface;
 
+import java.util.Arrays;
+
+import static java.lang.Math.abs;
+
 /**
  * Created by utf1247 on 5/17/2018.
  * This adapter has become specific to "tank" vehicle, it provides multiple controls - keyboard, touch screen, dpad etc.
  */
 
 public class PlayerCharacter extends IUserInterface {
+
+    float [] axes = new float[4];
+
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
     // handled in here, or subsystem controls e.g. dpad controls go to tank steering, function buttons go to
@@ -32,7 +39,7 @@ public class PlayerCharacter extends IUserInterface {
     // https://gist.github.com/nhydock/dc0501f34f89686ddf34
     // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
 
-    InputListener buttonBListener;
+    InputListener cameraSwitchListener;
 
     public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners) {
 
@@ -48,7 +55,7 @@ public class PlayerCharacter extends IUserInterface {
         button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
-        addInputListener(actionButtonListener, button,
+        addInputListener(jumpButtonListener, button,
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
 
 
@@ -58,7 +65,7 @@ public class PlayerCharacter extends IUserInterface {
         // how to order the InputListener Array
 ////////////
         for (InputListener listenr : buttonListeners){
-            this.buttonBListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
+            this.cameraSwitchListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
         }
 
 
@@ -67,7 +74,7 @@ public class PlayerCharacter extends IUserInterface {
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
 
-        addInputListener(buttonBListener, button,
+        addInputListener(cameraSwitchListener, button,
                 (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
 //////////////
 
@@ -79,49 +86,46 @@ public class PlayerCharacter extends IUserInterface {
 
 
     /* need this persistent since we pass it every time but only update on change */
-    private Vector3 inpVect = new Vector3(0f, 0f, 0f);
     private InputStruct io = new InputStruct();
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
         public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                /*          -1.0
-                       -1.0   +   +1.0
-                            + 1.0        */
+
             Touchpad t = (Touchpad) actor;
 
             final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
-            // rotate by a constant rate according to stick left or stick right.
-            float angularD = 0f;
-            float linearD = 0f;
-
             float knobX = t.getKnobPercentX();
             float knobY = t.getKnobPercentY();
 
+            Arrays.fill(axes, 0);
+
             if (knobX < -DZ) {
-                angularD = 1f;  // left (ccw)
+                axes[0] = -1;
+
             } else if (knobX > DZ) {
-                angularD = -1f;   // right (cw)
+                axes[0] = +1;
             }
 
             if (knobY > DZ) {
-                linearD = -1f;
-            } else if (knobY < -DZ) {
-                // reverse thrust & "steer" opposite direction !
-                linearD = +1f;
-                angularD = -angularD;  // <---- note negative sign
-            }
-            // else ... inside deadzone
+                axes[1] = -1;
 
-            io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
+            } else if (knobY < -DZ) {
+                axes[1] = +1;
+            }
+
+            io.setAxis(-1, axes);
         }
     };
 
-    private final InputListener actionButtonListener = new InputListener() {
+    private final InputListener jumpButtonListener = new InputListener() {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            io.set(inpVect.set(0f, 0f, 0f), InputStruct.ButtonsEnum.BUTTON_C);
+
+        final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
+
+            io.buttonSet( BUTTON_CODE_1 /* InputStruct.ButtonsEnum.BUTTON_1 */ );
             return true;
         }
 
@@ -130,39 +134,27 @@ public class PlayerCharacter extends IUserInterface {
     };
 
 
-    private float angularDirection = 0f;
-    private float linearDirection = 0f;
-
     @Override
     public boolean keyDown(int keycode) {
-// this needs work ... then we can refactor
+
         super.keyDown(keycode);
-        /*
-         * steering rotate by a constant rate according to stick left or stick right.
-         */
+
+        int axisIndex = -1; // idfk
+//        Arrays.fill(axes, 0);
         if (Input.Keys.A == keycode ) {
-            angularDirection = 1f;   // left
+            axes[0] = -1;
         }
         if (Input.Keys.D == keycode ) {
-            angularDirection = -1f;
+            axes[0] = +1;
         }
-
         if (Input.Keys.W == keycode ) {
-            linearDirection = -1f;
+            axes[1] = -1;
         }
         if (Input.Keys.S == keycode ) {
-            // reverse thrust !
-            linearDirection = +1f;
+            axes[1] = +1;
         }
 
-        float tmpAngularDir = angularDirection;
-        if (Gdx.input.isKeyPressed(Input.Keys.S) /* linearDirection > 0 */){
-            // reverse thrust so "steer" opposite direction !
-            tmpAngularDir = -angularDirection;
-        }
-
-        io.set(inpVect.set(
-                tmpAngularDir, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+        io.setAxis(axisIndex, axes);
 
         return false;
     }
@@ -170,26 +162,29 @@ public class PlayerCharacter extends IUserInterface {
     @Override
     public boolean keyUp(int keycode) {
 
-        if (Input.Keys.A == keycode && !Gdx.input.isKeyPressed(Input.Keys.D) /* +1 == angularDirection */) {
-            angularDirection = 0;
-        }
-        if (Input.Keys.D == keycode && !Gdx.input.isKeyPressed(Input.Keys.A) /* -1 == angularDirection */) {
-            angularDirection = 0;
+        int axisIndex = -1; // idfk
+
+        if (Input.Keys.A == keycode && !Gdx.input.isKeyPressed(Input.Keys.D) ||
+        Input.Keys.D == keycode && !Gdx.input.isKeyPressed(Input.Keys.A)) {
+            axes[0] = 0;
+            axisIndex = 0;
         }
 
-        if (Input.Keys.W == keycode && !Gdx.input.isKeyPressed(Input.Keys.S) /* -1 == linearDirection */) {
-            linearDirection = 0;
-        }
-        if (Input.Keys.S == keycode && !Gdx.input.isKeyPressed(Input.Keys.W) /* +1 == linearDirection */) {
-            linearDirection = 0;
+        if (Input.Keys.W == keycode && !Gdx.input.isKeyPressed(Input.Keys.S) ||
+                Input.Keys.S == keycode && !Gdx.input.isKeyPressed(Input.Keys.W)) {
+            axes[1] = 0;
+            axisIndex = 1;
         }
 
-        io.set(inpVect.set(
-                angularDirection, 0f, linearDirection), InputStruct.ButtonsEnum.BUTTON_NONE);
+        io.setAxis(axisIndex, axes);
 
         return false;
     }
 
+
+    /*
+    https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
+     */
 
     void print (String message) {
         Gdx.app.log("Input", message);
@@ -235,9 +230,12 @@ public class PlayerCharacter extends IUserInterface {
             public boolean buttonDown (Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-if (8 == buttonIndex)
-    buttonBListener.touchDown(null, 0, 0, 0, 0);
+                final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
 
+                if (BUTTON_CODE_8 == buttonIndex)
+                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
+
+                io.buttonSet( buttonIndex );
                 return false;
             }
 
@@ -254,58 +252,45 @@ if (8 == buttonIndex)
                             + 1.0        */
                 final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
-                // rotate by a constant rate according to stick left or stick right.
-                float angularD = 0f;
-                float linearD = 0f;
+                for (int idx = 0; idx < 4; idx++) {
 
-                float knobX = controller.getAxis(0);
-                float knobY = -controller.getAxis(1);  //   <---- note negative sign
+                    float tmp = controller.getAxis(idx);
 
-                if (knobX < -DZ) {
-                    angularD = 1f;  // left (ccw)
-                } else if (knobX > DZ) {
-                    angularD = -1f;   // right (cw)
+                    if (abs(tmp) < DZ)
+                        tmp = 0; // inside deadzone
+
+                    axes[idx] = tmp;
                 }
 
-                if (knobY > DZ) {
-                    linearD = -1f;
-                } else if (knobY < -DZ) {
-                    // reverse thrust & "steer" opposite direction !
-                    linearD = +1f;
-                    angularD = -angularD;  //   <---- note negative sign
-                }
-                // else ... inside deadzone
+                io.setAxis(axisIndex, axes);
 
-                io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
+                print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
+//                print("[" + controller.getAxis(0) + ", " + controller.getAxis(1) + ", " + controller.getAxis(2) + ", " + controller.getAxis(3) +  "]");
 
                 return false;
             }
 
             @Override
             public boolean povMoved (Controller controller, int povIndex, PovDirection value) {
-                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
+//                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
-                float angularD = 0;
-                float linearD = 0;
+                Arrays.fill(axes, 0);
 
                 if (value ==  PovDirection.west || value ==  PovDirection.southWest || value ==  PovDirection.northWest) {
-                    angularD = 1f;  // left (ccw)
+                    axes[0] = -1;
                 }
                 if (value ==  PovDirection.east  || value ==  PovDirection.southEast  || value ==  PovDirection.northEast) {
-                    angularD = -1f;   // right (cw)
+                    axes[0] = +1;
                 }
 
                 if (value ==  PovDirection.north  || value ==  PovDirection.northWest || value ==  PovDirection.northEast){
-                    linearD = -1f;
+                    axes[1] = -1;
                 }
                 if (value ==  PovDirection.south  || value ==  PovDirection.southWest || value ==  PovDirection.southEast){
-                    // reverse thrust & "steer" opposite direction !
-                    linearD = +1f;
-                    angularD *= -1f;
+                    axes[1] = +1;
                 }
-                // else ... inside deadzone
 
-                io.set(inpVect.set(angularD, 0f, linearD), InputStruct.ButtonsEnum.BUTTON_NONE);
+                io.setAxis(-1, axes);
 
                 return false;
             }

@@ -49,16 +49,14 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
+        final int BUTTON_CODE_1 = 1; // to be assigned by UI configuration ;)
+
         boolean jump = false;
 
         switch (io.buttonPress) {
-            case BUTTON_A:
-                break;
-            case BUTTON_B:
-                break;
-            case BUTTON_C:
+            case BUTTON_CODE_1:
                 jump = true;
-                io.buttonPress = ButtonsEnum.BUTTON_NONE; // why need this now ... is it fixzed?  handle on touchUp()  doesn't fix it :(    have to "debounce" it!
+                io.buttonPress = 0; // why need this now ... is it fixzed?  handle on touchUp()  doesn't fix it :(    have to "debounce" it!
                 break;
             default:
                 break;
@@ -69,6 +67,10 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
         Vector3 steeringLinear = (Vector3) steering.linear;
 
         // Output steering acceleration
+        // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
+        // the vehicle orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
+        // a pushing force to the vehicle along tt's Z axes. This gets a desired effect of i.e. magnitude
+        // of applied force reduces proportionately the more that the vehicle is on an incline
         steeringLinear.set(0, 0, io.getLinearDirection());
 
         ModelInstanceEx.rotateRad(steeringLinear, transform.getRotation(q));
