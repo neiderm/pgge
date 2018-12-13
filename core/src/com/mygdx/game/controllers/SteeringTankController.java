@@ -13,7 +13,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -146,8 +145,10 @@ private TankController tc;
          */
         io.setAxis(-1, axes);
 
-//        super.applySteering(steering, delta);
+//        super.updateControls(steering, delta);
 
-        tc.applySteering(steering, 0);
+        tc.updateControls(false,
+                0, 0,
+                steering, 0);
     }
 }

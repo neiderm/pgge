@@ -1,7 +1,5 @@
 package com.mygdx.game.characters;
 
-import com.badlogic.gdx.ai.steer.Limiter;
-import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.math.Matrix4;
@@ -85,11 +83,12 @@ this.tc = tc;
 
         ModelInstanceEx.rotateRad(mySteering.linear, transform.getRotation( q ));
 
-        if (jump)
-            mySteering.linear.y = 100f; // idfk
+//        if (jump) mySteering.linear.y = 100f; // idfk
 
 
-        tc.applySteering(mySteering, 0);
+        tc.updateControls(jump,
+                mySteering.linear.z, mySteering.angular,
+                mySteering, 0);
 
         // tmp
         steering.angular = 0;
@@ -98,33 +97,5 @@ this.tc = tc;
 //        steering.linear.set(mySteering.linear);
 //        steering.angular = mySteering.angular;
         return steering;
-    }
-
-
-    //
-    // Setters overridden in order to fix the correct return type for chaining
-    //
-
-    @Override
-    public PlayerInput<T> setOwner(Steerable<T> owner) {
-        this.owner = owner;
-        return this;
-    }
-
-    @Override
-    public PlayerInput<T> setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        return this;
-    }
-
-    /**
-     * Sets the limiter of this steering behavior. The given limiter must at least take care of the maximum linear acceleration.
-     *
-     * @return this behavior for chaining.
-     */
-    @Override
-    public PlayerInput<T> setLimiter(Limiter limiter) {
-        this.limiter = limiter;
-        return this;
     }
 }

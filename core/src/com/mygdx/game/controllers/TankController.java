@@ -23,7 +23,7 @@ import java.util.Random;
  */
 public class TankController
 //        extends SteeringBulletEntity
-    implements SimpleVehicleModel
+//    implements SimpleVehicleModel
 {
     private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
@@ -69,13 +69,16 @@ public class TankController
         body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
-    @Override
+//    @Override
 //    protected
-public void applySteering(SteeringAcceleration<Vector3> steering, float time) {
+public void updateControls(
+boolean jump,
+        float linear, float angular,
+        SteeringAcceleration<Vector3> steering,
+        float time) {
 
-        if (steering.linear.y >= 100) { // what a hack
-            applyJump(); // do this before scale linear ;)       ... may not matter
-            steering.linear.y = 0; // may still allow linear movement
+        if (jump) { // what a hack
+            applyJump();
         }
 
         // check for contact w/ surface, only apply force if in contact, not falling
