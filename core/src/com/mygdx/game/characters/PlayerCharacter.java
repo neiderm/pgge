@@ -29,9 +29,21 @@ import static java.lang.Math.abs;
  */
 
 public class PlayerCharacter extends IUserInterface {
+    /*
+     * keys to be assigned by UI configuration ;)
+     */
 
-    private static final int BUTTON_CODE_1 = 1; // TODO: to be assigned by UI configuration ;)
-
+    private static final int BUTTON_CODE_1 = 1;
+/*
+    private static final int KEY_CODE_POV_UP    = Input.Keys.W;
+    private static final int KEY_CODE_POV_DOWN  = Input.Keys.S;
+    private static final int KEY_CODE_POV_LEFT  = Input.Keys.A;
+    private static final int KEY_CODE_POV_RIGHT = Input.Keys.D;
+    */
+    private static final int KEY_CODE_POV_UP     = Input.Keys.DPAD_UP;
+    private static final int KEY_CODE_POV_DOWN     = Input.Keys.DPAD_DOWN;
+    private static final int KEY_CODE_POV_LEFT     = Input.Keys.DPAD_LEFT;
+    private static final int KEY_CODE_POV_RIGHT     = Input.Keys.DPAD_RIGHT;
 
     private float [] axes = new float[4];
 
@@ -147,19 +159,18 @@ public class PlayerCharacter extends IUserInterface {
 
         int axisIndex = -1; // idfk
 //        Arrays.fill(axes, 0);
-        if (Input.Keys.A == keycode ) {
+        if (KEY_CODE_POV_LEFT == keycode ) {
             axes[0] = -1;
         }
-        if (Input.Keys.D == keycode ) {
+        if (KEY_CODE_POV_RIGHT == keycode ) {
             axes[0] = +1;
         }
-        if (Input.Keys.W == keycode ) {
+        if (KEY_CODE_POV_UP == keycode ) {
             axes[1] = -1;
         }
-        if (Input.Keys.S == keycode ) {
+        if (KEY_CODE_POV_DOWN == keycode ) {
             axes[1] = +1;
         }
-
 
         if (Input.Keys.SPACE == keycode)
             io.buttonSet( BUTTON_CODE_1 );
@@ -174,14 +185,14 @@ public class PlayerCharacter extends IUserInterface {
 
         int axisIndex = -1; // idfk
 
-        if (Input.Keys.A == keycode && !Gdx.input.isKeyPressed(Input.Keys.D) ||
-        Input.Keys.D == keycode && !Gdx.input.isKeyPressed(Input.Keys.A)) {
+        if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
+                KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
             axes[0] = 0;
             axisIndex = 0;
         }
 
-        if (Input.Keys.W == keycode && !Gdx.input.isKeyPressed(Input.Keys.S) ||
-                Input.Keys.S == keycode && !Gdx.input.isKeyPressed(Input.Keys.W)) {
+        if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
+                KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
             axes[1] = 0;
             axisIndex = 1;
         }
