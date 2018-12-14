@@ -7,7 +7,6 @@ import com.badlogic.gdx.controllers.ControllerListener;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -57,13 +56,10 @@ public class PlayerCharacter extends IUserInterface {
 
     private InputListener cameraSwitchListener;
 
-    public PlayerCharacter(Matrix4 transform, SteeringEntity steerable, Array<InputListener> buttonListeners,
-                           TankController tc) {
-/*
-        body.getOrientation()     ... hhhhmmmmmmmmmmmmm
-*/
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>( // steerable,
-                 io, transform, tc);
+    public PlayerCharacter(
+            SteeringEntity steerable, Array<InputListener> buttonListeners, TankController tc) {
+
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>( io, tc);
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin

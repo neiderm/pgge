@@ -18,7 +18,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -148,18 +147,6 @@ class GameScreen implements Screen {
         stage.addActor(label);
     }
 
-/*    private void makeCameraSwitchHandler(IUserInterface ui) {
-        Pixmap button;
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-
-        ui.addInputListener(buttonBListener, button,
-                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-        button.dispose();
-    }*/
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -322,18 +309,15 @@ class GameScreen implements Screen {
             }
         };
 
-        Matrix4 playerTransform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+
         final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
-//        SteeringBulletEntity sbe = new TankController( btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
         SteeringEntity sbe = new SteeringEntity();
 
         Array<InputListener> listeners = new Array<InputListener>();
         listeners.add(buttonBListener);
 
-        //playerTransform = btRigidBodyPlayer.getWorldTransform();
-
-                playerUI = new PlayerCharacter(playerTransform, sbe, listeners,
+        playerUI = new PlayerCharacter(sbe, listeners,
                 new TankController(
                         btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */)
         );
@@ -342,7 +326,7 @@ class GameScreen implements Screen {
 
 
         Array<Entity> characters = new Array<Entity>();
-        GameWorld.sceneLoader.getCharacters(characters);
+        GameWorld.sceneLoader.getCharacters(characters); // TODO: needs to return characters for chaining ;)
 for (Entity e : characters){
 
     TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
@@ -351,21 +335,14 @@ for (Entity e : characters){
     e.add(new CharacterComponent(new SteeringTankController(tc, e, btRigidBodyPlayer)));
     engine.addEntity(e);
 }
-        /*
-        for ( Entity e in sceneloader.getCharacterEntities() ){
-                  SteeringEntity character = e.getComponent(CharacterComponent.class).SteeringEntity; // new SteeringEntity();
-                  character.setSteeringBehavior(new TrackerSB<Vector3>(character, tgtTransform, instance.transform, .... ));
-                  e.add(new CharacterComponent(character, null ));
-        }
-         */
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
         Chaser asdf = new Chaser();
-        engine.addEntity(asdf.create(playerTransform));
+        engine.addEntity(asdf.create(
+                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
-//        makeCameraSwitchHandler(playerUI);
 
         multiplexer.removeProcessor(camController);
         multiplexer.removeProcessor(setupUI);
