@@ -1,6 +1,5 @@
 package com.mygdx.game.controllers;
 
-import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -17,9 +16,9 @@ import java.util.Random;
 
 /**
  * Created by mango on 2/10/18.
- *
+ * <p>
  * TODO: rename this "SimpleVehicleModel" or something ... leading to
- *   e.g. "trackedDifferentialVehicleModel" whatever
+ * e.g. "trackedDifferentialVehicleModel" whatever
  */
 public class TankController
 //        extends SteeringBulletEntity
@@ -40,10 +39,7 @@ public class TankController
     private Quaternion rotation = new Quaternion();
 
 
-    TankController(){}
-
     private TankController(btRigidBody body) {
-//        super(body);
 
         this.body = body;
     }
@@ -69,17 +65,24 @@ public class TankController
         body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
     }
 
-//    @Override
+
+    private Vector3 linear = new Vector3();
+
+
+    //    @Override
 //    protected
-public void updateControls(
-boolean jump,
-        float linear, float angular,
-        SteeringAcceleration<Vector3> steering,
-        float time) {
+    public void updateControls(boolean jump, float direction, float angular, float time) {
 
         if (jump) { // what a hack
             applyJump();
         }
+
+        // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
+        // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
+        // a pushing force to the vehicle along tt's Z axis. This gets a desired effect of i.e. magnitude
+        // of applied force reduces proportionately the more that the vehicle is on an incline
+        ModelInstanceEx.rotateRad(linear.set(0, 0, direction), body.getOrientation());
+
 
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
@@ -92,7 +95,7 @@ boolean jump,
 
         if (null != rayPickObject) {
 
-            body.applyTorque(tmpV.set(0, steering.angular * ANGULAR_GAIN, 0));
+            body.applyTorque(tmpV.set(0, angular * ANGULAR_GAIN, 0));
 
 // eventually we should take time into account not assume 16mS?
     /* somehow the friction application is working out so well that no other limit needs to be
@@ -105,9 +108,9 @@ boolean jump,
              * velocity seems to be limited and constant ... go look up the math eventually */
             final float MU = 0.5f;
 
-            steering.linear.scl(LINEAR_GAIN * this.mass);
+            linear.scl(LINEAR_GAIN * this.mass);
 
-            body.applyCentralForce(steering.linear);
+            body.applyCentralForce(linear);
             body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
             body.setWorldTransform(tmpM);
         }
@@ -119,4 +122,3 @@ boolean jump,
 //Gdx.app.log(this.getClass().getName(), String.format("GfxUtil.line x = %f y = %f, z = %f", trans.x, trans. y, trans.z));
     }
 }
-

@@ -1,7 +1,5 @@
 package com.mygdx.game.characters;
 
-import com.badlogic.gdx.math.Vector3;
-
 /**
  * Created by utf1247 on 6/28/2018.
  */
@@ -23,8 +21,6 @@ public class InputStruct {
 
     private float angularD = 0f;
     private float linearD = 0f;
-
-//    public InputStruct()    { axis = new float[4]; }
 
 
     public InputStruct buttonSet(int button) {

@@ -5,17 +5,13 @@ import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
 import com.badlogic.gdx.ai.steer.behaviors.LookWhereYouAreGoing;
-import com.badlogic.gdx.ai.steer.behaviors.Seek;
 import com.badlogic.gdx.ai.steer.limiters.NullLimiter;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.util.ModelInstanceEx;
 
 import static java.lang.Math.abs;
 
@@ -34,8 +30,7 @@ private TankController tc;
 
     public SteeringTankController(TankController tc, Entity copyEntity, btRigidBody targetBody) {
 
-        this(copyEntity.getComponent(BulletComponent.class).body,
-                copyEntity.getComponent(BulletComponent.class).mass);
+        super(copyEntity.getComponent(BulletComponent.class).body);
 
         this.tc = tc;
 
@@ -44,8 +39,7 @@ private TankController tc;
         setMaxLinearSpeed(2); // idfk
         setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
 
-        final Seek<Vector3> seekSB = new Seek<Vector3>(this, target);
-//        character.setSteeringBehavior(seekSB);
+//        final Seek<Vector3> seekSB = new Seek<Vector3>(this, target);
 
         setMaxLinearAcceleration(500);
         setMaxLinearSpeed(5);
@@ -75,27 +69,14 @@ private TankController tc;
         setSteeringBehavior(blendedSteering);
     }
 
-    private SteeringTankController(btRigidBody body, float mass) {
-
-        super(body);
-//        this.mass = mass;
-//        this.world = BulletWorld.getInstance();
-    }
-
     // working variables
     private Matrix4 tmpM = new Matrix4();
     private Vector3 tmpV = new Vector3();
     private Quaternion rotation = new Quaternion();
-    private Vector3 adjForceVect = new Vector3();
-    private Vector3 forward = new Vector3();
-
-    private float [] axes = new float[4];
-
 
     /*
     TODO: a reference to a e.g. "SimpleVehicleModel", or the "trackedVehicleModel" derived from it
      */
-    private InputStruct io = new InputStruct();
 
 
     @Override
@@ -106,18 +87,19 @@ private TankController tc;
         tmpM.getTranslation(tmpV);
         tmpM.getRotation(rotation);
 
+        // right now we only go full-bore in 1 direction!
+        float direction = -1; // forward (on z axis)
+
+//            ModelInstanceEx.rotateRad(forward.set(0, 0, direction), body.getOrientation());
+
         // have to take my position and take linearforce as relatve, sum them vectors and pass that as center
-        Ray ray = new Ray(); // tank direction
-
-//        if (null != body) // ok now i guess
-            ModelInstanceEx.rotateRad(forward.set(0, 0, -1), body.getOrientation());
-
+/*        Ray ray = new Ray();
         ray.set(tmpV, forward);
 
         float len = ray.direction.dot(steering.linear.x, 0, steering.linear.z);
-        adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len); //adjForceVect.set(forward.x, 0, forward.z); // idfk
+        adjForceVect.set(ray.direction.x * len, 0, ray.direction.z * len);
 
-        steering.linear.set(adjForceVect);
+        steering.linear.set(adjForceVect);*/
 
 
 // next we want delta of commanded linearF force V vs. actual and the proportionately apply rotation force
@@ -125,30 +107,17 @@ private TankController tc;
         float forceYaw = vectorToAngle(steering.linear);
 
         // there is no angular steering output genrated by seek behaviour, others may use it
-        steering.angular = forceYaw - bodyYaw; // = steeringOutput.angular;//idfk
+        float angular = forceYaw - bodyYaw; // = steeringOutput.angular;//idfk
 
         final float deadband = 0.1f; // whatever
 
-        if (abs(steering.angular) < deadband) {
-            steering.angular = 0f;
+        if (abs(angular) < deadband) {
+            angular = 0f;
         }
-
-
-
-/*  pretend we're using the information above in a meaningful way, I don't even care if NPC AIs even works right now
- */
-        axes[0] = steering.angular > 0 ? 1 : -1;
-        axes[1] =         steering.linear.x + steering.linear.y;
 
         /*
          update the "VehicleModel" wiht he new virtual controller inputs
          */
-        io.setAxis(-1, axes);
-
-//        super.updateControls(steering, delta);
-
-        tc.updateControls(false,
-                0, 0,
-                steering, 0);
+        tc.updateControls(false, direction, angular,0);
     }
 }
