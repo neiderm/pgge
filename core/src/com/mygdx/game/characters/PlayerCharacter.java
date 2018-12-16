@@ -31,14 +31,6 @@ public class PlayerCharacter extends IUserInterface {
     /*
      * keys to be assigned by UI configuration ;)
      */
-
-    private static final int BUTTON_CODE_1 = 1;
-/*
-    private static final int KEY_CODE_POV_UP    = Input.Keys.W;
-    private static final int KEY_CODE_POV_DOWN  = Input.Keys.S;
-    private static final int KEY_CODE_POV_LEFT  = Input.Keys.A;
-    private static final int KEY_CODE_POV_RIGHT = Input.Keys.D;
-    */
     private static final int KEY_CODE_POV_UP     = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN     = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT     = Input.Keys.DPAD_LEFT;
@@ -139,7 +131,7 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            io.buttonSet( BUTTON_CODE_1 /* InputStruct.ButtonsEnum.BUTTON_1 */ );
+            io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
             return true;
         }
 
@@ -168,10 +160,13 @@ public class PlayerCharacter extends IUserInterface {
             axes[1] = +1;
         }
 
-        if (Input.Keys.SPACE == keycode)
-            io.buttonSet( BUTTON_CODE_1 );
-
         io.setAxis(axisIndex, axes);
+
+
+        // TODO: for simple key presses, lookup table of Input.Keys-BUTTON_CODE
+// build in a flag for "key held/isRepeated? "
+        if (Input.Keys.SPACE == keycode)
+            io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
 
         return false;
     }
@@ -253,7 +248,7 @@ public class PlayerCharacter extends IUserInterface {
                 if (BUTTON_CODE_8 == buttonIndex)
                     cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
 
-                io.buttonSet( buttonIndex );
+                io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
                 return false;
             }
 

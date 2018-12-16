@@ -20,7 +20,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
      *
-     * @param owner the owner of this behavior
+     * @param tc  the controller we are updating (need to be e.g. typoe SimpleVehicleModel)
      * @param io    ?.
      */
     PlayerInput(
@@ -36,20 +36,12 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
-        final int BUTTON_CODE_1 = 1; // to be assigned by UI configuration ;)
+        io.getUpdateControls(0);
 
-        boolean jump = false;
-
-        switch (io.buttonPress) {
-            case BUTTON_CODE_1:
-                jump = true;
-                io.buttonPress = 0; // have to "debounce" it!
-                break;
-            default:
-                break;
-        }
-
-        tc.updateControls(jump, io.getLinearDirection(), io.getAngularDirection(), 0);
+        tc.updateControls(
+//                0 != io.buttonGet(InputStruct.ButtonsEnum.BUTTON_1),
+                0 != io.jumpButtonGet(),          // TODO: tank conttoller only enable jump if in surface conttact
+                io.getLinearDirection(), io.getAngularDirection(), 0);
 
         return null;
     }

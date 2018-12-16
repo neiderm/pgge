@@ -1,5 +1,7 @@
 package com.mygdx.game.characters;
 
+import com.badlogic.gdx.utils.ArrayMap;
+
 /**
  * Created by utf1247 on 6/28/2018.
  */
@@ -14,27 +16,72 @@ package com.mygdx.game.characters;
 /          _____          /
 /      +  /     \     +  /
 ---------/       \------/
+
+
+control states
+virtual shifter DNR has state
+buttons set latched state so they can be polled (hat/axis tend to be held down)
+
+could move setaxis and related bits over to "simple vehicle control model" .
+
+we can have different control schemes for the same underlying model e.g. differential axes
  */
 public class InputStruct {
-
-    public int buttonPress = 0; // InputStruct.ButtonsEnum.BUTTON_NONE;
 
     private float angularD = 0f;
     private float linearD = 0f;
 
+    private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
 
-    public InputStruct buttonSet(int button) {
+    private InputStruct.ButtonData buttonsData = new InputStruct.ButtonData();
 
-        this.buttonPress = button;
-        return this;
+
+    InputStruct(){
+
+        buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 0, false );
     }
 
-    public float getLinearDirection(){ return linearD; }
 
-    public float getAngularDirection(){ return angularD; }
+    public class ButtonData {
+
+        int value;
+        boolean isRepeatable;
+
+        ButtonData setValue(int value, boolean isRepeatable){
+            this.value = value;
+            this.isRepeatable = isRepeatable;
+            return this;
+        }
+    }
+
+
+    private int buttonGet(ButtonsEnum key) {
+
+        ButtonData data = buttonsTable.get(key);
+
+        int value = data.value;
+        if (!data.isRepeatable)
+            buttonSet(key, 0, false /* hmmmm */ ); // delatch it
+
+        return value;
+    }
+
+    void buttonSet(ButtonsEnum key, int value, boolean isRepeated){
+
+        buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
+    }
+
+    int jumpButtonGet(){
+        return buttonGet(ButtonsEnum.BUTTON_1);
+    }
+
+
+    float getLinearDirection(){ return linearD; }
+
+    float getAngularDirection(){ return angularD; }
 
     public enum ButtonsEnum { // idfk
-/*        BUTTON_NONE,
+        BUTTON_NONE,
         BUTTON_1,
         BUTTON_2,
         BUTTON_3,
@@ -43,10 +90,18 @@ public class InputStruct {
         BUTTON_6,
         BUTTON_7,
         BUTTON_8,
-        BUTTON_9,*/
+        BUTTON_9,
         BUTTON_10
     }
 
+    /*
+     reverse, e.g. stick back, or ...... (inReverse+gasApplied) ...both sticks back
+     */
+    public int getReverse(){return 0;}
+
+    public int getForward(){return 0;}
+
+//    private Object UIPictureDiagram; // idfk
 
     /*
       axisIndex: index of changed axes (only has value for a real axes?
@@ -56,7 +111,7 @@ public class InputStruct {
                        -1.0   +   +1.0
                             + 1.0
      */
-    public void setAxis(int axisIndex, float[] values){
+    void setAxis(int axisIndex, float[] values){
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -83,4 +138,12 @@ public class InputStruct {
         // else ... inside deadzone
 
     }
+
+/*
+
+ */
+    void getUpdateControls(float deltaT) {
+//
+    }
+
 }
