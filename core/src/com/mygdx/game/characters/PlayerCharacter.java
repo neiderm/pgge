@@ -14,8 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
-import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.screens.IUserInterface;
 
 import java.util.Arrays;
@@ -47,11 +47,15 @@ public class PlayerCharacter extends IUserInterface {
     // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
 
     private InputListener cameraSwitchListener;
+    private SimpleVehicleModel vehicleModel;
+
 
     public PlayerCharacter(
-            SteeringEntity steerable, Array<InputListener> buttonListeners, TankController tc) {
+            SteeringEntity steerable, Array<InputListener> buttonListeners, SimpleVehicleModel vehicleModel) {
 
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>( io, tc);
+        this.vehicleModel = vehicleModel;
+
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
@@ -93,8 +97,17 @@ public class PlayerCharacter extends IUserInterface {
     }
 
 
-    /* need this persistent since we pass it every time but only update on change */
-    private InputStruct io = new InputStruct();
+    private InputStruct mapper = new InputStruct(){
+        @Override
+        public void update(float deltaT) {
+
+            vehicleModel.updateControls(
+//                0 != mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1),
+                    0 != jumpButtonGet(),          // TODO: tank conttoller only enable jump if in surface conttact
+                    getLinearDirection(), getAngularDirection(), 0);
+        }
+    };
+
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
@@ -123,7 +136,7 @@ public class PlayerCharacter extends IUserInterface {
                 axes[1] = +1;
             }
 
-            io.setAxis(-1, axes);
+            mapper.setAxis(-1, axes);
         }
     };
 
@@ -131,7 +144,7 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+            mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
             return true;
         }
 
@@ -160,13 +173,13 @@ public class PlayerCharacter extends IUserInterface {
             axes[1] = +1;
         }
 
-        io.setAxis(axisIndex, axes);
+        mapper.setAxis(axisIndex, axes);
 
 
         // TODO: for simple key presses, lookup table of Input.Keys-BUTTON_CODE
 // build in a flag for "key held/isRepeated? "
         if (Input.Keys.SPACE == keycode)
-            io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+            mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
 
         return false;
     }
@@ -188,7 +201,7 @@ public class PlayerCharacter extends IUserInterface {
             axisIndex = 1;
         }
 
-        io.setAxis(axisIndex, axes);
+        mapper.setAxis(axisIndex, axes);
 
         return false;
     }
@@ -248,7 +261,7 @@ public class PlayerCharacter extends IUserInterface {
                 if (BUTTON_CODE_8 == buttonIndex)
                     cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
 
-                io.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+                mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
                 return false;
             }
 
@@ -275,7 +288,7 @@ public class PlayerCharacter extends IUserInterface {
                     axes[idx] = tmp;
                 }
 
-                io.setAxis(axisIndex, axes);
+                mapper.setAxis(axisIndex, axes);
 
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
 //                print("[" + controller.getAxis(0) + ", " + controller.getAxis(1) + ", " + controller.getAxis(2) + ", " + controller.getAxis(3) +  "]");
@@ -303,7 +316,7 @@ public class PlayerCharacter extends IUserInterface {
                     axes[1] = +1;
                 }
 
-                io.setAxis(-1, axes);
+                mapper.setAxis(-1, axes);
 
                 return false;
             }

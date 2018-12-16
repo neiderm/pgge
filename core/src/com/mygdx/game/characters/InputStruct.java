@@ -26,7 +26,7 @@ could move setaxis and related bits over to "simple vehicle control model" .
 
 we can have different control schemes for the same underlying model e.g. differential axes
  */
-public class InputStruct {
+public abstract class InputStruct implements CtrlMapperIntrf {
 
     private float angularD = 0f;
     private float linearD = 0f;
@@ -138,12 +138,4 @@ public class InputStruct {
         // else ... inside deadzone
 
     }
-
-/*
-
- */
-    void getUpdateControls(float deltaT) {
-//
-    }
-
 }

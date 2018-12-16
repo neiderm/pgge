@@ -20,9 +20,7 @@ import java.util.Random;
  * TODO: rename this "SimpleVehicleModel" or something ... leading to
  * e.g. "trackedDifferentialVehicleModel" whatever
  */
-public class TankController
-//        extends SteeringBulletEntity
-//    implements SimpleVehicleModel
+public class TankController implements SimpleVehicleModel
 {
     private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
@@ -39,14 +37,10 @@ public class TankController
     private Quaternion rotation = new Quaternion();
 
 
-    private TankController(btRigidBody body) {
-
-        this.body = body;
-    }
 
     public TankController(btRigidBody body, float mass) {
 
-        this(body);
+        this.body = body;
         this.mass = mass;
         this.world = BulletWorld.getInstance();
     }
@@ -69,10 +63,10 @@ public class TankController
     private Vector3 linear = new Vector3();
 
 
-    //    @Override
-//    protected
+    @Override
     public void updateControls(boolean jump, float direction, float angular, float time) {
 
+        // TODO: logic to test orientation for "upside down but not free falling"
         if (jump) { // what a hack
             applyJump();
         }
@@ -94,7 +88,9 @@ public class TankController
         btCollisionObject rayPickObject = world.rayTest(trans, down, 1.0f);
 
         if (null != rayPickObject) {
-
+            /*
+             * apply forces only jump if in surface conttact
+             */
             body.applyTorque(tmpV.set(0, angular * ANGULAR_GAIN, 0));
 
 // eventually we should take time into account not assume 16mS?
