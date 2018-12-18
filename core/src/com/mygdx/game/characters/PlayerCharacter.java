@@ -16,7 +16,9 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
+import com.mygdx.game.screens.GameWorld;
 import com.mygdx.game.screens.IUserInterface;
+import com.mygdx.game.screens.LoadingScreen;
 
 import java.util.Arrays;
 
@@ -35,6 +37,8 @@ public class PlayerCharacter extends IUserInterface {
     private static final int KEY_CODE_POV_DOWN     = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT     = Input.Keys.DPAD_LEFT;
     private static final int KEY_CODE_POV_RIGHT     = Input.Keys.DPAD_RIGHT;
+    private static final int KEY_CODE_ESC           = Input.Keys.ESCAPE;
+    private static final int KEY_CODE_BACK          = Input.Keys.BACK;
 
     private float [] axes = new float[4];
 
@@ -101,12 +105,50 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public void update(float deltaT) {
 
+            updateControls();
+
             vehicleModel.updateControls(
 //                0 != mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1),
                     0 != jumpButtonGet(),          // TODO: tank conttoller only enable jump if in surface conttact
                     getLinearDirection(), getAngularDirection(), 0);
         }
     };
+
+
+    private void updateControls(){
+
+    }
+
+/*
+    https://stackoverflow.com/questions/15185799/libgdx-get-swipe-up-or-swipe-right-etc
+*/
+    public class Swipelistener  {
+
+        public boolean isswipright(){
+            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()>0)
+                return true;
+            return false;
+        }
+
+        public boolean isswipleft(){
+            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()<0)
+                return true;
+            return false;
+        }
+
+        public boolean isswipup(){
+            if(Gdx.input.isTouched()&&Gdx.input.getDeltaY()>0)
+                return true;
+            return false;
+        }
+
+        public boolean isswipdown(){
+            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()<0)
+                return true;
+            return false;
+        }
+
+    }
 
 
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
@@ -156,7 +198,13 @@ public class PlayerCharacter extends IUserInterface {
     @Override
     public boolean keyDown(int keycode) {
 
-        super.keyDown(keycode);
+//        super.keyDown(keycode);
+        if (KEY_CODE_ESC == keycode
+                || KEY_CODE_BACK == keycode  // hmmm not sure this one, proper function of BACK on Android?
+                ) {
+// TODO: make this pause, and option RESUME/RESTART/QUIT
+            GameWorld.getInstance().showScreen(new LoadingScreen());
+        }
 
         int axisIndex = -1; // idfk
 //        Arrays.fill(axes, 0);
@@ -257,11 +305,16 @@ public class PlayerCharacter extends IUserInterface {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
                 final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
+                final int BUTTON_CODE_1 = 1; // to be assigned by UI configuration ;)
 
                 if (BUTTON_CODE_8 == buttonIndex)
                     cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
 
-                mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+                // button 10 - "Pause Resume-Restart-Quit"
+
+                if (BUTTON_CODE_1 == buttonIndex)
+                    mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+
                 return false;
             }
 
