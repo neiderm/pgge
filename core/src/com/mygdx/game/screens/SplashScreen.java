@@ -1,11 +1,13 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 
 /**
  * Created by utf1247 on 7/16/2018.
@@ -21,7 +23,7 @@ public class SplashScreen implements Screen {
 
     private TextureRegion region;
     private float rotation;
-    private boolean isLoaded;
+//    private boolean isLoaded;
 
 
     SplashScreen() {
@@ -29,7 +31,7 @@ public class SplashScreen implements Screen {
         ttrSplash = new Texture("splash-screen.png");
         spinner = new Texture("ship_icon.png");
         region = new TextureRegion(spinner);
-        isLoaded = false;
+//        isLoaded = false;
 
 // TODO: maybe not need to go thru Stage, but set a minimal InputProcessor for keyDown()   .... hit the any ket to begin!
     }
@@ -44,7 +46,8 @@ public class SplashScreen implements Screen {
 
         float width = region.getRegionHeight();
         float height = region.getRegionWidth();
-        if (!isLoaded) {
+
+        if (false /*!isLoaded*/) {
             batch.draw(region,
                     Gdx.graphics.getWidth() / 2.0f - width / 2.0f,
                     Gdx.graphics.getHeight() / 2.0f - height / 2.0f,
@@ -57,20 +60,27 @@ public class SplashScreen implements Screen {
 
         batch.end();
 
-        if (!isLoaded) {
+//        if (!isLoaded)
+        {
 /*
             if (GameWorld.assets.update()) {
                 GameWorld.sceneLoader.doneLoading();
                 isLoaded = true;
             }
 */
-        } else {
+        }
+//        else
+            {
             // simple polling for a tap on the touch screen
-            if (Gdx.input.isTouched(0)) {
-                GameWorld.getInstance().showScreen(new GameScreen()); // could show MainMenuScreen here?
+            if (Gdx.input.isTouched(0)
+                    || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+                GameWorld.getInstance().showScreen(new LoadingScreen());
                 Gdx.input.setCatchBackKey(true);
             }
         }
+
+        // not using a listener right now ... make sure we haven't left a stale "unattended" input processor lying around!
+        Gdx.input.setInputProcessor(new Stage());
     }
 
     @Override

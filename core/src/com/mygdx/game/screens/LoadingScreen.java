@@ -1,11 +1,13 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.SceneLoader;
 
 /**
@@ -38,8 +40,8 @@ public class LoadingScreen implements Screen {
 
         GameWorld.sceneLoader = sceneLoader;  // bah
 
-
-// TODO: maybe not need to go thru Stage, but set a minimal InputProcessor for keyDown()   .... hit the any ket to begin!
+        // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
+        Gdx.input.setInputProcessor(new Stage());
     }
 
     @Override
@@ -72,8 +74,10 @@ public class LoadingScreen implements Screen {
             }
         } else {
             // simple polling for a tap on the touch screen
-            if (Gdx.input.isTouched(0)) {
-                GameWorld.getInstance().showScreen(new GameScreen()); // could show MainMenuScreen here?
+            if (Gdx.input.isTouched(0)
+              ||  (Gdx.input.isKeyPressed(Input.Keys.SPACE))
+                    ) {
+                GameWorld.getInstance().showScreen(new GameScreen());
                 Gdx.input.setCatchBackKey(true);
             }
         }
