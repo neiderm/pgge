@@ -2,14 +2,11 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.mygdx.game.SceneLoader;
-
-import static com.mygdx.game.screens.GameWorld.sceneLoader;
 
 /**
  * Created by utf1247 on 7/16/2018.
@@ -26,8 +23,7 @@ public class LoadingScreen implements Screen {
     private TextureRegion region;
     private float rotation;
     private boolean isLoaded;
-    public static AssetManager assets;
-
+    private SceneLoader sceneLoader;
 
     public LoadingScreen() {
 
@@ -38,10 +34,10 @@ public class LoadingScreen implements Screen {
 
         isLoaded = false;
 
-/*
-       sceneLoader = new SceneLoader();
-assets = sceneLoader.getAssets();
-*/
+        sceneLoader = new SceneLoader();
+
+        GameWorld.sceneLoader = sceneLoader;  // bah
+
 
 // TODO: maybe not need to go thru Stage, but set a minimal InputProcessor for keyDown()   .... hit the any ket to begin!
     }
@@ -70,12 +66,10 @@ assets = sceneLoader.getAssets();
         batch.end();
 
         if (!isLoaded) {
-///*
-            if (GameWorld.assets.update()) {
+            if (sceneLoader.getAssets().update()) {
                 sceneLoader.doneLoading();
                 isLoaded = true;
             }
-//*/
         } else {
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)) {
@@ -110,6 +104,6 @@ assets = sceneLoader.getAssets();
         ttrSplash.dispose();
         spinner.dispose();
         batch.dispose();
-//        sceneLoader.dispose();
+        sceneLoader.dispose();
     }
 }

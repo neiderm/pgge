@@ -2,7 +2,6 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.assets.AssetManager;
 import com.mygdx.game.SceneLoader;
 
 /**
@@ -15,7 +14,7 @@ import com.mygdx.game.SceneLoader;
 public class GameWorld {
 
     private Game game;
-    static AssetManager assets;
+
     static SceneLoader sceneLoader;
 
     private static GameWorld instance;
@@ -24,9 +23,6 @@ public class GameWorld {
     }
 
     public void initialize(Game game){
-
-        sceneLoader = new SceneLoader();
-assets = sceneLoader.getAssets(); // clumsy but we're getting there
 
         this.game = game;
         game.setScreen(new LoadingScreen()); // game.setScreen(new MainMenuScreen());
@@ -54,8 +50,6 @@ assets = sceneLoader.getAssets(); // clumsy but we're getting there
     public void dispose() {
 
         game.getScreen().dispose();
-
-        sceneLoader.dispose();
 
         instance = null;
     }
