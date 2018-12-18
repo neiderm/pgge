@@ -1,7 +1,9 @@
-# gdxBullet
-libGDX and Bullet physics demo from "http://bedroomcoders.co.uk/libgdx-bullet-redux-2/" 
-and modified to Ashley ECS (entity component system architecture).
+# pgge
 
+Pretty Good Game Engine
+
+Started life as libGDX 3D and Bullet physics demo from "http://bedroomcoders.co.uk/libgdx-bullet-redux-2/", 
+modified to Ashley ECS (entity component system architecture).
 
 Things to investigate:
 ComponentMapper
