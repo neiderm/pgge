@@ -25,7 +25,7 @@ public class GameWorld {
     public void initialize(Game game){
 
         this.game = game;
-        game.setScreen(new LoadingScreen()); // game.setScreen(new MainMenuScreen());
+        game.setScreen(new SplashScreen());
     }
 
     public static GameWorld getInstance(){
@@ -34,6 +34,30 @@ public class GameWorld {
         }
         return instance;
     }
+
+/*
+ right now this is the only way to signal from the PlayerCharacter:keyDown to GameScreen :(
+ */
+    private boolean isPaused = false;
+
+    public boolean getIsPaused(){
+        return isPaused;
+    }
+    public void setIsPaused(boolean isPaused){
+        this.isPaused = isPaused;
+    }
+
+    private boolean isTouchScreen = false;
+
+    public boolean getIsTouchScreen(){
+        return isTouchScreen;
+    }
+
+    void setIsTouchScreen(boolean isTouchScreen){
+        this.isTouchScreen = isTouchScreen;
+    }
+
+
 
     public void showScreen(Screen screen) {
 

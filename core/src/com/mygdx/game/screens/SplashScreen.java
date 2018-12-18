@@ -70,9 +70,19 @@ public class SplashScreen implements Screen {
 */
         }
 //        else
-            {
+        {
+
+            // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
+            // (but once global "isTouchscreen" is set, don't clear it ;)
+            if (!GameWorld.getInstance().getIsTouchScreen()) {
+//            GameWorld.getInstance().setIsTouchScreen(Gdx.input.isTouched(0));
+                boolean isTouched = Gdx.input.isTouched(0);
+                if (isTouched)
+                    GameWorld.getInstance().setIsTouchScreen(isTouched);
+            }
+
             // simple polling for a tap on the touch screen
-            if (Gdx.input.isTouched(0)
+            if (GameWorld.getInstance().getIsTouchScreen()
                     || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
                 GameWorld.getInstance().showScreen(new LoadingScreen());
                 Gdx.input.setCatchBackKey(true);

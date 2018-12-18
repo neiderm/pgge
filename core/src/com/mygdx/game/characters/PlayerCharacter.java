@@ -33,14 +33,14 @@ public class PlayerCharacter extends IUserInterface {
     /*
      * keys to be assigned by UI configuration ;)
      */
-    private static final int KEY_CODE_POV_UP     = Input.Keys.DPAD_UP;
-    private static final int KEY_CODE_POV_DOWN     = Input.Keys.DPAD_DOWN;
-    private static final int KEY_CODE_POV_LEFT     = Input.Keys.DPAD_LEFT;
-    private static final int KEY_CODE_POV_RIGHT     = Input.Keys.DPAD_RIGHT;
-    private static final int KEY_CODE_ESC           = Input.Keys.ESCAPE;
-    private static final int KEY_CODE_BACK          = Input.Keys.BACK;
+    private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
+    private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
+    private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
+    private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
+    private static final int KEY_CODE_ESC = Input.Keys.ESCAPE;
+    private static final int KEY_CODE_BACK = Input.Keys.BACK;
 
-    private float [] axes = new float[4];
+    private float[] axes = new float[4];
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -63,7 +63,8 @@ public class PlayerCharacter extends IUserInterface {
         steerable.setSteeringBehavior(playerInpSB);
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
-        addChangeListener(touchPadChangeListener);
+        if (GameWorld.getInstance().getIsTouchScreen())
+            addChangeListener(touchPadChangeListener);   // user tapped in on screen
 
         Pixmap button;
 
@@ -75,12 +76,11 @@ public class PlayerCharacter extends IUserInterface {
                 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
 
 
-
 ///////////
 // mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
         // how to order the InputListener Array
 ////////////
-        for (InputListener listenr : buttonListeners){
+        for (InputListener listenr : buttonListeners) {
             this.cameraSwitchListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
         }
 
@@ -101,7 +101,7 @@ public class PlayerCharacter extends IUserInterface {
     }
 
 
-    private InputStruct mapper = new InputStruct(){
+    private InputStruct mapper = new InputStruct() {
         @Override
         public void update(float deltaT) {
 
@@ -115,35 +115,35 @@ public class PlayerCharacter extends IUserInterface {
     };
 
 
-    private void updateControls(){
+    private void updateControls() {
 
     }
 
-/*
-    https://stackoverflow.com/questions/15185799/libgdx-get-swipe-up-or-swipe-right-etc
-*/
-    public class Swipelistener  {
+    /*
+        https://stackoverflow.com/questions/15185799/libgdx-get-swipe-up-or-swipe-right-etc
+    */
+    public class Swipelistener {
 
-        public boolean isswipright(){
-            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()>0)
+        public boolean isswipright() {
+            if (Gdx.input.isTouched() && Gdx.input.getDeltaX() > 0)
                 return true;
             return false;
         }
 
-        public boolean isswipleft(){
-            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()<0)
+        public boolean isswipleft() {
+            if (Gdx.input.isTouched() && Gdx.input.getDeltaX() < 0)
                 return true;
             return false;
         }
 
-        public boolean isswipup(){
-            if(Gdx.input.isTouched()&&Gdx.input.getDeltaY()>0)
+        public boolean isswipup() {
+            if (Gdx.input.isTouched() && Gdx.input.getDeltaY() > 0)
                 return true;
             return false;
         }
 
-        public boolean isswipdown(){
-            if(Gdx.input.isTouched()&&Gdx.input.getDeltaX()<0)
+        public boolean isswipdown() {
+            if (Gdx.input.isTouched() && Gdx.input.getDeltaY() < 0)
                 return true;
             return false;
         }
@@ -186,7 +186,7 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-            mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+            mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
             return true;
         }
 
@@ -197,27 +197,46 @@ public class PlayerCharacter extends IUserInterface {
 
     @Override
     public boolean keyDown(int keycode) {
-
-//        super.keyDown(keycode);
-        if (KEY_CODE_ESC == keycode
-                || KEY_CODE_BACK == keycode  // hmmm not sure this one, proper function of BACK on Android?
-                ) {
+/*
+        String message = new String ();
+        message = String.format( "key Down: keycode = %d", keycode );
+        Gdx.app.log("Input", message);
+*/
+//        super.keyDown(keycode); // "ESC" || "BACK" -> MainMenuScreen
+        /*
+         Android "BACK" (on-screen btn) not handled by libGdx framework and seemingly no
+         equivalent on PC keyboard ...
+         "ESC" no equivalent on Android/emulator, so map them together.
+         */
+        if (KEY_CODE_ESC == keycode || KEY_CODE_BACK == keycode) {
 // TODO: make this pause, and option RESUME/RESTART/QUIT
-            GameWorld.getInstance().showScreen(new LoadingScreen());
+
+            boolean isPaused = false;
+
+            if (true /*tmp*/) {
+                GameWorld.getInstance().showScreen(new LoadingScreen());
+
+            } else {
+                isPaused = GameWorld.getInstance().getIsPaused();
+                if (!isPaused)
+                    GameWorld.getInstance().setIsPaused(true);
+                else
+                    GameWorld.getInstance().setIsPaused(false);
+            }
         }
 
         int axisIndex = -1; // idfk
 //        Arrays.fill(axes, 0);
-        if (KEY_CODE_POV_LEFT == keycode ) {
+        if (KEY_CODE_POV_LEFT == keycode) {
             axes[0] = -1;
         }
-        if (KEY_CODE_POV_RIGHT == keycode ) {
+        if (KEY_CODE_POV_RIGHT == keycode) {
             axes[0] = +1;
         }
-        if (KEY_CODE_POV_UP == keycode ) {
+        if (KEY_CODE_POV_UP == keycode) {
             axes[1] = -1;
         }
-        if (KEY_CODE_POV_DOWN == keycode ) {
+        if (KEY_CODE_POV_DOWN == keycode) {
             axes[1] = +1;
         }
 
@@ -227,7 +246,7 @@ public class PlayerCharacter extends IUserInterface {
         // TODO: for simple key presses, lookup table of Input.Keys-BUTTON_CODE
 // build in a flag for "key held/isRepeated? "
         if (Input.Keys.SPACE == keycode)
-            mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+            mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
 
         return false;
     }
@@ -259,7 +278,7 @@ public class PlayerCharacter extends IUserInterface {
     https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
      */
 
-    private void print (String message) {
+    private void print(String message) {
         Gdx.app.log("Input", message);
     }
 
@@ -277,12 +296,12 @@ public class PlayerCharacter extends IUserInterface {
         Controllers.addListener(new ControllerListener() {
 
             //public
-            int indexOf (Controller controller) {
+            int indexOf(Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
             }
 
             @Override
-            public void connected (Controller controller) {
+            public void connected(Controller controller) {
                 print("connected " + controller.getName());
                 int i = 0;
                 for (Controller c : Controllers.getControllers()) {
@@ -291,7 +310,7 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             @Override
-            public void disconnected (Controller controller) {
+            public void disconnected(Controller controller) {
                 print("disconnected " + controller.getName());
                 int i = 0;
                 for (Controller c : Controllers.getControllers()) {
@@ -301,7 +320,7 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             @Override
-            public boolean buttonDown (Controller controller, int buttonIndex) {
+            public boolean buttonDown(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
                 final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
@@ -313,13 +332,13 @@ public class PlayerCharacter extends IUserInterface {
                 // button 10 - "Pause Resume-Restart-Quit"
 
                 if (BUTTON_CODE_1 == buttonIndex)
-                    mapper.buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 1, false );
+                    mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
 
                 return false;
             }
 
             @Override
-            public boolean buttonUp (Controller controller, int buttonIndex) {
+            public boolean buttonUp(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
                 return false;
             }
@@ -350,22 +369,22 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             @Override
-            public boolean povMoved (Controller controller, int povIndex, PovDirection value) {
+            public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
 //                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
                 Arrays.fill(axes, 0);
 
-                if (value ==  PovDirection.west || value ==  PovDirection.southWest || value ==  PovDirection.northWest) {
+                if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
                     axes[0] = -1;
                 }
-                if (value ==  PovDirection.east  || value ==  PovDirection.southEast  || value ==  PovDirection.northEast) {
+                if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
                     axes[0] = +1;
                 }
 
-                if (value ==  PovDirection.north  || value ==  PovDirection.northWest || value ==  PovDirection.northEast){
+                if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
                     axes[1] = -1;
                 }
-                if (value ==  PovDirection.south  || value ==  PovDirection.southWest || value ==  PovDirection.southEast){
+                if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
                     axes[1] = +1;
                 }
 
@@ -375,19 +394,19 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             @Override
-            public boolean xSliderMoved (Controller controller, int sliderIndex, boolean value) {
+            public boolean xSliderMoved(Controller controller, int sliderIndex, boolean value) {
                 print("#" + indexOf(controller) + ", x slider " + sliderIndex + ": " + value);
                 return false;
             }
 
             @Override
-            public boolean ySliderMoved (Controller controller, int sliderIndex, boolean value) {
+            public boolean ySliderMoved(Controller controller, int sliderIndex, boolean value) {
                 print("#" + indexOf(controller) + ", y slider " + sliderIndex + ": " + value);
                 return false;
             }
 
             @Override
-            public boolean accelerometerMoved (Controller controller, int accelerometerIndex, Vector3 value) {
+            public boolean accelerometerMoved(Controller controller, int accelerometerIndex, Vector3 value) {
                 // not printing this as we get to many values
                 return false;
             }
