@@ -58,10 +58,12 @@ public class SplashScreen implements Screen {
         batch.end();
 
         if (!isLoaded) {
+/*
             if (GameWorld.assets.update()) {
                 GameWorld.sceneLoader.doneLoading();
                 isLoaded = true;
             }
+*/
         } else {
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)) {

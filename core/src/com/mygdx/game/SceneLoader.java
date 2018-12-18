@@ -40,7 +40,6 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    private static SceneLoader globalInstance = null;
     private GameData gameData;
 //    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
@@ -49,19 +48,7 @@ public class SceneLoader implements Disposable {
 //    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
 
-    private SceneLoader() {
-        //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
-    }
-
-    public static SceneLoader getInstance() {
-
-        if (null == globalInstance) {
-            globalInstance = new SceneLoader();
-        }
-        return globalInstance;
-    }
-
-    public AssetManager init() {
+    public SceneLoader() {
 
         PrimitivesBuilder.init();
 
@@ -124,10 +111,11 @@ public class SceneLoader implements Disposable {
         }
 
 //        saveData();
-
-        return assets;
     }
 
+    public AssetManager getAssets(){
+        return assets;
+    }
 
     public static class ModelGroup {
         ModelGroup() {
@@ -213,7 +201,7 @@ public class SceneLoader implements Disposable {
         }
     }*/
 
-    public void saveData(GameData data) {
+    private void saveData(GameData data) {
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.local("GameData_out.json");
         if (gameData != null) {
@@ -223,7 +211,7 @@ public class SceneLoader implements Disposable {
         }
     }
 
-    public void loadData() {
+    private void loadData() {
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.internal("GameData.json");
         //        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));

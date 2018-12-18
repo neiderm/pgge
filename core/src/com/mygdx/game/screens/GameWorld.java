@@ -15,8 +15,8 @@ import com.mygdx.game.SceneLoader;
 public class GameWorld {
 
     private Game game;
-    public static AssetManager assets;
-    public static SceneLoader sceneLoader;
+    static AssetManager assets;
+    static SceneLoader sceneLoader;
 
     private static GameWorld instance;
 
@@ -25,12 +25,11 @@ public class GameWorld {
 
     public void initialize(Game game){
 
-        sceneLoader = SceneLoader.getInstance();
-
-        assets = sceneLoader.init();
+        sceneLoader = new SceneLoader();
+assets = sceneLoader.getAssets(); // clumsy but we're getting there
 
         this.game = game;
-        game.setScreen(new SplashScreen()); // game.setScreen(new MainMenuScreen());
+        game.setScreen(new LoadingScreen()); // game.setScreen(new MainMenuScreen());
     }
 
     public static GameWorld getInstance(){
