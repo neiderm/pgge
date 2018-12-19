@@ -3,10 +3,12 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.SceneLoader;
 
@@ -18,12 +20,12 @@ import com.mygdx.game.SceneLoader;
 
 public class LoadingScreen implements Screen {
 
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
+
     private SpriteBatch batch;
     private Texture ttrSplash;
-    private Texture spinner;
 
-    private TextureRegion region;
-    private float rotation;
+    private int loadCounter = 0;
     private boolean isLoaded;
     private SceneLoader sceneLoader;
 
@@ -31,82 +33,104 @@ public class LoadingScreen implements Screen {
 
         batch = new SpriteBatch();
         ttrSplash = new Texture("data/crate.png");
-        spinner = new Texture("ship_icon.png");
-        region = new TextureRegion(spinner);
+
+        font = new BitmapFont(
+                Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
 
         isLoaded = false;
 
         sceneLoader = new SceneLoader();
-
         GameWorld.sceneLoader = sceneLoader;  // bah
 
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
         Gdx.input.setInputProcessor(new Stage());
     }
 
+
+    private StringBuilder stringBuilder = new StringBuilder();
+    private BitmapFont font;
+
     @Override
     public void render(float delta) {
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        batch.begin();
-        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        float width = region.getRegionHeight();
-        float height = region.getRegionWidth();
-        if (!isLoaded) {
-            batch.draw(region,
-                    Gdx.graphics.getWidth() / 2.0f - width / 2.0f,
-                    Gdx.graphics.getHeight() / 2.0f - height / 2.0f,
-                    width / 2, height / 2, // originX, originY,
-                    width, height,
-                    1, 1, // scaleX, scaleY,
-                    rotation += 6
-            );
-        }
-
-        batch.end();
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(255, 255, 255, 1));
+        shapeRenderer.rect(
+                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
+                20f + loadCounter, 10);
+        shapeRenderer.end();
 
         if (!isLoaded) {
+
+            stringBuilder.setLength(0);
+            stringBuilder.append("Loading ... ");
+
+            loadCounter += 1;
+
             if (sceneLoader.getAssets().update()) {
                 sceneLoader.doneLoading();
                 isLoaded = true;
             }
         } else {
+
+            stringBuilder.setLength(0);
+            stringBuilder.append("Ready!");
+
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)
-              ||  (Gdx.input.isKeyPressed(Input.Keys.SPACE))
+                    || (Gdx.input.isKeyPressed(Input.Keys.SPACE))
                     ) {
                 GameWorld.getInstance().showScreen(new GameScreen());
                 Gdx.input.setCatchBackKey(true);
             }
+            // there is no ESCape from Loading screen, but maybe we would
+/*if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)){
+    GameWorld.getInstance().showScreen(new MainMenuScreen());
+}*/
         }
+
+        batch.begin();
+        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        font.draw(batch, stringBuilder,
+                Gdx.graphics.getWidth() / 4f, (Gdx.graphics.getHeight() / 4f) * 3f);
+        batch.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(255, 255, 255, 1));
+        shapeRenderer.rect(
+                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
+                20f + loadCounter, 10);
+        shapeRenderer.end();
     }
 
     @Override
-    public void hide() {
+    public void hide() {         // mt
     }
 
     @Override
-    public void pause() {
+    public void pause() {        // mt
     }
 
     @Override
-    public void resume() {
+    public void resume() {        // mt
     }
 
     @Override
-    public void show() {
+    public void show() {        // mt
     }
 
     @Override
-    public void resize(int width, int height) {
+    public void resize(int width, int height) {        // mt
     }
 
     @Override
     public void dispose() {
         ttrSplash.dispose();
-        spinner.dispose();
         batch.dispose();
         sceneLoader.dispose();
     }
