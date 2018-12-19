@@ -128,23 +128,21 @@ class GameScreen implements Screen {
         font = new BitmapFont(
                 Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(0.5f);
+        font.getData().setScale(1.0f);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
+
         batch = new SpriteBatch();
-        //      box = new Sprite(new Texture("cube.png"));
-        //      box = new Sprite();
-        //      box.setPosition(0, 0);
         shapeRenderer = new ShapeRenderer();
 
         newRound();
 
         // ok so you can add a label to the stage
-        label = new Label("Loading ...", new Label.LabelStyle(font, Color.WHITE));
-        stage.addActor(label);
+        label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
+        setupUI.addActor(label);
     }
 
 
@@ -383,9 +381,11 @@ for (Entity e : characters){
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        stage.addInputListener(makeButtonGSListener(gameEvent),
+        playerUI.addInputListener(makeButtonGSListener(gameEvent),
                 button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
+
+        playerUI.addActor(label);
     }
 
 
@@ -451,9 +451,12 @@ for (Entity e : characters){
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
-        camController.update();
-        engine.update(delta);
+///*
+        camController.update(); // this can probaly be pause as well
+        if (!GameWorld.getInstance().getIsPaused()) {  // idfk
+            engine.update(delta); // TODO: there is not screen shown because rendering system no update()!
+        }
+//*/
 ///*
         // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
         if (null != pickedPlayer) {
@@ -470,20 +473,17 @@ for (Entity e : characters){
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-
-        //if (null != playerBody)
-        {
+/*
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
-
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 250, Gdx.graphics.getHeight());
-
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
-        }
+*/
 
-        if (null != renderSystem) {
+        if (null != renderSystem
+                && isPicked) {
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
             //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
@@ -492,12 +492,11 @@ for (Entity e : characters){
             stringBuilder.append(" Visible: ").append(visibleCount);
             stringBuilder.append(" / ").append(renderableCount);
             label.setText(stringBuilder);
-            font.draw(batch, stringBuilder, 0, 10);
         }
 
         batch.end();
-//*//////////////////////////////
 
+//*//////////////////////////////
         //        shapeRenderer.setProjectionMatrix ????
         // semi-opaque filled box over touch area
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -507,12 +506,12 @@ for (Entity e : characters){
         shapeRenderer.setColor(hudOverlayColor);
         shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-///*
+/*
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(255, 255, 255, 1));
         shapeRenderer.rect((Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5, 10, 10);
         shapeRenderer.end();
-//*/
+*/
 //*//////////////////////////////
 
         // note: I protected for null camera system on the input hhandler ... do
@@ -522,12 +521,12 @@ for (Entity e : characters){
 
         if (roundOver) {
             roundOver = false;
-            respawn();
+//            respawn();
+            GameWorld.getInstance().showScreen(new MainMenuScreen());
         }
     }
 
     private void respawn() {
-        //                GameWorld.getInstance().showScreen(new MainMenuScreen());
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
@@ -566,14 +565,13 @@ for (Entity e : characters){
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-//maybe we should do something more elegant here ...
+
+        //maybe we should do something more elegant here ...
 // fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
         if (null != playerUI)
             playerUI.dispose();
         if (null != setupUI)
             setupUI.dispose();
-
-//        SceneLoader.dispose();
     }
 
 
@@ -584,12 +582,13 @@ for (Entity e : characters){
 
     @Override
     public void pause() {
-// android "home", "back", or "left" button all send ApplicationListener.pause() notifcation (called by Game.pause()
+        // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
         isPaused = true;
     }
 
     @Override
     public void resume() {
+        // Android resume from "minimized" (Recent Apps button selected)
         isPaused = false; // android clicked app icon or from "left button"
     }
 
