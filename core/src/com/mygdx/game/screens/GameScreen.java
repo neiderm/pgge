@@ -103,7 +103,7 @@ class GameScreen implements Screen {
 
         pickRayEventSignal = new Signal<GameEvent>();
 
-        engine = new Engine(); // GameWorld.getInstance().engine;
+        engine = new Engine(); // engine = GameWorld.getInstance();    ???????????
 
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
@@ -545,17 +545,6 @@ for (Entity e : characters){
 
     @Override
     public void dispose() {
-// only reason this is here is so GameWorld can call to sceneLoader.dispose() even iff GameScreen not the active Screen
-        trash();
-
-        // HACKME HACK HACK
-///*
-        if (!isPaused) {
-//            sceneLoader.dispose(); // static dispose models
-        }
-    }
-
-    private void trash() {
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
@@ -565,6 +554,10 @@ for (Entity e : characters){
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
+
+        // GameWorld.dispose()?
+//GameWorld.sceneLoader.dispose();  // alrighty then
+//GameWorld.sceneLoader = null; // wtfe
 
         //maybe we should do something more elegant here ...
 // fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
@@ -578,23 +571,20 @@ for (Entity e : characters){
     /*
      * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
      */
-    private boolean isPaused = false;
 
     @Override
     public void pause() {
         // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
-        isPaused = true;
     }
 
     @Override
     public void resume() {
         // Android resume from "minimized" (Recent Apps button selected)
-        isPaused = false; // android clicked app icon or from "left button"
     }
 
     @Override
     public void hide() {
-        // Game.dispose calls screen.hide()
-        trash();
+        // Game.dispose(), Game.setScreen()             NOTE e.g. MainMenuScreen() contrustered before this hide() is called!
+        dispose();
     }
 }
