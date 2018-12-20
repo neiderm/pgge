@@ -28,7 +28,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java#L37
 // make sure this not visible outside of com.mygdx.game.screens
-class MainMenuScreen implements Screen /* extends Stage */ {
+public class MainMenuScreen implements Screen /* extends Stage */ {
 
     private BitmapFont font;
 
@@ -46,11 +46,14 @@ class MainMenuScreen implements Screen /* extends Stage */ {
         //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
         // create stage and set it as input processor
         stage = new Stage(new ScreenViewport()){
+
             @Override
             public boolean keyDown(int keycode) {
+
                 if (keycode == Input.Keys.SPACE) {
-                    GameWorld.getInstance().showScreen(new GameScreen());
-                    Gdx.input.setCatchBackKey(true);
+//                    GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
+                    GameWorld.getInstance().showScreen(new LoadingScreen());
+//                    Gdx.input.setCatchBackKey(true);
                 }
 
                 if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
@@ -153,8 +156,11 @@ text.setText("Play___!");
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 
-            GameWorld.getInstance().showScreen(new GameScreen());
-            Gdx.input.setCatchBackKey(true);
+//            GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
+            GameWorld.getInstance().showScreen(new LoadingScreen());
+//            Gdx.input.setCatchBackKey(true);
+
+            Gdx.app.log("MainMenu Screen", "-> buttonBListener ... showScreen(new GameScreen");
         }
     };
 
@@ -183,7 +189,7 @@ text.setText("Play___!");
 
     @Override
     public void show() {
-        Gdx.input.setCatchBackKey(false);
+//        Gdx.input.setCatchBackKey(false);   // TODO: is there any place we would want this?
     }
 
     @Override
@@ -198,6 +204,6 @@ text.setText("Play___!");
 
     @Override
     public void hide() {
-        // empty
+//TODO:?        dispose(); // tear down
     }
 }
