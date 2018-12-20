@@ -13,16 +13,14 @@ public class MyGdxGame extends Game {
 
     @Override
     public void create() {
-//        Gdx.input.setCatchBackKey(true);
+        Gdx.input.setCatchBackKey(true);
         GameWorld.getInstance().initialize(this);
     }
 
     @Override
     public void dispose() {
-        // ALT+F4, or Android on "back" button calls pause() then dispose() ... but there is still an instance in the background, and when resumed it does NOT cause resume ?????????? (not sure, seems debugger separates, so we will need to observe by adb logging!)
-//        super.dispose();   // calls screen->hide()
-
-        // Note that Screen:dispose() is not called automatically by framework
+        // Make Game World disposable ... Note this only seems to be incurred in Desktop lwjgl environment (Alt+F4).
+        // ( btw Screen:dispose() is not called automatically by framework )
         GameWorld.getInstance().dispose();  // dispose the current screen
     }
 
@@ -31,7 +29,6 @@ public class MyGdxGame extends Game {
     public void pause () {
         super.pause(); // .................... android center or "back" btn
     }
-
 
     // Note: android -  when resume into game screen, there are 2 gl surface changed events, so 2 series of resize+resume
 
