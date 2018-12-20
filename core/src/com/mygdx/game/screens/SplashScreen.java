@@ -23,6 +23,9 @@ public class SplashScreen implements Screen {
     SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
+
+        // not using a listener right now ... make sure we haven't left a stale "unattended" input processor lying around!
+        Gdx.input.setInputProcessor(new Stage());
     }
 
     @Override
@@ -32,31 +35,29 @@ public class SplashScreen implements Screen {
 
         batch.begin();
         batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
         batch.end();
+
+        boolean isTouched = Gdx.input.isTouched(0);
 
         // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
         // (but once global "isTouchscreen" is set, don't clear it ;)
-        if (!GameWorld.getInstance().getIsTouchScreen()) {
-//            GameWorld.getInstance().setIsTouchScreen(Gdx.input.isTouched(0));
-            boolean isTouched = Gdx.input.isTouched(0);
-            if (isTouched)
-                GameWorld.getInstance().setIsTouchScreen(isTouched);
-        }
+        if (!GameWorld.getInstance().getIsTouchScreen() && isTouched)
+                GameWorld.getInstance().setIsTouchScreen(true);
 
         // simple polling for a tap on the touch screen
-        if (GameWorld.getInstance().getIsTouchScreen()
+        if (isTouched
                 || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            GameWorld.getInstance().showScreen(new LoadingScreen());
-            Gdx.input.setCatchBackKey(true);
-        }
 
-        // not using a listener right now ... make sure we haven't left a stale "unattended" input processor lying around!
-        Gdx.input.setInputProcessor(new Stage());
+            GameWorld.getInstance().showScreen(new LoadingScreen());
+//            Gdx.input.setCatchBackKey(true);
+
+            Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
+        }
     }
 
     @Override
     public void hide() {  // mt
+//TODO:?        dispose(); // tear down
     }
 
     @Override
