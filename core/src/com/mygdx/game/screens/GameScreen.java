@@ -483,7 +483,7 @@ for (Entity e : characters){
 */
 
         if (null != renderSystem
-                && isPicked) {
+                && null != pickedPlayer) {
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
             //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
