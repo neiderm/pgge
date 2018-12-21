@@ -443,15 +443,15 @@ Note only skySphere object using this right now
 
         Model model;
 
-/*        model = gameData.modelInfo.get("scene").model;
+        model = gameData.modelInfo.get("scene").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
             buildObject(engine, gameObject, model);
-        }*/
+        }
 
-/*        model = gameData.modelInfo.get("objects").model;
+        model = gameData.modelInfo.get("objects").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
             buildObject(engine, gameObject, model);
-        }*/
+        }
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
             Entity e = buildTank(gameObject);
@@ -464,7 +464,7 @@ Note only skySphere object using this right now
          * Allowing them to be instanced and offset/rotated as can be done with "ordinary" objects.
          */
         for (GameData.GameObject gameObject : gameData.modelGroups.get("areeners").gameObjects) {
-            Entity e = null;
+            Entity e;
 
             if (0 == gameObject.instanceData.size) {
                 // no instance data ... default translation etc.
