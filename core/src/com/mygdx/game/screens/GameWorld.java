@@ -2,29 +2,34 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
  * Created by utf1247 on 2/28/2018.
  * Reference:
  *  http://bioboblog.blogspot.com/
  *  http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/
+ *
+ *  Keep this thin .... can it be eliminated?
  */
 
-public class GameWorld {
+public class GameWorld implements Disposable {
 
     private Game game;
 
-    static SceneLoader sceneLoader;
+    static SceneLoader sceneLoader; // can this be non-static?
 
     private static GameWorld instance;
 
-    private GameWorld() {
-    }
+//    private GameWorld() {
+//    }
 
     public void initialize(Game game){
 
         this.game = game;
+        PrimitivesBuilder.init();            // one time only .. for now i guess
         game.setScreen(new SplashScreen());
     }
 
@@ -62,18 +67,16 @@ public class GameWorld {
     public void showScreen(Screen screen) {
 
         game.setScreen(screen); // calls screen.hide() on the current screen
-
-        // Dispose previous screen ?????????????
-//        if (currentScreen != null) {
-//            currentScreen.dispose();
-//        }
     }
 
-// hack ...................... only for sceneLoader.dispose()
-    // Note that Screen:dispose() is not called automatically by framework
+
+    /* I don't think we see a dispose event on Android */
+@Override
     public void dispose() {
 
         game.getScreen().dispose();
+
+        PrimitivesBuilder.dispose(); // hack, call static method
 
         instance = null;
     }

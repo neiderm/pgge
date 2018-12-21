@@ -50,8 +50,6 @@ public class SceneLoader implements Disposable {
 
     public SceneLoader() {
 
-        PrimitivesBuilder.init();
-
         gameData = new GameData();
 /*
         ModelGroup tanksGroup = new ModelGroup("tanks");
@@ -445,15 +443,15 @@ Note only skySphere object using this right now
 
         Model model;
 
-        model = gameData.modelInfo.get("scene").model;
+/*        model = gameData.modelInfo.get("scene").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
             buildObject(engine, gameObject, model);
-        }
+        }*/
 
-        model = gameData.modelInfo.get("objects").model;
+/*        model = gameData.modelInfo.get("objects").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
             buildObject(engine, gameObject, model);
-        }
+        }*/
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
             Entity e = buildTank(gameObject);
@@ -514,8 +512,6 @@ Note only skySphere object using this right now
 
     @Override
     public void dispose() {
-
-        PrimitivesBuilder.dispose(); // hack, call static method
 
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
         //  Disposing the file will automatically make all instances invalid!

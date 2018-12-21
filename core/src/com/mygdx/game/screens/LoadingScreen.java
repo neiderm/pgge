@@ -27,7 +27,7 @@ public class LoadingScreen implements Screen {
 
     private int loadCounter = 0;
     private boolean isLoaded;
-    private SceneLoader sceneLoader;
+
 
     public LoadingScreen() {
 
@@ -41,8 +41,13 @@ public class LoadingScreen implements Screen {
 
         isLoaded = false;
 
-        sceneLoader = new SceneLoader();
-        GameWorld.sceneLoader = sceneLoader;  // bah
+        // hmm yep hackish awright
+        if (null != GameWorld.sceneLoader){
+            GameWorld.sceneLoader.dispose();
+            GameWorld.sceneLoader = null;
+        }
+//        sceneLoader = new SceneLoader();
+        GameWorld.sceneLoader = new SceneLoader();  // bah
 
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
         Gdx.input.setInputProcessor(new Stage());
@@ -72,8 +77,8 @@ public class LoadingScreen implements Screen {
 
             loadCounter += 1;
 
-            if (sceneLoader.getAssets().update()) {
-                sceneLoader.doneLoading();
+            if (GameWorld.sceneLoader.getAssets().update()) {
+                GameWorld.sceneLoader.doneLoading();
                 isLoaded = true;
             }
         } else {
@@ -86,9 +91,9 @@ public class LoadingScreen implements Screen {
                     || (Gdx.input.isKeyPressed(Input.Keys.SPACE))
                     ) {
                 GameWorld.getInstance().showScreen(new GameScreen());
-                Gdx.input.setCatchBackKey(true);
+//                Gdx.input.setCatchBackKey(true);
             }
-            // there is no ESCape from Loading screen, but maybe we would
+            // there is no ESCape from Loading screen, but maybe we would. Have to be careful about disposing scene loader.
 /*if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)){
     GameWorld.getInstance().showScreen(new MainMenuScreen());
 }*/
@@ -110,6 +115,10 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void hide() {         // mt
+//dispose();// hhhhhhmmmmmm
+        ttrSplash.dispose();
+//shapeRenderer.dispose();
+        //        batch.dispose();
     }
 
     @Override
@@ -132,6 +141,7 @@ public class LoadingScreen implements Screen {
     public void dispose() {
         ttrSplash.dispose();
         batch.dispose();
-        sceneLoader.dispose();
+        shapeRenderer.dispose();
+//        sceneLoader.dispose();   //  no  dont be silly ...
     }
 }
