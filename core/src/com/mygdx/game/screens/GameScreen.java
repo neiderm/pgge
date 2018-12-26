@@ -396,6 +396,7 @@ for (Entity e : characters){
 
         private Vector3 tmpV = new Vector3();
         private Vector3 posV = new Vector3();
+        private GfxUtil lineInstance = new GfxUtil();
 
         /*
         we have no way to invoke a callback to the picked component.
@@ -415,9 +416,8 @@ for (Entity e : characters){
                     if (null != picked) {
                         // we have an object in sight so kil it, bump the score, whatever
                         RenderSystem.debugGraphics.add(
-                                GfxUtil.lineTo(
+                                lineInstance.lineTo(
                                         btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
-//                                            transform.getTranslation(posV),
                                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
                     }

@@ -61,7 +61,7 @@ public class TankController implements SimpleVehicleModel
 
 
     private Vector3 linear = new Vector3();
-
+    private GfxUtil gfxLine = new GfxUtil();
 
     @Override
     public void updateControls(boolean jump, float direction, float angular, float time) {
@@ -111,7 +111,7 @@ public class TankController implements SimpleVehicleModel
             body.setWorldTransform(tmpM);
         }
 
-        RenderSystem.debugGraphics.add(GfxUtil.line(trans,
+        RenderSystem.debugGraphics.add(gfxLine.line(trans,
                 ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
                 Color.RED));
 
