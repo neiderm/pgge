@@ -48,7 +48,7 @@ public class SplashScreen implements Screen {
         if (isTouched
                 || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
 
-            GameWorld.getInstance().showScreen(new LoadingScreen("SetupScrn.json"));
+            GameWorld.getInstance().showScreen(new LoadingScreen("SetupScrn.json", false, LoadingScreen.ScreenTypes.SETUP));
 //            Gdx.input.setCatchBackKey(true);
 
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");

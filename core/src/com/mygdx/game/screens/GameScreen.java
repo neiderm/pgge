@@ -59,7 +59,6 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 // make sure this not visible outside of com.mygdx.game.screens
 class GameScreen implements Screen {
 
-    //    public static SceneLoader sceneLoader = SceneLoader.instance;
     private Engine engine;
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -230,6 +229,9 @@ class GameScreen implements Screen {
                         if (null != picked) {
                             isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                             pickedPlayer = picked;
+
+                            GameWorld.getInstance().setPlayerObjectName(picked.getComponent(PickRayComponent.class).objectName); // whatever
+
                             picked.remove(PickRayComponent.class);
                         }
                         break;
@@ -288,7 +290,7 @@ class GameScreen implements Screen {
     private void onPlayerPicked() {
 
         isPicked = false;
-        GameWorld.sceneLoader.onPlayerPicked(engine);
+        GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();

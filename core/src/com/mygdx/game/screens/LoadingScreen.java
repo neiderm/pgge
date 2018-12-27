@@ -12,6 +12,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.SceneLoader;
 
+import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
+import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.SETUP;
+
 /**
  * Created by utf1247 on 7/16/2018.
  * based on:
@@ -27,7 +30,20 @@ public class LoadingScreen implements Screen {
 
     private int loadCounter = 0;
     private boolean isLoaded;
+    private  boolean shouldPause = true;
+    private ScreenTypes screenType = LEVEL;
 
+    public enum ScreenTypes {
+        SETUP,
+        LEVEL
+    }
+
+
+    LoadingScreen(String path, boolean shouldPause, ScreenTypes screenType){
+        this(path);
+        this.shouldPause = shouldPause;
+        this.screenType  = screenType;
+    }
 
     LoadingScreen(String path) {
 
@@ -53,6 +69,18 @@ public class LoadingScreen implements Screen {
         Gdx.input.setInputProcessor(new Stage());
     }
 
+    private void loadNewScreen(){
+
+        switch(screenType){
+            default:
+                case LEVEL:
+                GameWorld.getInstance().showScreen(new GameScreen());
+                break;
+            case SETUP:
+                GameWorld.getInstance().showScreen(new SelectScreen());
+                break;
+        }
+    }
 
     private StringBuilder stringBuilder = new StringBuilder();
     private BitmapFont font;
@@ -88,10 +116,11 @@ public class LoadingScreen implements Screen {
 
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)
-                    || (Gdx.input.isKeyPressed(Input.Keys.SPACE))
+                    || Gdx.input.isKeyPressed(Input.Keys.SPACE)
+                    || !shouldPause
                     ) {
-                GameWorld.getInstance().showScreen(new GameScreen());
-//                Gdx.input.setCatchBackKey(true);
+                loadNewScreen();
+                //                Gdx.input.setCatchBackKey(true);
             }
             // there is no ESCape from Loading screen, but maybe we would. Have to be careful about disposing scene loader.
 /*if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)){

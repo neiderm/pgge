@@ -62,7 +62,14 @@ public class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
+    private String playerObjectName;
 
+    void setPlayerObjectName(String playerObjectName){
+        this.playerObjectName = playerObjectName;
+    }
+    public String getPlayerObjectName(){
+        return playerObjectName;
+    }
 
     public void showScreen(Screen screen) {
 
