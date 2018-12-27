@@ -29,7 +29,7 @@ public class LoadingScreen implements Screen {
     private boolean isLoaded;
 
 
-    public LoadingScreen() {
+    LoadingScreen(String path) {
 
         batch = new SpriteBatch();
         ttrSplash = new Texture("data/crate.png");
@@ -46,8 +46,8 @@ public class LoadingScreen implements Screen {
             GameWorld.sceneLoader.dispose();
             GameWorld.sceneLoader = null;
         }
-//        sceneLoader = new SceneLoader();
-        GameWorld.sceneLoader = new SceneLoader();  // bah
+
+        GameWorld.sceneLoader = new SceneLoader(path);  // bah
 
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
         Gdx.input.setInputProcessor(new Stage());

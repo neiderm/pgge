@@ -48,7 +48,7 @@ public class SceneLoader implements Disposable {
 //    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
 
-    public SceneLoader() {
+    public SceneLoader(String path) {
 
         gameData = new GameData();
 /*
@@ -91,7 +91,7 @@ public class SceneLoader implements Disposable {
 
 //        initializeGameData();
 
-        loadData();
+        loadData(path);
 
         assets = new AssetManager();
 /*
@@ -209,9 +209,9 @@ public class SceneLoader implements Disposable {
         }
     }
 
-    private void loadData() {
+    private void loadData(String path) {
         Json json = new Json();
-        FileHandle fileHandle = Gdx.files.internal("GameData.json");
+        FileHandle fileHandle = Gdx.files.internal(path);
         //        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
         gameData = json.fromJson(GameData.class, fileHandle.readString());
     }
@@ -455,7 +455,7 @@ Note only skySphere object using this right now
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
             Entity e = buildTank(gameObject);
-            addPickObject(engine, e);
+            addPickObject(engine, e, gameObject.objectName);
         }
 
         /*
@@ -542,8 +542,12 @@ Note only skySphere object using this right now
     }
 
     private static Entity addPickObject(Engine engine, Entity e) {
+        return addPickObject(engine, e, null);
+    }
 
-        e.add(new PickRayComponent());
+    private static Entity addPickObject(Engine engine, Entity e, String objectName) {
+
+        e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
         engine.addEntity(e);
         return e; // for method call chaining
     }

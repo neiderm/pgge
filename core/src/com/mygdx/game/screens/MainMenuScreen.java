@@ -34,6 +34,9 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     private Stage stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
 
+    private Screen getLoadingScreen(){
+        return new LoadingScreen("GameData.json");
+    }
 
     public MainMenuScreen() {
 
@@ -52,7 +55,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
                 if (keycode == Input.Keys.SPACE) {
 //                    GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
-                    GameWorld.getInstance().showScreen(new LoadingScreen());
+                    GameWorld.getInstance().showScreen(getLoadingScreen());
 //                    Gdx.input.setCatchBackKey(true);
                 }
 
@@ -157,7 +160,7 @@ text.setText("Play___!");
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 
 //            GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
-            GameWorld.getInstance().showScreen(new LoadingScreen());
+            GameWorld.getInstance().showScreen(getLoadingScreen());
 //            Gdx.input.setCatchBackKey(true);
 
             Gdx.app.log("MainMenu Screen", "-> buttonBListener ... showScreen(new GameScreen");

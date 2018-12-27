@@ -48,7 +48,7 @@ public class SplashScreen implements Screen {
         if (isTouched
                 || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
 
-            GameWorld.getInstance().showScreen(new LoadingScreen());
+            GameWorld.getInstance().showScreen(new LoadingScreen("SetupScrn.json"));
 //            Gdx.input.setCatchBackKey(true);
 
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
@@ -57,7 +57,7 @@ public class SplashScreen implements Screen {
 
     @Override
     public void hide() {  // mt
-//TODO:?        dispose(); // tear down
+        dispose();
     }
 
     @Override
