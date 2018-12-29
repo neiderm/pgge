@@ -20,7 +20,7 @@ public class PlayerInput<T extends Vector<T>> extends SteeringBehavior<T> {
      *
      * @param mapper    control mapper interface that updates the vehicle model
      */
-    PlayerInput(
+    public PlayerInput(
 //            Steerable<T> owner,
             InputStruct mapper) {
 //GN: idfk        super(owner);

@@ -29,12 +29,15 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.Chaser;
+import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.characters.PlayerCharacter;
+import com.mygdx.game.characters.PlayerInput;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
@@ -315,12 +318,40 @@ class GameScreen implements Screen {
         SteeringEntity sbe = new SteeringEntity();
 
         Array<InputListener> listeners = new Array<InputListener>();
-        listeners.add(buttonBListener);
 
-        playerUI = new PlayerCharacter(sbe, listeners,
-                new TankController(
-                        btRigidBodyPlayer, pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */)
-        );
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+
+
+//        listeners.add(buttonBListener);
+
+        final SimpleVehicleModel vehicleModel = new TankController(
+                pickedPlayer.getComponent(BulletComponent.class).body,
+                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+        InputStruct mapper = new InputStruct() {
+            @Override
+            public void update(float deltaT) {
+                // have to read the button to be sure it's state is delatched and not activate in a pause!
+                boolean jump = 0 != jumpButtonGet();
+//            if (!isPaused)
+                {
+                    vehicleModel.updateControls( jump,          // TODO: tank conttoller only enable jump if in surface conttact
+                            getLinearDirection(), getAngularDirection(), 0);
+                }
+            }
+        };
+
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
+        sbe.setSteeringBehavior(playerInpSB);
+
+        playerUI = new PlayerCharacter(mapper, listeners);
+
+        playerUI.addInputListener(
+                buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
+
 
         pickedPlayer.add(new CharacterComponent(sbe));
 
@@ -380,7 +411,7 @@ for (Entity e : characters){
         cameraEntity.add(comp);
 
         Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
         playerUI.addInputListener(makeButtonGSListener(gameEvent),

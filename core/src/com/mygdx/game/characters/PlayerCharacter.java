@@ -14,11 +14,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.controllers.SimpleVehicleModel;
-import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.screens.GameWorld;
 import com.mygdx.game.screens.IUserInterface;
-import com.mygdx.game.screens.LoadingScreen;
+import com.mygdx.game.screens.MainMenuScreen;
 
 import java.util.Arrays;
 
@@ -50,74 +48,49 @@ public class PlayerCharacter extends IUserInterface {
     // https://gist.github.com/nhydock/dc0501f34f89686ddf34
     // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
 
-    private InputListener cameraSwitchListener;
-    private SimpleVehicleModel vehicleModel;
+    private InputStruct mapper;
 
+    /*
+     TODO: Array<InputListener> buttonListeners should be something like "Array<InputMapping> buttonListeners"
+      ... where "InputMapping"  should be array of Buttons-Inputs needed for the screen\
+      {
+        CONTROL_ID   //   POV_UP, POV_DOWN, BTN_START, BTN_X, BTN_DELTA,
+        InputListener listener
+        Button button
+      }
+      if listener==null then we have already a default base listener
+     */
+    public PlayerCharacter(InputStruct mapper, Array<InputListener> buttonListeners) {
 
-    public PlayerCharacter(
-            SteeringEntity steerable, Array<InputListener> buttonListeners, SimpleVehicleModel vehicleModel) {
-
-        this.vehicleModel = vehicleModel;
-
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
-        steerable.setSteeringBehavior(playerInpSB);
+        this.mapper = mapper;
 
 // UI pixmaps etc. should eventually come from a user-selectable skin
-        if (GameWorld.getInstance().getIsTouchScreen())
+        if (GameWorld.getInstance().getIsTouchScreen()) {
             addChangeListener(touchPadChangeListener);   // user tapped in on screen
 
-        Pixmap button;
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-        addInputListener(jumpButtonListener, button,
-                3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
-
+            Pixmap button;
+            Pixmap.setBlending(Pixmap.Blending.None);
+            button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+            button.setColor(1, 1, 1, .3f);
+            button.fillCircle(25, 25, 25);
+            addInputListener(jumpButtonListener, button,
+                    3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
+            button.dispose();
+        }
 
 ///////////
 // mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
         // how to order the InputListener Array
 ////////////
-        for (InputListener listenr : buttonListeners) {
-            this.cameraSwitchListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
+        if (null != buttonListeners) {
+            for (InputListener listenr : buttonListeners) {
+//                 this.cameraSwitchListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
+            }
         }
-
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-
-        addInputListener(cameraSwitchListener, button,
-                (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-//////////////
-
-
-        button.dispose();
 
         initController();
     }
 
-
-    private InputStruct mapper = new InputStruct() {
-        @Override
-        public void update(float deltaT) {
-
-            updateControls();
-
-            vehicleModel.updateControls(
-//                0 != mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1),
-                    0 != jumpButtonGet(),          // TODO: tank conttoller only enable jump if in surface conttact
-                    getLinearDirection(), getAngularDirection(), 0);
-        }
-    };
-
-
-    private void updateControls() {
-
-    }
 
     /*
         https://stackoverflow.com/questions/15185799/libgdx-get-swipe-up-or-swipe-right-etc
@@ -179,6 +152,8 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             mapper.setAxis(-1, axes);
+
+//            Gdx.app.log("Input", "Touchpad updated");
         }
     };
 
@@ -211,17 +186,21 @@ public class PlayerCharacter extends IUserInterface {
         if (KEY_CODE_ESC == keycode || KEY_CODE_BACK == keycode) {
 // TODO: make this pause, and option RESUME/RESTART/QUIT
 
-            boolean isPaused = false;
-
-            if (true /*tmp*/) {
-                GameWorld.getInstance().showScreen(new LoadingScreen());
+            if (true/*tmp*/) {
+                GameWorld.getInstance().showScreen(new MainMenuScreen());
 
             } else {
-                isPaused = GameWorld.getInstance().getIsPaused();
-                if (!isPaused)
-                    GameWorld.getInstance().setIsPaused(true);
-                else
-                    GameWorld.getInstance().setIsPaused(false);
+////                isPaused = GameWorld.getInstance().getIsPaused();
+//                if (!isPaused) {
+////                    GameWorld.getInstance().setIsPaused(true);
+//                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
+//                    isPaused = true;
+//                }
+//                else {
+////                    GameWorld.getInstance().setIsPaused(false);
+//                    gameEventSignal.dispatch(gameEvent.set(IS_UNPAUSED, null, 0));
+//                    isPaused = false;
+//                }
             }
         }
 
@@ -284,14 +263,6 @@ public class PlayerCharacter extends IUserInterface {
 
     private void initController() {
 
-        // print the currently connected controllers to the console
-        print("Controllers: " + Controllers.getControllers().size);
-        int i = 0;
-        for (Controller controller : Controllers.getControllers()) {
-            print("#" + i++ + ": " + controller.getName());
-        }
-        if (Controllers.getControllers().size == 0) print("No controllers attached");
-
         // setup the listener that prints events to the console
         Controllers.addListener(new ControllerListener() {
 
@@ -326,9 +297,9 @@ public class PlayerCharacter extends IUserInterface {
                 final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
                 final int BUTTON_CODE_1 = 1; // to be assigned by UI configuration ;)
 
-                if (BUTTON_CODE_8 == buttonIndex)
-                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
-
+                if (BUTTON_CODE_8 == buttonIndex) {
+//idfk                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
+                }
                 // button 10 - "Pause Resume-Restart-Quit"
 
                 if (BUTTON_CODE_1 == buttonIndex)

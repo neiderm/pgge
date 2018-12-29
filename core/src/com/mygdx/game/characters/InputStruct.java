@@ -36,7 +36,7 @@ public abstract class InputStruct implements CtrlMapperIntrf {
     private InputStruct.ButtonData buttonsData = new InputStruct.ButtonData();
 
 
-    InputStruct(){
+    protected InputStruct(){
 
         buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 0, false );
     }
@@ -71,14 +71,14 @@ public abstract class InputStruct implements CtrlMapperIntrf {
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
     }
 
-    int jumpButtonGet(){
+    public int jumpButtonGet(){
         return buttonGet(ButtonsEnum.BUTTON_1);
     }
 
 
-    float getLinearDirection(){ return linearD; }
+    protected float getLinearDirection(){ return linearD; }
 
-    float getAngularDirection(){ return angularD; }
+    protected float getAngularDirection(){ return angularD; }
 
     public enum ButtonsEnum { // idfk
         BUTTON_NONE,

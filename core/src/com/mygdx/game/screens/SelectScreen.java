@@ -17,19 +17,26 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.characters.InputStruct;
+import com.mygdx.game.characters.PlayerCharacter;
+import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
+import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
@@ -55,11 +62,12 @@ class SelectScreen implements Screen {
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private IUserInterface stage;
-    private IUserInterface setupUI;
+    private PlayerCharacter stage;
 
     private Signal<GameEvent> pickRayEventSignal;
     private boolean isPicked = false;
+
+    private InputStruct mapper;
 
 
     SelectScreen() {
@@ -93,10 +101,6 @@ class SelectScreen implements Screen {
         shapeRenderer = new ShapeRenderer();
 
         newRound();
-
-        // ok so you can add a label to the stage
-        Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
-        setupUI.addActor(label);
     }
 
 
@@ -136,8 +140,6 @@ class SelectScreen implements Screen {
 
     private void newRound() {
 
-        Entity setupUICameraEntity;
-
         if (null != shadowLight)  // if this is a new round but not new gamescreen
             environment.remove(shadowLight);
         shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
@@ -149,23 +151,14 @@ class SelectScreen implements Screen {
 
         GameWorld.sceneLoader.buildArena(engine);
 
-        stage = setupUI = new IUserInterface();
-        // .... setupUI is passed to CameraMan constructor to add button and handler
-
-        // now we can make camera Man (depends on setupUI)
-        setupUICameraEntity = new Entity();
-        engine.addEntity(setupUICameraEntity);
-
-
-        GameEvent playerPickedGameEvent = new GameEvent() {
+        final GameEvent playerPickedGameEvent = new GameEvent() {
             @Override
             public void callback(Entity picked, EventType eventType) {
                 switch (eventType) {
                     case RAY_PICK:
                         if (null != picked) {
-                            isPicked = true; // onPlayerPicked(); ... can't do it in this context??
-
                             GameWorld.getInstance().setPlayerObjectName(picked.getComponent(PickRayComponent.class).objectName); // whatever
+                            body = picked.getComponent(BulletComponent.class).body;
                         }
                         break;
                     default:
@@ -174,26 +167,37 @@ class SelectScreen implements Screen {
             }
         };
 
+        mapper = new InputStruct() {     // TODO: InputStruct is abstract, cannot be instantiated
+            @Override
+            public void update(float deltaT) { }
+        };
+
+        stage = new PlayerCharacter(mapper, null);
+
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillRectangle(0, 0, 150, 150);
+
         stage.addInputListener(
                 makeButtonGSListener(playerPickedGameEvent),
                 button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+
         button.dispose();
 
 
         CameraMan cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
-        CharacterComponent comp = new CharacterComponent(cameraMan);
-        setupUICameraEntity.add(comp);
 
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
+
+        // ok so you can add a label to the stage
+        Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
+        stage.addActor(label);
     }
 
 
@@ -217,7 +221,13 @@ class SelectScreen implements Screen {
         // empty
     }
 
-
+    // tmp for the pick marker
+    private btRigidBody body;
+    private GfxUtil gfxLine = new GfxUtil();
+    private Vector3 trans = new Vector3();
+    private Matrix4 tmpM = new Matrix4();
+    private Quaternion rotation = new Quaternion();
+    private Vector3 down = new Vector3();
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -225,6 +235,15 @@ class SelectScreen implements Screen {
      */
     @Override
     public void render(float delta) {
+
+        if (null != body) {
+            body.getWorldTransform(tmpM);
+            tmpM.getTranslation(trans);
+
+            RenderSystem.debugGraphics.add(gfxLine.line(trans,
+                    ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
+                    Color.RED));
+        }
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
@@ -248,6 +267,13 @@ class SelectScreen implements Screen {
         // we want to update the stage if not Done Loading?
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
+
+        /*
+           TODO:? wouldn't have to poll if i override the PlayerCharacter::jumpButtonListener()
+         */
+        if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
+            isPicked = true;
+        }
 
         if (isPicked) {
             isPicked = false;
@@ -276,11 +302,7 @@ class SelectScreen implements Screen {
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-
-        //maybe we should do something more elegant here ...
-// fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
-        if (null != setupUI)
-            setupUI.dispose();
+        stage.dispose();
     }
 
     /*
