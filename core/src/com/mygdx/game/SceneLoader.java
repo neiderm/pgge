@@ -437,7 +437,7 @@ Note only skySphere object using this right now
 
         return e;
     }
-/*
+
     public Entity buildObjectByName(Engine engine, String name) {
         Entity e = null;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
@@ -449,19 +449,14 @@ Note only skySphere object using this right now
                 }
             }
         }
-        if (null == e)
-            e = null;//wtf
         return e;
     }
-*/
-    public Entity buildTanks(Engine engine){
-Entity e = null;
-//if (!GameScreen.testLKJ)
+
+    public void buildTanks(Engine engine){
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
-            e = buildTank(gameObject);
+            Entity e = buildTank(gameObject);
             addPickObject(engine, e, gameObject.objectName);
         }
-        return e;
     }
 
     public void buildArena(Engine engine) {

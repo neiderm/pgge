@@ -143,8 +143,15 @@ class GameScreen implements Screen {
         // ok so you can add a label to the stage
         label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
         setupUI.addActor(label);
-    }
 
+if (asdf) {
+    String objectName = GameWorld.getInstance().getPlayerObjectName();
+    pickedPlayer =
+            GameWorld.sceneLoader.buildObjectByName(engine, objectName);
+    isPicked = true;
+}
+    }
+boolean asdf = true;
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -157,7 +164,6 @@ class GameScreen implements Screen {
 
             return true;
         }
-
         @Override
         public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
     };
@@ -179,10 +185,8 @@ class GameScreen implements Screen {
                 Ray rayTmp = cam.getPickRay(nX, nY);
                 return pickRay.set(rayTmp.origin, rayTmp.direction);
             }
-
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
-
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 // only do this if FPV mode (i.e. cam controller is not handling game window input)
@@ -229,8 +233,8 @@ GameWorld.sceneLoader.buildTanks(engine);
                     case RAY_PICK:
                         if (null != picked) {
                             isPicked = true; // onPlayerPicked(); ... can't do it in this context??
-                            pickedPlayer = picked;
-                            picked.remove(PickRayComponent.class);
+ if (!asdf)
+       pickedPlayer = picked;
                         }
                         break;
                     default:
@@ -244,7 +248,7 @@ GameWorld.sceneLoader.buildTanks(engine);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillRectangle(0, 0, 150, 150);
-        stage.addInputListener(
+        setupUI.addInputListener(
                 makeButtonGSListener(playerPickedGameEvent),
                 button,
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
@@ -256,7 +260,7 @@ GameWorld.sceneLoader.buildTanks(engine);
         setupUICameraEntity.add(comp);
 
         multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(stage);
+        multiplexer.addProcessor(setupUI);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -287,6 +291,7 @@ GameWorld.sceneLoader.buildTanks(engine);
 
     private void onPlayerPicked() {
 
+        pickedPlayer.remove(PickRayComponent.class);
         isPicked = false;
         GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
 
@@ -306,8 +311,6 @@ GameWorld.sceneLoader.buildTanks(engine);
             }
         };
 
-
-        final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
         // select the Steering Bullet Entity here and pass it to the character
         SteeringEntity sbe = new SteeringEntity();
 
@@ -357,7 +360,8 @@ for (Entity e : characters){
     TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
             e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
 
-    e.add(new CharacterComponent(new SteeringTankController(tc, e, btRigidBodyPlayer)));
+    e.add(new CharacterComponent(new SteeringTankController(tc, e,
+            pickedPlayer.getComponent(BulletComponent.class).body)));
     engine.addEntity(e);
 }
 
@@ -373,7 +377,6 @@ for (Entity e : characters){
         multiplexer.addProcessor(playerUI);
         this.stage = playerUI;
 
-//setupUI.dispose(); // catch this when we trash() ...
         engine.removeEntity(setupUICameraEntity); /// BAH
 
         Entity cameraEntity = new Entity();
