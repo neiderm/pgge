@@ -207,6 +207,6 @@ text.setText("Play___!");
 
     @Override
     public void hide() {
-//TODO:?        dispose(); // tear down
+        dispose();
     }
 }
