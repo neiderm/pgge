@@ -462,15 +462,22 @@ Note only skySphere object using this right now
     public void buildArena(Engine engine) {
 
         Model model;
+        ModelInfo mi;
 
-        model = gameData.modelInfo.get("scene").model;
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
-            buildObject(engine, gameObject, model);
+        mi = gameData.modelInfo.get("scene");
+        if (null != mi) {
+            model = gameData.modelInfo.get("scene").model;
+            for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
+                buildObject(engine, gameObject, model);
+            }
         }
 
-        model = gameData.modelInfo.get("objects").model;
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
-            buildObject(engine, gameObject, model);
+        mi = gameData.modelInfo.get("objects");
+        if (null != mi) {
+            model = gameData.modelInfo.get("objects").model;
+            for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
+                buildObject(engine, gameObject, model);
+            }
         }
 
         /*

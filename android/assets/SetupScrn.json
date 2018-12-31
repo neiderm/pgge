@@ -134,17 +134,11 @@ modelGroups: {
 modelInfo: {
 	primitives: {
 	}
-	objects: {
-		fileName: data/cubetest.g3dj
-	}
 	ship: {
 		fileName: tanks/ship.g3db
 	}
 	tank: {
 		fileName: tanks/panzerwagen.g3db
-	}
-	scene: {
-		fileName: data/scene.g3dj
 	}
 }
 }
