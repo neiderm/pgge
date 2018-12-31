@@ -512,6 +512,9 @@ Note only skySphere object using this right now
 // bulletshape given in file but get Sphere builder is tied to it already
                 pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
             }
+            if (o.objectName.contains("cylinder")) {
+                pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+            }
 
             if (null != pb) {
                 Vector3 scale = o.scale;

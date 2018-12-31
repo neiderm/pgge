@@ -52,14 +52,14 @@ modelGroups: {
 						}
 					}
 				]
-				objectName: box
+				objectName: cylinder
 				scale: {
 					x: 4
 					y: 1
 					z: 4
 				}
 				mass: 0.0
-				meshShape: btBoxShape
+				meshShape: btCylinderShape
 				isKinematic: true
 				isShadowed: true
 			}

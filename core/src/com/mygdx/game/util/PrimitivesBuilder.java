@@ -146,7 +146,7 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         };
     }
 
-    private static PrimitivesBuilder getSphereBuilder() {
+    public static PrimitivesBuilder getSphereBuilder() {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
