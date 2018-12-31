@@ -103,7 +103,7 @@ class GameScreen implements Screen {
 
         pickRayEventSignal = new Signal<GameEvent>();
 
-        engine = new Engine(); // engine = GameWorld.getInstance();    ???????????
+        engine = new Engine();
 
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
@@ -138,11 +138,16 @@ class GameScreen implements Screen {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
 
-        newRound();
 
-        // ok so you can add a label to the stage
-        label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
-        setupUI.addActor(label);
+        if (null != shadowLight)  // if this is a new round but not new gamescreen
+            environment.remove(shadowLight);
+        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+        environment.add(shadowLight);
+        environment.shadowMap = shadowLight;
+
+        addSystems();
+
 
 if (asdf) {
     String objectName = GameWorld.getInstance().getPlayerObjectName();
@@ -150,8 +155,10 @@ if (asdf) {
             GameWorld.sceneLoader.buildObjectByName(engine, objectName);
     isPicked = true;
 }
+
+        newRound();
     }
-boolean asdf = true;
+private boolean asdf = false;
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -207,23 +214,8 @@ boolean asdf = true;
 
     private void newRound() {
 
-        if (null != shadowLight)  // if this is a new round but not new gamescreen
-            environment.remove(shadowLight);
-        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
-
-        addSystems();
-
+        GameWorld.sceneLoader.buildTanks(engine);
         GameWorld.sceneLoader.buildArena(engine);
-//pickedPlayer =
-GameWorld.sceneLoader.buildTanks(engine);
-
-        stage = setupUI = new IUserInterface();
-
-        setupUICameraEntity = new Entity();
-        engine.addEntity(setupUICameraEntity);
 
 
         GameEvent playerPickedGameEvent = new GameEvent() {
@@ -243,6 +235,7 @@ GameWorld.sceneLoader.buildTanks(engine);
             }
         };
 
+        stage = setupUI = new IUserInterface();
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
@@ -254,10 +247,17 @@ GameWorld.sceneLoader.buildTanks(engine);
                 (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
 
+        // ok so you can add a label to the stage
+        label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
+        setupUI.addActor(label);
+
 
         cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
         CharacterComponent comp = new CharacterComponent(cameraMan);
+
+        setupUICameraEntity = new Entity();
         setupUICameraEntity.add(comp);
+        engine.addEntity(setupUICameraEntity);
 
         multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(setupUI);
@@ -278,9 +278,9 @@ GameWorld.sceneLoader.buildTanks(engine);
 
         engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new CharacterSystem());
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
         engine.addSystem(new StatusSystem());
+        engine.addSystem(new CharacterSystem());
     }
 
 
@@ -480,12 +480,12 @@ for (Entity e : characters){
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-///*
+
         camController.update(); // this can probaly be pause as well
+
         if (!GameWorld.getInstance().getIsPaused()) {  // idfk
-            engine.update(delta); // TODO: there is not screen shown because rendering system no update()!
+            engine.update(delta);
         }
-//*/
 ///*
         // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
         if (null != pickedPlayer) {
@@ -498,7 +498,7 @@ for (Entity e : characters){
                 pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
             }
         }
-        //*/
+//*/
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
@@ -579,14 +579,9 @@ for (Entity e : characters){
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
-//        bulletWorld.dispose(); // ???????? ( in BulletSystem:removedFromEngine() ???????
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
-
-        // GameWorld.dispose()?
-//GameWorld.sceneLoader.dispose();  // alrighty then
-//GameWorld.sceneLoader = null; // wtfe
 
         //maybe we should do something more elegant here ...
 // fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
@@ -595,7 +590,6 @@ for (Entity e : characters){
         if (null != setupUI)
             setupUI.dispose();
     }
-
 
     /*
      * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
@@ -613,7 +607,6 @@ for (Entity e : characters){
 
     @Override
     public void hide() {
-        // Game.dispose(), Game.setScreen()             NOTE e.g. MainMenuScreen() contrustered before this hide() is called!
         dispose();
     }
 }

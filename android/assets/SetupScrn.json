@@ -35,34 +35,6 @@ modelGroups: {
 				isKinematic: false
 				isShadowed: false
 			}
-			{
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 0
-							y: 10
-							z: -5
-						}
-						color: {
-							r: .627
-							g: 0.125
-							b: 0.941
-							a: 0.5
-						}
-					}
-				]
-				objectName: cylinder
-				scale: {
-					x: 4
-					y: 1
-					z: 4
-				}
-				mass: 0.0
-				meshShape: btCylinderShape
-				isKinematic: true
-				isShadowed: true
-			}
 		]
 	}
 	objects: {
@@ -79,9 +51,9 @@ modelGroups: {
 					{
 						rotation: {}
 						translation: {
-							x: 0
-							y: 13
-							z: -5
+							x: 1
+							y: 11
+							z: -6
 						}
 					}
 				]
@@ -97,8 +69,8 @@ modelGroups: {
 						rotation: {}
 						translation: {
 							x: -1
-							y: 13
-							z: -5
+							y: 11
+							z: -6
 						}
 					}
 				]
@@ -113,9 +85,9 @@ modelGroups: {
 					{
 						rotation: {}
 						translation: {
-							x: 1
+							x: 0
 							y: 11
-							z: -5
+							z: -4
 						}
 					}
 				]

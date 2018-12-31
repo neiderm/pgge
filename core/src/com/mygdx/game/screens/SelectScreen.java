@@ -37,6 +37,7 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
@@ -69,6 +70,8 @@ class SelectScreen implements Screen {
 
     private InputStruct mapper;
 
+    private Entity platform;
+
 
     SelectScreen() {
 
@@ -99,6 +102,21 @@ class SelectScreen implements Screen {
 
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
+
+
+        if (null != shadowLight)  // if this is a new round but not new gamescreen
+            environment.remove(shadowLight);
+        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+        environment.add(shadowLight);
+        environment.shadowMap = shadowLight;
+
+        addSystems();
+
+
+// build the platform moanually (not from data file) for simplicity of retrieving entity
+        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
+        engine.addEntity(platform);
 
         newRound();
     }
@@ -140,15 +158,6 @@ class SelectScreen implements Screen {
 
     private void newRound() {
 
-        if (null != shadowLight)  // if this is a new round but not new gamescreen
-            environment.remove(shadowLight);
-        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
-
-        addSystems();
-
         GameWorld.sceneLoader.buildTanks(engine);
         GameWorld.sceneLoader.buildArena(engine);
 
@@ -188,6 +197,10 @@ class SelectScreen implements Screen {
 
         button.dispose();
 
+        // ok so you can add a label to the stage
+        Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
+        stage.addActor(label);
+
 
         CameraMan cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
 
@@ -195,15 +208,11 @@ class SelectScreen implements Screen {
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
-
-        // ok so you can add a label to the stage
-        Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
-        stage.addActor(label);
     }
 
-
-    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
-    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
+    // point the camera to platform
+    private final Vector3 camDefPosition = new Vector3(0f, 13.5f, 02f);
+    private final Vector3 camDefLookAt = new Vector3(0f, 10f, -5.0f);
 
 
     private void addSystems() {
