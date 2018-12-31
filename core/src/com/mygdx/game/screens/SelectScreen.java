@@ -149,6 +149,7 @@ class SelectScreen implements Screen {
 
         addSystems();
 
+        GameWorld.sceneLoader.buildTanks(engine);
         GameWorld.sceneLoader.buildArena(engine);
 
         final GameEvent playerPickedGameEvent = new GameEvent() {
@@ -271,8 +272,12 @@ class SelectScreen implements Screen {
         /*
            TODO:? wouldn't have to poll if i override the PlayerCharacter::jumpButtonListener()
          */
-        if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
-            isPicked = true;
+            if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
+
+                if (null != body) { // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
+
+                    isPicked = true;
+            }
         }
 
         if (isPicked) {

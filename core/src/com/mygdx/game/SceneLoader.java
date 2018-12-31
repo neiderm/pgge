@@ -437,7 +437,32 @@ Note only skySphere object using this right now
 
         return e;
     }
-
+/*
+    public Entity buildObjectByName(Engine engine, String name) {
+        Entity e = null;
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
+            if (null != gameObject) {
+                if (gameObject.objectName.contains(name)) {
+                    e = buildTank(gameObject);
+                    addPickObject(engine, e, gameObject.objectName);
+                    break;
+                }
+            }
+        }
+        if (null == e)
+            e = null;//wtf
+        return e;
+    }
+*/
+    public Entity buildTanks(Engine engine){
+Entity e = null;
+//if (!GameScreen.testLKJ)
+        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
+            e = buildTank(gameObject);
+            addPickObject(engine, e, gameObject.objectName);
+        }
+        return e;
+    }
 
     public void buildArena(Engine engine) {
 
@@ -451,11 +476,6 @@ Note only skySphere object using this right now
         model = gameData.modelInfo.get("objects").model;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
             buildObject(engine, gameObject, model);
-        }
-
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
-            Entity e = buildTank(gameObject);
-            addPickObject(engine, e, gameObject.objectName);
         }
 
         /*

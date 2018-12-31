@@ -51,8 +51,6 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-import java.util.Locale;
-
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
@@ -199,7 +197,7 @@ class GameScreen implements Screen {
     }
 
 
-    private Entity setupUICameraEntity;   ////////// aaaaaaarrrrrrrrrtgggggggggghhhhhhhh wttttttttffffffff is this
+    private Entity setupUICameraEntity;   //kept a reference to this for switching camera modes ... engine removeEntity
     //tmp
 
 
@@ -215,11 +213,11 @@ class GameScreen implements Screen {
         addSystems();
 
         GameWorld.sceneLoader.buildArena(engine);
+//pickedPlayer =
+GameWorld.sceneLoader.buildTanks(engine);
 
         stage = setupUI = new IUserInterface();
-        // .... setupUI is passed to CameraMan constructor to add button and handler
 
-        // now we can make camera Man (depends on setupUI)
         setupUICameraEntity = new Entity();
         engine.addEntity(setupUICameraEntity);
 
@@ -232,9 +230,6 @@ class GameScreen implements Screen {
                         if (null != picked) {
                             isPicked = true; // onPlayerPicked(); ... can't do it in this context??
                             pickedPlayer = picked;
-
-                            GameWorld.getInstance().setPlayerObjectName(picked.getComponent(PickRayComponent.class).objectName); // whatever
-
                             picked.remove(PickRayComponent.class);
                         }
                         break;
@@ -302,7 +297,6 @@ class GameScreen implements Screen {
 
         sc.statusUpdater = new BulletEntityStatusUpdate() {
             private Vector3 v = new Vector3();
-
             @Override
             public void update() {
                 v = sc.transform.getTranslation(v);
@@ -373,7 +367,6 @@ for (Entity e : characters){
         Chaser asdf = new Chaser();
         engine.addEntity(asdf.create(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
-
 
         multiplexer.removeProcessor(camController);
         multiplexer.removeProcessor(setupUI);
