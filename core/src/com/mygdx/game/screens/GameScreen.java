@@ -158,7 +158,7 @@ if (asdf) {
 
         newRound();
     }
-private boolean asdf = false;
+private boolean asdf = true;
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -214,7 +214,7 @@ private boolean asdf = false;
 
     private void newRound() {
 
-        GameWorld.sceneLoader.buildTanks(engine);
+        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
         GameWorld.sceneLoader.buildArena(engine);
 
 
@@ -354,16 +354,17 @@ private boolean asdf = false;
 
 
         Array<Entity> characters = new Array<Entity>();
-        GameWorld.sceneLoader.getCharacters(characters); // TODO: needs to return characters for chaining ;)
-for (Entity e : characters){
+        GameWorld.sceneLoader.buildCharacters(characters, engine, "characters", false); // TODO: needs to return characters for chaining ;)
 
-    TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
-            e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
+        for (Entity e : characters) {
 
-    e.add(new CharacterComponent(new SteeringTankController(tc, e,
-            pickedPlayer.getComponent(BulletComponent.class).body)));
-    engine.addEntity(e);
-}
+            TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
+                    e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
+
+            e.add(new CharacterComponent(new SteeringTankController(tc, e,
+                    pickedPlayer.getComponent(BulletComponent.class).body)));
+            engine.addEntity(e);
+        }
 
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)

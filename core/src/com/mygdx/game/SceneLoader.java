@@ -400,13 +400,24 @@ Note only skySphere object using this right now
     }
 
 
-    public void getCharacters(Array<Entity> characters ){
+    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject){
 
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("characters").gameObjects) {
+        String tmpName;
+        if (null != groupName)
+            tmpName = groupName;
+        else
+            tmpName = "tanks";
 
+        for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
             Entity e = buildTank(gameObject);
 
-            characters.add(e);
+            if (null != characters){
+                characters.add(e);
+            }
+
+            if (addPickObject) {
+                addPickObject(engine, e, gameObject.objectName);
+            }
         }
     }
 
@@ -452,12 +463,6 @@ Note only skySphere object using this right now
         return e;
     }
 
-    public void buildTanks(Engine engine){
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
-            Entity e = buildTank(gameObject);
-            addPickObject(engine, e, gameObject.objectName);
-        }
-    }
 
     public void buildArena(Engine engine) {
 

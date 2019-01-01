@@ -13,8 +13,12 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -25,17 +29,20 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -71,6 +78,10 @@ class SelectScreen implements Screen {
     private InputStruct mapper;
 
     private Entity platform;
+    private Model triModel;
+    private ModelInstance triModelInstance;
+
+    private Array<Entity> characters = new Array<Entity>();
 
 
     SelectScreen() {
@@ -115,8 +126,48 @@ class SelectScreen implements Screen {
 
 
 // build the platform moanually (not from data file) for simplicity of retrieving entity
-        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
+//        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
+        platform = PrimitivesBuilder.getBoxBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
         engine.addEntity(platform);
+        ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst,  Color.GOLD, 0.1f);
+
+
+/*
+        final ModelBuilder mb = new ModelBuilder();
+        long attributes =
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        mb.begin();
+        mb.node().id = "triangle";
+        mb.part("triangle", GL20.GL_TRIANGLES, attributes,
+                new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
+        triModel = mb.end();
+*/
+
+        triModel =  GfxUtil.makeModelMesh(3, "triangle");
+        // get model instance and translate it
+        triModelInstance = new ModelInstance(triModel);
+
+
+        //        GameWorld.sceneLoader.buildTanks(engine);
+        GameWorld.sceneLoader.buildCharacters(characters, engine, "tanks", true);
+// tmp idfk we don't need bullet components
+        for (Entity e : characters) {
+//            e.remove(BulletComponent.class);
+        }
+
+        Node modelNode = triModelInstance.getNode("node1");
+        MeshPart meshPart = modelNode.parts.get(0).meshPart;
+
+        float[] verts = MeshHelper.getVertices(meshPart);
+        GfxUtil.setVertex(verts, 0, 7, new Vector3(0, 0, -1), new Color() );
+        GfxUtil.setVertex(verts, 1, 7, new Vector3(-1, 0, -1), new Color() );
+        GfxUtil.setVertex(verts, 2, 7, new Vector3(0.5f, 0, -1), new Color() );
+
+        meshPart.mesh.setVertices(verts);
+
+        triModelInstance.transform.translate(0, 10.5f, -5);
+
+        GameWorld.sceneLoader.buildArena(engine);
 
         newRound();
     }
@@ -158,9 +209,6 @@ class SelectScreen implements Screen {
 
     private void newRound() {
 
-        GameWorld.sceneLoader.buildTanks(engine);
-        GameWorld.sceneLoader.buildArena(engine);
-
         final GameEvent playerPickedGameEvent = new GameEvent() {
             @Override
             public void callback(Entity picked, EventType eventType) {
@@ -176,10 +224,9 @@ class SelectScreen implements Screen {
                 }
             }
         };
-
         mapper = new InputStruct() {     // TODO: InputStruct is abstract, cannot be instantiated
             @Override
-            public void update(float deltaT) { }
+            public void update(float deltaT) { /* mt */ }
         };
 
         stage = new PlayerCharacter(mapper, null);
@@ -238,6 +285,8 @@ class SelectScreen implements Screen {
     private Matrix4 tmpM = new Matrix4();
     private Quaternion rotation = new Quaternion();
     private Vector3 down = new Vector3();
+    private Vector3 point = new Vector3();
+    private Color color = new Color();
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -245,6 +294,26 @@ class SelectScreen implements Screen {
      */
     @Override
     public void render(float delta) {
+
+        triModelInstance.transform.rotate(down.set(0, 1, 0), 0.5f);
+
+        Node modelNode = triModelInstance.getNode("node1");
+
+        MeshPart meshPart = modelNode.parts.get(0).meshPart;
+
+        float[] verts = MeshHelper.getVertices(meshPart);
+
+        for (int n = 0; n < 3; n++){
+
+            GfxUtil.getVertex(verts, n, 7, point, color);
+
+                Entity e = characters.get(n);
+//                e.getComponent(ModelComponent.class).modelInst.transform.translate(point);
+//                e.getComponent(ModelComponent.class).modelInst.transform.rotate( down.set(0, 1, 0), 0.5f);
+        }
+
+        //        platform.getComponent(ModelComponent.class).modelInst.transform.rotate( down.set(0, 1, 0), 0.5f);
+
 
         if (null != body) {
             body.getWorldTransform(tmpM);
@@ -317,6 +386,7 @@ class SelectScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
+        triModel.dispose();
     }
 
     /*

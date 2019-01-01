@@ -23,72 +23,97 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
     public GfxUtil() {
 
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-        Mesh mesh = new Mesh(true, 2, 2,
-                new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
-                new VertexAttribute(VertexAttributes.Usage.ColorUnpacked, 4, "a_color"));
-        mesh.setVertices(new float[(4 + 3) * 2]);
-        mesh.setIndices(new short[]{0, 1});
-        modelBuilder.part("line", mesh, GL20.GL_LINES, new Material());
-        lineModel = modelBuilder.end();
-
+        lineModel = makeModelMesh(2, "line");
         instance = new ModelInstance(lineModel);
         Node modelNode = instance.getNode("node1");
         modelNode.id = "asdf";
-        /*
-        modelBuilder.begin();
-
-        MeshPartBuilder lineBuilder = modelBuilder.part("line", GL20.GL_LINES,
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.ColorUnpacked, new Material());
-        lineBuilder.setColor(null);
-        lineBuilder.line(new Vector3(), new Vector3()); // 2 vertices
-        lineModel = modelBuilder.end();
-        instance = new ModelInstance(lineModel);\
-        */
     }
 
+    public static Model makeModelMesh(int nVertices, String meshPartID) {
+
+        Model model;
+        int maxVertices = nVertices;
+        int maxIndices = nVertices;
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        Mesh mesh = new Mesh(true, maxVertices, maxIndices,
+                new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
+                new VertexAttribute(VertexAttributes.Usage.ColorUnpacked, 4, "a_color"));
+        mesh.setVertices(new float[(4 + 3) * nVertices]);
+
+        short[] indices = new short[nVertices];
+        for (short n = 0; n < nVertices; n++){
+            indices[n] = n; // idfk
+        }
+        mesh.setIndices(indices);
+
+        modelBuilder.part(meshPartID, mesh, GL20.GL_LINES, new Material());
+        model = modelBuilder.end();
+        return model;
+    }
 
     // TODO:
 //    @Override
     public void dispose() {
+
         lineModel.dispose();
     }
 
+    private Vector3[] lineVertsBuffer = new Vector3[2];
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
     public ModelInstance line(Vector3 from, Vector3 b, Color c) {
 
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
-        return lineTo(from, to, c);
+
+        lineVertsBuffer[0] = from;
+        lineVertsBuffer[1] = to;
+
+        return lineTo(
+//                lineVertsBuffer, 2,
+                from, to, c);
     }
 
     /*
-    this is probablly a screwy way to do this
+    MeshPartBuilder.line()!!!!!!!!!
      */
-    public ModelInstance lineTo(Vector3 from, Vector3 to, Color c) {
+    public ModelInstance lineTo(
+            //Vector3[] lineVertsBuffer, int nVertices,
+                                Vector3 from, Vector3 to, Color c) {
 
         Node modelNode = instance.getNode("asdf");
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
 
         float[] nVerts = MeshHelper.getVertices(meshPart);
-        nVerts[0] = from.x;
-        nVerts[1] = from.y;
-        nVerts[2] = from.z;
-        nVerts[3] = c.r;
-        nVerts[4] = c.g;
-        nVerts[5] = c.b;
-        nVerts[6] = c.a;
-        nVerts[7] = to.x;
-        nVerts[8] = to.y;
-        nVerts[9] = to.z;
-        nVerts[10] = c.r;
-        nVerts[11] = c.g;
-        nVerts[12] = c.b;
-        nVerts[13] = c.a;
+        setVertex(nVerts, 0, 7, to, c );
+        setVertex(nVerts, 1, 7, from, c );
+
         meshPart.mesh.setVertices(nVerts);
 
         return instance;
+    }
+
+
+    public static void getVertex(float[] array, int index, int stride, Vector3 point, Color c){
+
+        int offset = index * stride;
+        point.x = array[offset + 0];
+        point.y = array[offset + 1];
+        point.z = array[offset + 2];
+        c.set(array[offset + 3], array[offset + 4], array[offset + 5], array[offset + 6]);
+    }
+
+    public static void setVertex(float[] array, int index, int stride, Vector3 point, Color c){
+
+        int offset = index * stride;
+        array[offset + 0] = point.x;
+        array[offset + 1] = point.y;
+        array[offset + 2] = point.z;
+        array[offset + 3] = c.r;
+        array[offset + 4] = c.g;
+        array[offset + 5] = c.b;
+        array[offset + 6] = c.a;
     }
 }
