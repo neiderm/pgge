@@ -43,7 +43,7 @@ public class MeshHelper /* extends btConvexHullShape */ {
     /*
      * going off script ... found no other way to properly get the vertices from an "indexed" object
      */
-    static float[] getVertices(MeshPart meshPart) {
+    public static float[] getVertices(MeshPart meshPart) {
 
         int numMeshVertices = meshPart.mesh.getNumVertices();
         int numPartIndices = meshPart.size;
