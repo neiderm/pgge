@@ -1,5 +1,6 @@
 package com.mygdx.game.util;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
@@ -12,6 +13,9 @@ import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.BufferUtils;
+
+import java.nio.IntBuffer;
 
 // https://stackoverflow.com/questions/28057588/setting-the-indices-for-a-3d-mesh-in-libgdx
 
@@ -27,6 +31,9 @@ public class GfxUtil  /*extends ModelInstance*/ {
         instance = new ModelInstance(lineModel);
         Node modelNode = instance.getNode("node1");
         modelNode.id = "asdf";
+
+        int mts = getMaxTextureSize();
+        Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
     public static Model makeModelMesh(int nVertices, String meshPartID) {
@@ -115,5 +122,14 @@ public class GfxUtil  /*extends ModelInstance*/ {
         array[offset + 4] = c.g;
         array[offset + 5] = c.b;
         array[offset + 6] = c.a;
+    }
+
+    /*
+    https://stackoverflow.com/questions/35627720/libgdx-what-texture-size
+     */
+    private static int getMaxTextureSize() {
+        IntBuffer buffer = BufferUtils.newIntBuffer(16);
+        Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buffer);
+        return buffer.get(0);
     }
 }
