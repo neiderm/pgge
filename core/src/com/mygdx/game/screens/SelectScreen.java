@@ -41,7 +41,10 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
+
 class SelectScreen implements Screen {
+
+    private static final int MAXTANKS3_3Z =3;
 
     private Engine engine;
 
@@ -66,7 +69,6 @@ class SelectScreen implements Screen {
     private PlayerCharacter stage;
 
     private Signal<GameEvent> pickRayEventSignal;
-    private boolean isPicked = false;
 
     private InputStruct mapper;
 
@@ -76,6 +78,7 @@ class SelectScreen implements Screen {
 
     private Vector3 origin = new Vector3(0, 10, -5);
 
+    private int selectedIndex;
     // position them into equilateral triangle (sin/cos)
     private Vector3[] positions = new Vector3[]{
             new Vector3(0, 0, -1),
@@ -164,6 +167,9 @@ class SelectScreen implements Screen {
 
         GameWorld.sceneLoader.buildArena(engine);
 
+        pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
+        pickedTransform.trn(down.set(0, 0.5f, 0));
+
         newRound();
     }
 
@@ -246,11 +252,13 @@ class SelectScreen implements Screen {
 
 
         CameraMan cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
-
+/*
         InputMultiplexer multiplexer = new InputMultiplexer();
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(camController);
         Gdx.input.setInputProcessor(multiplexer);
+        */
+        Gdx.input.setInputProcessor(stage);
     }
 
     // point the camera to platform
@@ -300,13 +308,13 @@ class SelectScreen implements Screen {
 
         final float platformInc = 120f;
 
-        for (int n = 0; n < 3; n++){
+        for (int n = 0; n < MAXTANKS3_3Z; n++){
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
             double asdf = Math.toRadians(degrees + n * platformInc);
 
-            position.x = (float)Math.cos(asdf); //  positions[n].x * (float)Math.cos((double)degrees );
+            position.x = (float)Math.cos(asdf);
             position.y = positions[n].y;
             position.z = (float)Math.sin(asdf);
 
@@ -353,48 +361,47 @@ class SelectScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+
+        float tmp = mapper.getAngularDirection();
+        // active on "key down" not key up
+        if (0 != tmp) {
+            // "key down
+            if (0 == platformAngularDirection) {
+                // not set so increment the degrees
+                platformAngularDirection = -tmp;
+                degrees += platformInc * platformAngularDirection;
+
+                // cycle thru position 0 1 2 etc.
+                int saveSelectIndex = selectedIndex;
+                selectedIndex += tmp;
+                if (selectedIndex >= MAXTANKS3_3Z)
+                    selectedIndex = 0;
+                else if (selectedIndex < 0)
+                    selectedIndex = MAXTANKS3_3Z - 1;
+
+                // lower previous
+                pickedTransform = characters.get(saveSelectIndex).getComponent(ModelComponent.class).modelInst.transform;
+                pickedTransform.trn(down.set(0, -0.5f, 0));
+
+                // raise current selection
+                pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
+                pickedTransform.trn(down.set(0, 0.5f, 0));
+            }
+        } else {
+            // "key up" ... release the latch-out
+            platformAngularDirection = 0;
+        }
+
         /*
            TODO:? wouldn't have to poll if i override the PlayerCharacter::jumpButtonListener()
          */
         if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
 
             if (null != pickedTransform) { // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
-                isPicked = true;
+                GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+                Gdx.app.log("SelectScreen", " isPicked ->  showScreen() ");
+                GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
             }
-        }
-
-
-        float tmp = mapper.getAngularDirection();
-        tmp *= -1; // hmmm
-if (false) {
-    if (0 != tmp) {
-        platformAngularDirection = tmp; // stash the value for when the axis is released
-    } else {
-        // axis is released, increment the platform angle
-        degrees += platformInc * platformAngularDirection;
-        platformAngularDirection = 0;
-    }
-}else {
-    // active on "key down" not key up
-    if (0 != tmp) {
-        // "key down
-        if (0 == platformAngularDirection)
-        {
-            // not set so increment the degrees
-            platformAngularDirection = tmp;
-            degrees += platformInc * platformAngularDirection;
-        }
-    } else {
-        // "key up" ... release the latch-out
-        platformAngularDirection = 0;
-    }
-}
-
-
-        if (isPicked) {
-            isPicked = false;
-            Gdx.app.log("SelectScreen", " isPicked ->  showScreen() ");
-            GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }
     }
 
