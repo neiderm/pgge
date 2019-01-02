@@ -4,12 +4,10 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -20,9 +18,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
@@ -38,8 +33,6 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
-
-import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 
 class SelectScreen implements Screen {
@@ -78,6 +71,7 @@ class SelectScreen implements Screen {
 
     private Vector3 origin = new Vector3(0, 10, -5);
 
+    private Matrix4 pickedTransform;
     private int selectedIndex;
     // position them into equilateral triangle (sin/cos)
     private Vector3[] positions = new Vector3[]{
@@ -174,77 +168,17 @@ class SelectScreen implements Screen {
     }
 
 
-    /*
-"gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
-*/
-    private InputListener makeButtonGSListener(final GameEvent gameEvent) {
-
-        final Ray pickRay = new Ray();
-
-        return new InputListener() {
-
-            private Ray setPickRay(float x, float y) {
-                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-                Ray rayTmp = cam.getPickRay(nX, nY);
-                return pickRay.set(rayTmp.origin, rayTmp.direction);
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
-
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // only do this if FPV mode (i.e. cam controller is not handling game window input)
-//            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
-                {
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                    //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
-                }
-                return true;
-            }
-        };
-    }
-
-    private Matrix4 pickedTransform;
-
     private void newRound() {
 
-        final GameEvent playerPickedGameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked) {
-                            GameWorld.getInstance().setPlayerObjectName(picked.getComponent(PickRayComponent.class).objectName); // whatever
-                            pickedTransform = picked.getComponent(ModelComponent.class).modelInst.transform;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
         mapper = new InputStruct() {     // TODO: InputStruct is abstract, cannot be instantiated
             @Override
-            public void update(float deltaT) { /* mt */ }
+            public void update(float deltaT) {
+                Gdx.app.log("mapper", "update");
+            }
         };
 
         stage = new PlayerCharacter(mapper, null);
 
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, 150, 150);
-
-        stage.addInputListener(
-                makeButtonGSListener(playerPickedGameEvent),
-                button,
-                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-
-        button.dispose();
 
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
