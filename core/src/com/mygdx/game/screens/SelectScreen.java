@@ -281,6 +281,8 @@ class SelectScreen implements Screen {
     private Quaternion rotation = new Quaternion();
     private Vector3 down = new Vector3();
     private float degrees;
+    private float platformAngularDirection;
+
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -294,13 +296,15 @@ class SelectScreen implements Screen {
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
         float[] verts = MeshHelper.getVertices(meshPart);
 */
-        degrees += 0.5f;
+//        degrees += 0.5f;
+
+        final float platformInc = 120f;
 
         for (int n = 0; n < 3; n++){
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
-            double asdf = Math.toRadians(degrees + n * 120);
+            double asdf = Math.toRadians(degrees + n * platformInc);
 
             position.x = (float)Math.cos(asdf); //  positions[n].x * (float)Math.cos((double)degrees );
             position.y = positions[n].y;
@@ -308,7 +312,7 @@ class SelectScreen implements Screen {
 
 //            GfxUtil.getVertex(verts, n, 7, point, color);
 
-                Entity e = characters.get(n);
+            Entity e = characters.get(n);
 
             e.getComponent(ModelComponent.class).modelInst.transform.setToTranslation(0, 0, 0);
             e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degrees);
@@ -358,6 +362,34 @@ class SelectScreen implements Screen {
                 isPicked = true;
             }
         }
+
+
+        float tmp = mapper.getAngularDirection();
+        tmp *= -1; // hmmm
+if (false) {
+    if (0 != tmp) {
+        platformAngularDirection = tmp; // stash the value for when the axis is released
+    } else {
+        // axis is released, increment the platform angle
+        degrees += platformInc * platformAngularDirection;
+        platformAngularDirection = 0;
+    }
+}else {
+    // active on "key down" not key up
+    if (0 != tmp) {
+        // "key down
+        if (0 == platformAngularDirection)
+        {
+            // not set so increment the degrees
+            platformAngularDirection = tmp;
+            degrees += platformInc * platformAngularDirection;
+        }
+    } else {
+        // "key up" ... release the latch-out
+        platformAngularDirection = 0;
+    }
+}
+
 
         if (isPicked) {
             isPicked = false;

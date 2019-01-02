@@ -17,6 +17,18 @@ import com.badlogic.gdx.utils.ArrayMap;
 /      +  /     \     +  /
 ---------/       \------/
 
+The input filtering done in here could be integrated into the "simple vehicle model"
+A "non-simple differential tracked vehicile model" could inherit and use this same
+input filtering inherited from simple vehicle model.
+A "flying vehicle model" would override this input mapping as it would need to
+support roll, but would not have i.e. reverse/gear-shifting capability.
+
+There is stateful-ness in the input handling as, action buttons must have their
+state latched in order to be pollable (e.g. hat switch, axes tend to be held down and don't
+need latched)
+Also if you want to create e.g. a "virtual stick shifter", that is a state e.g. like
+"D2 D1 N R"
+
 
 control states
 virtual shifter DNR has state
@@ -76,9 +88,9 @@ public abstract class InputStruct implements CtrlMapperIntrf {
     }
 
 
-    protected float getLinearDirection(){ return linearD; }
+    public float getLinearDirection(){ return linearD; }
 
-    protected float getAngularDirection(){ return angularD; }
+    public float getAngularDirection(){ return angularD; }
 
     public enum ButtonsEnum { // idfk
         BUTTON_NONE,
