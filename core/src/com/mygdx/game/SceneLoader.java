@@ -267,7 +267,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private Entity buildTank(GameData.GameObject gameObject) {
+    private Entity buildTank(GameData.GameObject gameObject, boolean useBulletComp) {
 
         Entity e = null;
         Model model = gameData.modelInfo.get(gameObject.objectName).model;
@@ -286,8 +286,10 @@ public class SceneLoader implements Disposable {
                 inst.transform.trn(i.translation);
                 e.add(new ModelComponent(inst));
 
-                btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-                e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                if (useBulletComp) {
+                    btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                }
             }
         }
         return e;
@@ -297,17 +299,15 @@ public class SceneLoader implements Disposable {
     private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
 
         if (0 == gameObject.instanceData.size) {
-                        // no instance data ... default translation etc.
+            // no instance data ... default translation etc.
 
-            if (gameObject.objectName.endsWith("*")){
+            if (gameObject.objectName.endsWith("*")) {
                 /* load all nodes from model that match /objectName.*/
-                for (Iterator<Node> iterator = model.nodes.iterator(); iterator.hasNext();)
-                {
-                    Node node = iterator.next();
+                for (Node node : model.nodes) {
                     String gameObjectName = gameObject.objectName;
                     String unGlobbedObjectName = gameObjectName.replaceAll("\\*$", "");
-                    if (node.id.contains(unGlobbedObjectName )) {
 
+                    if (node.id.contains(unGlobbedObjectName)) {
                         Entity e = buildObjectInstance(gameObject, null, model, node.id);
                         engine.addEntity(e);
                     }
@@ -402,6 +402,11 @@ Note only skySphere object using this right now
 
     public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject){
 
+        buildCharacters(characters, engine, groupName, addPickObject, true);
+    }
+
+    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject, boolean useBulletComp){
+
         String tmpName;
         if (null != groupName)
             tmpName = groupName;
@@ -409,7 +414,7 @@ Note only skySphere object using this right now
             tmpName = "tanks";
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
-            Entity e = buildTank(gameObject);
+            Entity e = buildTank(gameObject, useBulletComp);
 
             if (null != characters){
                 characters.add(e);
@@ -452,12 +457,11 @@ Note only skySphere object using this right now
     public Entity buildObjectByName(Engine engine, String name) {
         Entity e = null;
         for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
-            if (null != gameObject) {
-                if (gameObject.objectName.contains(name)) {
-                    e = buildTank(gameObject);
-                    addPickObject(engine, e, gameObject.objectName);
-                    break;
-                }
+
+            if (null != gameObject && gameObject.objectName.contains(name)) {
+                e = buildTank(gameObject, true);
+                addPickObject(engine, e, gameObject.objectName);
+                break;
             }
         }
         return e;

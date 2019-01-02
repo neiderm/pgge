@@ -13,19 +13,14 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
-import com.badlogic.gdx.graphics.g3d.model.MeshPart;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -34,7 +29,6 @@ import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.characters.PlayerCharacter;
-import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.BulletSystem;
@@ -42,7 +36,6 @@ import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -78,10 +71,17 @@ class SelectScreen implements Screen {
     private InputStruct mapper;
 
     private Entity platform;
-    private Model triModel;
-    private ModelInstance triModelInstance;
 
     private Array<Entity> characters = new Array<Entity>();
+
+    private Vector3 origin = new Vector3(0, 10, -5);
+
+    // position them into equilateral triangle (sin/cos)
+    private Vector3[] positions = new Vector3[]{
+            new Vector3(0, 0, -1),
+            new Vector3(-0.866f, 0, 0.5f),
+            new Vector3(0.866f, 0, 0.5f)
+    };
 
 
     SelectScreen() {
@@ -127,10 +127,10 @@ class SelectScreen implements Screen {
 
 // build the platform moanually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
-        platform = PrimitivesBuilder.getBoxBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
+        platform = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(4, 1, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst,  Color.GOLD, 0.1f);
-
+        platform.getComponent(ModelComponent.class).modelInst.transform.setTranslation(origin);
 
 /*
         final ModelBuilder mb = new ModelBuilder();
@@ -142,18 +142,10 @@ class SelectScreen implements Screen {
                 new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
         triModel = mb.end();
 */
-
+/*
         triModel =  GfxUtil.makeModelMesh(3, "triangle");
         // get model instance and translate it
         triModelInstance = new ModelInstance(triModel);
-
-
-        //        GameWorld.sceneLoader.buildTanks(engine);
-        GameWorld.sceneLoader.buildCharacters(characters, engine, "tanks", true);
-// tmp idfk we don't need bullet components
-        for (Entity e : characters) {
-//            e.remove(BulletComponent.class);
-        }
 
         Node modelNode = triModelInstance.getNode("node1");
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
@@ -165,7 +157,10 @@ class SelectScreen implements Screen {
 
         meshPart.mesh.setVertices(verts);
 
-        triModelInstance.transform.translate(0, 10.5f, -5);
+        triModelInstance.pickedTransform.translate(0, 10.5f, -5);
+*/
+        GameWorld.sceneLoader.buildCharacters(
+                characters, engine, "tanks", true, false);
 
         GameWorld.sceneLoader.buildArena(engine);
 
@@ -206,6 +201,7 @@ class SelectScreen implements Screen {
         };
     }
 
+    private Matrix4 pickedTransform;
 
     private void newRound() {
 
@@ -216,7 +212,7 @@ class SelectScreen implements Screen {
                     case RAY_PICK:
                         if (null != picked) {
                             GameWorld.getInstance().setPlayerObjectName(picked.getComponent(PickRayComponent.class).objectName); // whatever
-                            body = picked.getComponent(BulletComponent.class).body;
+                            pickedTransform = picked.getComponent(ModelComponent.class).modelInst.transform;
                         }
                         break;
                     default:
@@ -279,14 +275,12 @@ class SelectScreen implements Screen {
     }
 
     // tmp for the pick marker
-    private btRigidBody body;
     private GfxUtil gfxLine = new GfxUtil();
-    private Vector3 trans = new Vector3();
+    private Vector3 tmpV = new Vector3();
     private Matrix4 tmpM = new Matrix4();
     private Quaternion rotation = new Quaternion();
     private Vector3 down = new Vector3();
-    private Vector3 point = new Vector3();
-    private Color color = new Color();
+    private float degrees;
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -294,32 +288,40 @@ class SelectScreen implements Screen {
      */
     @Override
     public void render(float delta) {
-
-        triModelInstance.transform.rotate(down.set(0, 1, 0), 0.5f);
-
+/*
+        triModelInstance.pickedTransform.rotate(down.set(0, 1, 0), 0.5f);
         Node modelNode = triModelInstance.getNode("node1");
-
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
-
         float[] verts = MeshHelper.getVertices(meshPart);
+*/
+        degrees += 0.5f;
 
         for (int n = 0; n < 3; n++){
 
-            GfxUtil.getVertex(verts, n, 7, point, color);
+            Vector3 position = positions[n]; // not actually using the position values out of here right now
+
+            double asdf = Math.toRadians(degrees + n * 120);
+
+            position.x = (float)Math.cos(asdf); //  positions[n].x * (float)Math.cos((double)degrees );
+            position.y = positions[n].y;
+            position.z = (float)Math.sin(asdf);
+
+//            GfxUtil.getVertex(verts, n, 7, point, color);
 
                 Entity e = characters.get(n);
-//                e.getComponent(ModelComponent.class).modelInst.transform.translate(point);
-//                e.getComponent(ModelComponent.class).modelInst.transform.rotate( down.set(0, 1, 0), 0.5f);
+
+            e.getComponent(ModelComponent.class).modelInst.transform.setToTranslation(0, 0, 0);
+            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degrees);
+            e.getComponent(ModelComponent.class).modelInst.transform.trn(position);
+            e.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
         }
 
-        //        platform.getComponent(ModelComponent.class).modelInst.transform.rotate( down.set(0, 1, 0), 0.5f);
+        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degrees);
+        platform.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
 
 
-        if (null != body) {
-            body.getWorldTransform(tmpM);
-            tmpM.getTranslation(trans);
-
-            RenderSystem.debugGraphics.add(gfxLine.line(trans,
+        if (null != pickedTransform) {
+            RenderSystem.debugGraphics.add(gfxLine.line(pickedTransform.getTranslation(tmpV),
                     ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
                     Color.RED));
         }
@@ -350,11 +352,10 @@ class SelectScreen implements Screen {
         /*
            TODO:? wouldn't have to poll if i override the PlayerCharacter::jumpButtonListener()
          */
-            if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
+        if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
 
-                if (null != body) { // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
-
-                    isPicked = true;
+            if (null != pickedTransform) { // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
+                isPicked = true;
             }
         }
 
@@ -386,7 +387,7 @@ class SelectScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
-        triModel.dispose();
+//        triModel.dispose();
     }
 
     /*

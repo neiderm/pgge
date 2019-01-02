@@ -32,7 +32,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
  * Created by mango on 12/18/17.
  */
 
-public class PrimitivesBuilder extends BulletEntityBuilder {
+public class PrimitivesBuilder extends BulletEntityBuilder /* implements Disposable */ {
 
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
     protected static final float DIM_UNIT = 1.0f;
@@ -77,17 +77,17 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
 
         attributes |= VertexAttributes.Usage.TextureCoordinates;
 
-        tex = new Texture(Gdx.files.internal("data/crate.png"), false);
+        tex = new Texture(Gdx.files.internal("data/crate.png"), true);
         mb.node().id = "boxTex";
         mb.part("box", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
 
-        tex = new Texture(Gdx.files.internal("data/day.png"), false);
+        tex = new Texture(Gdx.files.internal("data/day.png"), true);
         mb.node().id = "sphereTex";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
-        tex = new Texture(Gdx.files.internal("data/sky.jpg"), false);
+        tex = new Texture(Gdx.files.internal("data/sky.jpg"), true);
         mb.node().id = "skySphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
         new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
@@ -219,9 +219,9 @@ public class PrimitivesBuilder extends BulletEntityBuilder {
         instance.calculateTransforms();
 
         // leave translation null if using translation from the model layout
-//        if (null != translation)
-        instance.transform.trn(translation);
-
+        if (null != translation) {
+            instance.transform.trn(translation);
+        }
 
         BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
 
