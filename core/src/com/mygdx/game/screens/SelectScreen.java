@@ -162,7 +162,6 @@ class SelectScreen implements Screen {
         GameWorld.sceneLoader.buildArena(engine);
 
         pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
-        pickedTransform.trn(down.set(0, 0.5f, 0));
 
         newRound();
     }
@@ -179,11 +178,9 @@ class SelectScreen implements Screen {
 
         stage = new PlayerCharacter(mapper, null);
 
-
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
-
 
         CameraMan cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
 /*
@@ -222,7 +219,9 @@ class SelectScreen implements Screen {
     private Matrix4 tmpM = new Matrix4();
     private Quaternion rotation = new Quaternion();
     private Vector3 down = new Vector3();
-    private float degrees;
+    private float degreesInst;
+    private float degreesSetp;
+    private float degreesStep; // ramp rate limiting
     private float platformAngularDirection;
 
     /*
@@ -241,12 +240,26 @@ class SelectScreen implements Screen {
 //        degrees += 0.5f;
 
         final float platformInc = 120f;
+        float step = (degreesSetp - degreesInst) * 0.2f; // error * kP
+
+        // I think we will have a discrete flag to 1) only show the marker line when locked to position and 2) only allow enter/select when in position
+        if (Math.abs(step) > 0.01) { // deadband around control point, Q-A-D lock to the setpoint and suppress ringing, normally done by integral term
+            if (Math.abs(degreesStep) < 2) { // output is ramped up from 0 to this value, after which 100% of step is accepted
+                int sign = degreesStep < 0 ? -1 : 1;
+                degreesStep += 0.1f * sign;
+            }
+            degreesInst += step;
+        }
+        else {
+            degreesInst = degreesSetp;
+            degreesStep = 0;
+        }
 
         for (int n = 0; n < MAXTANKS3_3Z; n++){
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
-            double asdf = Math.toRadians(degrees + n * platformInc);
+            double asdf = Math.toRadians(degreesInst + n * platformInc);
 
             position.x = (float)Math.cos(asdf);
             position.y = positions[n].y;
@@ -257,18 +270,18 @@ class SelectScreen implements Screen {
             Entity e = characters.get(n);
 
             e.getComponent(ModelComponent.class).modelInst.transform.setToTranslation(0, 0, 0);
-            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degrees);
+            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degreesInst);
             e.getComponent(ModelComponent.class).modelInst.transform.trn(position);
             e.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
         }
 
-        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degrees);
+        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degreesInst);
         platform.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
 
 
         if (null != pickedTransform) {
             RenderSystem.debugGraphics.add(gfxLine.line(pickedTransform.getTranslation(tmpV),
-                    ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
+                    ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
                     Color.RED));
         }
 
@@ -303,7 +316,8 @@ class SelectScreen implements Screen {
             if (0 == platformAngularDirection) {
                 // not set so increment the degrees
                 platformAngularDirection = -tmp;
-                degrees += platformInc * platformAngularDirection;
+                degreesSetp += platformInc * platformAngularDirection;
+//                Gdx.app.log("asdf", "degreesSetp " + degreesSetp);
 
                 // cycle thru position 0 1 2 etc.
                 int saveSelectIndex = selectedIndex;
