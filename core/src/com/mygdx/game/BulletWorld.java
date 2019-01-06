@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -44,13 +45,17 @@ public class BulletWorld implements Disposable {
     public static BulletWorld getInstance() {
 
         if (null == instance) {
-            Bullet.init();
+//            Bullet.init();
             instance = new BulletWorld();
         }
         return instance;
     }
 
     public void initialize(Camera camera) {
+
+        if (null != collisionWorld){
+            Gdx.app.log("BulletWorld", "(collisionWorld != null)");
+        }
 
         callback = new ClosestRayResultCallback(rayFrom, rayTo);
 
@@ -79,6 +84,10 @@ public class BulletWorld implements Disposable {
         broadphase.dispose();
         dispatcher.dispose();
         collisionConfiguration.dispose();
+        debugDrawer.dispose();
+
+        collisionWorld = null;
+        collisionConfiguration = null;
 
         instance = null;
     }

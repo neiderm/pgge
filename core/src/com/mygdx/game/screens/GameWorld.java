@@ -2,6 +2,7 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -29,7 +30,11 @@ public class GameWorld implements Disposable {
     public void initialize(Game game){
 
         this.game = game;
+
+        // static subsystems initialized only once per application run
+        Bullet.init();
         PrimitivesBuilder.init();            // one time only .. for now i guess
+
         game.setScreen(new SplashScreen());
     }
 
@@ -52,6 +57,7 @@ public class GameWorld implements Disposable {
         this.isPaused = isPaused;
     }
 
+
     private boolean isTouchScreen = false;
 
     public boolean getIsTouchScreen(){
@@ -62,14 +68,17 @@ public class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
+
     private String playerObjectName;
 
     void setPlayerObjectName(String playerObjectName){
         this.playerObjectName = playerObjectName;
     }
-    public String getPlayerObjectName(){
+
+    String getPlayerObjectName(){
         return playerObjectName;
     }
+
 
     public void showScreen(Screen screen) {
 
@@ -84,6 +93,7 @@ public class GameWorld implements Disposable {
         game.getScreen().dispose();
 
         PrimitivesBuilder.dispose(); // hack, call static method
+//        BulletWorld.getInstance().dispose();
 
         instance = null;
     }
