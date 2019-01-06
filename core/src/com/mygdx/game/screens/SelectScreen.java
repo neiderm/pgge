@@ -4,7 +4,11 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -13,20 +17,18 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.BulletWorld;
-import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.characters.InputStruct;
-import com.mygdx.game.characters.PlayerCharacter;
+import com.mygdx.game.characters.ControllerListenerAdapter;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
@@ -40,13 +42,12 @@ class SelectScreen implements Screen {
     private static final int MAXTANKS3_3Z =3;
 
     private Engine engine;
+    private Controller connectedCtrl;
 
-    private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam;
 
-    private CameraInputController camController;
     private Environment environment;
     private DirectionalShadowLight shadowLight;
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
@@ -58,12 +59,9 @@ class SelectScreen implements Screen {
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
-    private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private PlayerCharacter stage;
+    private Stage stage;
 
     private Signal<GameEvent> pickRayEventSignal;
-
-    private InputStruct mapper;
 
     private Entity platform;
 
@@ -99,8 +97,6 @@ class SelectScreen implements Screen {
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
-
-        camController = new CameraInputController(cam);
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -163,47 +159,56 @@ class SelectScreen implements Screen {
 
         pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
 
-        newRound();
-    }
 
+        Controllers.addListener(controllerListener);
 
-    private void newRound() {
+        // If a controller is connected, find it and grab a link to it
+        int i = 0;
+        for (Controller c : Controllers.getControllers()) {
+            Gdx.app.log("SelectScreen","#" + i++ + ": " + c.getName());
+            connectedCtrl = c;
+            // save index i for later ref?
+        }
 
-        mapper = new InputStruct() {     // TODO: InputStruct is abstract, cannot be instantiated
+        stage = new Stage();
+        stage.addListener(new InputListener(){
             @Override
-            public void update(float deltaT) {
-                Gdx.app.log("mapper", "update");
+            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
+                return true; // must return true in order for touch up, dragged to work!
             }
-        };
-
-        stage = new PlayerCharacter(mapper, null);
+        });
 
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
 
-        CameraMan cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
-/*
-        InputMultiplexer multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(stage);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
-        */
+        // point the camera to platform
+        final Vector3 camPosition = new Vector3(0f, 13.5f, 02f);
+        final Vector3 camLookAt = new Vector3(0f, 10f, -5.0f);
+
+        cam.position.set(camPosition);
+        cam.lookAt(camLookAt);
+        cam.up.set(0, 1, 0); // googling ... Beginning Java Game Development with LibGDX ... lookAt may have undesired result of tilting camera left or right
+        cam.update();
+
         Gdx.input.setInputProcessor(stage);
     }
 
-    // point the camera to platform
-    private final Vector3 camDefPosition = new Vector3(0f, 13.5f, 02f);
-    private final Vector3 camDefLookAt = new Vector3(0f, 10f, -5.0f);
+/*
+ * keep the reference so the listener can be removed at dispose()
+ */
+    private final ControllerListenerAdapter controllerListener = new ControllerListenerAdapter() {
+            @Override
+            public boolean buttonDown(Controller controller, int buttonIndex) {
+                setKeyDown(KEY_ANY);
+                return false;
+            }
+        };
 
 
     private void addSystems() {
 
-        // must be done before any bullet object can be created
-        BulletWorld.getInstance().initialize(cam);
-
         engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
-        engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
         engine.addSystem(new PickRaySystem(pickRayEventSignal));
     }
 
@@ -212,6 +217,91 @@ class SelectScreen implements Screen {
     public void show() {
         // empty
     }
+
+
+    private int touchPadDx;
+    private boolean isTouched;
+    /*
+     * "virtual dPad" provider (only cares about left/right)
+     */
+    private int getDpad() {
+
+        int dPadXaxis = 0;
+        PovDirection povDir;
+
+        if (null != connectedCtrl) {
+            povDir = connectedCtrl.getPov(0); // povCode ...
+
+            if (PovDirection.east == povDir)
+                dPadXaxis = 1;
+            else if (PovDirection.west == povDir)
+                dPadXaxis = -1;
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            dPadXaxis = -1;
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            dPadXaxis = 1;
+        }
+
+        if (Gdx.input.isTouched()) {
+
+            isTouched = true;
+
+            if (0 == touchPadDx) {
+
+                touchPadDx = Gdx.input.getDeltaX();
+
+                if (touchPadDx < 0) {
+                    dPadXaxis = -1;
+                } else if (touchPadDx > 0) {
+                    dPadXaxis = 1;
+                }
+            }
+        } else {
+            // NOT touched
+            if (Math.abs(touchPadDx) > 0) {
+                // unlatch the touch-drag event in progress ... why not use onTouchUp silly ... ?
+                touchPadDx = 0;
+            }
+            else {
+                if (isTouched)
+                    setKeyDown(KEY_ANY);
+            }
+            isTouched = false;
+        }
+
+        return dPadXaxis;
+    }
+
+    private int getKeyDown(){
+
+        int rv = keyDown;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
+                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            rv = 0; // "d-pad" ... no-op
+        }
+        else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+            rv = KEY_BACK;
+        }
+        else if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)){
+            rv = KEY_ANY;
+        }
+        keyDown = 0; // unlatch the input state
+        return rv;
+    }
+
+    private void setKeyDown(int keyDown){
+
+        this.keyDown = keyDown;
+    }
+
+    private int keyDown;
+    private static final int KEY_ANY = 1;
+    private static final int KEY_BACK = -1;
 
     // tmp for the pick marker
     private GfxUtil gfxLine = new GfxUtil();
@@ -237,7 +327,6 @@ class SelectScreen implements Screen {
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
         float[] verts = MeshHelper.getVertices(meshPart);
 */
-//        degrees += 0.5f;
 
         final float platformInc = 120f;
         float step = (degreesSetp - degreesInst) * 0.2f; // error * kP
@@ -259,11 +348,11 @@ class SelectScreen implements Screen {
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
-            double asdf = Math.toRadians(degreesInst + n * platformInc);
+            double rads = Math.toRadians(degreesInst + n * platformInc);
 
-            position.x = (float)Math.cos(asdf);
+            position.x = (float)Math.cos(rads);
             position.y = positions[n].y;
-            position.z = (float)Math.sin(asdf);
+            position.z = (float)Math.sin(rads);
 
 //            GfxUtil.getVertex(verts, n, 7, point, color);
 
@@ -290,26 +379,13 @@ class SelectScreen implements Screen {
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
-        camController.update(); // this can probaly be pause as well
-
         engine.update(delta);
 
-        // semi-opaque filled box over touch area
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(hudOverlayColor);
-        shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
-        shapeRenderer.end();
-
-        // note: I protected for null camera system on the input hhandler ... do
-        // we want to update the stage if not Done Loading?
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
 
-        float tmp = mapper.getAngularDirection();
+        float tmp = getDpad();
         // active on "key down" not key up
         if (0 != tmp) {
             // "key down
@@ -340,14 +416,14 @@ class SelectScreen implements Screen {
             platformAngularDirection = 0;
         }
 
-        /*
-           TODO:? wouldn't have to poll if i override the PlayerCharacter::jumpButtonListener()
-         */
-        if (0 != mapper.jumpButtonGet()) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
-
-            if (null != pickedTransform) { // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
+        int keyState = getKeyDown();
+        if (KEY_BACK == keyState){
+                  GameWorld.getInstance().showScreen(new MainMenuScreen());
+        } else if (KEY_ANY == keyState) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
+            if (
+                    null != pickedTransform                  // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
+                    ) {
                 GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
-                Gdx.app.log("SelectScreen", " isPicked ->  showScreen() ");
                 GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
             }
         }
@@ -366,7 +442,7 @@ class SelectScreen implements Screen {
     @Override
     public void dispose() {
 
-        engine.removeSystem(bulletSystem); // make the system dispose its stuff
+        Controllers.removeListener(controllerListener);
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
@@ -384,6 +460,7 @@ class SelectScreen implements Screen {
     @Override
     public void pause() {
         // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
+        Gdx.app.log("SelectScreen", "pause");
     }
 
     @Override
@@ -393,6 +470,7 @@ class SelectScreen implements Screen {
 
     @Override
     public void hide() {
+        Gdx.app.log("SelectScreen", "hide");
         dispose();
     }
 }
