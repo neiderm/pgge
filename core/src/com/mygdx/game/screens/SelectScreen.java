@@ -159,6 +159,9 @@ class SelectScreen implements Screen {
 
         pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
 
+        // make sure to initialize in case user does not rotate the selector platform
+        GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+
 
         Controllers.addListener(controllerListener);
 
