@@ -50,6 +50,7 @@ import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
@@ -72,7 +73,7 @@ class GameScreen implements Screen {
     //    public FirstPersonCameraController camController;
     private Environment environment;
     private DirectionalShadowLight shadowLight;
-//    private Vector3 lightDirection = new Vector3(1f, -0.8f, 0f); // new Vector3(-1f, -0.8f, -0.2f);
+    //    private Vector3 lightDirection = new Vector3(1f, -0.8f, 0f); // new Vector3(-1f, -0.8f, -0.2f);
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
 
     private BitmapFont font;
@@ -93,9 +94,7 @@ class GameScreen implements Screen {
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
 
-
     private Signal<GameEvent> pickRayEventSignal;
-    private boolean isPicked = false;
     private boolean roundOver = false;
 
 
@@ -148,17 +147,31 @@ class GameScreen implements Screen {
 
         addSystems();
 
+        String objectName = GameWorld.getInstance().getPlayerObjectName();
+        pickedPlayer = GameWorld.sceneLoader.buildObjectByName(engine, objectName);
 
-if (asdf) {
-    String objectName = GameWorld.getInstance().getPlayerObjectName();
-    pickedPlayer =
-            GameWorld.sceneLoader.buildObjectByName(engine, objectName);
-    isPicked = true;
-}
+        Vector3 scale = new Vector3(4, 1, 4);
+        Vector3 trans = new Vector3(0, 10, -5);
+        PrimitivesBuilder pb = PrimitivesBuilder.getBoxBuilder("box");
+        platformEntity = pb.create(0.0f, trans, scale);
+        ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
+        engine.addEntity(platformEntity);
 
-        newRound();
+//        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
+        GameWorld.sceneLoader.buildArena(engine);
+
+        multiplexer = new InputMultiplexer();
+        Gdx.input.setInputProcessor(multiplexer);
+
+        label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
+
+        onPlayerPicked();
     }
-private boolean asdf = true;
+
+    private Entity platformEntity;
+    private float colorAlpha = 0.9f;
+    private Color platformColor = new Color(255, 0, 0, colorAlpha);
+
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -208,64 +221,6 @@ private boolean asdf = true;
     }
 
 
-    private Entity setupUICameraEntity;   //kept a reference to this for switching camera modes ... engine removeEntity
-    //tmp
-
-
-    private void newRound() {
-
-        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
-        GameWorld.sceneLoader.buildArena(engine);
-
-
-        GameEvent playerPickedGameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked) {
-                            isPicked = true; // onPlayerPicked(); ... can't do it in this context??
- if (!asdf)
-       pickedPlayer = picked;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-
-        stage = setupUI = new IUserInterface();
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, 150, 150);
-        setupUI.addInputListener(
-                makeButtonGSListener(playerPickedGameEvent),
-                button,
-                (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
-
-        // ok so you can add a label to the stage
-        label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
-        setupUI.addActor(label);
-
-
-        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt);
-        CharacterComponent comp = new CharacterComponent(cameraMan);
-
-        setupUICameraEntity = new Entity();
-        setupUICameraEntity.add(comp);
-        engine.addEntity(setupUICameraEntity);
-
-        multiplexer = new InputMultiplexer();
-        multiplexer.addProcessor(setupUI);
-        multiplexer.addProcessor(camController);
-        Gdx.input.setInputProcessor(multiplexer);
-    }
-
-
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
@@ -292,7 +247,6 @@ private boolean asdf = true;
     private void onPlayerPicked() {
 
         pickedPlayer.remove(PickRayComponent.class);
-        isPicked = false;
         GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
 
 // plug in the picked player
@@ -321,9 +275,6 @@ private boolean asdf = true;
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(25, 25, 25);
 
-
-//        listeners.add(buttonBListener);
-
         final SimpleVehicleModel vehicleModel = new TankController(
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
@@ -335,7 +286,7 @@ private boolean asdf = true;
                 boolean jump = 0 != jumpButtonGet();
 //            if (!isPaused)
                 {
-                    vehicleModel.updateControls( jump,          // TODO: tank conttoller only enable jump if in surface conttact
+                    vehicleModel.updateControls(jump,          // TODO: tank conttoller only enable jump if in surface conttact
                             getLinearDirection(), getAngularDirection(), 0);
                 }
             }
@@ -349,12 +300,11 @@ private boolean asdf = true;
         playerUI.addInputListener(
                 buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
 
-
         pickedPlayer.add(new CharacterComponent(sbe));
 
 
         Array<Entity> characters = new Array<Entity>();
-        GameWorld.sceneLoader.buildCharacters(characters, engine, "characters", false); // TODO: needs to return characters for chaining ;)
+        GameWorld.sceneLoader.buildCharacters(characters, engine, "characters", false);
 
         for (Entity e : characters) {
 
@@ -369,16 +319,12 @@ private boolean asdf = true;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
-        Chaser asdf = new Chaser();
-        engine.addEntity(asdf.create(
+        Chaser chaser = new Chaser();
+        engine.addEntity(chaser.create(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
-        multiplexer.removeProcessor(camController);
-        multiplexer.removeProcessor(setupUI);
         multiplexer.addProcessor(playerUI);
         this.stage = playerUI;
-
-        engine.removeEntity(setupUICameraEntity); /// BAH
 
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
@@ -427,7 +373,6 @@ private boolean asdf = true;
         private Vector3 tmpV = new Vector3();
         private Vector3 posV = new Vector3();
         private GfxUtil lineInstance = new GfxUtil();
-
         /*
         we have no way to invoke a callback to the picked component.
         Pickable component required to implment some kind of interface to provide a
@@ -471,12 +416,6 @@ private boolean asdf = true;
     @Override
     public void render(float delta) {
 
-        String s;
-
-        if (isPicked) {
-            onPlayerPicked();
-        }
-
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -492,11 +431,21 @@ private boolean asdf = true;
         if (null != pickedPlayer) {
             CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+
             if (null != comp) {
                 mc.modelInst.transform.getTranslation(position);
                 mc.modelInst.transform.getRotation(rotation);
                 lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
                 pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
+            }
+
+            // crude  hack for platform disappear effect
+            if (platformColor.a > 0.1f) {
+                platformColor.a -= 0.005f;
+                ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
+            } else if (platformColor.a > 0) {
+                engine.removeEntity(platformEntity);
+                platformColor.a = 0;
             }
         }
 //*/
@@ -504,6 +453,7 @@ private boolean asdf = true;
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
 /*
+        String s;
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 100, Gdx.graphics.getHeight());
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
@@ -512,8 +462,7 @@ private boolean asdf = true;
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
 */
 
-        if (null != renderSystem
-                && null != pickedPlayer) {
+        if (null != renderSystem && null != pickedPlayer) {
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
             //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
@@ -544,25 +493,15 @@ private boolean asdf = true;
 */
 //*//////////////////////////////
 
-        // note: I protected for null camera system on the input hhandler ... do
-        // we want to update the stage if not Done Loading?
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
         if (roundOver) {
             roundOver = false;
-//            respawn();
             GameWorld.getInstance().showScreen(new MainMenuScreen());
         }
     }
 
-    private void respawn() {
-        engine.removeSystem(bulletSystem); // make the system dispose its stuff
-        engine.removeSystem(renderSystem); // make the system dispose its stuff
-        engine.removeAllEntities(); // allow listeners to be called (for disposal)
-        pickedPlayer = null; // removeallentities does not nullify the entity itself?
-        newRound();
-    }
 
     @Override
     public void resize(int width, int height) {
