@@ -22,7 +22,7 @@ public class IUserInterface extends Stage {
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    public void addChangeListener(ChangeListener touchPadChangeListener) {
+    protected void addChangeListener(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
@@ -62,7 +62,7 @@ public class IUserInterface extends Stage {
         background.dispose();
     }
 
-    public void addInputListener(InputListener listener, Pixmap pixmap, float x, float y) {
+    protected void addInputListener(InputListener listener, Pixmap pixmap, float x, float y) {
 
         Texture myTexture = new Texture(pixmap);
         TextureRegion myTextureRegion = new TextureRegion(myTexture);
@@ -70,14 +70,18 @@ public class IUserInterface extends Stage {
 
         ImageButton button = new ImageButton(myTexRegionDrawable);
         button.setPosition(x, y);
-        button.addListener(listener);
+
+        if (null != listener)
+            button.addListener(listener);
 
         this.addActor(button);
     }
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
+        if (keycode == Input.Keys.BACK
+                || keycode == Input.Keys.ESCAPE  // Android "Back" on-screen button (not handled by libGdx framework apparently)
+                ) {
 
             GameWorld.getInstance().showScreen(new MainMenuScreen());
         }
