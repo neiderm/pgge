@@ -30,7 +30,6 @@ import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Random;
 
 
@@ -41,7 +40,7 @@ import java.util.Random;
 public class SceneLoader implements Disposable {
 
     private GameData gameData;
-//    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
+    //    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
     private AssetManager assets;
 
@@ -111,7 +110,7 @@ public class SceneLoader implements Disposable {
 //        saveData();
     }
 
-    public AssetManager getAssets(){
+    public AssetManager getAssets() {
         return assets;
     }
 
@@ -159,6 +158,7 @@ public class SceneLoader implements Disposable {
                 this.isKinematic = true;
                 this.scale = new Vector3(1, 1, 1); // placeholder
             }
+
             static class InstanceData {
                 InstanceData() {
                 }
@@ -176,7 +176,7 @@ public class SceneLoader implements Disposable {
 
             Array<InstanceData> instanceData = new Array<InstanceData>();
             String objectName;
-//            Vector3 translation; // needs to be only per-instance
+            //            Vector3 translation; // needs to be only per-instance
             Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
             float mass;
             String meshShape; // triangleMeshShape, convexHullShape
@@ -322,7 +322,8 @@ public class SceneLoader implements Disposable {
 instances should be same size/scale so that we can pass one collision shape to share between them
  */
                 Entity e = buildObjectInstance(gameObject, i, model, gameObject.objectName);
-                engine.addEntity(e);
+                if (null != e)
+                    engine.addEntity(e);
             }
         }
     }
@@ -337,22 +338,24 @@ instances should be same size/scale so that we can pass one collision shape to s
 //        String node = gameObject.objectName;
 
 /// BaseEntityBuilder.load ??
-        Entity e = new Entity();
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+        if (null == instance)
+            return null;
+
+        Entity e = new Entity();
 
         /*
-Note only skySphere object using this right now
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
-        if (null != gameObject.scale){
+        if (null != gameObject.scale) {
 // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
             instance.nodes.get(0).scale.set(gameObject.scale);
             instance.calculateTransforms();
         }
 
         // leave translation null if using translation from the model layout
-        if (null != i ) {
+        if (null != i) {
             if (null != i.rotation) {
                 instance.transform.idt();
                 instance.transform.rotate(i.rotation);
@@ -400,12 +403,12 @@ Note only skySphere object using this right now
     }
 
 
-    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject){
+    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject) {
 
         buildCharacters(characters, engine, groupName, addPickObject, true);
     }
 
-    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject, boolean useBulletComp){
+    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject, boolean useBulletComp) {
 
         String tmpName;
         if (null != groupName)
@@ -414,9 +417,10 @@ Note only skySphere object using this right now
             tmpName = "tanks";
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
+
             Entity e = buildTank(gameObject, useBulletComp);
 
-            if (null != characters){
+            if (null != characters) {
                 characters.add(e);
             }
 
@@ -431,14 +435,14 @@ Note only skySphere object using this right now
      but trans and rotation are provided for models that I don't have object to modify or if
      instances are used (don't anticipate instances being typical on this one)
      */
-    private Entity /* createLandscape*/ objectFromMeshParts(Model model, Vector3 trans, Quaternion rotation) {
+    private Entity objectFromMeshParts(Model model, Vector3 trans, Quaternion rotation) {
 
         Entity e = new Entity();
         ModelInstance inst = new ModelInstance(model);
         inst.transform.idt().rotate(rotation).trn(trans);
         e.add(new ModelComponent(inst));
 
-        btCollisionShape         shape = new btBvhTriangleMeshShape(model.meshParts);
+        btCollisionShape shape = new btBvhTriangleMeshShape(model.meshParts);
 
         // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
 //        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
@@ -451,19 +455,6 @@ Note only skySphere object using this right now
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
 
-        return e;
-    }
-
-    public Entity buildObjectByName(Engine engine, String name) {
-        Entity e = null;
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("tanks").gameObjects) {
-
-            if (null != gameObject && gameObject.objectName.contains(name)) {
-                e = buildTank(gameObject, true);
-                addPickObject(engine, e, gameObject.objectName);
-                break;
-            }
-        }
         return e;
     }
 
@@ -536,7 +527,7 @@ Note only skySphere object using this right now
                 }
                 // hmmm .. here is for the skybox - generalize it? (anything else, load it this way?)
             } else // if (o.objectName.equals("skySphere"))
-                 {
+            {
                 // hack this is here only to get the model name
                 buildObject(engine, o, PrimitivesBuilder.primitivesModel);
             }
@@ -561,7 +552,7 @@ Note only skySphere object using this right now
 
             for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
-                GameData.GameObject cpObject =  new GameData.GameObject(o.objectName, o.meshShape);
+                GameData.GameObject cpObject = new GameData.GameObject(o.objectName, o.meshShape);
 
                 for (GameData.GameObject.InstanceData i : o.instanceData) {
 

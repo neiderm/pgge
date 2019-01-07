@@ -147,17 +147,16 @@ class GameScreen implements Screen {
 
         addSystems();
 
-        String objectName = GameWorld.getInstance().getPlayerObjectName();
-        pickedPlayer = GameWorld.sceneLoader.buildObjectByName(engine, objectName);
 
         Vector3 scale = new Vector3(4, 1, 4);
         Vector3 trans = new Vector3(0, 10, -5);
         PrimitivesBuilder pb = PrimitivesBuilder.getBoxBuilder("box");
         platformEntity = pb.create(0.0f, trans, scale);
-        ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
+        ModelInstanceEx.setColorAttribute(
+                platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         engine.addEntity(platformEntity);
 
-//        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
+        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
         GameWorld.sceneLoader.buildArena(engine);
 
         multiplexer = new InputMultiplexer();
@@ -246,8 +245,22 @@ class GameScreen implements Screen {
 
     private void onPlayerPicked() {
 
-        pickedPlayer.remove(PickRayComponent.class);
         GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
+
+
+        Array<Entity> characters = new Array<Entity>();
+        GameWorld.sceneLoader.buildCharacters(characters, engine, "tanks", true); // hack object name embedded into pick component
+
+        String objectName = GameWorld.getInstance().getPlayerObjectName();
+
+        for (Entity e : characters) {
+            if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
+                pickedPlayer = e;
+            }
+            else engine.removeEntity(e); // bah
+        }
+        pickedPlayer.remove(PickRayComponent.class);
+
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
@@ -303,7 +316,8 @@ class GameScreen implements Screen {
         pickedPlayer.add(new CharacterComponent(sbe));
 
 
-        Array<Entity> characters = new Array<Entity>();
+        characters = new Array<Entity>();
+
         GameWorld.sceneLoader.buildCharacters(characters, engine, "characters", false);
 
         for (Entity e : characters) {
