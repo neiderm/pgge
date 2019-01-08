@@ -181,10 +181,8 @@ class GameScreen implements Screen {
             else
                 multiplexer.removeProcessor(camController);
 
-            return true;
+            return false;
         }
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {/* empty */ }
     };
 
 
@@ -214,7 +212,7 @@ class GameScreen implements Screen {
                     pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
                     //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
                 }
-                return true;
+                return false;
             }
         };
     }

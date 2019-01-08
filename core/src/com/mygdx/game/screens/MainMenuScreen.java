@@ -153,17 +153,12 @@ text.setText("Play___!");
 
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            return true;
-        }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 
 //            GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
             GameWorld.getInstance().showScreen(getLoadingScreen());
 //            Gdx.input.setCatchBackKey(true);
 
-            Gdx.app.log("MainMenu Screen", "-> buttonBListener ... showScreen(new GameScreen");
+            return false;
         }
     };
 
