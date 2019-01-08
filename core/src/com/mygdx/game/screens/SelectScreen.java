@@ -39,7 +39,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 class SelectScreen implements Screen {
 
-    private static final int MAXTANKS3_3Z =3;
+    private static final int MAXTANKS3_3Z = 3;
 
     private Engine engine;
     private Controller connectedCtrl;
@@ -122,7 +122,7 @@ class SelectScreen implements Screen {
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
         platform = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(4, 1, 4));
         engine.addEntity(platform);
-        ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst,  Color.GOLD, 0.1f);
+        ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
         platform.getComponent(ModelComponent.class).modelInst.transform.setTranslation(origin);
 
 /*
@@ -168,18 +168,28 @@ class SelectScreen implements Screen {
         // If a controller is connected, find it and grab a link to it
         int i = 0;
         for (Controller c : Controllers.getControllers()) {
-            Gdx.app.log("SelectScreen","#" + i++ + ": " + c.getName());
+            Gdx.app.log("SelectScreen", "#" + i++ + ": " + c.getName());
             connectedCtrl = c;
             // save index i for later ref?
         }
 
         stage = new Stage();
-        stage.addListener(new InputListener(){
-            @Override
-            public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
-                return true; // must return true in order for touch up, dragged to work!
-            }
-        });
+        stage.addListener(new InputListener() {
+                              @Override
+                              public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                                  Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
+// work around troubles with dectecting touch Down vs touch Down+swipe
+                                  if (y < 100)
+                                      setKeyDown(KEY_ANY);
+
+                                  return true; // must return true in order for touch up, dragged to work!
+                              }
+
+                              public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                                  touchPadDx = 0;
+                              }
+                          }
+        );
 
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
@@ -197,16 +207,16 @@ class SelectScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
     }
 
-/*
- * keep the reference so the listener can be removed at dispose()
- */
+    /*
+     * keep the reference so the listener can be removed at dispose()
+     */
     private final ControllerListenerAdapter controllerListener = new ControllerListenerAdapter() {
-            @Override
-            public boolean buttonDown(Controller controller, int buttonIndex) {
-                setKeyDown(KEY_ANY);
-                return false;
-            }
-        };
+        @Override
+        public boolean buttonDown(Controller controller, int buttonIndex) {
+            setKeyDown(KEY_ANY);
+            return false;
+        }
+    };
 
 
     private void addSystems() {
@@ -223,7 +233,7 @@ class SelectScreen implements Screen {
 
 
     private int touchPadDx;
-    private boolean isTouched;
+
     /*
      * "virtual dPad" provider (only cares about left/right)
      */
@@ -250,36 +260,23 @@ class SelectScreen implements Screen {
         }
 
         if (Gdx.input.isTouched()) {
-
-            isTouched = true;
-
+            // check if in a swipe event already
             if (0 == touchPadDx) {
 
                 touchPadDx = Gdx.input.getDeltaX();
 
-                if (touchPadDx < 0) {
+                if (touchPadDx < -1) {
                     dPadXaxis = -1;
-                } else if (touchPadDx > 0) {
+                } else if (touchPadDx > 1) {
                     dPadXaxis = 1;
                 }
             }
-        } else {
-            // NOT touched
-            if (Math.abs(touchPadDx) > 0) {
-                // unlatch the touch-drag event in progress ... why not use onTouchUp silly ... ?
-                touchPadDx = 0;
-            }
-            else {
-                if (isTouched)
-                    setKeyDown(KEY_ANY);
-            }
-            isTouched = false;
         }
 
         return dPadXaxis;
     }
 
-    private int getKeyDown(){
+    private int getKeyDown() {
 
         int rv = keyDown;
 
@@ -297,7 +294,7 @@ class SelectScreen implements Screen {
         return rv;
     }
 
-    private void setKeyDown(int keyDown){
+    private void setKeyDown(int keyDown) {
 
         this.keyDown = keyDown;
     }
@@ -341,21 +338,20 @@ class SelectScreen implements Screen {
                 degreesStep += 0.1f * sign;
             }
             degreesInst += step;
-        }
-        else {
+        } else {
             degreesInst = degreesSetp;
             degreesStep = 0;
         }
 
-        for (int n = 0; n < MAXTANKS3_3Z; n++){
+        for (int n = 0; n < MAXTANKS3_3Z; n++) {
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
             double rads = Math.toRadians(degreesInst + n * platformInc);
 
-            position.x = (float)Math.cos(rads);
+            position.x = (float) Math.cos(rads);
             position.y = positions[n].y;
-            position.z = (float)Math.sin(rads);
+            position.z = (float) Math.sin(rads);
 
 //            GfxUtil.getVertex(verts, n, 7, point, color);
 
@@ -420,8 +416,8 @@ class SelectScreen implements Screen {
         }
 
         int keyState = getKeyDown();
-        if (KEY_BACK == keyState){
-                  GameWorld.getInstance().showScreen(new MainMenuScreen());
+        if (KEY_BACK == keyState) {
+            GameWorld.getInstance().showScreen(new MainMenuScreen());
         } else if (KEY_ANY == keyState) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
             if (
                     null != pickedTransform                  // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
