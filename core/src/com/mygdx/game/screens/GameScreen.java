@@ -87,7 +87,6 @@ class GameScreen implements Screen {
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private IUserInterface stage;
     private IUserInterface playerUI;
-    private IUserInterface setupUI;
 
     private InputMultiplexer multiplexer;
 
@@ -455,8 +454,9 @@ class GameScreen implements Screen {
             if (platformColor.a > 0.1f) {
                 platformColor.a -= 0.005f;
                 ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
-            } else if (platformColor.a > 0) {
+            } else if (null != platformEntity) { // (platformColor.a > 0) {
                 engine.removeEntity(platformEntity);
+                //platformEntity.remove(BulletComponent.class); // idfk
                 platformColor.a = 0;
             }
         }
@@ -537,10 +537,7 @@ class GameScreen implements Screen {
 
         //maybe we should do something more elegant here ...
 // fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
-        if (null != playerUI)
-            playerUI.dispose();
-        if (null != setupUI)
-            setupUI.dispose();
+        this.stage.dispose();
     }
 
     /*
