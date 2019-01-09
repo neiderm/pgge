@@ -42,7 +42,7 @@ modelGroups: {
 	tanks: {
 		gameObjects: [
 			{
-				objectName: ship
+				objectName: offroadcar
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -112,5 +112,8 @@ modelInfo: {
 	tank: {
 		fileName: tanks/panzerwagen.g3db
 	}
+	offroadcar: {
+		fileName: tanks/offroadcar.g3db
+	}	
 }
 }

@@ -103,7 +103,7 @@ modelGroups: {
 						}
 					}
 				]
-				objectName: box
+				objectName: doNotLoadMe
 				scale: {
 					x: 4
 					y: 1
@@ -228,27 +228,6 @@ modelGroups: {
 			{
 				instanceData: [
 					{
-						rotation: {
-							x: -0.6532809
-							y: 0.27059796
-							z: 0.27059796
-							w: 0.65328205
-						}
-						translation: {
-							x: -16
-							y: -7.843969
-							z: -6
-						}
-					}
-				]
-				objectName: mushroom
-				meshShape: convexHullShape
-				isKinematic: true
-				isShadowed: true
-			}
-			{
-				instanceData: [
-					{
 						rotation: {}
 						translation: {
 							x: 0
@@ -325,7 +304,7 @@ modelGroups: {
 				]
 			}
 			{
-				objectName: ship
+				objectName: offroadcar
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -370,18 +349,6 @@ modelGroups: {
 				isShadowed: true
 			}
 			{
-				objectName: cube_static*
-				meshShape: none
-				isKinematic: false
-				isShadowed: true
-			}
-			{
-				objectName: mushroom
-				meshShape: convexHullShape
-				isKinematic: true
-				isShadowed: true
-			}
-			{
 				objectName: Platform.*
 				meshShape: btBoxShape
 				isKinematic: true
@@ -404,27 +371,6 @@ modelGroups: {
 	}
 	areeners: {
 		gameObjects: [
-			{
-				instanceData: [
-					{
-						rotation: {
-							x: 0.17364818
-							y: 0
-							z: 0
-							w: 0.9848077
-						}
-						translation: {
-							x: 0
-							y: -10
-							z: 0
-						}
-					}
-				]
-				objectName: landscape
-				meshShape: triangleMeshShape
-				isKinematic: true
-				isShadowed: true
-			}
 		]
 	}
 }
@@ -439,6 +385,9 @@ modelInfo: {
 	}
 	tank: {
 		fileName: tanks/panzerwagen.g3db
+	}
+	offroadcar: {
+		fileName: tanks/offroadcar.g3db
 	}
 	scene: {
 		fileName: data/scene.g3dj
