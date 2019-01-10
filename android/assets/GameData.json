@@ -20,7 +20,7 @@ modelGroups: {
 				]
 			}
 			{
-				objectName: tank
+				objectName: ship
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -37,7 +37,7 @@ modelGroups: {
 				]
 			}
 			{
-				objectName: tank
+				objectName: ship
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -287,7 +287,7 @@ modelGroups: {
 	tanks: {
 		gameObjects: [
 			{
-				objectName: ship
+				objectName: militaryvan
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -379,6 +379,9 @@ modelInfo: {
 	}
 	objects: {
 		fileName: data/cubetest.g3dj
+	}
+	militaryvan: {
+		fileName: tanks/militaryvan.g3db
 	}
 	ship: {
 		fileName: tanks/ship.g3db

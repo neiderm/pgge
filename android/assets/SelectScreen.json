@@ -59,7 +59,7 @@ modelGroups: {
 				]
 			}
 			{
-				objectName: ship
+				objectName: militaryvan
 				mass: 5.1
 				meshShape: convexHullShape
 				isKinematic: false
@@ -106,6 +106,9 @@ modelGroups: {
 modelInfo: {
 	primitives: {
 	}
+	militaryvan: {
+		fileName: tanks/militaryvan.g3db
+	}	
 	ship: {
 		fileName: tanks/ship.g3db
 	}
