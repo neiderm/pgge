@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 
 public class SplashScreen implements Screen {
 
+    private static String dataFileName = "SelectScreen.json";
     private SpriteBatch batch;
     private Texture ttrSplash;
 
@@ -48,7 +49,7 @@ public class SplashScreen implements Screen {
         if (isTouched
                 || Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
 
-            GameWorld.getInstance().showScreen(new LoadingScreen("SetupScrn.json", false, LoadingScreen.ScreenTypes.SETUP));
+            GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
 //            Gdx.input.setCatchBackKey(true);
 
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
