@@ -2,7 +2,6 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -29,9 +28,7 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.characters.ControllerListenerAdapter;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -61,34 +58,33 @@ class SelectScreen implements Screen {
 
     private Stage stage;
 
-    private Signal<GameEvent> pickRayEventSignal;
-
     private Entity platform;
 
     private Array<Entity> characters = new Array<Entity>();
 
-    private Vector3 origin = new Vector3(0, 10, -5);
+    private final Vector3 origin = new Vector3(0, 0, 0);
 
     private Matrix4 pickedTransform;
     private int selectedIndex;
+
     // position them into equilateral triangle (sin/cos)
     private Vector3[] positions = new Vector3[]{
-            new Vector3(0, 0, -1),
-            new Vector3(-0.866f, 0, 0.5f),
-            new Vector3(0.866f, 0, 0.5f)
+/*
+            new Vector3(0, 0, 1),
+            new Vector3(-0.866f, 0, -0.5f),
+            new Vector3(0.866f, 0, -0.5f)
+            */
+            new Vector3(),
+            new Vector3(),
+            new Vector3()
     };
-
+    private float[] orientationOffsets =
+            new float[]{0 * PLATFRM_INC_DEGREES, 1 * PLATFRM_INC_DEGREES, 2 * PLATFRM_INC_DEGREES};
 
     SelectScreen() {
 
-        pickRayEventSignal = new Signal<GameEvent>();
-
         engine = new Engine();
 
-        // been using same light setup as ever
-        //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-        // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
-//        Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
         environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
@@ -115,53 +111,26 @@ class SelectScreen implements Screen {
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
 
-        addSystems();
+        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
 
 
 // build the platform moanually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
-        platform = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(4, 1, 4));
+        platform = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(4, 0.5f, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
         platform.getComponent(ModelComponent.class).modelInst.transform.setTranslation(origin);
+///*
+        Entity asdf = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(.1f, .1f, .1f));
+        engine.addEntity(asdf);
+        ModelInstanceEx.setColorAttribute(asdf.getComponent(ModelComponent.class).modelInst, Color.PURPLE, 1f);
+        asdf.getComponent(ModelComponent.class).modelInst.transform.setTranslation(new Vector3(0, 0.25f, 0));
+        //*/
 
-/*
-        final ModelBuilder mb = new ModelBuilder();
-        long attributes =
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
-        mb.begin();
-        mb.node().id = "triangle";
-        mb.part("triangle", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
-        triModel = mb.end();
-*/
-/*
-        triModel =  GfxUtil.makeModelMesh(3, "triangle");
-        // get model instance and translate it
-        triModelInstance = new ModelInstance(triModel);
-
-        Node modelNode = triModelInstance.getNode("node1");
-        MeshPart meshPart = modelNode.parts.get(0).meshPart;
-
-        float[] verts = MeshHelper.getVertices(meshPart);
-        GfxUtil.setVertex(verts, 0, 7, new Vector3(0, 0, -1), new Color() );
-        GfxUtil.setVertex(verts, 1, 7, new Vector3(-1, 0, -1), new Color() );
-        GfxUtil.setVertex(verts, 2, 7, new Vector3(0.5f, 0, -1), new Color() );
-
-        meshPart.mesh.setVertices(verts);
-
-        triModelInstance.pickedTransform.translate(0, 10.5f, -5);
-*/
         GameWorld.sceneLoader.buildCharacters(
                 characters, engine, "tanks", true, false);
 
         GameWorld.sceneLoader.buildArena(engine);
-
-        pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
-
-        // make sure to initialize in case user does not rotate the selector platform
-        GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
-
 
         Controllers.addListener(controllerListener);
 
@@ -184,7 +153,7 @@ class SelectScreen implements Screen {
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
-
+                              @Override
                               public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                                   touchPadDx = 0;
                               }
@@ -196,8 +165,8 @@ class SelectScreen implements Screen {
         stage.addActor(label);
 
         // point the camera to platform
-        final Vector3 camPosition = new Vector3(0f, 13.5f, 02f);
-        final Vector3 camLookAt = new Vector3(0f, 10f, -5.0f);
+        final Vector3 camPosition = new Vector3(0, 2, 1.5f); // final Vector3 camPosition = new Vector3(0f, 1, 3);
+        final Vector3 camLookAt = new Vector3(0, 0, 0);
 
         cam.position.set(camPosition);
         cam.lookAt(camLookAt);
@@ -205,7 +174,19 @@ class SelectScreen implements Screen {
         cam.update();
 
         Gdx.input.setInputProcessor(stage);
+
+
+        // TODO: rotate to arbitrary initial orientation but positions[] is not update
+        selectedIndex = 0;
+
+        pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
+
+        // make sure to initialize in case user does not rotate the selector platform
+        GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+
+        updateTanks(orientationOffsets[selectedIndex]);
     }
+
 
     /*
      * keep the reference so the listener can be removed at dispose()
@@ -217,13 +198,6 @@ class SelectScreen implements Screen {
             return false;
         }
     };
-
-
-    private void addSystems() {
-
-        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
-        engine.addSystem(new PickRaySystem(pickRayEventSignal));
-    }
 
 
     @Override
@@ -260,7 +234,7 @@ class SelectScreen implements Screen {
         }
 
         if (Gdx.input.isTouched()) {
-            // check if in a swipe event already
+            // make sure not in a swipe event already
             if (0 == touchPadDx) {
 
                 touchPadDx = Gdx.input.getDeltaX();
@@ -283,11 +257,9 @@ class SelectScreen implements Screen {
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
                 Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             rv = 0; // "d-pad" ... no-op
-        }
-        else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)){
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
             rv = KEY_BACK;
-        }
-        else if (Gdx.input.isKeyJustPressed(Input.Keys.ANY_KEY)){
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ANY_KEY)) {
             rv = KEY_ANY;
         }
         keyDown = 0; // unlatch the input state
@@ -313,22 +285,13 @@ class SelectScreen implements Screen {
     private float degreesSetp;
     private float degreesStep; // ramp rate limiting
     private float platformAngularDirection;
+    private static final float PLATFRM_INC_DEGREES = 120f;
+
 
     /*
-     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-     * "Note that using a StringBuilder is highly recommended against string concatenation in your
-     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
+     * steps to the current orientation by applying proportional control with ramp-up
      */
-    @Override
-    public void render(float delta) {
-/*
-        triModelInstance.pickedTransform.rotate(down.set(0, 1, 0), 0.5f);
-        Node modelNode = triModelInstance.getNode("node1");
-        MeshPart meshPart = modelNode.parts.get(0).meshPart;
-        float[] verts = MeshHelper.getVertices(meshPart);
-*/
-
-        final float platformInc = 120f;
+    private void updateRotation() {
         float step = (degreesSetp - degreesInst) * 0.2f; // error * kP
 
         // I think we will have a discrete flag to 1) only show the marker line when locked to position and 2) only allow enter/select when in position
@@ -342,31 +305,48 @@ class SelectScreen implements Screen {
             degreesInst = degreesSetp;
             degreesStep = 0;
         }
+    }
+
+
+    private void updateTanks(float rotationDegrees) {
 
         for (int n = 0; n < MAXTANKS3_3Z; n++) {
 
             Vector3 position = positions[n]; // not actually using the position values out of here right now
 
-            double rads = Math.toRadians(degreesInst + n * platformInc);
+            double rads = Math.toRadians(rotationDegrees + orientationOffsets[n]);
 
             position.x = (float) Math.cos(rads);
             position.y = positions[n].y;
             position.z = (float) Math.sin(rads);
 
-//            GfxUtil.getVertex(verts, n, 7, point, color);
-
             Entity e = characters.get(n);
 
             e.getComponent(ModelComponent.class).modelInst.transform.setToTranslation(0, 0, 0);
-            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degreesInst);
+            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - rotationDegrees);
             e.getComponent(ModelComponent.class).modelInst.transform.trn(position);
             e.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
         }
+    }
 
-        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - degreesInst);
+    private void updatePlatform(float rotationDegrees) {
+
+        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - rotationDegrees);
         platform.getComponent(ModelComponent.class).modelInst.transform.trn(origin);
+    }
 
-
+    /*
+     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+     * "Note that using a StringBuilder is highly recommended against string concatenation in your
+     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
+     */
+    @Override
+    public void render(float delta) {
+///*
+        updateRotation();
+        updateTanks(degreesInst);
+        updatePlatform(degreesInst);
+//*/
         if (null != pickedTransform) {
             RenderSystem.debugGraphics.add(gfxLine.line(pickedTransform.getTranslation(tmpV),
                     ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
@@ -391,8 +371,7 @@ class SelectScreen implements Screen {
             if (0 == platformAngularDirection) {
                 // not set so increment the degrees
                 platformAngularDirection = -tmp;
-                degreesSetp += platformInc * platformAngularDirection;
-//                Gdx.app.log("asdf", "degreesSetp " + degreesSetp);
+                degreesSetp += PLATFRM_INC_DEGREES * platformAngularDirection;
 
                 // cycle thru position 0 1 2 etc.
                 int saveSelectIndex = selectedIndex;
@@ -402,13 +381,11 @@ class SelectScreen implements Screen {
                 else if (selectedIndex < 0)
                     selectedIndex = MAXTANKS3_3Z - 1;
 
-                // lower previous
-                pickedTransform = characters.get(saveSelectIndex).getComponent(ModelComponent.class).modelInst.transform;
-                pickedTransform.trn(down.set(0, -0.5f, 0));
-
-                // raise current selection
+                // lower previous and raise current selection
+//                pickedTransform = characters.get(saveSelectIndex).getComponent(ModelComponent.class).modelInst.transform;
+//                pickedTransform.trn(down.set(0, -0.5f, 0));
                 pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
-                pickedTransform.trn(down.set(0, 0.5f, 0));
+//                pickedTransform.trn(down.set(0, 0.5f, 0));
             }
         } else {
             // "key up" ... release the latch-out
@@ -449,7 +426,6 @@ class SelectScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
-//        triModel.dispose();
     }
 
     /*
