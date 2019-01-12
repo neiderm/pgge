@@ -26,6 +26,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.characters.ControllerListenerAdapter;
+import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.RenderSystem;
@@ -34,6 +35,13 @@ import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 
+/*
+ * crudely knock together the revolving rig selector platform thingy (intend short load time!)
+ * There is no scene graph here, and Bullet physics is not used either. so it's just raw math to
+ * revolve and push things around in the  3D world. Intend to man up and use a real math and
+ * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
+ * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
+ */
 class SelectScreen implements Screen {
 
     private static final int MAXTANKS3_3Z = 3;
@@ -129,12 +137,7 @@ class SelectScreen implements Screen {
         Controllers.addListener(controllerListener);
 
         // If a controller is connected, find it and grab a link to it
-        int i = 0;
-        for (Controller c : Controllers.getControllers()) {
-            Gdx.app.log("SelectScreen", "#" + i++ + ": " + c.getName());
-            connectedCtrl = c;
-            // save index i for later ref?
-        }
+        connectedCtrl = InputStruct.getConnectedCtrl(0); // I stuck the Controller AL in there ;)
 
         stage = new Stage();
         stage.addListener(new InputListener() {
@@ -193,7 +196,19 @@ class SelectScreen implements Screen {
     private final ControllerListenerAdapter controllerListener = new ControllerListenerAdapter() {
         @Override
         public boolean buttonDown(Controller controller, int buttonIndex) {
-            setKeyDown(INP_SELECT);
+
+            final int BUTTON_CODE_0 = 0; // X   (my cheapo USB labels this "1")
+            final int BUTTON_CODE_3 = 3; // triangle
+
+            Gdx.app.log("SelectScreen", "ControllerListenerAdapter:buttonDown:buttonIndex = " + buttonIndex);
+
+            if (BUTTON_CODE_0 == buttonIndex ){
+                setKeyDown(INP_SELECT);
+            }
+            if (BUTTON_CODE_3 == buttonIndex ){
+                setKeyDown(INP_BACK);
+            }
+
             return false;
         }
     };
@@ -417,7 +432,7 @@ class SelectScreen implements Screen {
 
         int inputState = getKeyDown();
         if (INP_BACK == inputState) {
-            GameWorld.getInstance().showScreen(new MainMenuScreen());
+            GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
         } else if (INP_SELECT == inputState) {
             GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));

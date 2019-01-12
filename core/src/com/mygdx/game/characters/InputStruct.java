@@ -1,5 +1,7 @@
 package com.mygdx.game.characters;
 
+import com.badlogic.gdx.controllers.Controller;
+import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.utils.ArrayMap;
 
 /**
@@ -48,9 +50,9 @@ public abstract class InputStruct implements CtrlMapperIntrf {
     private InputStruct.ButtonData buttonsData = new InputStruct.ButtonData();
 
 
-    protected InputStruct(){
+    protected InputStruct() {
 
-        buttonSet( InputStruct.ButtonsEnum.BUTTON_1, 0, false );
+        buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 0, false);
     }
 
 
@@ -59,7 +61,7 @@ public abstract class InputStruct implements CtrlMapperIntrf {
         int value;
         boolean isRepeatable;
 
-        ButtonData setValue(int value, boolean isRepeatable){
+        ButtonData setValue(int value, boolean isRepeatable) {
             this.value = value;
             this.isRepeatable = isRepeatable;
             return this;
@@ -73,24 +75,29 @@ public abstract class InputStruct implements CtrlMapperIntrf {
 
         int value = data.value;
         if (!data.isRepeatable)
-            buttonSet(key, 0, false /* hmmmm */ ); // delatch it
+            buttonSet(key, 0, false /* hmmmm */); // delatch it
 
         return value;
     }
 
-    void buttonSet(ButtonsEnum key, int value, boolean isRepeated){
+    void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
 
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
     }
 
-    public int jumpButtonGet(){
+    public int jumpButtonGet() {
+        // "Circle" button
         return buttonGet(ButtonsEnum.BUTTON_1);
     }
 
 
-    public float getLinearDirection(){ return linearD; }
+    public float getLinearDirection() {
+        return linearD;
+    }
 
-    public float getAngularDirection(){ return angularD; }
+    public float getAngularDirection() {
+        return angularD;
+    }
 
     public enum ButtonsEnum { // idfk
         BUTTON_NONE,
@@ -109,9 +116,13 @@ public abstract class InputStruct implements CtrlMapperIntrf {
     /*
      reverse, e.g. stick back, or ...... (inReverse+gasApplied) ...both sticks back
      */
-    public int getReverse(){return 0;}
+    public int getReverse() {
+        return 0;
+    }
 
-    public int getForward(){return 0;}
+    public int getForward() {
+        return 0;
+    }
 
 //    private Object UIPictureDiagram; // idfk
 
@@ -123,7 +134,7 @@ public abstract class InputStruct implements CtrlMapperIntrf {
                        -1.0   +   +1.0
                             + 1.0
      */
-    void setAxis(int axisIndex, float[] values){
+    void setAxis(int axisIndex, float[] values) {
 
         final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
@@ -150,4 +161,19 @@ public abstract class InputStruct implements CtrlMapperIntrf {
         // else ... inside deadzone
 
     }
+
+
+    public static Controller getConnectedCtrl(int selectControl) {
+        // If a controller is connected, find it and grab a link to it
+        Controller connectedCtrl = null;
+        int i = 0;
+        for (Controller c : Controllers.getControllers()) {
+            if (i++ == selectControl) {
+                connectedCtrl = c;
+                break;
+            }
+        }
+        return connectedCtrl;
+    }
+
 }
