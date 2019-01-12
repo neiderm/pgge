@@ -63,7 +63,6 @@ class SelectScreen implements Screen {
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
 
-    private Matrix4 pickedTransform;
     private int selectedIndex;
 
     private final float Y_COORD_ON_PLATFORM = 0.1f;
@@ -115,13 +114,12 @@ class SelectScreen implements Screen {
                 0, null, new Vector3(4, Y_COORD_ON_PLATFORM * 2, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
-//        platform.getComponent(ModelComponent.class).modelInst.transform.setTranslation( new Vector3(0, -10, 0) /*originCoordinate*/);
-///*
+/*
         Entity asdf = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(.1f, .1f, .1f));
         engine.addEntity(asdf);
         ModelInstanceEx.setColorAttribute(asdf.getComponent(ModelComponent.class).modelInst, Color.PURPLE, 1f);
         asdf.getComponent(ModelComponent.class).modelInst.transform.setTranslation(new Vector3(0, 0.25f, 0));
-//*/
+*/
 
         GameWorld.sceneLoader.buildCharacters(
                 characters, engine, "tanks", true, false);
@@ -145,7 +143,7 @@ class SelectScreen implements Screen {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
                                   if (y < 100)
-                                      setKeyDown(KEY_ANY);
+                                      setKeyDown(INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
@@ -161,8 +159,7 @@ class SelectScreen implements Screen {
         stage.addActor(label);
 
         // point the camera to platform
-//        final Vector3 camPosition = new Vector3(0, 1.2f, 3f); // ook
-        final Vector3 camPosition = new Vector3(0, .1f, 3f); // front low
+        final Vector3 camPosition = new Vector3(0, 1.2f, 3f); // ook
 //        final Vector3 camPosition = new Vector3(0, 2f, .001f); // test above
         final Vector3 camLookAt = new Vector3(0, 0, 0);
 
@@ -175,7 +172,6 @@ class SelectScreen implements Screen {
 
 
         selectedIndex = 2;
-        pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
 
         // make sure to initialize in case user does not rotate the selector platform
         GameWorld.getInstance().setPlayerObjectName(
@@ -197,7 +193,7 @@ class SelectScreen implements Screen {
     private final ControllerListenerAdapter controllerListener = new ControllerListenerAdapter() {
         @Override
         public boolean buttonDown(Controller controller, int buttonIndex) {
-            setKeyDown(KEY_ANY);
+            setKeyDown(INP_SELECT);
             return false;
         }
     };
@@ -261,9 +257,9 @@ class SelectScreen implements Screen {
                 Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             rv = 0; // "d-pad" ... no-op
         } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
-            rv = KEY_BACK;
+            rv = INP_BACK;
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            rv = KEY_ANY;
+            rv = INP_SELECT;
         }
         keyDown = 0; // unlatch the input state
         return rv;
@@ -275,8 +271,14 @@ class SelectScreen implements Screen {
     }
 
     private int keyDown;
-    private static final int KEY_ANY = 1;
-    private static final int KEY_BACK = -1;
+    /*
+        private enum InputState{
+            INP_SELECT,
+            INP_BACK
+        }
+    */
+    private static final int INP_SELECT = 1;
+    private static final int INP_BACK = -1;
 
     // tmp for the pick marker
     private GfxUtil gfxLine = new GfxUtil();
@@ -317,7 +319,7 @@ class SelectScreen implements Screen {
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
      */
-    private void updateTanks(float platformDegrees){
+    private void updateTanks(float platformDegrees) {
 
         for (int n = 0; n < MAXTANKS3_3Z; n++) {
 
@@ -325,7 +327,7 @@ class SelectScreen implements Screen {
             float positionDegrees = PLATFRM_INC_DEGREES * n;
 
             // final rotation of unit is Platform Degrees plus angular rotation to orient unit relative to platform
-            float orientionDegrees = positionDegrees - platformDegrees - TANK_MODEL_ORIENTATION ;
+            float orientionDegrees = positionDegrees - platformDegrees - TANK_MODEL_ORIENTATION;
 
             Vector3 position = positions[n]; // not actually using the position[] values right now
 
@@ -338,24 +340,32 @@ class SelectScreen implements Screen {
 
             Entity e = characters.get(n);
 
-            e.getComponent(ModelComponent.class).modelInst.transform.setToTranslation(0, 0, 0);
-            e.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0),
-                     positionDegrees + orientionDegrees);
-            e.getComponent(ModelComponent.class).modelInst.transform.trn(position);
-            e.getComponent(ModelComponent.class).modelInst.transform.trn(originCoordinate);
+            Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+            transform.setToTranslation(0, 0, 0);
+            transform.setToRotation(down.set(0, 1, 0), positionDegrees + orientionDegrees);
+            transform.trn(position);
+            transform.trn(originCoordinate);
 
-            if (selectedIndex == n){ // raise selected for arbitrary effect ;)
-                e.getComponent(ModelComponent.class).modelInst.transform.trn(down.set(0, 0.2f, 0));
+            if (selectedIndex == n) { // raise selected for arbitrary effect ;)
+                transform.trn(down.set(0, 0.2f, 0));
             }
         }
     }
 
     private void updatePlatform(float platformDegrees) {
 
-        platform.getComponent(ModelComponent.class).modelInst.transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
+        Matrix4 transform;
 
-        platform.getComponent(ModelComponent.class).modelInst.transform.setTranslation( new Vector3(originCoordinate));
-        platform.getComponent(ModelComponent.class).modelInst.transform.trn(0, -0.5f, 0); // arbitrary additional trn() of platform
+        transform = platform.getComponent(ModelComponent.class).modelInst.transform;
+        transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
+        transform.setTranslation(new Vector3(originCoordinate));
+        transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
+
+        // debug graphic
+        transform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
+        RenderSystem.debugGraphics.add(gfxLine.line(transform.getTranslation(tmpV),
+                ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
+                Color.RED));
     }
 
     /*
@@ -369,12 +379,6 @@ class SelectScreen implements Screen {
         updateRotation();
         updateTanks(degreesInst);
         updatePlatform(degreesInst);
-
-        if (null != pickedTransform) {
-            RenderSystem.debugGraphics.add(gfxLine.line(pickedTransform.getTranslation(tmpV),
-                    ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
-                    Color.RED));
-        }
 
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
@@ -396,11 +400,9 @@ class SelectScreen implements Screen {
                 platformAngularDirection = (-1) * tmp;  // negated (matches to left/right of car nearest to front of view)
                 degreesSetp += PLATFRM_INC_DEGREES * platformAngularDirection;
 
-                // cycle thru position 0 1 2 etc.
-
                 // lower previous (raise current selection in render step)
-                pickedTransform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
-                pickedTransform.trn(down.set(0, -0.5f, 0));
+                characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform.trn(
+                        down.set(0, -0.5f, 0));
 
                 selectedIndex += tmp;
                 if (selectedIndex >= MAXTANKS3_3Z)
@@ -413,16 +415,12 @@ class SelectScreen implements Screen {
             platformAngularDirection = 0;
         }
 
-        int keyState = getKeyDown();
-        if (KEY_BACK == keyState) {
+        int inputState = getKeyDown();
+        if (INP_BACK == inputState) {
             GameWorld.getInstance().showScreen(new MainMenuScreen());
-        } else if (KEY_ANY == keyState) { // mapper.buttonGet(InputStruct.ButtonsEnum.BUTTON_1);
-            if (
-                    null != pickedTransform                  // tmp, hack, using this as a stupid flag to indicate wether or not a tank has been picked
-                    ) {
-                GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
-                GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
-            }
+        } else if (INP_SELECT == inputState) {
+            GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+            GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }
     }
 
