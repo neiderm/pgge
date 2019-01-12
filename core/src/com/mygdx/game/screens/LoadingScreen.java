@@ -3,6 +3,7 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.SceneLoader;
+import com.mygdx.game.characters.InputStruct;
 
 import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.SETUP;
@@ -32,12 +34,13 @@ public class LoadingScreen implements Screen {
     private boolean isLoaded;
     private  boolean shouldPause = true;
     private ScreenTypes screenType = LEVEL;
+    private Controller connectedCtrl;
+
 
     public enum ScreenTypes {
         SETUP,
         LEVEL
     }
-
 
     LoadingScreen(String path, boolean shouldPause, ScreenTypes screenType){
         this(path);
@@ -67,6 +70,8 @@ public class LoadingScreen implements Screen {
 
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
         Gdx.input.setInputProcessor(new Stage());
+
+        connectedCtrl = InputStruct.getConnectedCtrl(0);
     }
 
     private void loadNewScreen(){
@@ -116,7 +121,8 @@ public class LoadingScreen implements Screen {
 
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)
-                    || Gdx.input.isKeyPressed(Input.Keys.SPACE)
+                    || Gdx.input.isKeyPressed(Input.Keys.SPACE)   //   can do a key up here ??????
+                    || connectedCtrl.getButton(Input.Buttons.LEFT)
                     || !shouldPause
                     ) {
                 loadNewScreen();
