@@ -60,6 +60,8 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
                 }
 
                 if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
+                    // I don't know if it's not getting debounced coming off of SelectScreen?
+                    Gdx.app.log("MainMenuScreen", "keyDown = " + keycode);
                         GameWorld.getInstance().showScreen(new SplashScreen());
                 }
                 return false;
@@ -145,6 +147,7 @@ text.setText("Play___!");
         //add table to stage
         stage.addActor(table);
 
+//        Gdx.input.setCatchBackKey(true);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -182,7 +185,9 @@ text.setText("Play___!");
 
     @Override
     public void dispose() {
+
         font.dispose();
+        stage.dispose();
     }
 
     @Override
@@ -202,6 +207,7 @@ text.setText("Play___!");
 
     @Override
     public void hide() {
+
         dispose();
     }
 }
