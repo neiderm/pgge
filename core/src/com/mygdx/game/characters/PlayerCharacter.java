@@ -3,11 +3,9 @@ package com.mygdx.game.characters;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.ControllerListener;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -92,38 +90,6 @@ public class PlayerCharacter extends IUserInterface {
     }
 
 
-    /*
-        https://stackoverflow.com/questions/15185799/libgdx-get-swipe-up-or-swipe-right-etc
-    */
-    public class Swipelistener {
-
-        public boolean isswipright() {
-            if (Gdx.input.isTouched() && Gdx.input.getDeltaX() > 0)
-                return true;
-            return false;
-        }
-
-        public boolean isswipleft() {
-            if (Gdx.input.isTouched() && Gdx.input.getDeltaX() < 0)
-                return true;
-            return false;
-        }
-
-        public boolean isswipup() {
-            if (Gdx.input.isTouched() && Gdx.input.getDeltaY() > 0)
-                return true;
-            return false;
-        }
-
-        public boolean isswipdown() {
-            if (Gdx.input.isTouched() && Gdx.input.getDeltaY() < 0)
-                return true;
-            return false;
-        }
-
-    }
-
-
     private final ChangeListener touchPadChangeListener = new ChangeListener() {
         @Override
         public void changed(ChangeListener.ChangeEvent event, Actor actor) {
@@ -152,8 +118,6 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             mapper.setAxis(-1, axes);
-
-//            Gdx.app.log("Input", "Touchpad updated");
         }
     };
 
@@ -161,14 +125,11 @@ public class PlayerCharacter extends IUserInterface {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
+            // "Circle" button
             mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
-            return true;
+            return false;
         }
-
-        @Override
-        public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /* empty */ }
     };
-
 
     @Override
     public boolean keyDown(int keycode) {
@@ -224,9 +185,10 @@ public class PlayerCharacter extends IUserInterface {
 
         // TODO: for simple key presses, lookup table of Input.Keys-BUTTON_CODE
 // build in a flag for "key held/isRepeated? "
-        if (Input.Keys.SPACE == keycode)
+        if (Input.Keys.SPACE == keycode) {
+            // "Circle" button
             mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
-
+        }
         return false;
     }
 
@@ -264,7 +226,7 @@ public class PlayerCharacter extends IUserInterface {
     private void initController() {
 
         // setup the listener that prints events to the console
-        Controllers.addListener(new ControllerListener() {
+        Controllers.addListener(new ControllerListenerAdapter() {
 
             //public
             int indexOf(Controller controller) {
@@ -272,37 +234,23 @@ public class PlayerCharacter extends IUserInterface {
             }
 
             @Override
-            public void connected(Controller controller) {
-                print("connected " + controller.getName());
-                int i = 0;
-                for (Controller c : Controllers.getControllers()) {
-                    print("#" + i++ + ": " + c.getName());
-                }
-            }
-
-            @Override
-            public void disconnected(Controller controller) {
-                print("disconnected " + controller.getName());
-                int i = 0;
-                for (Controller c : Controllers.getControllers()) {
-                    print("#" + i++ + ": " + c.getName());
-                }
-                if (Controllers.getControllers().size == 0) print("No controllers attached");
-            }
-
-            @Override
             public boolean buttonDown(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
                 final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
-                final int BUTTON_CODE_1 = 1; // to be assigned by UI configuration ;)
+                final int BUTTON_CODE_3 = 3; // to be assigned by UI configuration ;)
 
                 if (BUTTON_CODE_8 == buttonIndex) {
 //idfk                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
                 }
-                // button 10 - "Pause Resume-Restart-Quit"
 
-                if (BUTTON_CODE_1 == buttonIndex)
+//                if (BUTTON_CODE_10 == buttonIndex) {  //  "Pause Resume-Restart-Quit"
+                // code gets duplicated here between Controller handler and keyboard/touch handler because we don't have good AL!
+                //   GameWorld.getInstance().showScreen(new MainMenuScreen());     /// create "back" event, for now. eventually map this to pause
+
+                if (BUTTON_CODE_3 == buttonIndex)
+                    // "Triangle" button .........................
+                    // .................... ButtonsEnum is wrong then, this is a lousy AL!
                     mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
 
                 return false;
@@ -334,7 +282,6 @@ public class PlayerCharacter extends IUserInterface {
                 mapper.setAxis(axisIndex, axes);
 
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
-//                print("[" + controller.getAxis(0) + ", " + controller.getAxis(1) + ", " + controller.getAxis(2) + ", " + controller.getAxis(3) +  "]");
 
                 return false;
             }
@@ -361,24 +308,6 @@ public class PlayerCharacter extends IUserInterface {
 
                 mapper.setAxis(-1, axes);
 
-                return false;
-            }
-
-            @Override
-            public boolean xSliderMoved(Controller controller, int sliderIndex, boolean value) {
-                print("#" + indexOf(controller) + ", x slider " + sliderIndex + ": " + value);
-                return false;
-            }
-
-            @Override
-            public boolean ySliderMoved(Controller controller, int sliderIndex, boolean value) {
-                print("#" + indexOf(controller) + ", y slider " + sliderIndex + ": " + value);
-                return false;
-            }
-
-            @Override
-            public boolean accelerometerMoved(Controller controller, int accelerometerIndex, Vector3 value) {
-                // not printing this as we get to many values
                 return false;
             }
         });
