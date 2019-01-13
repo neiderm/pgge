@@ -167,8 +167,10 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         stage.act();
         stage.draw();
 
-        boolean selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
-
+        boolean selectBtnPressed = false;
+        if (null != connectedCtrl) {
+            selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
+        }
         int inputState = mapper.getKeyDown();
 
         if (selectBtnPressed || InputStruct.INP_SELECT == inputState /* || Gdx.input.isTouched(0) */) {
