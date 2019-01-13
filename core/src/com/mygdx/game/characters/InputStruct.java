@@ -1,5 +1,7 @@
 package com.mygdx.game.characters;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.utils.ArrayMap;
@@ -40,7 +42,7 @@ could move setaxis and related bits over to "simple vehicle control model" .
 
 we can have different control schemes for the same underlying model e.g. differential axes
  */
-public abstract class InputStruct implements CtrlMapperIntrf {
+public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     private float angularD = 0f;
     private float linearD = 0f;
@@ -50,9 +52,14 @@ public abstract class InputStruct implements CtrlMapperIntrf {
     private InputStruct.ButtonData buttonsData = new InputStruct.ButtonData();
 
 
-    protected InputStruct() {
+    public InputStruct() {
 
         buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 0, false);
+    }
+
+
+    @Override
+    public void update(float deltaT) { // mt
     }
 
 
@@ -175,5 +182,40 @@ public abstract class InputStruct implements CtrlMapperIntrf {
         }
         return connectedCtrl;
     }
+
+
+    /*
+private enum InputState{
+    INP_SELECT,
+    INP_BACK
+}
+*/
+    public static final int INP_SELECT = 1;
+    public static final int INP_BACK = -1;
+
+    private int keyDown;
+
+
+    public int getKeyDown() {
+
+        int rv = keyDown;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
+                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            rv = 0; // "d-pad" ... no-op
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
+            rv = INP_BACK;
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            rv = INP_SELECT;
+        }
+        keyDown = 0; // unlatch the input state
+        return rv;
+    }
+
+    public void setKeyDown(int keyDown) {
+
+        this.keyDown = keyDown;
+    }
+
 
 }

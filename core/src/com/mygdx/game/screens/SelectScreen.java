@@ -46,6 +46,7 @@ class SelectScreen implements Screen {
 
     private static final int MAXTANKS3_3Z = 3;
 
+    private InputStruct mapper = new InputStruct();
     private Engine engine;
     private Controller connectedCtrl;
 
@@ -146,7 +147,7 @@ class SelectScreen implements Screen {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
                                   if (y < 100)
-                                      setKeyDown(INP_SELECT);
+                                      mapper.setKeyDown(InputStruct.INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
@@ -203,10 +204,10 @@ class SelectScreen implements Screen {
             Gdx.app.log("SelectScreen", "ControllerListenerAdapter:buttonDown:buttonIndex = " + buttonIndex);
 
             if (BUTTON_CODE_0 == buttonIndex ){
-                setKeyDown(INP_SELECT);
+                mapper.setKeyDown(InputStruct.INP_SELECT);
             }
             if (BUTTON_CODE_3 == buttonIndex ){
-                setKeyDown(INP_BACK);
+                mapper.setKeyDown(InputStruct.INP_BACK);
             }
 
             return false;
@@ -264,36 +265,6 @@ class SelectScreen implements Screen {
         return dPadXaxis;
     }
 
-    private int getKeyDown() {
-
-        int rv = keyDown;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
-                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            rv = 0; // "d-pad" ... no-op
-        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
-            rv = INP_BACK;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            rv = INP_SELECT;
-        }
-        keyDown = 0; // unlatch the input state
-        return rv;
-    }
-
-    private void setKeyDown(int keyDown) {
-
-        this.keyDown = keyDown;
-    }
-
-    private int keyDown;
-    /*
-        private enum InputState{
-            INP_SELECT,
-            INP_BACK
-        }
-    */
-    private static final int INP_SELECT = 1;
-    private static final int INP_BACK = -1;
 
     // tmp for the pick marker
     private GfxUtil gfxLine = new GfxUtil();
@@ -430,10 +401,10 @@ class SelectScreen implements Screen {
             platformAngularDirection = 0;
         }
 
-        int inputState = getKeyDown();
-        if (INP_BACK == inputState) {
+        int inputState = mapper.getKeyDown();
+        if (InputStruct.INP_BACK == inputState) {
             GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
-        } else if (INP_SELECT == inputState) {
+        } else if (InputStruct.INP_SELECT == inputState) {
             GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }
