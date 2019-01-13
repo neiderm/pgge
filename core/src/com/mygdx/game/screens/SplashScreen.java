@@ -35,6 +35,9 @@ public class SplashScreen implements Screen {
 
     @Override
     public void render(float delta) {
+
+        boolean selectBtnPressed = false;
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -47,40 +50,46 @@ public class SplashScreen implements Screen {
         // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
         // (but once global "isTouchscreen" is set, don't clear it ;)
         if (!GameWorld.getInstance().getIsTouchScreen() && isTouched)
-                GameWorld.getInstance().setIsTouchScreen(true);
+            GameWorld.getInstance().setIsTouchScreen(true);
 
+        if (null != connectedCtrl) {
+            // this is here just to showt he mapping on my old USB controller
+            // "Triangle"
+            if (connectedCtrl.getButton(Input.Buttons.BACK))
+                Gdx.app.log("SplashScreen", "controlller button  BACK");
+
+            // Upper Left "shoulder" button ????
+            if (connectedCtrl.getButton(Input.Buttons.FORWARD))
+                Gdx.app.log("SplashScreen", "controlller button  FORW");
+
+            // "X"
+            if (connectedCtrl.getButton(Input.Buttons.LEFT))
+                Gdx.app.log("SplashScreen", "controlller button  LEFT");
+
+            // "Circle"
+            if (connectedCtrl.getButton(Input.Buttons.RIGHT))
+                Gdx.app.log("SplashScreen", "controlller button  RIGHT");
+
+            // "Square"
+            if (connectedCtrl.getButton(Input.Buttons.MIDDLE))
+                Gdx.app.log("SplashScreen", "controlller button  MIDDL");
+
+            selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
+        }
+
+        /*
+         * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
+         */
         // simple polling for a tap on the touch screen
         if (isTouched
                 || Gdx.input.isKeyPressed(Input.Keys.SPACE)
-                || connectedCtrl.getButton(Input.Buttons.LEFT))  // "X Button "
-        {
+                || selectBtnPressed) {
 
             GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
 //            Gdx.input.setCatchBackKey(true);
 
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
         }
-
-        // this is here just to showt he mapping on my old USB controller
-        // "Triangle"
-        if (connectedCtrl.getButton(Input.Buttons.BACK))
-         Gdx.app.log("SplashScreen", "controlller button  BACK" );
-
-        // Upper Left "shoulder" button ????
-        if (connectedCtrl.getButton(Input.Buttons.FORWARD))
-            Gdx.app.log("SplashScreen", "controlller button  FORW" );
-
-        // "X"
-        if (connectedCtrl.getButton(Input.Buttons.LEFT))
-            Gdx.app.log("SplashScreen", "controlller button  LEFT" );
-
-        // "Circle"
-        if (connectedCtrl.getButton(Input.Buttons.RIGHT))
-            Gdx.app.log("SplashScreen", "controlller button  RIGHT" );
-
-        // "Square"
-        if (connectedCtrl.getButton(Input.Buttons.MIDDLE))
-            Gdx.app.log("SplashScreen", "controlller button  MIDDL" );
     }
 
     @Override

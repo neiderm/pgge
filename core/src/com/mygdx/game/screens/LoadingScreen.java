@@ -93,16 +93,35 @@ public class LoadingScreen implements Screen {
     @Override
     public void render(float delta) {
 
+        boolean selectBtnPressed = false;
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        batch.begin();
+        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        font.draw(batch, stringBuilder,
+                Gdx.graphics.getWidth() / 4f, (Gdx.graphics.getHeight() / 4f) * 3f);
+        batch.end();
+
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
         shapeRenderer.setColor(new Color(255, 255, 255, 1));
         shapeRenderer.rect(
                 (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
                 20f + loadCounter, 10);
+
+        shapeRenderer.setColor(new Color(255, 255, 255, 1));
+        shapeRenderer.rect(
+                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
+                20f + loadCounter, 10);
+
         shapeRenderer.end();
 
+/*
+ * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
+ */
         if (!isLoaded) {
 
             stringBuilder.setLength(0);
@@ -119,10 +138,13 @@ public class LoadingScreen implements Screen {
             stringBuilder.setLength(0);
             stringBuilder.append("Ready!");
 
+            if (null != connectedCtrl) {
+                selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
+            }
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)
                     || Gdx.input.isKeyPressed(Input.Keys.SPACE)   //   can do a key up here ??????
-                    || connectedCtrl.getButton(Input.Buttons.LEFT)
+                    || selectBtnPressed
                     || !shouldPause
                     ) {
                 loadNewScreen();
@@ -134,26 +156,12 @@ public class LoadingScreen implements Screen {
 }*/
         }
 
-        batch.begin();
-        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        font.draw(batch, stringBuilder,
-                Gdx.graphics.getWidth() / 4f, (Gdx.graphics.getHeight() / 4f) * 3f);
-        batch.end();
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(255, 255, 255, 1));
-        shapeRenderer.rect(
-                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
-                20f + loadCounter, 10);
-        shapeRenderer.end();
     }
 
     @Override
-    public void hide() {         // mt
-//dispose();// hhhhhhmmmmmm
-        ttrSplash.dispose();
-//shapeRenderer.dispose();
-        //        batch.dispose();
+    public void hide() {
+
+        dispose();
     }
 
     @Override
