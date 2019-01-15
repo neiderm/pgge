@@ -198,25 +198,43 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     private InputState inputState;
 
+    public InputState getInputState() {
 
-    public InputState getKeyDown() {
+        return getInputState(true);
+    }
+
+    /*
+     * checkisTouched: false if caller is handling the touch event
+     */
+    public InputState getInputState(boolean checkIsTouched) {
 
         InputState rv = inputState;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
-                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            rv = InputState.INP_NONE; // "d-pad" ... no-op
-        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
+
             rv = InputState.INP_BACK;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT) /* left == "X Button" ?  */ ) {
+
             rv = InputState.INP_SELECT;
+
+        } else if (Gdx.input.isTouched(0)){  // hmmmm this is an odd one
+
+            if (checkIsTouched)
+                rv = InputState.INP_SELECT;
+
+        } else /*if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
+                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT))*/ {
+
+            rv = InputState.INP_NONE; // "d-pad" ... no-op
         }
 
         inputState = InputState.INP_NONE; // unlatch the input state
+
         return rv;
     }
 
-    public void setKeyDown(InputState inputState) {
+    public void setInputState(InputState inputState) {
 
         this.inputState = inputState;
     }
@@ -230,7 +248,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         return d;
     }
 
-    public boolean getControlButton(int button) {
+    private boolean getControlButton(int button) {
 
         boolean rv = false;
         if (null != connectedCtrl) {

@@ -143,7 +143,7 @@ class SelectScreen implements Screen {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
                                   if (y < 100)
-                                      mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
+                                      mapper.setInputState(InputStruct.InputState.INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
@@ -201,10 +201,10 @@ class SelectScreen implements Screen {
             Gdx.app.log("SelectScreen", "ControllerListenerAdapter:buttonDown:buttonIndex = " + buttonIndex);
 
             if (BUTTON_CODE_0 == buttonIndex) {
-                mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
+                mapper.setInputState(InputStruct.InputState.INP_SELECT);
             }
             if (BUTTON_CODE_3 == buttonIndex) {
-                mapper.setKeyDown(InputStruct.InputState.INP_BACK);
+                mapper.setInputState(InputStruct.InputState.INP_BACK);
             }
 
             return false;
@@ -226,9 +226,7 @@ class SelectScreen implements Screen {
     private int getDpad() {
 
         int dPadXaxis = 0;
-        PovDirection povDir;
-
-        povDir = mapper.getControlPov();
+        PovDirection povDir = mapper.getControlPov();
 
         if (PovDirection.east == povDir)
             dPadXaxis = 1;
@@ -397,10 +395,14 @@ class SelectScreen implements Screen {
             platformAngularDirection = 0;
         }
 
-        InputStruct.InputState inputState = mapper.getKeyDown();
+        InputStruct.InputState inputState = mapper.getInputState(false);
+
         if (InputStruct.InputState.INP_BACK == inputState) {
+
             GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
+
         } else if (InputStruct.InputState.INP_SELECT == inputState) {
+
             GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }

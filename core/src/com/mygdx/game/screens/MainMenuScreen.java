@@ -41,16 +41,12 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     public MainMenuScreen() {
 
-        int width = Gdx.graphics.getWidth() / 2;
-        int height = Gdx.graphics.getHeight() / 2;
-
 //        Gdx.graphics.setWindowedMode(800,600);
 
         //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
         // create stage and set it as input processor
         stage = new Stage(new ScreenViewport())
 /*        {
-
             @Override
             public boolean keyDown(int keycode) {
 
@@ -70,7 +66,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         }*/
         ;
 
-//        Gdx.input.setCatchBackKey(true);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -84,7 +79,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 //            GameWorld.getInstance().showScreen(getLoadingScreen());
 //            Gdx.input.setCatchBackKey(true);
 
-            mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
+            mapper.setInputState(InputStruct.InputState.INP_SELECT);
 
             return false;
         }
@@ -110,20 +105,14 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
     private final int numCkBoxes = 3;
     private int previousIncrement;
 
-    boolean asdf = false;
 
     @Override
     public void render(float delta) {
 
-        if (asdf)
-            Gdx.app.log("MainMenuScreen", "asd;lfkjasd;lfjasd;lfsf;lkdsjfdsl;fjslksjl;fajladskjflsfj");
-
         int checked = bg.getCheckedIndex();
 
         int dPadXaxis = 0;
-        PovDirection povDir = null;
 
-// TODO: get up/down keyboard here
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             dPadXaxis = -1;
         }
@@ -132,7 +121,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         }
 
 
-        povDir = mapper.getControlPov();
+        PovDirection povDir = mapper.getControlPov();
 
         if (PovDirection.north == povDir) {
             dPadXaxis = -1;
@@ -156,19 +145,13 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
 //        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
-
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         stage.act();
         stage.draw();
 
-        boolean selectBtnPressed = mapper.getControlButton(Input.Buttons.LEFT); //  // "X Button "
 
-        InputStruct.InputState inputState = mapper.getKeyDown();
-
-        if (selectBtnPressed || InputStruct.InputState.INP_SELECT == inputState /* || Gdx.input.isTouched(0) */) {
-
-            asdf = true;
+        if (InputStruct.InputState.INP_SELECT == mapper.getInputState()) {
 
             switch (checked) {
                 default:
@@ -203,7 +186,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     @Override
     public void show() {
-//        Gdx.input.setCatchBackKey(false);   // TODO: is there any place we would want this?
 
         // create table to layout items we will add
         Table table = new Table();
@@ -247,15 +229,12 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         });
 
         //add buttons to table
-///*
         table.add(newGame).fillX().uniformX();
         table.row().pad(10, 0, 10, 0);
         table.add(preferences).fillX().uniformX();
         table.row();
         table.add(exit).fillX().uniformX();
-//*/
 
-        ///*
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 1);
@@ -270,7 +249,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         buttonB.addListener(buttonBListener);
         table.row().padLeft(10);
         table.add(buttonB);
-//*/
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -27,15 +26,13 @@ public class SplashScreen implements Screen {
         ttrSplash = new Texture("splash-screen.png");
 
         // not using a listener right now ... make sure we haven't left a stale "unattended" input processor lying around!
-        Gdx.input.setInputProcessor(new Stage());
+        Gdx.input.setInputProcessor(new Stage());   // TODO: really meed this and dispose()?
 
         mapper = new InputStruct();
     }
 
     @Override
     public void render(float delta) {
-
-        boolean selectBtnPressed = false;
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -44,6 +41,7 @@ public class SplashScreen implements Screen {
         batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.end();
 
+        // one-time check for TS input (determine wether to show touchpad controll)
         boolean isTouched = Gdx.input.isTouched(0);
 
         // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
@@ -51,18 +49,14 @@ public class SplashScreen implements Screen {
         if (!GameWorld.getInstance().getIsTouchScreen() && isTouched)
             GameWorld.getInstance().setIsTouchScreen(true);
 
-
-        selectBtnPressed = mapper.getControlButton(Input.Buttons.LEFT); //  // "X Button "
-
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
         // simple polling for a tap on the touch screen
 
-        if (isTouched || Gdx.input.isKeyPressed(Input.Keys.SPACE) || selectBtnPressed) {
+        if (InputStruct.InputState.INP_SELECT == mapper.getInputState()) {
 
             GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
-
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
         }
     }

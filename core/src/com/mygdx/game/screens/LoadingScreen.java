@@ -1,7 +1,6 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -67,7 +66,7 @@ public class LoadingScreen implements Screen {
         GameWorld.sceneLoader = new SceneLoader(path);  // bah
 
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
-        Gdx.input.setInputProcessor(new Stage());
+        Gdx.input.setInputProcessor(new Stage());   // TODO: really meed this and dispose()?
 
         mapper = new InputStruct();
     }
@@ -90,8 +89,6 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void render(float delta) {
-
-        boolean selectBtnPressed = false;
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -136,21 +133,11 @@ public class LoadingScreen implements Screen {
             stringBuilder.setLength(0);
             stringBuilder.append("Ready!");
 
-            selectBtnPressed = mapper.getControlButton(Input.Buttons.LEFT); //  // "X Button "
-
             // simple polling for a tap on the touch screen
-            if (Gdx.input.isTouched(0)
-                    || Gdx.input.isKeyPressed(Input.Keys.SPACE)   //   can do a key up here ??????
-                    || selectBtnPressed
-                    || !shouldPause
-                    ) {
+            if (InputStruct.InputState.INP_SELECT == mapper.getInputState() ||  !shouldPause) {
+
                 loadNewScreen();
-                //                Gdx.input.setCatchBackKey(true);
             }
-            // there is no ESCape from Loading screen, but maybe we would. Have to be careful about disposing scene loader.
-/*if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)){
-    GameWorld.getInstance().showScreen(new MainMenuScreen());
-}*/
         }
 
     }
