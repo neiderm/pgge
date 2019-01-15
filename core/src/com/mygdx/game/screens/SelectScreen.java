@@ -48,10 +48,8 @@ class SelectScreen implements Screen {
 
     private InputStruct mapper = new InputStruct();
     private Engine engine;
-    private Controller connectedCtrl;
 
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-
 
     private Environment environment;
     private DirectionalShadowLight shadowLight;
@@ -137,8 +135,6 @@ class SelectScreen implements Screen {
 
         Controllers.addListener(controllerListener);
 
-        // If a controller is connected, find it and grab a link to it
-        connectedCtrl = InputStruct.getConnectedCtrl(0); // I stuck the Controller AL in there ;)
 
         stage = new Stage();
         stage.addListener(new InputListener() {
@@ -147,10 +143,11 @@ class SelectScreen implements Screen {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
                                   if (y < 100)
-                                      mapper.setKeyDown(InputStruct.INP_SELECT);
+                                      mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
+
                               @Override
                               public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                                   touchPadDx = 0;
@@ -203,11 +200,11 @@ class SelectScreen implements Screen {
 
             Gdx.app.log("SelectScreen", "ControllerListenerAdapter:buttonDown:buttonIndex = " + buttonIndex);
 
-            if (BUTTON_CODE_0 == buttonIndex ){
-                mapper.setKeyDown(InputStruct.INP_SELECT);
+            if (BUTTON_CODE_0 == buttonIndex) {
+                mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
             }
-            if (BUTTON_CODE_3 == buttonIndex ){
-                mapper.setKeyDown(InputStruct.INP_BACK);
+            if (BUTTON_CODE_3 == buttonIndex) {
+                mapper.setKeyDown(InputStruct.InputState.INP_BACK);
             }
 
             return false;
@@ -231,14 +228,13 @@ class SelectScreen implements Screen {
         int dPadXaxis = 0;
         PovDirection povDir;
 
-        if (null != connectedCtrl) {
-            povDir = connectedCtrl.getPov(0); // povCode ...
+        povDir = mapper.getControlPov();
 
-            if (PovDirection.east == povDir)
-                dPadXaxis = 1;
-            else if (PovDirection.west == povDir)
-                dPadXaxis = -1;
-        }
+        if (PovDirection.east == povDir)
+            dPadXaxis = 1;
+        else if (PovDirection.west == povDir)
+            dPadXaxis = -1;
+
 
         if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             dPadXaxis = -1;
@@ -401,10 +397,10 @@ class SelectScreen implements Screen {
             platformAngularDirection = 0;
         }
 
-        int inputState = mapper.getKeyDown();
-        if (InputStruct.INP_BACK == inputState) {
+        InputStruct.InputState inputState = mapper.getKeyDown();
+        if (InputStruct.InputState.INP_BACK == inputState) {
             GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
-        } else if (InputStruct.INP_SELECT == inputState) {
+        } else if (InputStruct.InputState.INP_SELECT == inputState) {
             GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }

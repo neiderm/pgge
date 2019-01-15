@@ -3,7 +3,6 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -33,7 +32,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     private InputStruct mapper = new InputStruct();
     private Stage stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
-    private Controller connectedCtrl;
     private ButtonGroup<TextButton> bg;
 
     private Screen getLoadingScreen() {
@@ -72,9 +70,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         }*/
         ;
 
-        // If a controller is connected, find it and grab a link to it
-        connectedCtrl = InputStruct.getConnectedCtrl(0);
-
 //        Gdx.input.setCatchBackKey(true);
         Gdx.input.setInputProcessor(stage);
     }
@@ -89,7 +84,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 //            GameWorld.getInstance().showScreen(getLoadingScreen());
 //            Gdx.input.setCatchBackKey(true);
 
-            mapper.setKeyDown(InputStruct.INP_SELECT);
+            mapper.setKeyDown(InputStruct.InputState.INP_SELECT);
 
             return false;
         }
@@ -136,14 +131,14 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
             dPadXaxis = 1;
         }
 
-        if (null != connectedCtrl) {
-            povDir = connectedCtrl.getPov(0); // povCode ...
+
+        povDir = mapper.getControlPov();
+
+        if (PovDirection.north == povDir) {
+            dPadXaxis = -1;
+        } else if (PovDirection.south == povDir) {
+            dPadXaxis = +1;
         }
-            if (PovDirection.north == povDir) {
-                dPadXaxis = -1;
-            } else if (PovDirection.south == povDir) {
-                dPadXaxis = +1;
-            }
 
 
         if (0 == previousIncrement)
@@ -167,13 +162,11 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         stage.act();
         stage.draw();
 
-        boolean selectBtnPressed = false;
-        if (null != connectedCtrl) {
-            selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
-        }
-        int inputState = mapper.getKeyDown();
+        boolean selectBtnPressed = mapper.getControlButton(Input.Buttons.LEFT); //  // "X Button "
 
-        if (selectBtnPressed || InputStruct.INP_SELECT == inputState /* || Gdx.input.isTouched(0) */) {
+        InputStruct.InputState inputState = mapper.getKeyDown();
+
+        if (selectBtnPressed || InputStruct.InputState.INP_SELECT == inputState /* || Gdx.input.isTouched(0) */) {
 
             asdf = true;
 

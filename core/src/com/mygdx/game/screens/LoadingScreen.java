@@ -3,7 +3,6 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,7 +14,6 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.InputStruct;
 
 import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
-import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.SETUP;
 
 /**
  * Created by utf1247 on 7/16/2018.
@@ -32,9 +30,9 @@ public class LoadingScreen implements Screen {
 
     private int loadCounter = 0;
     private boolean isLoaded;
-    private  boolean shouldPause = true;
+    private boolean shouldPause = true;
     private ScreenTypes screenType = LEVEL;
-    private Controller connectedCtrl;
+    private InputStruct mapper;
 
 
     public enum ScreenTypes {
@@ -42,10 +40,10 @@ public class LoadingScreen implements Screen {
         LEVEL
     }
 
-    LoadingScreen(String path, boolean shouldPause, ScreenTypes screenType){
+    LoadingScreen(String path, boolean shouldPause, ScreenTypes screenType) {
         this(path);
         this.shouldPause = shouldPause;
-        this.screenType  = screenType;
+        this.screenType = screenType;
     }
 
     LoadingScreen(String path) {
@@ -61,7 +59,7 @@ public class LoadingScreen implements Screen {
         isLoaded = false;
 
         // hmm yep hackish awright
-        if (null != GameWorld.sceneLoader){
+        if (null != GameWorld.sceneLoader) {
             GameWorld.sceneLoader.dispose();
             GameWorld.sceneLoader = null;
         }
@@ -71,14 +69,14 @@ public class LoadingScreen implements Screen {
         // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
         Gdx.input.setInputProcessor(new Stage());
 
-        connectedCtrl = InputStruct.getConnectedCtrl(0);
+        mapper = new InputStruct();
     }
 
-    private void loadNewScreen(){
+    private void loadNewScreen() {
 
-        switch(screenType){
+        switch (screenType) {
             default:
-                case LEVEL:
+            case LEVEL:
                 GameWorld.getInstance().showScreen(new GameScreen());
                 break;
             case SETUP:
@@ -119,9 +117,9 @@ public class LoadingScreen implements Screen {
 
         shapeRenderer.end();
 
-/*
- * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
- */
+        /*
+         * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
+         */
         if (!isLoaded) {
 
             stringBuilder.setLength(0);
@@ -138,9 +136,8 @@ public class LoadingScreen implements Screen {
             stringBuilder.setLength(0);
             stringBuilder.append("Ready!");
 
-            if (null != connectedCtrl) {
-                selectBtnPressed = connectedCtrl.getButton(Input.Buttons.LEFT); //  // "X Button "
-            }
+            selectBtnPressed = mapper.getControlButton(Input.Buttons.LEFT); //  // "X Button "
+
             // simple polling for a tap on the touch screen
             if (Gdx.input.isTouched(0)
                     || Gdx.input.isKeyPressed(Input.Keys.SPACE)   //   can do a key up here ??????

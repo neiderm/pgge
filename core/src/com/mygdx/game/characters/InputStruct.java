@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
+import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.utils.ArrayMap;
 
 /**
@@ -55,6 +56,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     public InputStruct() {
 
         buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 0, false);
+
+        connectedCtrl = getConnectedCtrl(0);
     }
 
 
@@ -170,7 +173,9 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     }
 
 
-    public static Controller getConnectedCtrl(int selectControl) {
+    private Controller connectedCtrl;
+
+    private static Controller getConnectedCtrl(int selectControl) {
         // If a controller is connected, find it and grab a link to it
         Controller connectedCtrl = null;
         int i = 0;
@@ -184,38 +189,54 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     }
 
 
-    /*
-private enum InputState{
-    INP_SELECT,
-    INP_BACK
-}
-*/
-    public static final int INP_SELECT = 1;
-    public static final int INP_BACK = -1;
-
-    private int keyDown;
+    public enum InputState {
+        INP_NONE,
+        INP_SELECT,
+        INP_BACK
+    }
 
 
-    public int getKeyDown() {
+    private InputState inputState;
 
-        int rv = keyDown;
+
+    public InputState getKeyDown() {
+
+        InputState rv = inputState;
 
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
                 Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            rv = 0; // "d-pad" ... no-op
+            rv = InputState.INP_NONE; // "d-pad" ... no-op
         } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
-            rv = INP_BACK;
+            rv = InputState.INP_BACK;
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            rv = INP_SELECT;
+            rv = InputState.INP_SELECT;
         }
-        keyDown = 0; // unlatch the input state
+
+        inputState = InputState.INP_NONE; // unlatch the input state
         return rv;
     }
 
-    public void setKeyDown(int keyDown) {
+    public void setKeyDown(InputState inputState) {
 
-        this.keyDown = keyDown;
+        this.inputState = inputState;
     }
 
+    public PovDirection getControlPov(/*int povCode*/) {
+
+        PovDirection d = PovDirection.center;
+        if (null != connectedCtrl) {
+            d = connectedCtrl.getPov(0);
+        }
+        return d;
+    }
+
+    public boolean getControlButton(int button) {
+
+        boolean rv = false;
+        if (null != connectedCtrl) {
+            rv = connectedCtrl.getButton(button);
+        }
+        return rv;
+    }
 
 }
