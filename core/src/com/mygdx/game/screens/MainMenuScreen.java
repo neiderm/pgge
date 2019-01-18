@@ -1,9 +1,7 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -111,24 +109,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
         int checked = bg.getCheckedIndex();
 
-        int dPadXaxis = 0;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            dPadXaxis = -1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            dPadXaxis = 1;
-        }
-
-
-        PovDirection povDir = mapper.getControlPov();
-
-        if (PovDirection.north == povDir) {
-            dPadXaxis = -1;
-        } else if (PovDirection.south == povDir) {
-            dPadXaxis = +1;
-        }
-
+        int dPadXaxis = mapper.getDpad(null).getY();
 
         if (0 == previousIncrement)
             checked += dPadXaxis;
@@ -150,8 +131,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         stage.act();
         stage.draw();
 
-
-        if (InputStruct.InputState.INP_SELECT == mapper.getInputState()) {
+        if (InputStruct.InputState.INP_SELECT == mapper.getInputState(false)) {
 
             switch (checked) {
                 default:

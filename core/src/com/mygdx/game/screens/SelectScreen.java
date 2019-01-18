@@ -3,11 +3,9 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -219,46 +217,39 @@ class SelectScreen implements Screen {
 
 
     private int touchPadDx;
+    private int dPadYaxis;
 
     /*
-     * "virtual dPad" provider (only cares about left/right)
+     * dPad X axis + touch-swipe (left/right)
      */
-    private int getDpad() {
+    private int getStep() {
 
-        int dPadXaxis = 0;
-        PovDirection povDir = mapper.getControlPov();
-
-        if (PovDirection.east == povDir)
-            dPadXaxis = 1;
-        else if (PovDirection.west == povDir)
-            dPadXaxis = -1;
-
-
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            dPadXaxis = -1;
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            dPadXaxis = 1;
-        }
+        int axis = mapper.getDpad(null).getX();
 
         if (Gdx.input.isTouched()) {
             // make sure not in a swipe event already
             if (0 == touchPadDx) {
-
                 touchPadDx = Gdx.input.getDeltaX();
 
                 if (touchPadDx < -1) {
-                    dPadXaxis = -1;
+                    axis = -1;
                 } else if (touchPadDx > 1) {
-                    dPadXaxis = 1;
+                    axis = 1;
                 }
             }
         }
-
-        return dPadXaxis;
+        if (0 == axis) { // if input is inactive
+            /* && 0 != dPadYaxis */ /* key is released ... not necessary but for debugging */
+            dPadYaxis = 0; // de-latch previous input state
+        } else { /* if input is active */
+            if (0 == dPadYaxis) { // if input is "justPressed"
+                dPadYaxis = axis;  // latch the new state
+            } else { // if input is held
+                axis = 0;
+            }
+        }
+        return axis;
     }
-
 
     // tmp for the pick marker
     private GfxUtil gfxLine = new GfxUtil();
@@ -269,7 +260,6 @@ class SelectScreen implements Screen {
     private float degreesInst; // instantaneous commanded rotation of platform
     private float degreesSetp; // demanded rotation of platform
     private float degreesStep; // magnitude of control output (can be ramp rate limited by control algo)
-    private int platformAngularDirection; // basically CW/CCW i.e. +1/-1
     private static final float PLATFRM_INC_DEGREES = 360.0f / MAXTANKS3_3Z;
 
 
@@ -370,29 +360,21 @@ class SelectScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+        int step = getStep();
 
-        int tmp = getDpad();
-        // active on "key down" not key up
-        if (0 != tmp) {
-            // "key down
-            if (0 == platformAngularDirection) {
-                // not set so increment the degrees
-                platformAngularDirection = (-1) * tmp;  // negated (matches to left/right of car nearest to front of view)
-                degreesSetp += PLATFRM_INC_DEGREES * platformAngularDirection;
+        if (0 != step) {
+            // increment the degrees
+            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
 
-                // lower previous (raise current selection in render step)
-                characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform.trn(
-                        down.set(0, -0.5f, 0));
+            // lower previous (raise current selection in render step)
+            characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform.trn(
+                    down.set(0, -0.5f, 0));
 
-                selectedIndex += tmp;
-                if (selectedIndex >= MAXTANKS3_3Z)
-                    selectedIndex = 0;
-                else if (selectedIndex < 0)
-                    selectedIndex = MAXTANKS3_3Z - 1;
-            }
-        } else {
-            // "key up" ... release the latch-out
-            platformAngularDirection = 0;
+            selectedIndex += step;
+            if (selectedIndex >= MAXTANKS3_3Z)
+                selectedIndex = 0;
+            else if (selectedIndex < 0)
+                selectedIndex = MAXTANKS3_3Z - 1;
         }
 
         InputStruct.InputState inputState = mapper.getInputState(false);

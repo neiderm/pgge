@@ -210,27 +210,23 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
         InputState rv = inputState;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
 
             rv = InputState.INP_BACK;
 
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT) /* left == "X Button" ?  */ ) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT) /* left == "X Button" ?  */) {
 
             rv = InputState.INP_SELECT;
 
-        } else if (Gdx.input.isTouched(0)){  // hmmmm this is an odd one
+        } else if (Gdx.input.justTouched()) {
 
-            if (checkIsTouched)
+            if (checkIsTouched) {
                 rv = InputState.INP_SELECT;
-
-        } else /*if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.RIGHT) ||
-                Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.LEFT))*/ {
-
-            rv = InputState.INP_NONE; // "d-pad" ... no-op
+            }
+        } else {
+            rv = InputState.INP_NONE; // no-op
         }
-
         inputState = InputState.INP_NONE; // unlatch the input state
-
         return rv;
     }
 
@@ -239,7 +235,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         this.inputState = inputState;
     }
 
-    public PovDirection getControlPov(/*int povCode*/) {
+    private PovDirection getControlPov(/*int povCode*/) {
 
         PovDirection d = PovDirection.center;
         if (null != connectedCtrl) {
@@ -257,4 +253,54 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         return rv;
     }
 
+
+    public class DpadAxes {
+        int x;
+        int y;
+        void clear(){
+            x = 0;
+            y = 0;
+        }
+        public int getX(){ return x; }
+        public int getY(){ return y; }
+    }
+
+    private DpadAxes dPadAxes = new DpadAxes();
+
+    /*
+     * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
+     *
+     * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
+     * But glitchy and not worth considering.
+     */
+    public DpadAxes getDpad(DpadAxes asdf){
+
+        dPadAxes.clear();
+
+//        PovDirection povDir = getControlPov();
+        PovDirection povDir = PovDirection.center;
+        if (null != connectedCtrl) {
+            povDir = connectedCtrl.getPov(0);
+        }
+        /*
+         e.g. povDirection.northeast, southeast etc. ignored. If previous POV direction were
+         kept, then e.g.
+
+         if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir ||
+                   ( previousPovDirection.north == povDir && ( PovDirection.northEast == povDir || PovDirection.northWest == povDir  ) )  )
+         */
+        if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir) {
+            dPadAxes.y = -1;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || PovDirection.south == povDir) {
+            dPadAxes.y = 1;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || PovDirection.west == povDir) {
+            dPadAxes.x = -1;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
+            dPadAxes.x = 1;
+        }
+        return dPadAxes;
+    }
 }
