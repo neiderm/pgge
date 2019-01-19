@@ -16,12 +16,10 @@
 
 package com.mygdx.game.controllers;
 
-import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.mygdx.game.BulletWorld;
 
 /**
  * copied from
@@ -52,8 +50,7 @@ public class SteeringBulletEntity extends SteeringEntity {
     // GN:
     SteeringBulletEntity(){}
 
-//    public
-    SteeringBulletEntity(btRigidBody body) {
+    public SteeringBulletEntity(btRigidBody body) {
         this.body = body;
     }
 
