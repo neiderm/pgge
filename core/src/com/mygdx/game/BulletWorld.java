@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
@@ -37,11 +36,11 @@ public class BulletWorld implements Disposable {
     private btDynamicsWorld collisionWorld;
     private Camera camera; // for debug drawing
 
-    /*
+//    /*
         private BulletWorld() {
     //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
     }
-    */
+//    */
     public static BulletWorld getInstance() {
 
         if (null == instance) {
@@ -76,6 +75,9 @@ public class BulletWorld implements Disposable {
         instance.camera = camera;
     }
 
+
+    // Note:
+    //            is dispose'd by BulletSystem
     @Override
     public void dispose() {
 
