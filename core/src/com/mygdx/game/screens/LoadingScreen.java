@@ -8,14 +8,13 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.InputStruct;
 
 import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 
 /**
- * Created by utf1247 on 7/16/2018.
+ * Created by neiderm on 7/16/2018.
  * based on:
  * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
@@ -64,9 +63,6 @@ public class LoadingScreen implements Screen {
         }
 
         GameWorld.sceneLoader = new SceneLoader(path);  // bah
-
-        // not using a listener for now, we just need to make sure we haven't left a stale "unattended" input processor lying around!
-        Gdx.input.setInputProcessor(new Stage());   // TODO: really meed this and dispose()?
 
         mapper = new InputStruct();
     }

@@ -5,11 +5,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.mygdx.game.characters.InputStruct;
 
 /**
- * Created by utf1247 on 7/16/2018.
+ * Created by neiderm on 7/16/2018.
  * based on:
  * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
@@ -24,10 +23,6 @@ public class SplashScreen implements Screen {
     SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
-
-        // not using a listener right now ... make sure we haven't left a stale "unattended" input processor lying around!
-        Gdx.input.setInputProcessor(new Stage());   // TODO: really meed this and dispose()?
-
         mapper = new InputStruct();
     }
 
