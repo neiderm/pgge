@@ -6,14 +6,20 @@ import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.screens.GameWorld;
-import com.mygdx.game.screens.IUserInterface;
 import com.mygdx.game.screens.MainMenuScreen;
 
 import java.util.Arrays;
@@ -21,11 +27,11 @@ import java.util.Arrays;
 import static java.lang.Math.abs;
 
 /**
- * Created by utf1247 on 5/17/2018.
+ * Created by neiderm on 5/17/2018.
  * This adapter has become specific to "tank" vehicle, it provides multiple controls - keyboard, touch screen, dpad etc.
  */
 
-public class PlayerCharacter extends IUserInterface {
+public class PlayerCharacter extends Stage {
     /*
      * keys to be assigned by UI configuration ;)
      */
@@ -225,7 +231,16 @@ public class PlayerCharacter extends IUserInterface {
 
     private void initController() {
 
-        // setup the listener that prints events to the console
+
+        // print the currently connected controllers to the console
+        print("Controllers: " + Controllers.getControllers().size);
+        int i = 0;
+        for (Controller controller : Controllers.getControllers()) {
+            print("#" + i++ + ": " + controller.getName());
+        }
+        if (Controllers.getControllers().size == 0) print("No controllers attached");
+
+// hmmmmm when can I clearListeners?
         Controllers.addListener(new ControllerListenerAdapter() {
 
             //public
@@ -288,7 +303,7 @@ public class PlayerCharacter extends IUserInterface {
 
             @Override
             public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
-//                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
+                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
                 Arrays.fill(axes, 0);
 
@@ -307,9 +322,74 @@ public class PlayerCharacter extends IUserInterface {
                 }
 
                 mapper.setAxis(-1, axes);
+                print("#" + indexOf(controller) + ", axes " + axes[0] + ": " + axes[1]);
 
                 return false;
             }
         });
     }
+
+
+
+
+
+    /**
+     * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
+     */
+    public void addChangeListener(ChangeListener touchPadChangeListener) {
+
+        Touchpad.TouchpadStyle touchpadStyle;
+        Skin touchpadSkin;
+        Drawable touchBackground;
+
+        //Create a touchpad skin
+        touchpadSkin = new Skin();
+        //Set background image
+        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+        //Set knob image
+        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
+        //Create TouchPad Style
+        touchpadStyle = new Touchpad.TouchpadStyle();
+        //Create Drawable's from TouchPad skin
+        touchBackground = touchpadSkin.getDrawable("touchBackground");
+
+// https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap background = new Pixmap(200, 200, Pixmap.Format.RGBA8888);
+        background.setColor(1, 1, 1, .2f);
+        background.fillCircle(100, 100, 100);
+
+        //Apply the Drawables to the TouchPad Style
+//        touchpadStyle.background = touchBackground;
+        touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
+        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
+
+        //Create new TouchPad with the created style
+        Touchpad touchpad = new Touchpad(10, touchpadStyle);
+        //setBounds(x,y,width,height)
+        touchpad.setBounds(15, 15, 200, 200);
+
+        // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
+        touchpad.addListener(touchPadChangeListener);
+        this.addActor(touchpad);
+
+        background.dispose();
+    }
+
+    public void addInputListener(InputListener listener, Pixmap pixmap, float x, float y) {
+
+// TODO: texture neeeds to be dispose'd
+        Texture myTexture = new Texture(pixmap);
+        TextureRegion myTextureRegion = new TextureRegion(myTexture);
+        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+
+        ImageButton button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(x, y);
+
+        if (null != listener)
+            button.addListener(listener);
+
+        this.addActor(button);
+    }
+
 }
