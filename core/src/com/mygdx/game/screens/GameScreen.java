@@ -38,6 +38,7 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
+import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
@@ -51,6 +52,8 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
+
+import java.util.Random;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
@@ -85,8 +88,8 @@ class GameScreen implements Screen {
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private IUserInterface stage;
-    private IUserInterface playerUI;
+
+    private PlayerCharacter playerUI;
 
     private InputMultiplexer multiplexer;
 
@@ -201,8 +204,10 @@ class GameScreen implements Screen {
                 Ray rayTmp = cam.getPickRay(nX, nY);
                 return pickRay.set(rayTmp.origin, rayTmp.direction);
             }
+
             @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/ }
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/
+            }
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 // only do this if FPV mode (i.e. cam controller is not handling game window input)
@@ -253,8 +258,8 @@ class GameScreen implements Screen {
         for (Entity e : characters) {
             if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
                 pickedPlayer = e;
-            }
-            else engine.removeEntity(e); // bah
+            } else
+                engine.removeEntity(e); // bah
         }
         pickedPlayer.remove(PickRayComponent.class);
 
@@ -278,7 +283,6 @@ class GameScreen implements Screen {
         // select the Steering Bullet Entity here and pass it to the character
         SteeringEntity sbe = new SteeringEntity();
 
-        Array<InputListener> listeners = new Array<InputListener>();
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
@@ -290,14 +294,30 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
         InputStruct mapper = new InputStruct() {
+
+            btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
+
+            Vector3 tmpV = new Vector3();
+            Random rnd = new Random();
+            final Vector3 impulseForceV = new Vector3();
+
             @Override
             public void update(float deltaT) {
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
-                boolean jump = 0 != jumpButtonGet();
-//            if (!isPaused)
+// just an ginormoua hack right now .....
+                if (0 != jumpButtonGet()) {
+//    applyJump();  // TODO: tank conttoller only enable jump if in surface conttact ??
+                    // random flip left or right
+                    if (rnd.nextFloat() > 0.5f)
+                        tmpV.set(0.1f, 0, 0);
+                    else
+                        tmpV.set(-0.1f, 0, 0);
+
+                    body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+                }
+                //            if (!isPaused)
                 {
-                    vehicleModel.updateControls(jump,          // TODO: tank conttoller only enable jump if in surface conttact
-                            getLinearDirection(), getAngularDirection(), 0);
+                    vehicleModel.updateControls(getLinearDirection(), getAngularDirection(), 0);
                 }
             }
         };
@@ -305,7 +325,7 @@ class GameScreen implements Screen {
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
         sbe.setSteeringBehavior(playerInpSB);
 
-        playerUI = new PlayerCharacter(mapper, listeners);
+        playerUI = new PlayerCharacter(mapper, null /* new Array<InputListener>() */);
 
         playerUI.addInputListener(
                 buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
@@ -321,9 +341,8 @@ class GameScreen implements Screen {
 
             TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
                     e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
-
             e.add(new CharacterComponent(new SteeringTankController(tc, e,
-                    pickedPlayer.getComponent(BulletComponent.class).body)));
+                    new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body))));
             engine.addEntity(e);
         }
 
@@ -335,7 +354,6 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
         multiplexer.addProcessor(playerUI);
-        this.stage = playerUI;
 
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
@@ -505,8 +523,8 @@ class GameScreen implements Screen {
 */
 //*//////////////////////////////
 
-        stage.act(Gdx.graphics.getDeltaTime());
-        stage.draw();
+        playerUI.act(Gdx.graphics.getDeltaTime());
+        playerUI.draw();
 
         if (roundOver) {
             roundOver = false;
@@ -521,7 +539,8 @@ class GameScreen implements Screen {
     https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
     We need to update the stage's viewport in the resize method. The last Boolean argument set the origin to the lower left coordinate, causing the label to be drawn at that location.
      */
-// ??? // stage.getViewport().update(width, height, true);
+// resizes the stage UI view port but the 3D camera is not!
+        //        stage.getViewport().update(width, height, true);
     }
 
     @Override
@@ -537,7 +556,7 @@ class GameScreen implements Screen {
 
         //maybe we should do something more elegant here ...
 // fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
-        this.stage.dispose();
+        playerUI.dispose();
     }
 
     /*

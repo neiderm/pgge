@@ -11,8 +11,6 @@ import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-import java.util.Random;
-
 
 /**
  * Created by mango on 2/10/18.
@@ -46,30 +44,13 @@ public class TankController implements SimpleVehicleModel
     }
 
 
-    private Random rnd = new Random();
-    private final Vector3 impulseForceV = new Vector3();
-
-    private void applyJump() {
-        // random flip left or right
-        if (rnd.nextFloat() > 0.5f)
-            tmpV.set(0.1f, 0, 0);
-        else
-            tmpV.set(-0.1f, 0, 0);
-
-        body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
-    }
-
-
     private Vector3 linear = new Vector3();
     private GfxUtil gfxLine = new GfxUtil();
 
     @Override
-    public void updateControls(boolean jump, float direction, float angular, float time) {
+    public void updateControls(float direction, float angular, float time) {
 
         // TODO: logic to test orientation for "upside down but not free falling"
-        if (jump) { // what a hack
-            applyJump();
-        }
 
         // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
         // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply

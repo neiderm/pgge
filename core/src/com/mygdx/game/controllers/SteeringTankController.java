@@ -10,7 +10,6 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.BulletComponent;
 
 import static java.lang.Math.abs;
@@ -28,13 +27,12 @@ public class SteeringTankController extends /*TankController */ SteeringBulletEn
 
 private TankController tc;
 
-    public SteeringTankController(TankController tc, Entity copyEntity, btRigidBody targetBody) {
+    public SteeringTankController(TankController tc, Entity copyEntity, SteeringBulletEntity target ) {
 
         super(copyEntity.getComponent(BulletComponent.class).body);
 
         this.tc = tc;
 
-        SteeringBulletEntity target = new SteeringBulletEntity(targetBody);
 
         setMaxLinearSpeed(2); // idfk
         setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
@@ -118,6 +116,6 @@ private TankController tc;
         /*
          update the "VehicleModel" wiht he new virtual controller inputs
          */
-        tc.updateControls(false, direction, angular,0);
+        tc.updateControls(direction, angular,0);
     }
 }
