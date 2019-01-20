@@ -300,12 +300,14 @@ class GameScreen implements Screen {
             Vector3 tmpV = new Vector3();
             Random rnd = new Random();
             final Vector3 impulseForceV = new Vector3();
-
+            InputState preInputState;
             @Override
             public void update(float deltaT) {
+                InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
 // just an ginormoua hack right now .....
-                if (0 != jumpButtonGet()) {
+//                if (0 != jumpButtonGet()) {
+                if (InputState.INP_NONE == preInputState && InputState.INP_JUMP == nowInputState){
 //    applyJump();  // TODO: tank conttoller only enable jump if in surface conttact ??
                     // random flip left or right
                     if (rnd.nextFloat() > 0.5f)
@@ -319,6 +321,7 @@ class GameScreen implements Screen {
                 {
                     vehicleModel.updateControls(getLinearDirection(), getAngularDirection(), 0);
                 }
+                preInputState = nowInputState;
             }
         };
 
@@ -457,7 +460,6 @@ class GameScreen implements Screen {
         }
 ///*
         // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
-        if (null != pickedPlayer) {
             CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
@@ -477,7 +479,6 @@ class GameScreen implements Screen {
                 //platformEntity.remove(BulletComponent.class); // idfk
                 platformColor.a = 0;
             }
-        }
 //*/
 ///*///////////////////////////////////////////
         batch.setProjectionMatrix(guiCam.combined);
@@ -491,8 +492,7 @@ class GameScreen implements Screen {
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
             font.draw(batch, s, 400, Gdx.graphics.getHeight());
 */
-
-        if (null != renderSystem && null != pickedPlayer) {
+        if (null != renderSystem) {
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
             //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
@@ -502,7 +502,6 @@ class GameScreen implements Screen {
             stringBuilder.append(" / ").append(renderableCount);
             label.setText(stringBuilder);
         }
-
         batch.end();
 
 //*//////////////////////////////
@@ -515,12 +514,6 @@ class GameScreen implements Screen {
         shapeRenderer.setColor(hudOverlayColor);
         shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-/*
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(255, 255, 255, 1));
-        shapeRenderer.rect((Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5, 10, 10);
-        shapeRenderer.end();
-*/
 //*//////////////////////////////
 
         playerUI.act(Gdx.graphics.getDeltaTime());

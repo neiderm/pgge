@@ -55,8 +55,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     public InputStruct() {
 
-        buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 0, false);
-
         connectedCtrl = getConnectedCtrl(0);
     }
 
@@ -79,33 +77,17 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     }
 
 
-    private int buttonGet(ButtonsEnum key) {
-
-        ButtonData data = buttonsTable.get(key);
-
-        int value = data.value;
-        if (!data.isRepeatable)
-            buttonSet(key, 0, false /* hmmmm */); // delatch it
-
-        return value;
-    }
-
     void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
 
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
     }
 
-    public int jumpButtonGet() {
-        // "Circle" button
-        return buttonGet(ButtonsEnum.BUTTON_1);
-    }
 
-
-    public float getLinearDirection() {
+    protected float getLinearDirection() {
         return linearD;
     }
 
-    public float getAngularDirection() {
+    protected float getAngularDirection() {
         return angularD;
     }
 
@@ -192,7 +174,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     public enum InputState {
         INP_NONE,
         INP_SELECT,
-        INP_BACK
+        INP_BACK,
+        INP_JUMP
     }
 
 
@@ -218,7 +201,21 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
             rv = InputState.INP_SELECT;
 
-        } else if (Gdx.input.justTouched()) {
+        }
+        else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT) /* Circle / "B"  */) {
+
+            rv = InputState.INP_JUMP;
+        }
+        else if (getControlButton(Input.Buttons.LEFT) /*   */) {
+        }
+        else if (getControlButton(Input.Buttons.BACK) /* Triangle / "Y"  */) {
+        }
+        else if (getControlButton(Input.Buttons.FORWARD) /*   */) {
+        }
+        else if (getControlButton(Input.Buttons.MIDDLE) /* Square / "X"   */) {
+        }
+
+        else if (Gdx.input.justTouched()) {
 
             if (checkIsTouched) {
                 rv = InputState.INP_SELECT;

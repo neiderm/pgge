@@ -64,7 +64,7 @@ public class PlayerCharacter extends Stage {
       }
       if listener==null then we have already a default base listener
      */
-    public PlayerCharacter(InputStruct mapper, Array<InputListener> buttonListeners) {
+    public PlayerCharacter(final InputStruct mapper, Array<InputListener> buttonListeners) {
 
         this.mapper = mapper;
 
@@ -77,7 +77,16 @@ public class PlayerCharacter extends Stage {
             button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
             button.setColor(1, 1, 1, .3f);
             button.fillCircle(25, 25, 25);
-            addInputListener(jumpButtonListener, button,
+            addInputListener(
+                    new InputListener() {
+                        @Override
+                        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                            mapper.setInputState(InputStruct.InputState.INP_JUMP);
+                            return false;
+                        }
+                    }
+                    , button,
                     3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
             button.dispose();
         }
@@ -124,16 +133,6 @@ public class PlayerCharacter extends Stage {
             }
 
             mapper.setAxis(-1, axes);
-        }
-    };
-
-    private final InputListener jumpButtonListener = new InputListener() {
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-            // "Circle" button
-            mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
-            return false;
         }
     };
 
@@ -188,13 +187,6 @@ public class PlayerCharacter extends Stage {
 
         mapper.setAxis(axisIndex, axes);
 
-
-        // TODO: for simple key presses, lookup table of Input.Keys-BUTTON_CODE
-// build in a flag for "key held/isRepeated? "
-        if (Input.Keys.SPACE == keycode) {
-            // "Circle" button
-            mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
-        }
         return false;
     }
 
@@ -231,14 +223,14 @@ public class PlayerCharacter extends Stage {
 
     private void initController() {
 
-
         // print the currently connected controllers to the console
         print("Controllers: " + Controllers.getControllers().size);
         int i = 0;
         for (Controller controller : Controllers.getControllers()) {
             print("#" + i++ + ": " + controller.getName());
         }
-        if (Controllers.getControllers().size == 0) print("No controllers attached");
+        if (Controllers.getControllers().size == 0)
+            print("No controllers attached");
 
 // hmmmmm when can I clearListeners?
         Controllers.addListener(new ControllerListenerAdapter() {
@@ -336,7 +328,7 @@ public class PlayerCharacter extends Stage {
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    public void addChangeListener(ChangeListener touchPadChangeListener) {
+    private void addChangeListener(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
         Skin touchpadSkin;
