@@ -24,13 +24,20 @@ import com.mygdx.game.characters.InputStruct;
  * Created by mango on 12/18/17.
  */
 
-// https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java#L37
-// make sure this not visible outside of com.mygdx.game.screens
+   /*
+    * Reference:
+    *  on-screen menus:
+    *   https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
+    *  UI skin defined programmatically:
+    *   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+    */
+
 public class MainMenuScreen implements Screen /* extends Stage */ {
 
     private InputStruct mapper = new InputStruct();
     private Stage stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
     private ButtonGroup<TextButton> bg;
+    private Texture buttonTexture;
 
     private Screen getLoadingScreen() {
         return new LoadingScreen("GameData.json");
@@ -38,11 +45,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
 
     public MainMenuScreen() {
-
-//        Gdx.graphics.setWindowedMode(800,600);
-
-        //https://github.com/dfour/box2dtut/blob/master/box2dtut/core/src/blog/gamedevelopment/box2dtutorial/views/EndScreen.java
-        // create stage and set it as input processor
+//super() ?
         stage = new Stage(new ScreenViewport())
 /*        {
             @Override
@@ -51,18 +54,14 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
                 if (keycode == Input.Keys.SPACE) {
 //                    GameWorld.getInstance().showScreen(new GameScreen());  // Invalid, can't have gameScreen before loadScreen sceneLoader is initilaized!
                     GameWorld.getInstance().showScreen(getLoadingScreen());
-//                    Gdx.input.setCatchBackKey(true);
                 }
 
                 if (keycode == Input.Keys.BACK || keycode == Input.Keys.ESCAPE) {
-                    // I don't know if it's not getting debounced coming off of SelectScreen?
-                    Gdx.app.log("MainMenuScreen", "keyDown = " + keycode);
                     GameWorld.getInstance().showScreen(new SplashScreen());
                 }
                 return false;
             }
-        }*/
-        ;
+        }*/;
 
         Gdx.input.setInputProcessor(stage);
     }
@@ -139,7 +138,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
                     GameWorld.getInstance().showScreen(getLoadingScreen());
                     break;
                 case 1:
-                    GameWorld.getInstance().showScreen(
+                    GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
                             new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
                     break;
                 case 2:
@@ -161,13 +160,15 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
     @Override
     public void dispose() {
 
+        buttonTexture.dispose();
         stage.dispose();
     }
 
     @Override
     public void show() {
 
-        // create table to layout items we will add
+        // I put startup stuff in here simply because example I was following.
+
         Table table = new Table();
         table.setFillParent(true);
         table.setDebug(true);
@@ -219,9 +220,10 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 1);
         button.fillCircle(25, 25, 25);
-        Texture myTexture = new Texture(button);
+
+        buttonTexture = new Texture(button);
         button.dispose();
-        TextureRegion myTextureRegion = new TextureRegion(myTexture);
+        TextureRegion myTextureRegion = new TextureRegion(buttonTexture);
         TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
         ImageButton buttonB = new ImageButton(myTexRegionDrawable);
@@ -243,7 +245,6 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     @Override
     public void hide() {
-
         dispose();
     }
 }
