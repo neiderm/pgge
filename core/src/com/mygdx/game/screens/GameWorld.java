@@ -8,15 +8,16 @@ import com.mygdx.game.SceneLoader;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
- * Created by utf1247 on 2/28/2018.
- * Reference:
- *  http://bioboblog.blogspot.com/
- *  http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/
+ * Created by neiderm on 2/28/2018.
+ * Reference for "ScreenManager" arch. pattern:
+ *  http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
+ * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object parameter (extends Stage implements Screen ???? )
+ *  http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
  *
- *  Keep this thin .... can it be eliminated?
+ *  intented as singletonKeep, keep this thin
  */
 
-public class GameWorld implements Disposable {
+public final class GameWorld implements Disposable {
 
     private Game game;
 
@@ -24,8 +25,16 @@ public class GameWorld implements Disposable {
 
     private static GameWorld instance;
 
-//    private GameWorld() {
-//    }
+    private GameWorld() {
+    }
+
+    // created lazily and cached for later usage.
+    public static GameWorld getInstance(){
+        if (null == instance){
+            instance = new GameWorld();
+        }
+        return instance;
+    }
 
     public void initialize(Game game){
 
@@ -35,19 +44,41 @@ public class GameWorld implements Disposable {
         Bullet.init();
         PrimitivesBuilder.init();            // one time only .. for now i guess
 
-        game.setScreen(new SplashScreen());
+        game.setScreen(new SplashScreen()); // can be done here or by caller ?
     }
 
-    public static GameWorld getInstance(){
-        if (null == instance){
-            instance = new GameWorld();
-        }
-        return instance;
+    /*
+     * is caller calling this on their render() ? maybe it doesnt matter.
+     * should be concerned about how much construction is done then?
+     * any screen that has more than trivial setup should be deferred thru the loading screen!
+     *
+     * mostly I do all screen init in constructor and do nothing in show() and chain the dispose() to hide() ... but we could call dispose below ....
+     * is there such a thing as leaving a screen instance persist (like a single instance of GameScreen  that could hold
+     * persistent data. It would still do model dispose etc. on the hide() event and then rebuild those on show()
+     */
+    public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */ ) {
+
+        if (null == game)
+            return;
+
+        // Get current screen to dispose it >>>>>  ???????
+        Screen currentScreen = game.getScreen();
+
+        // Show new screen
+//        AbstractScreen newScreen = screenEnum.getScreen(params);
+//        newScreen.buildStage();
+
+        game.setScreen(screen); // calls screen.hide() on the current screen but should that call dispose() ??????
+
+        // Dispose previous screen
+//        if (currentScreen != null) {
+//            currentScreen.dispose();
+//        }
     }
 
-/*
- right now this is the only way to signal from the PlayerCharacter:keyDown to GameScreen :(
- */
+    /*
+     right now this is the only way to signal from the PlayerCharacter:keyDown to GameScreen :(
+     */
     private boolean isPaused = false;
 
     public boolean getIsPaused(){
@@ -78,13 +109,6 @@ public class GameWorld implements Disposable {
     String getPlayerObjectName(){
         return playerObjectName;
     }
-
-
-    public void showScreen(Screen screen) {
-
-        game.setScreen(screen); // calls screen.hide() on the current screen
-    }
-
 
     /* I don't think we see a dispose event on Android */
 @Override
