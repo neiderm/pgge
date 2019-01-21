@@ -98,14 +98,9 @@ public class LoadingScreen implements Screen {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        shapeRenderer.setColor(new Color(255, 255, 255, 1));
+        shapeRenderer.setColor(new Color(255, 0 , 0, 1));
         shapeRenderer.rect(
-                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
-                20f + loadCounter, 10);
-
-        shapeRenderer.setColor(new Color(255, 255, 255, 1));
-        shapeRenderer.rect(
-                (Gdx.graphics.getWidth() / 2f) - 5, (Gdx.graphics.getHeight() / 2f) - 5,
+                (Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 2f) - 5,
                 20f + loadCounter, 10);
 
         shapeRenderer.end();
@@ -118,7 +113,9 @@ public class LoadingScreen implements Screen {
             stringBuilder.setLength(0);
             stringBuilder.append("Loading ... ");
 
-            loadCounter += 1;
+            // make the bar up to half the screen width
+            loadCounter = 
+               (int)(Gdx.graphics.getWidth() * 0.5f * GameWorld.sceneLoader.getAssets().getProgress()) ;
 
             if (GameWorld.sceneLoader.getAssets().update()) {
                 GameWorld.sceneLoader.doneLoading();
