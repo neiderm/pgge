@@ -72,26 +72,12 @@ public class PlayerCharacter extends Stage {
                 public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
                     Touchpad t = (Touchpad) actor;
-                    final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-                    float knobX = t.getKnobPercentX();
-                    float knobY = t.getKnobPercentY();
-                    Arrays.fill(axes, 0);
-
-                    if (knobX < -DZ) {
-                        axes[0] = -1;
-                    } else if (knobX > DZ) {
-                        axes[0] = +1;
-                    }
-
-                    if (knobY > DZ) {
-                        axes[1] = -1;
-                    } else if (knobY < -DZ) {
-                        axes[1] = +1;
-                    }
+                    axes[0] = t.getKnobPercentX();
+                    axes[1] = t.getKnobPercentY() * ( -1 );     // negated
 
                     mapper.setAxis(-1, axes);
                 }
-            });   // user tapped in on screen
+            });
 
             Pixmap.setBlending(Pixmap.Blending.None);
             Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
@@ -167,7 +153,7 @@ public class PlayerCharacter extends Stage {
             axes[1] = +1;
         }
 
-        mapper.setAxis(axisIndex, axes);
+        mapper.setAxis(255, axes);
 
         return false;
     }
@@ -242,14 +228,14 @@ public class PlayerCharacter extends Stage {
                 /*          -1.0
                        -1.0   +   +1.0  (0)
                             + 1.0        */
-                final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+//                final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
 
                 for (int idx = 0; idx < 4; idx++) {
 
                     float tmp = controller.getAxis(idx);
 
-                    if (abs(tmp) < DZ)
-                        tmp = 0; // inside deadzone
+//                    if (abs(tmp) < DZ)
+//                        tmp = 0; // inside deadzone
 
                     axes[idx] = tmp;
                 }
