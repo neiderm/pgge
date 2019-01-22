@@ -318,27 +318,7 @@ class GameScreen implements Screen {
                 }
                 //            if (!isPaused)
                 {
-                    final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-                    // rotate by a constant rate according to stick left or stick right.
-                    float angularD = 0f;
-                    float linearD = 0f;
-                    float knobX = getAxisX(0);
-                    float knobY = (-1) * getAxisY(0);  //   <---- note negative sign
-
-                    if (knobX < -DZ) {
-                        angularD = +1f;  // left (ccw)
-                    } else if (knobX > DZ) {
-                        angularD = -1f;   // right (cw)
-                    }
-                    if (knobY > DZ) {
-                        linearD = -1f;
-                    } else if (knobY < -DZ) {
-                        // reverse thrust & "steer" opposite direction !
-                        linearD = +1f;
-                        angularD = -angularD;  //   <---- note negative sign
-                    }
-                    // else ... inside deadzone
-                    vehicleModel.updateControls(linearD, angularD, 0);
+                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
                 }
                 preInputState = nowInputState;
             }

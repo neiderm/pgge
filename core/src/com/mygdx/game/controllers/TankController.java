@@ -50,6 +50,11 @@ public class TankController implements SimpleVehicleModel
     @Override
     public void updateControls(float direction, float angular, float time) {
 
+        // this makes reverse steering opposite of my favorite *rigs game ;)
+        if (direction < 0)
+            angular *= -1; // reverse thrust & "steer" opposite direction !
+
+
         // TODO: logic to test orientation for "upside down but not free falling"
 
         // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
