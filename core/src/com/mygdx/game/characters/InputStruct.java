@@ -8,7 +8,7 @@ import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.utils.ArrayMap;
 
 /**
- * Created by utf1247 on 6/28/2018.
+ * Created by neiderm on 6/28/2018.
  */
 /*   My fancy controller -perspective drawing ;)
       _____________________________
@@ -45,8 +45,6 @@ we can have different control schemes for the same underlying model e.g. differe
  */
 public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
-    private float angularD = 0f;
-    private float linearD = 0f;
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
 
@@ -57,7 +55,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
         connectedCtrl = getConnectedCtrl(0);
     }
-
 
     @Override
     public void update(float deltaT) { // mt
@@ -82,15 +79,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
     }
 
-
-    protected float getLinearDirection() {
-        return linearD;
-    }
-
-    protected float getAngularDirection() {
-        return angularD;
-    }
-
     public enum ButtonsEnum { // idfk
         BUTTON_NONE,
         BUTTON_1,
@@ -105,19 +93,14 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         BUTTON_10
     }
 
-    /*
-     reverse, e.g. stick back, or ...... (inReverse+gasApplied) ...both sticks back
-     */
-    public int getReverse() {
-        return 0;
+    // get the "virtual axis"
+    protected float getAxisX(int axisIndex) {
+        return analogAxes.x;
     }
-
-    public int getForward() {
-        return 0;
+    // get the "virtual axis"
+    protected float getAxisY(int axisIndex) {
+        return analogAxes.y;
     }
-
-//    private Object UIPictureDiagram; // idfk
-
     /*
       axisIndex: index of changed axes (only has value for a real axes?
       values[]: values of all 4 axes (only have all 4 if there are 2 analog mushrooms)
@@ -128,31 +111,10 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
      */
     void setAxis(int axisIndex, float[] values) {
 
-        final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-
-        // rotate by a constant rate according to stick left or stick right.
-        angularD = 0f;
-        linearD = 0f;
-
-        float knobX = values[0];
-        float knobY = -values[1];  //   <---- note negative sign
-
-        if (knobX < -DZ) {
-            angularD = +1f;  // left (ccw)
-        } else if (knobX > DZ) {
-            angularD = -1f;   // right (cw)
-        }
-
-        if (knobY > DZ) {
-            linearD = -1f;
-        } else if (knobY < -DZ) {
-            // reverse thrust & "steer" opposite direction !
-            linearD = +1f;
-            angularD = -angularD;  //   <---- note negative sign
-        }
-        // else ... inside deadzone
-
-    }
+        // ie. analogAxes[axisIndex].x ....
+        analogAxes.x = values[0];
+        analogAxes.y = values[1];
+}
 
 
     private Controller connectedCtrl;
@@ -201,8 +163,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
             rv = InputState.INP_SELECT;
 
-        }
-        else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT) /* Circle / "B"  */) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT) /* Circle / "B"  */) {
 
             rv = InputState.INP_JUMP;
         }
@@ -250,8 +211,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         return rv;
     }
 
-
-    public class DpadAxes {
+    public class DpadAxis {
         int x;
         int y;
         void clear(){
@@ -262,7 +222,19 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         public int getY(){ return y; }
     }
 
-    private DpadAxes dPadAxes = new DpadAxes();
+    public class AnalogAxis {
+        float x;
+        float y;
+        void clear(){
+            x = 0;
+            y = 0;
+        }
+        public float getX(){ return x; }
+        public float getY(){ return y; }
+    }
+
+    private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
+    private AnalogAxis analogAxes = new AnalogAxis(); // would need array of max analog axes, for now just use one
 
     /*
      * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
@@ -270,7 +242,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
      * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
      * But glitchy and not worth considering.
      */
-    public DpadAxes getDpad(DpadAxes asdf){
+    public DpadAxis getDpad(DpadAxis asdf){
 
         dPadAxes.clear();
 

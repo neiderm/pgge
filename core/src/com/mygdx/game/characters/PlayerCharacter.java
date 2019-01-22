@@ -28,13 +28,10 @@ import static java.lang.Math.abs;
 
 /**
  * Created by neiderm on 5/17/2018.
- * This adapter has become specific to "tank" vehicle, it provides multiple controls - keyboard, touch screen, dpad etc.
  */
 
 public class PlayerCharacter extends Stage {
-    /*
-     * keys to be assigned by UI configuration ;)
-     */
+
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
@@ -68,26 +65,48 @@ public class PlayerCharacter extends Stage {
 
         this.mapper = mapper;
 
-// UI pixmaps etc. should eventually come from a user-selectable skin
         if (GameWorld.getInstance().getIsTouchScreen()) {
-            addChangeListener(touchPadChangeListener);   // user tapped in on screen
 
-            Pixmap button;
+            addChangeListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+
+                    Touchpad t = (Touchpad) actor;
+                    final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+                    float knobX = t.getKnobPercentX();
+                    float knobY = t.getKnobPercentY();
+                    Arrays.fill(axes, 0);
+
+                    if (knobX < -DZ) {
+                        axes[0] = -1;
+                    } else if (knobX > DZ) {
+                        axes[0] = +1;
+                    }
+
+                    if (knobY > DZ) {
+                        axes[1] = -1;
+                    } else if (knobY < -DZ) {
+                        axes[1] = +1;
+                    }
+
+                    mapper.setAxis(-1, axes);
+                }
+            });   // user tapped in on screen
+
             Pixmap.setBlending(Pixmap.Blending.None);
-            button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
             button.setColor(1, 1, 1, .3f);
             button.fillCircle(25, 25, 25);
+
             addInputListener(
                     new InputListener() {
                         @Override
                         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
+                            // "Circle" button
                             mapper.setInputState(InputStruct.InputState.INP_JUMP);
                             return false;
-                        }
-                    }
-                    , button,
-                    3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
+                        }},
+                    button, 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
             button.dispose();
         }
 
@@ -104,45 +123,8 @@ public class PlayerCharacter extends Stage {
         initController();
     }
 
-
-    private final ChangeListener touchPadChangeListener = new ChangeListener() {
-        @Override
-        public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
-            Touchpad t = (Touchpad) actor;
-
-            final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-
-            float knobX = t.getKnobPercentX();
-            float knobY = t.getKnobPercentY();
-
-            Arrays.fill(axes, 0);
-
-            if (knobX < -DZ) {
-                axes[0] = -1;
-
-            } else if (knobX > DZ) {
-                axes[0] = +1;
-            }
-
-            if (knobY > DZ) {
-                axes[1] = -1;
-
-            } else if (knobY < -DZ) {
-                axes[1] = +1;
-            }
-
-            mapper.setAxis(-1, axes);
-        }
-    };
-
     @Override
     public boolean keyDown(int keycode) {
-/*
-        String message = new String ();
-        message = String.format( "key Down: keycode = %d", keycode );
-        Gdx.app.log("Input", message);
-*/
 //        super.keyDown(keycode); // "ESC" || "BACK" -> MainMenuScreen
         /*
          Android "BACK" (on-screen btn) not handled by libGdx framework and seemingly no
@@ -200,7 +182,6 @@ public class PlayerCharacter extends Stage {
             axes[0] = 0;
             axisIndex = 0;
         }
-
         if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
                 KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
             axes[1] = 0;
@@ -244,22 +225,9 @@ public class PlayerCharacter extends Stage {
             public boolean buttonDown(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                final int BUTTON_CODE_8 = 8; // to be assigned by UI configuration ;)
                 final int BUTTON_CODE_3 = 3; // to be assigned by UI configuration ;)
-
-                if (BUTTON_CODE_8 == buttonIndex) {
+//                if (BUTTON_CODE_8 == buttonIndex) {
 //idfk                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
-                }
-
-//                if (BUTTON_CODE_10 == buttonIndex) {  //  "Pause Resume-Restart-Quit"
-                // code gets duplicated here between Controller handler and keyboard/touch handler because we don't have good AL!
-                //   GameWorld.getInstance().showScreen(new MainMenuScreen());     /// create "back" event, for now. eventually map this to pause
-
-                if (BUTTON_CODE_3 == buttonIndex)
-                    // "Triangle" button .........................
-                    // .................... ButtonsEnum is wrong then, this is a lousy AL!
-                    mapper.buttonSet(InputStruct.ButtonsEnum.BUTTON_1, 1, false);
-
                 return false;
             }
 
@@ -305,7 +273,6 @@ public class PlayerCharacter extends Stage {
                 if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
                     axes[0] = +1;
                 }
-
                 if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
                     axes[1] = -1;
                 }
@@ -320,9 +287,6 @@ public class PlayerCharacter extends Stage {
             }
         });
     }
-
-
-
 
 
     /**

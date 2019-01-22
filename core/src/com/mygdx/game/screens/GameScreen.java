@@ -59,7 +59,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 
 /**
- * Created by mango on 12/18/17.
+ * Created by neiderm on 12/18/17.
  */
 // make sure this not visible outside of com.mygdx.game.screens
 class GameScreen implements Screen {
@@ -306,10 +306,9 @@ class GameScreen implements Screen {
                 InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
 // just an ginormoua hack right now .....
-//                if (0 != jumpButtonGet()) {
                 if (InputState.INP_NONE == preInputState && InputState.INP_JUMP == nowInputState){
-//    applyJump();  // TODO: tank conttoller only enable jump if in surface conttact ??
-                    // random flip left or right
+                    // random flip left or right ( only enable jump if in surface conttact ??)
+
                     if (rnd.nextFloat() > 0.5f)
                         tmpV.set(0.1f, 0, 0);
                     else
@@ -319,7 +318,27 @@ class GameScreen implements Screen {
                 }
                 //            if (!isPaused)
                 {
-                    vehicleModel.updateControls(getLinearDirection(), getAngularDirection(), 0);
+                    final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
+                    // rotate by a constant rate according to stick left or stick right.
+                    float angularD = 0f;
+                    float linearD = 0f;
+                    float knobX = getAxisX(0);
+                    float knobY = (-1) * getAxisY(0);  //   <---- note negative sign
+
+                    if (knobX < -DZ) {
+                        angularD = +1f;  // left (ccw)
+                    } else if (knobX > DZ) {
+                        angularD = -1f;   // right (cw)
+                    }
+                    if (knobY > DZ) {
+                        linearD = -1f;
+                    } else if (knobY < -DZ) {
+                        // reverse thrust & "steer" opposite direction !
+                        linearD = +1f;
+                        angularD = -angularD;  //   <---- note negative sign
+                    }
+                    // else ... inside deadzone
+                    vehicleModel.updateControls(linearD, angularD, 0);
                 }
                 preInputState = nowInputState;
             }
@@ -502,6 +521,7 @@ class GameScreen implements Screen {
             stringBuilder.append(" / ").append(renderableCount);
             label.setText(stringBuilder);
         }
+
         batch.end();
 
 //*//////////////////////////////
