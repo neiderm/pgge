@@ -6,9 +6,10 @@ import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.screens.GameWorld;
 
 /**
- * Created by mango on 2/10/18.
+ * Created by neiderm on 2/10/18.
  */
 
 public class CharacterSystem extends IteratingSystem implements EntityListener {
@@ -44,6 +45,14 @@ public class CharacterSystem extends IteratingSystem implements EntityListener {
         //empty
     }
 
+    @Override
+    public void update(float deltaTime) {
+
+        if (!GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
+            for (Entity e : getEntities())
+                processEntity(e, deltaTime);
+        }
+    }
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {

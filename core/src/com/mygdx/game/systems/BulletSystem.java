@@ -7,11 +7,10 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.screens.GameWorld;
 
 /**
- * Created by mango on 12/18/17.
- * a bullet and libgdx test from
- * "from http://bedroomcoders.co.uk/libgdx-bullet-redux-2/"
+ * Created by neiderm on 12/18/17.
  */
 
 public class BulletSystem extends IteratingSystem implements EntityListener {
@@ -30,8 +29,11 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
 
     @Override
     public void update(float deltaTime) {
-        super.update(deltaTime);
-        world.update(deltaTime);
+
+        if (!GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
+            super.update(deltaTime);
+            world.update(deltaTime);
+        }
     }
 
 

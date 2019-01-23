@@ -20,11 +20,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.screens.GameWorld;
-import com.mygdx.game.screens.MainMenuScreen;
 
 import java.util.Arrays;
-
-import static java.lang.Math.abs;
 
 /**
  * Created by neiderm on 5/17/2018.
@@ -53,7 +50,7 @@ public class PlayerCharacter extends Stage {
 
     /*
      TODO: Array<InputListener> buttonListeners should be something like "Array<InputMapping> buttonListeners"
-      ... where "InputMapping"  should be array of Buttons-Inputs needed for the screen\
+      ... where "InputMapping"  should be array of Buttons-Inputs needed for the screen
       {
         CONTROL_ID   //   POV_UP, POV_DOWN, BTN_START, BTN_X, BTN_DELTA,
         InputListener listener
@@ -74,10 +71,8 @@ public class PlayerCharacter extends Stage {
                     Touchpad t = (Touchpad) actor;
                     axes[0] = t.getKnobPercentX();
                     axes[1] = t.getKnobPercentY() * ( -1 );     // negated
-
                     mapper.setAxis(-1, axes);
-                }
-            });
+                }});
 
             Pixmap.setBlending(Pixmap.Blending.None);
             Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
@@ -95,7 +90,6 @@ public class PlayerCharacter extends Stage {
                     button, 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
             button.dispose();
         }
-
 ///////////
 // mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
         // how to order the InputListener Array
@@ -111,35 +105,22 @@ public class PlayerCharacter extends Stage {
 
     @Override
     public boolean keyDown(int keycode) {
-//        super.keyDown(keycode); // "ESC" || "BACK" -> MainMenuScreen
         /*
          Android "BACK" (on-screen btn) not handled by libGdx framework and seemingly no
-         equivalent on PC keyboard ...
-         "ESC" no equivalent on Android/emulator, so map them together.
+         equivalent on PC keyboard ... "ESC" no equivalent on Android/emulator, so map them together.
          */
         if (KEY_CODE_ESC == keycode || KEY_CODE_BACK == keycode) {
-// TODO: make this pause, and option RESUME/RESTART/QUIT
 
-            if (true/*tmp*/) {
-                GameWorld.getInstance().showScreen(new MainMenuScreen());
-
+            if (!GameWorld.getInstance().getIsPaused()) {
+                GameWorld.getInstance().setIsPaused(true);
+                //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
             } else {
-////                isPaused = GameWorld.getInstance().getIsPaused();
-//                if (!isPaused) {
-////                    GameWorld.getInstance().setIsPaused(true);
-//                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
-//                    isPaused = true;
-//                }
-//                else {
-////                    GameWorld.getInstance().setIsPaused(false);
-//                    gameEventSignal.dispatch(gameEvent.set(IS_UNPAUSED, null, 0));
-//                    isPaused = false;
-//                }
+                GameWorld.getInstance().setIsPaused(false);
             }
         }
 
         int axisIndex = -1; // idfk
-//        Arrays.fill(axes, 0);
+
         if (KEY_CODE_POV_LEFT == keycode) {
             axes[0] = -1;
         }
@@ -152,7 +133,6 @@ public class PlayerCharacter extends Stage {
         if (KEY_CODE_POV_DOWN == keycode) {
             axes[1] = +1;
         }
-
         mapper.setAxis(255, axes);
 
         return false;
@@ -228,20 +208,10 @@ public class PlayerCharacter extends Stage {
                 /*          -1.0
                        -1.0   +   +1.0  (0)
                             + 1.0        */
-//                final float DZ = 0.25f; // actual number is irrelevant if < deadzoneRadius of TouchPad
-
                 for (int idx = 0; idx < 4; idx++) {
-
-                    float tmp = controller.getAxis(idx);
-
-//                    if (abs(tmp) < DZ)
-//                        tmp = 0; // inside deadzone
-
-                    axes[idx] = tmp;
+                    axes[idx] = controller.getAxis(idx);
                 }
-
                 mapper.setAxis(axisIndex, axes);
-
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
 
                 return false;
@@ -333,5 +303,4 @@ public class PlayerCharacter extends Stage {
 
         this.addActor(button);
     }
-
 }

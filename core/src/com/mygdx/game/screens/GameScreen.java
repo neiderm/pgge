@@ -102,6 +102,7 @@ class GameScreen implements Screen {
 
     GameScreen() {
 
+        GameWorld.getInstance().setIsPaused(false);
         pickRayEventSignal = new Signal<GameEvent>();
 
         engine = new Engine();
@@ -197,26 +198,28 @@ class GameScreen implements Screen {
 
         return new InputListener() {
 
-            private Ray setPickRay(float x, float y) {
+            Ray setPickRay(float x, float y) {
                 // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
                 float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
                 float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
                 Ray rayTmp = cam.getPickRay(nX, nY);
                 return pickRay.set(rayTmp.origin, rayTmp.direction);
             }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/
-            }
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // only do this if FPV mode (i.e. cam controller is not handling game window input)
-//            if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
-                {
+//TODO: emit input events .... setInputState()
+                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
+                    roundOver = true; // will have to do for now ;)
+                }
+                else {
+                // only do this if FPV mode (i.e. cam controller is not handling game window input) ??
+                // if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
                     pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                    //Gdx.app.log(this.getClass().getName(), String.format("GS touchDown x = %f y = %f, id = %d", x, y, id));
                 }
                 return false;
+            }
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/
             }
         };
     }
@@ -249,7 +252,7 @@ class GameScreen implements Screen {
 
         GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
 
-
+// load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
         Array<Entity> characters = new Array<Entity>();
         GameWorld.sceneLoader.buildCharacters(characters, engine, "tanks", true); // hack object name embedded into pick component
 
@@ -261,8 +264,7 @@ class GameScreen implements Screen {
             } else
                 engine.removeEntity(e); // bah
         }
-        pickedPlayer.remove(PickRayComponent.class);
-
+        pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
@@ -280,15 +282,7 @@ class GameScreen implements Screen {
             }
         };
 
-        // select the Steering Bullet Entity here and pass it to the character
-        SteeringEntity sbe = new SteeringEntity();
-
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-
+// setup the vehicle model so it can be referenced in the mapper
         final SimpleVehicleModel vehicleModel = new TankController(
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
@@ -316,23 +310,60 @@ class GameScreen implements Screen {
 
                     body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
                 }
-                //            if (!isPaused)
-                {
-                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
-                }
+                vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
                 preInputState = nowInputState;
             }
         };
 
+        // select the Steering Bullet Entity here and pass it to the character
+        SteeringEntity sbe = new SteeringEntity();
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
         sbe.setSteeringBehavior(playerInpSB);
+        pickedPlayer.add(new CharacterComponent(sbe));
 
-        playerUI = new PlayerCharacter(mapper, null /* new Array<InputListener>() */);
 
+        Array<InputListener> listeners = new Array<InputListener>();
+
+        playerUI = new PlayerCharacter(mapper, listeners);
+        playerUI.addActor(label);
+
+            /*
+     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
+         */
+        final GameEvent gameEvent = new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_PICK:
+                        if (null != picked)
+                            ModelInstanceEx.setMaterialColor(
+                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+
+        Pixmap button;
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        playerUI.addInputListener(makeButtonGSListener(gameEvent),
+                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        button.dispose();
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
         playerUI.addInputListener(
                 buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
+        button.dispose();
 
-        pickedPlayer.add(new CharacterComponent(sbe));
+        multiplexer.addProcessor(playerUI);
 
 
         characters = new Array<Entity>();
@@ -355,44 +386,14 @@ class GameScreen implements Screen {
         engine.addEntity(chaser.create(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
-        multiplexer.addProcessor(playerUI);
 
         Entity cameraEntity = new Entity();
         engine.addEntity(cameraEntity);
-
-            /*
-     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
-         */
-        final GameEvent gameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked)
-                            ModelInstanceEx.setMaterialColor(
-                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
 
         cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt,
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
         CharacterComponent comp = new CharacterComponent(cameraMan);
         cameraEntity.add(comp);
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        playerUI.addInputListener(makeButtonGSListener(gameEvent),
-                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
-
-        playerUI.addActor(label);
     }
 
 
@@ -454,9 +455,7 @@ class GameScreen implements Screen {
 
         camController.update(); // this can probaly be pause as well
 
-        if (!GameWorld.getInstance().getIsPaused()) {  // idfk
-            engine.update(delta);
-        }
+        engine.update(delta);
 ///*
         // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
             CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
@@ -473,7 +472,7 @@ class GameScreen implements Screen {
             if (platformColor.a > 0.1f) {
                 platformColor.a -= 0.005f;
                 ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
-            } else if (null != platformEntity) { // (platformColor.a > 0) {
+            } else if (null != platformEntity) {
                 engine.removeEntity(platformEntity);
                 //platformEntity.remove(BulletComponent.class); // idfk
                 platformColor.a = 0;
@@ -519,6 +518,9 @@ class GameScreen implements Screen {
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
+        /* "Falling off platform" ... let a "sensor" or some suitable means to detect "fallen off platform" at which point, set gameOver.
+          This way user can't pause during falling sequence. Once fallen past certain point, then allow screen switch.
+         */
         if (roundOver) {
             roundOver = false;
             GameWorld.getInstance().showScreen(new MainMenuScreen());
