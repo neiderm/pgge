@@ -62,57 +62,43 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 /**
  * Created by neiderm on 12/18/17.
  */
-// make sure this not visible outside of com.mygdx.game.screens
 class GameScreen implements Screen {
 
     private Engine engine;
-
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
-
     private PerspectiveCamera cam;
-
-    private CameraInputController camController;
-    //    public FirstPersonCameraController camController;
-    private Environment environment;
-    private DirectionalShadowLight shadowLight;
-    //    private Vector3 lightDirection = new Vector3(1f, -0.8f, 0f); // new Vector3(-1f, -0.8f, -0.2f);
-    private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
-
+    private CameraInputController camController; // FirstPersonCameraController camController;
     private BitmapFont font;
     private OrthographicCamera guiCam;
-    private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
-
+    private SpriteBatch batch = new SpriteBatch();
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
-
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-
     private PlayerCharacter playerUI;
-
-    private InputMultiplexer multiplexer;
-
+    private InputMultiplexer multiplexer = new InputMultiplexer();
     private StringBuilder stringBuilder = new StringBuilder();
     private Label label;
-
-    private Signal<GameEvent> pickRayEventSignal;
+    private Signal<GameEvent> pickRayEventSignal = new Signal<GameEvent>();
     private boolean roundOver = false;
+    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
+    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
+    private Entity pickedPlayer;
+    private Entity platformEntity;
+    private float colorAlpha = 0.9f;
+    private Color platformColor = new Color(255, 0, 0, colorAlpha);
 
 
     GameScreen() {
 
         GameWorld.getInstance().setIsPaused(false);
-        pickRayEventSignal = new Signal<GameEvent>();
-
-        engine = new Engine();
 
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
         // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
-//        Vector3 lightDirection = new Vector3(1f, -0.8f, -0.2f); // new Vector3(-1f, -0.8f, -0.2f);
-        environment = new Environment();
+        Environment environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 //        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
@@ -127,53 +113,39 @@ class GameScreen implements Screen {
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
-        // Font files from ashley-superjumper
-        font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
+        // must be done before any bullet object can be created
+        BulletWorld.getInstance().initialize(cam);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
-        batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
-
-
-        if (null != shadowLight)  // if this is a new round but not new gamescreen
-            environment.remove(shadowLight);
-        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+        DirectionalShadowLight shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, new Vector3(0.5f, -1f, 0f));
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
 
-        addSystems();
 
+        engine = new Engine();
+        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
+        engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
+        engine.addSystem(new PickRaySystem(pickRayEventSignal));
+        engine.addSystem(new StatusSystem());
+        engine.addSystem(new CharacterSystem());
 
         Vector3 scale = new Vector3(4, 1, 4);
         Vector3 trans = new Vector3(0, 10, -5);
-        PrimitivesBuilder pb = PrimitivesBuilder.getBoxBuilder("box");
-        platformEntity = pb.create(0.0f, trans, scale);
+        platformEntity =
+                PrimitivesBuilder.getBoxBuilder("box").create(0.0f, trans, scale);
         ModelInstanceEx.setColorAttribute(
                 platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         engine.addEntity(platformEntity);
 
         GameWorld.sceneLoader.buildArena(engine);
 
-        multiplexer = new InputMultiplexer();
-        Gdx.input.setInputProcessor(multiplexer);
-
-        label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
-
         onPlayerPicked();
     }
-
-    private Entity platformEntity;
-    private float colorAlpha = 0.9f;
-    private Color platformColor = new Color(255, 0, 0, colorAlpha);
-
 
     private final InputListener buttonBListener = new InputListener() {
         @Override
@@ -219,28 +191,6 @@ class GameScreen implements Screen {
             }
         };}
 
-    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
-    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
-    private Entity pickedPlayer;
-
-
-    private void addSystems() {
-
-        // must be done before any bullet object can be created
-        BulletWorld.getInstance().initialize(cam);
-
-        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
-        engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new PickRaySystem(pickRayEventSignal));
-        engine.addSystem(new StatusSystem());
-        engine.addSystem(new CharacterSystem());
-    }
-
-
-    @Override
-    public void show() {
-        // empty
-    }
 
     private void onPlayerPicked() {
 
@@ -282,14 +232,13 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
 
 
-        Entity cameraEntity = new Entity();
-        engine.addEntity(cameraEntity);
-
         cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt,
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
-        CharacterComponent comp = new CharacterComponent(cameraMan);
-        cameraEntity.add(comp);
 
+        CharacterComponent comp = new CharacterComponent(cameraMan);
+        Entity cameraEntity = new Entity();
+        cameraEntity.add(comp);
+        engine.addEntity(cameraEntity);
 
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
@@ -297,7 +246,7 @@ class GameScreen implements Screen {
         sc.transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
 
         sc.statusUpdater = new BulletEntityStatusUpdate() {
-            private Vector3 v = new Vector3();
+            Vector3 v = new Vector3();
             @Override
             public void update() {
                 v = sc.transform.getTranslation(v);
@@ -354,11 +303,20 @@ class GameScreen implements Screen {
         setupPlayerUI(mapper);
     }
 
+
     private void setupPlayerUI(final InputStruct mapper){
+
+        // Font files from ashley-superjumper
+        font = new BitmapFont(
+                Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
 
         Array<InputListener> listeners = new Array<InputListener>();
 
         playerUI = new PlayerCharacter(mapper, listeners);
+
+        label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         playerUI.addActor(label);
 
             /*
@@ -400,10 +358,10 @@ class GameScreen implements Screen {
         playerUI.addInputListener(
                 buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
 
-
         button.dispose();
 
         multiplexer.addProcessor(playerUI);
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
 
@@ -537,6 +495,9 @@ class GameScreen implements Screen {
         }
     }
 
+    @Override
+    public void show() {        // empty
+    }
 
     @Override
     public void resize(int width, int height) {
