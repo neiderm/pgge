@@ -25,6 +25,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -159,7 +160,6 @@ class GameScreen implements Screen {
                 platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         engine.addEntity(platformEntity);
 
-        GameWorld.sceneLoader.buildCharacters(null, engine, "tanks", true);
         GameWorld.sceneLoader.buildArena(engine);
 
         multiplexer = new InputMultiplexer();
@@ -187,7 +187,6 @@ class GameScreen implements Screen {
             return false;
         }
     };
-
 
     /*
 "gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
@@ -218,12 +217,7 @@ class GameScreen implements Screen {
                 }
                 return false;
             }
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) { /*empty*/
-            }
-        };
-    }
-
+        };}
 
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
@@ -261,110 +255,11 @@ class GameScreen implements Screen {
         for (Entity e : characters) {
             if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
                 pickedPlayer = e;
-            } else
-                engine.removeEntity(e); // bah
+                pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
+            }
+//            else
+//                engine.removeEntity(e); // let'em become zombies ;)
         }
-        pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
-
-// plug in the picked player
-        final StatusComponent sc = new StatusComponent();
-        pickedPlayer.add(sc);
-        sc.transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-
-        sc.statusUpdater = new BulletEntityStatusUpdate() {
-            private Vector3 v = new Vector3();
-            @Override
-            public void update() {
-                v = sc.transform.getTranslation(v);
-                if (v.dst2(sc.origin) > sc.boundsDst2) {
-                    roundOver = true; // respawn() ... can't do it in this context??
-                }
-            }
-        };
-
-// setup the vehicle model so it can be referenced in the mapper
-        final SimpleVehicleModel vehicleModel = new TankController(
-                pickedPlayer.getComponent(BulletComponent.class).body,
-                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
-        InputStruct mapper = new InputStruct() {
-
-            btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
-
-            Vector3 tmpV = new Vector3();
-            Random rnd = new Random();
-            final Vector3 impulseForceV = new Vector3();
-            InputState preInputState;
-            @Override
-            public void update(float deltaT) {
-                InputState nowInputState = getInputState(false);
-                // have to read the button to be sure it's state is delatched and not activate in a pause!
-// just an ginormoua hack right now .....
-                if (InputState.INP_NONE == preInputState && InputState.INP_JUMP == nowInputState){
-                    // random flip left or right ( only enable jump if in surface conttact ??)
-
-                    if (rnd.nextFloat() > 0.5f)
-                        tmpV.set(0.1f, 0, 0);
-                    else
-                        tmpV.set(-0.1f, 0, 0);
-
-                    body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
-                }
-                vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
-                preInputState = nowInputState;
-            }
-        };
-
-        // select the Steering Bullet Entity here and pass it to the character
-        SteeringEntity sbe = new SteeringEntity();
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
-        sbe.setSteeringBehavior(playerInpSB);
-        pickedPlayer.add(new CharacterComponent(sbe));
-
-
-        Array<InputListener> listeners = new Array<InputListener>();
-
-        playerUI = new PlayerCharacter(mapper, listeners);
-        playerUI.addActor(label);
-
-            /*
-     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
-         */
-        final GameEvent gameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked)
-                            ModelInstanceEx.setMaterialColor(
-                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-
-        Pixmap button;
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        playerUI.addInputListener(makeButtonGSListener(gameEvent),
-                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
-
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-        playerUI.addInputListener(
-                buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-        button.dispose();
-
-        multiplexer.addProcessor(playerUI);
-
 
         characters = new Array<Entity>();
 
@@ -394,6 +289,121 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
         CharacterComponent comp = new CharacterComponent(cameraMan);
         cameraEntity.add(comp);
+
+
+// plug in the picked player
+        final StatusComponent sc = new StatusComponent();
+        pickedPlayer.add(sc);
+        sc.transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+
+        sc.statusUpdater = new BulletEntityStatusUpdate() {
+            private Vector3 v = new Vector3();
+            @Override
+            public void update() {
+                v = sc.transform.getTranslation(v);
+                if (v.dst2(sc.origin) > sc.boundsDst2) {
+                    roundOver = true; // respawn() ... can't do it in this context??
+                }
+            }
+        };
+
+        setupVehicle(pickedPlayer);
+    }
+
+    private void setupVehicle(final Entity pickedPlayer){
+
+// setup the vehicle model so it can be referenced in the mapper
+        final SimpleVehicleModel vehicleModel = new TankController(
+                pickedPlayer.getComponent(BulletComponent.class).body,
+                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+        InputStruct mapper = new InputStruct() {
+
+            btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
+
+            Vector3 tmpV = new Vector3();
+            Random rnd = new Random();
+            final Vector3 impulseForceV = new Vector3();
+            InputState preInputState;
+            @Override
+            public void update(float deltaT) {
+                InputState nowInputState = getInputState(false);
+                // have to read the button to be sure it's state is delatched and not activate in a pause!
+// just an ginormoua hack right now .....
+                if (InputState.INP_NONE == preInputState && InputState.INP_JUMP == nowInputState) {
+                    // random flip left or right ( only enable jump if in surface conttact ??)
+
+                    if (rnd.nextFloat() > 0.5f)
+                        tmpV.set(0.1f, 0, 0);
+                    else
+                        tmpV.set(-0.1f, 0, 0);
+
+                    body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+                }
+                vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
+                preInputState = nowInputState;
+            }
+        };
+
+        // select the Steering Bullet Entity here and pass it to the character
+        SteeringEntity sbe = new SteeringEntity();
+        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
+        sbe.setSteeringBehavior(playerInpSB);
+        pickedPlayer.add(new CharacterComponent(sbe));
+
+        setupPlayerUI(mapper);
+    }
+
+    private void setupPlayerUI(final InputStruct mapper){
+
+        Array<InputListener> listeners = new Array<InputListener>();
+
+        playerUI = new PlayerCharacter(mapper, listeners);
+        playerUI.addActor(label);
+
+            /*
+     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
+         */
+        final GameEvent gameEvent = new GameEvent() {
+            @Override
+            public void callback(Entity picked, EventType eventType) {
+                switch (eventType) {
+                    case RAY_PICK:
+                        if (null != picked)
+                            ModelInstanceEx.setMaterialColor(
+                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                        break;
+                    default:
+                        break;
+                }
+            }};
+
+        Table table = new Table();
+        table.setFillParent(true);
+        table.setDebug(true);
+        playerUI.addActor(table);
+
+        Pixmap button;
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        playerUI.addInputListener(makeButtonGSListener(gameEvent),
+                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+        button.dispose();
+
+        Pixmap.setBlending(Pixmap.Blending.None);
+        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+        button.setColor(1, 1, 1, .3f);
+        button.fillCircle(25, 25, 25);
+        playerUI.addInputListener(
+                buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
+
+
+        button.dispose();
+
+        multiplexer.addProcessor(playerUI);
     }
 
 
