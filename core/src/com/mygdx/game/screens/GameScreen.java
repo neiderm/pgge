@@ -147,50 +147,6 @@ class GameScreen implements Screen {
         onPlayerPicked();
     }
 
-    private final InputListener buttonBListener = new InputListener() {
-        @Override
-        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            // assert null != cameraMan
-            if (cameraMan.nextOpMode())
-                multiplexer.addProcessor(camController);
-            else
-                multiplexer.removeProcessor(camController);
-
-            return false;
-        }
-    };
-
-    /*
-"gun sight" will be draggable on the screen surface, then click to pick and/or shoot that direction
-*/
-    private InputListener makeButtonGSListener(final GameEvent gameEvent) {
-
-        final Ray pickRay = new Ray();
-
-        return new InputListener() {
-
-            Ray setPickRay(float x, float y) {
-                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-                Ray rayTmp = cam.getPickRay(nX, nY);
-                return pickRay.set(rayTmp.origin, rayTmp.direction);
-            }
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-//TODO: emit input events .... setInputState()
-                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
-                    roundOver = true; // will have to do for now ;)
-                }
-                else {
-                // only do this if FPV mode (i.e. cam controller is not handling game window input) ??
-                // if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                }
-                return false;
-            }
-        };}
-
 
     private void onPlayerPicked() {
 
@@ -269,17 +225,48 @@ class GameScreen implements Screen {
         InputStruct mapper = new InputStruct() {
 
             btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
-
             Vector3 tmpV = new Vector3();
             Random rnd = new Random();
             final Vector3 impulseForceV = new Vector3();
             InputState preInputState;
+            final Ray pickRay = new Ray();
+
+            Ray setPickRay(float x, float y) {
+                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
+                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
+                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
+                Ray rayTmp = cam.getPickRay(nX, nY);
+                return pickRay.set(rayTmp.origin, rayTmp.direction);
+            }
+
+            /*
+game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
+simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
+*/
+            final GameEvent gameEvent = new GameEvent() {
+                @Override
+                public void callback(Entity picked, EventType eventType) {
+                    switch (eventType) {
+                        case RAY_PICK:
+                            if (null != picked)
+                                ModelInstanceEx.setMaterialColor(
+                                        picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                            break;
+                        default:
+                            break;
+                    }
+                }};
+
             @Override
             public void update(float deltaT) {
                 InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
 // just an ginormoua hack right now .....
-                if (InputState.INP_NONE == preInputState && InputState.INP_JUMP == nowInputState) {
+                if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
+
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(Gdx.graphics.getWidth() / 2f, (Gdx.graphics.getHeight() / 2f) + 75f), 0));
+                }
+                if (InputState.INP_JUMP != preInputState && InputState.INP_JUMP == nowInputState) {
                     // random flip left or right ( only enable jump if in surface conttact ??)
 
                     if (rnd.nextFloat() > 0.5f)
@@ -312,30 +299,51 @@ class GameScreen implements Screen {
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
+
+        InputListener gsListener = new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+
+                mapper.setInputState(InputStruct.InputState.INP_SELECT);
+
+                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
+                    roundOver = true; // will have to do for now ;)
+                }
+                else {
+                    // only do this if FPV mode (i.e. cam controller is not handling game window input) ??
+                    // if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
+/*
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
+                    */
+                }
+                return false;
+            }
+        };
+
+        InputListener buttonBListener = new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // assert null != cameraMan
+                if (cameraMan.nextOpMode())
+                    multiplexer.addProcessor(camController);
+                else
+                    multiplexer.removeProcessor(camController);
+
+                return false;
+            }
+        };
+
+
         Array<InputListener> listeners = new Array<InputListener>();
+listeners.add(buttonBListener);
+listeners.add(gsListener);
+
 
         playerUI = new PlayerCharacter(mapper, listeners);
 
         label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         playerUI.addActor(label);
 
-            /*
-     game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-        simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
-         */
-        final GameEvent gameEvent = new GameEvent() {
-            @Override
-            public void callback(Entity picked, EventType eventType) {
-                switch (eventType) {
-                    case RAY_PICK:
-                        if (null != picked)
-                            ModelInstanceEx.setMaterialColor(
-                                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                        break;
-                    default:
-                        break;
-                }
-            }};
 
         Table table = new Table();
         table.setFillParent(true);
@@ -347,7 +355,7 @@ class GameScreen implements Screen {
         button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
         button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
-        playerUI.addInputListener(makeButtonGSListener(gameEvent),
+        playerUI.addInputListener(gsListener,
                 button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
 
