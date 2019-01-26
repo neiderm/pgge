@@ -215,6 +215,24 @@ class GameScreen implements Screen {
         setupVehicle(pickedPlayer);
     }
 
+/*
+ game event object for signalling to pickray system
+ */
+    private final GameEvent gameEvent = new GameEvent() {
+        @Override
+        public void callback(Entity picked, EventType eventType) {
+            switch (eventType) {
+                case RAY_PICK:
+                    if (null != picked)
+                        ModelInstanceEx.setMaterialColor(
+                                picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                    break;
+                default:
+                    break;
+            }
+        }};
+
+    private final int GS_BTN_SZ = 75;
     private void setupVehicle(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
@@ -229,33 +247,6 @@ class GameScreen implements Screen {
             Random rnd = new Random();
             final Vector3 impulseForceV = new Vector3();
             InputState preInputState;
-            final Ray pickRay = new Ray();
-
-            Ray setPickRay(float x, float y) {
-                // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-                float nX = (Gdx.graphics.getWidth() / 2f) + (x - 75);
-                float nY = (Gdx.graphics.getHeight() / 2f) - (y - 75) - 75;
-                Ray rayTmp = cam.getPickRay(nX, nY);
-                return pickRay.set(rayTmp.origin, rayTmp.direction);
-            }
-
-            /*
-game event object for signalling to pickray system.     modelinstance reference doesn't belong in here but we could
-simply have the "client" of this class pass a playerPickedGameEvent along witht the gameEventSignal into the constructor.
-*/
-            final GameEvent gameEvent = new GameEvent() {
-                @Override
-                public void callback(Entity picked, EventType eventType) {
-                    switch (eventType) {
-                        case RAY_PICK:
-                            if (null != picked)
-                                ModelInstanceEx.setMaterialColor(
-                                        picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                            break;
-                        default:
-                            break;
-                    }
-                }};
 
             @Override
             public void update(float deltaT) {
@@ -264,7 +255,9 @@ simply have the "client" of this class pass a playerPickedGameEvent along witht 
 // just an ginormoua hack right now .....
                 if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
 
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(Gdx.graphics.getWidth() / 2f, (Gdx.graphics.getHeight() / 2f) + 75f), 0));
+                    float nX = (Gdx.graphics.getWidth() / 2f) + (GS_BTN_SZ - GS_BTN_SZ);
+                    float nY = (Gdx.graphics.getHeight() / 2f) - (GS_BTN_SZ - GS_BTN_SZ) - GS_BTN_SZ;
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, cam.getPickRay(nX, nY), 0));
                 }
                 if (InputState.INP_JUMP != preInputState && InputState.INP_JUMP == nowInputState) {
                     // random flip left or right ( only enable jump if in surface conttact ??)
@@ -299,22 +292,19 @@ simply have the "client" of this class pass a playerPickedGameEvent along witht 
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
-
         InputListener gsListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-                mapper.setInputState(InputStruct.InputState.INP_SELECT);
-
+/*
+    mapper.setInputState(InputStruct.InputState.INP_SELECT);
+ */
                 if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
                     roundOver = true; // will have to do for now ;)
                 }
                 else {
-                    // only do this if FPV mode (i.e. cam controller is not handling game window input) ??
-                    // if (!isController) // TODO: remove the GS from the gameUI if !isController (in GameScreen)
-/*
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                    */
+                    float nX = (Gdx.graphics.getWidth() / 2f) + (x - GS_BTN_SZ);
+                    float nY = (Gdx.graphics.getHeight() / 2f) - (y - GS_BTN_SZ) - GS_BTN_SZ;
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, cam.getPickRay(nX, nY), 0));
                 }
                 return false;
             }
@@ -352,11 +342,15 @@ listeners.add(gsListener);
 
         Pixmap button;
         Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(150, 150, Pixmap.Format.RGBA8888);
+        button = new Pixmap(GS_BTN_SZ * 2, GS_BTN_SZ * 2, Pixmap.Format.RGBA8888);
         button.setColor(1, 1, 1, .3f);
-        button.fillCircle(75, 75, 75);   /// I don't know how you would actually do a circular touchpad area like this
+        button.fillRectangle(0, 0, GS_BTN_SZ * 2, GS_BTN_SZ * 2);
+        button.setColor(1, 0, 0, .1f);
+        button.fillCircle(GS_BTN_SZ, GS_BTN_SZ, GS_BTN_SZ);   /// I don't know how you would actually do a circular touchpad area like this
+
+
         playerUI.addInputListener(gsListener,
-                button, (Gdx.graphics.getWidth() / 2f) - 75, (Gdx.graphics.getHeight() / 2f) + 0);
+                button, (Gdx.graphics.getWidth() / 2f) - GS_BTN_SZ, (Gdx.graphics.getHeight() / 2f) + 0);
         button.dispose();
 
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -432,12 +426,13 @@ listeners.add(gsListener);
         camController.update(); // this can probaly be pause as well
 
         engine.update(delta);
-///*
-        // hack-choo ... we have no hook to do regular player update stuff? There used to be a player system ...
+
             CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
             if (null != comp) {
+//                comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
+
                 mc.modelInst.transform.getTranslation(position);
                 mc.modelInst.transform.getRotation(rotation);
                 lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
@@ -453,8 +448,8 @@ listeners.add(gsListener);
                 //platformEntity.remove(BulletComponent.class); // idfk
                 platformColor.a = 0;
             }
-//*/
-///*///////////////////////////////////////////
+
+
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
 /*
@@ -476,10 +471,9 @@ listeners.add(gsListener);
             stringBuilder.append(" / ").append(renderableCount);
             label.setText(stringBuilder);
         }
-
         batch.end();
 
-//*//////////////////////////////
+
         //        shapeRenderer.setProjectionMatrix ????
         // semi-opaque filled box over touch area
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -489,7 +483,7 @@ listeners.add(gsListener);
         shapeRenderer.setColor(hudOverlayColor);
         shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
         shapeRenderer.end();
-//*//////////////////////////////
+
 
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
