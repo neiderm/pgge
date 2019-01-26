@@ -232,6 +232,13 @@ class GameScreen implements Screen {
             }
         }};
 
+    void cameraSwitch(){
+        if (cameraMan.nextOpMode())
+            multiplexer.addProcessor(camController);
+        else
+            multiplexer.removeProcessor(camController);
+    }
+
     private final int GS_BTN_SZ = 75;
 
     private Ray setPickRay(float x, float y) {
@@ -260,10 +267,27 @@ class GameScreen implements Screen {
             public void update(float deltaT) {
                 InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
-// just an ginormoua hack right now .....
+
+                if (InputState.INP_BACK == nowInputState && InputState.INP_BACK != preInputState) {
+
+                    if (!GameWorld.getInstance().getIsPaused()) {
+
+                        GameWorld.getInstance().setIsPaused(true);
+                        cameraSwitch();
+                        //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
+                    } else {
+                        roundOver = true;
+                    }
+                }
                 if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
 
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(GS_BTN_SZ, GS_BTN_SZ), 0));
+                    if (GameWorld.getInstance().getIsPaused()) {
+
+                        GameWorld.getInstance().setIsPaused(false);
+                        cameraSwitch();
+                    } else {
+                        pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(GS_BTN_SZ, GS_BTN_SZ), 0));
+                    }
                 }
                 if (InputState.INP_JUMP != preInputState && InputState.INP_JUMP == nowInputState) {
                     // random flip left or right ( only enable jump if in surface conttact ??)
@@ -298,6 +322,9 @@ class GameScreen implements Screen {
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
+        /*
+        unfortunately this is duplicating stuff in the mapper
+         */
         InputListener gsListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -305,7 +332,11 @@ class GameScreen implements Screen {
     mapper.setInputState(InputStruct.InputState.INP_SELECT);
  */
                 if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
-                    roundOver = true; // will have to do for now ;)
+                    if (GameWorld.getInstance().getIsPaused()) {
+
+                        GameWorld.getInstance().setIsPaused(false);
+                        cameraSwitch();
+                    }
                 }
                 else {
                     pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
@@ -434,24 +465,26 @@ listeners.add(gsListener);
             CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
-            if (null != comp) {
-//                comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
+        if (null != comp
+                && GameWorld.getInstance().getIsPaused()  // ooh yuck have to force the update() because the system that updates it is paused!
+        ) {
+            comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
 
-                mc.modelInst.transform.getTranslation(position);
-                mc.modelInst.transform.getRotation(rotation);
-                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
-            }
+            mc.modelInst.transform.getTranslation(position);
+            mc.modelInst.transform.getRotation(rotation);
+            lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+            pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
+        }
 
-            // crude  hack for platform disappear effect
-            if (platformColor.a > 0.1f) {
-                platformColor.a -= 0.005f;
-                ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
-            } else if (null != platformEntity) {
-                engine.removeEntity(platformEntity);
-                //platformEntity.remove(BulletComponent.class); // idfk
-                platformColor.a = 0;
-            }
+        // crude  hack for platform disappear effect
+        if (platformColor.a > 0.1f) {
+            platformColor.a -= 0.005f;
+            ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
+        } else if (null != platformEntity) {
+            engine.removeEntity(platformEntity);
+            //platformEntity.remove(BulletComponent.class); // idfk
+            platformColor.a = 0;
+        }
 
 
         batch.setProjectionMatrix(guiCam.combined);

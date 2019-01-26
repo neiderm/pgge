@@ -111,12 +111,7 @@ public class PlayerCharacter extends Stage {
          */
         if (KEY_CODE_ESC == keycode || KEY_CODE_BACK == keycode) {
 
-            if (!GameWorld.getInstance().getIsPaused()) {
-                GameWorld.getInstance().setIsPaused(true);
-                //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
-            } else {
-                GameWorld.getInstance().setIsPaused(false);
-            }
+            mapper.setInputState(InputStruct.InputState.INP_BACK);
         }
 
         int axisIndex = -1; // idfk
