@@ -233,6 +233,14 @@ class GameScreen implements Screen {
         }};
 
     private final int GS_BTN_SZ = 75;
+
+    private Ray setPickRay(float x, float y) {
+        // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
+        float nX = (Gdx.graphics.getWidth() / 2f) + (x - GS_BTN_SZ);
+        float nY = (Gdx.graphics.getHeight() / 2f) - (y - GS_BTN_SZ) - GS_BTN_SZ;
+        return cam.getPickRay(nX, nY);
+    }
+
     private void setupVehicle(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
@@ -255,9 +263,7 @@ class GameScreen implements Screen {
 // just an ginormoua hack right now .....
                 if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
 
-                    float nX = (Gdx.graphics.getWidth() / 2f) + (GS_BTN_SZ - GS_BTN_SZ);
-                    float nY = (Gdx.graphics.getHeight() / 2f) - (GS_BTN_SZ - GS_BTN_SZ) - GS_BTN_SZ;
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, cam.getPickRay(nX, nY), 0));
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(GS_BTN_SZ, GS_BTN_SZ), 0));
                 }
                 if (InputState.INP_JUMP != preInputState && InputState.INP_JUMP == nowInputState) {
                     // random flip left or right ( only enable jump if in surface conttact ??)
@@ -302,9 +308,7 @@ class GameScreen implements Screen {
                     roundOver = true; // will have to do for now ;)
                 }
                 else {
-                    float nX = (Gdx.graphics.getWidth() / 2f) + (x - GS_BTN_SZ);
-                    float nY = (Gdx.graphics.getHeight() / 2f) - (y - GS_BTN_SZ) - GS_BTN_SZ;
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, cam.getPickRay(nX, nY), 0));
+                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
                 }
                 return false;
             }
