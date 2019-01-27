@@ -33,8 +33,6 @@ public class PlayerCharacter extends Stage {
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
     private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
-    private static final int KEY_CODE_ESC = Input.Keys.ESCAPE;
-    private static final int KEY_CODE_BACK = Input.Keys.BACK;
 
     private float[] axes = new float[4];
 
@@ -105,14 +103,6 @@ public class PlayerCharacter extends Stage {
 
     @Override
     public boolean keyDown(int keycode) {
-        /*
-         Android "BACK" (on-screen btn) not handled by libGdx framework and seemingly no
-         equivalent on PC keyboard ... "ESC" no equivalent on Android/emulator, so map them together.
-         */
-        if (KEY_CODE_ESC == keycode || KEY_CODE_BACK == keycode) {
-
-            mapper.setInputState(InputStruct.InputState.INP_BACK);
-        }
 
         int axisIndex = -1; // idfk
 
@@ -186,9 +176,10 @@ public class PlayerCharacter extends Stage {
             public boolean buttonDown(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                final int BUTTON_CODE_3 = 3; // to be assigned by UI configuration ;)
-//                if (BUTTON_CODE_8 == buttonIndex) {
-//idfk                    cameraSwitchListener.touchDown(null, 0, 0, 0, 0);
+                final int PAUSE_BUTTON = 4; // temp ... L1 happens to be common to all 3 of my controllers!
+                if (PAUSE_BUTTON == buttonIndex) {
+                    mapper.setInputState(InputStruct.InputState.INP_BACK);
+                }
                 return false;
             }
 

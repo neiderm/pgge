@@ -10,39 +10,71 @@ import com.badlogic.gdx.utils.ArrayMap;
 /**
  * Created by neiderm on 6/28/2018.
  */
-/*   My fancy controller -perspective drawing ;)
+/*
+   Thanks to https://www.asciiart.eu/computers/joysticks
+             https://www.asciiart.eu/computers/game-consoles
       _____________________________
-     /  [5]                  [7]  /
-    /  [4]                  [6]  /
     -----------------------------
-   / +                 [3]     /
-  /    [8][8][10]  [2]  [1]  /
- /                   [0]    /
-/          _____          /
-/      +  /     \     +  /
----------/       \------/
 
-The input filtering done in here could be integrated into the "simple vehicle model"
-A "non-simple differential tracked vehicile model" could inherit and use this same
-input filtering inherited from simple vehicle model.
-A "flying vehicle model" would override this input mapping as it would need to
-support roll, but would not have i.e. reverse/gear-shifting capability.
+Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
 
-There is stateful-ness in the input handling as, action buttons must have their
-state latched in order to be pollable (e.g. hat switch, axes tend to be held down and don't
-need latched)
-Also if you want to create e.g. a "virtual stick shifter", that is a state e.g. like
-"D2 D1 N R"
+ |     [5]                  [7]  |
+ |     [4]                  [6]  |
+    -----------------------------
+ |     [U]
+ | [L]  + [R]                   B4[3]      |
+ |    [D]     [8][9][10]   B3[2]    B2[1]  |
+ |                              B1[0]      |
+         -1           -2
+      -0 axes 0    -3 axes 3
+          1            2
+
+        L1 == Input.Buttons.FORWARD
+        B4 == Input.Buttons.BACK
+        B3 == Input.Buttons.MIDDLE
+        B2 == Input.Buttons.RIGHT
+        B1 == Input.Buttons.LEFT
+      ESC=8 MOUSE=9 ENTER=10
+    -----------------------------
 
 
-control states
-virtual shifter DNR has state
-buttons set latched state so they can be polled (hat/axis tend to be held down)
+IPEGA PG-9076  "Microsoft X-Box 360 pad"
 
-could move setaxis and related bits over to "simple vehicle control model" .
+ Axis==2       Axis==5
+       4==L1         5==R1
+                Y[3]
+ 6==Select   X[2]   B[1]
+ 7==Start       A[0]
 
-we can have different control schemes for the same underlying model e.g. differential axes
- */
+LR Axis0    Axis3
+UD Axis1    Axis4
+
+       L1 == Input.Buttons.FORWARD
+        Y == Input.Buttons.BACK
+        X == Input.Buttons.MIDDLE
+        B == Input.Buttons.RIGHT
+        A == Input.Buttons.LEFT
+    -----------------------------
+
+MYGT MY-C04  "MYGT Controller"
+
+ 6==L1      7==R1
+ 4==L1      5==R1
+                Y[0]
+ 8==Back     X[3]   B[1]
+ 9==Select      A[2]
+
+LR Axis3    Axis1
+UD Axis2    Axis0
+
+       L1 == Input.Buttons.FORWARD
+        X == Input.Buttons.BACK
+        A == Input.Buttons.MIDDLE
+        B == Input.Buttons.RIGHT
+        Y == Input.Buttons.LEFT
+    -----------------------------
+*/
+
 public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
 
@@ -95,12 +127,16 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     // get the "virtual axis"
     protected float getAxisX(int axisIndex) {
+
         return analogAxes.x;
     }
+
     // get the "virtual axis"
     protected float getAxisY(int axisIndex) {
+
         return analogAxes.y;
     }
+
     /*
       axisIndex: index of changed axes (only has value for a real axes?
       values[]: values of all 4 axes (only have all 4 if there are 2 analog mushrooms)
@@ -114,7 +150,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         // ie. analogAxes[axisIndex].x ....
         analogAxes.x = values[0];
         analogAxes.y = values[1];
-}
+    }
 
 
     private Controller connectedCtrl;
@@ -159,30 +195,26 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
             rv = InputState.INP_BACK;
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT) /* left == "X Button" ?  */) {
-
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)) {
+            // A (MYGT-Y)
             rv = InputState.INP_SELECT;
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT) /* Circle / "B"  */) {
-
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT)) {
+            // B
             rv = InputState.INP_JUMP;
-        }
-        else if (getControlButton(Input.Buttons.LEFT) /*   */) {
-        }
-        else if (getControlButton(Input.Buttons.BACK) /* Triangle / "Y"  */) {
-        }
-        else if (getControlButton(Input.Buttons.FORWARD) /*   */) {
-        }
-        else if (getControlButton(Input.Buttons.MIDDLE) /* Square / "X"   */) {
-        }
-
-        else if (Gdx.input.justTouched()) {
+        } else if (getControlButton(Input.Buttons.BACK)) {
+            Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
+        } else if (getControlButton(Input.Buttons.FORWARD) ) {
+            Gdx.app.log("InputStruct", "Buttons.FORWARD"); // L1
+        } else if (getControlButton(Input.Buttons.MIDDLE) ) {
+            Gdx.app.log("InputStruct", "Buttons.MIDDLE");  // Ipega "X"  Belkin "B3" MYGT "A"
+        } else if (Gdx.input.justTouched()) {
 
             if (checkIsTouched) {
                 rv = InputState.INP_SELECT;
             }
         } else {
-            rv = InputState.INP_NONE; // no-op
+//            rv = InputState.INP_NONE; // no-op
         }
         inputState = InputState.INP_NONE; // unlatch the input state
         return rv;
@@ -214,23 +246,37 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     public class DpadAxis {
         int x;
         int y;
-        void clear(){
+
+        void clear() {
             x = 0;
             y = 0;
         }
-        public int getX(){ return x; }
-        public int getY(){ return y; }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
     }
 
     public class AnalogAxis {
         float x;
         float y;
-        void clear(){
+
+        void clear() {
             x = 0;
             y = 0;
         }
-        public float getX(){ return x; }
-        public float getY(){ return y; }
+
+        public float getX() {
+            return x;
+        }
+
+        public float getY() {
+            return y;
+        }
     }
 
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
@@ -242,7 +288,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
      * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
      * But glitchy and not worth considering.
      */
-    public DpadAxis getDpad(DpadAxis asdf){
+    public DpadAxis getDpad(DpadAxis asdf) {
 
         dPadAxes.clear();
 
