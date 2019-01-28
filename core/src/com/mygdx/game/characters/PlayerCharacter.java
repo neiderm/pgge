@@ -72,21 +72,20 @@ public class PlayerCharacter extends Stage {
                     mapper.setAxis(-1, axes);
                 }});
 
-            Pixmap.setBlending(Pixmap.Blending.None);
-            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-            button.setColor(1, 1, 1, .3f);
-            button.fillCircle(25, 25, 25);
+            Pixmap pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
+            pixmap.setColor(1, 1, 1, .3f);
+            pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
 
             addInputListener(
                     new InputListener() {
                         @Override
                         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                             // "Circle" button
-                            mapper.setInputState(InputStruct.InputState.INP_JUMP);
+                            mapper.setInputState(InputStruct.InputState.INP_B2);
                             return false;
                         }},
-                    button, 3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
-            button.dispose();
+                    pixmap, 3f * Gdx.graphics.getWidth() / 4, 0);
+            pixmap.dispose();
         }
 ///////////
 // mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
@@ -100,6 +99,13 @@ public class PlayerCharacter extends Stage {
 
         initController();
     }
+
+/*    @Override
+    public boolean touchDown (int screenX, int screenY, int pointer, int button) {
+
+        Gdx.app.log("", "screenX = " + screenX + " screenY = " + screenY);
+        return true;
+    }*/
 
     @Override
     public boolean keyDown(int keycode) {
@@ -178,7 +184,7 @@ public class PlayerCharacter extends Stage {
 
                 final int PAUSE_BUTTON = 4; // temp ... L1 happens to be common to all 3 of my controllers!
                 if (PAUSE_BUTTON == buttonIndex) {
-                    mapper.setInputState(InputStruct.InputState.INP_BACK);
+                    mapper.setInputState(InputStruct.InputState.INP_ESC);
                 }
                 return false;
             }

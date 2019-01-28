@@ -172,8 +172,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
     public enum InputState {
         INP_NONE,
         INP_SELECT,
-        INP_BACK,
-        INP_JUMP
+        INP_ESC,
+        INP_B2
     }
 
 
@@ -193,15 +193,15 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
 
-            rv = InputState.INP_BACK;
+            rv = InputState.INP_ESC;
 
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)) {
             // A (MYGT-Y)
             rv = InputState.INP_SELECT;
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || getControlButton(Input.Buttons.RIGHT)) {
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
             // B
-            rv = InputState.INP_JUMP;
+            rv = InputState.INP_B2;
         } else if (getControlButton(Input.Buttons.BACK)) {
             Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
         } else if (getControlButton(Input.Buttons.FORWARD) ) {

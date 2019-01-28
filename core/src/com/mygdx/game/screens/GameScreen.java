@@ -90,6 +90,9 @@ class GameScreen implements Screen {
     private float colorAlpha = 0.9f;
     private Color platformColor = new Color(255, 0, 0, colorAlpha);
 
+    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
+
 
     GameScreen() {
 
@@ -221,31 +224,28 @@ class GameScreen implements Screen {
     private final GameEvent gameEvent = new GameEvent() {
         @Override
         public void callback(Entity picked, EventType eventType) {
-            switch (eventType) {
-                case RAY_PICK:
+            if (RAY_PICK == eventType) {
                     if (null != picked)
                         ModelInstanceEx.setMaterialColor(
                                 picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                    break;
-                default:
-                    break;
             }
         }};
 
-    void cameraSwitch(){
+    private void cameraSwitch(){
         if (cameraMan.nextOpMode())
             multiplexer.addProcessor(camController);
         else
             multiplexer.removeProcessor(camController);
     }
 
-    private final int GS_BTN_SZ = 75;
+
+    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
+    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
 
     private Ray setPickRay(float x, float y) {
-        // offset button x,y to screen x,y (button origin on bottom left) (should not have screen/UI geometry crap in here!)
-        float nX = (Gdx.graphics.getWidth() / 2f) + (x - GS_BTN_SZ);
-        float nY = (Gdx.graphics.getHeight() / 2f) - (y - GS_BTN_SZ) - GS_BTN_SZ;
-        return cam.getPickRay(nX, nY);
+        // Note: Y coordinate must be flipped around before passing to cam
+        return cam.getPickRay(gsBTNx + x,
+                Gdx.graphics.getHeight() - (gsBTNy + y));
     }
 
     private void setupVehicle(final Entity pickedPlayer){
@@ -268,7 +268,7 @@ class GameScreen implements Screen {
                 InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
 
-                if (InputState.INP_BACK == nowInputState && InputState.INP_BACK != preInputState) {
+                if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
 
                     if (!GameWorld.getInstance().getIsPaused()) {
 
@@ -286,10 +286,11 @@ class GameScreen implements Screen {
                         GameWorld.getInstance().setIsPaused(false);
                         cameraSwitch();
                     } else {
-                        pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(GS_BTN_SZ, GS_BTN_SZ), 0));
+                        // default to center of button
+                        pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
                     }
                 }
-                if (InputState.INP_JUMP != preInputState && InputState.INP_JUMP == nowInputState) {
+                if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
                     // random flip left or right ( only enable jump if in surface conttact ??)
 
                     if (rnd.nextFloat() > 0.5f)
@@ -345,26 +346,8 @@ class GameScreen implements Screen {
             }
         };
 
-        InputListener buttonBListener = new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // assert null != cameraMan
-                if (cameraMan.nextOpMode())
-                    multiplexer.addProcessor(camController);
-                else
-                    multiplexer.removeProcessor(camController);
 
-                return false;
-            }
-        };
-
-
-        Array<InputListener> listeners = new Array<InputListener>();
-listeners.add(buttonBListener);
-listeners.add(gsListener);
-
-
-        playerUI = new PlayerCharacter(mapper, listeners);
+        playerUI = new PlayerCharacter(mapper, null);
 
         label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         playerUI.addActor(label);
@@ -375,27 +358,16 @@ listeners.add(gsListener);
         table.setDebug(true);
         playerUI.addActor(table);
 
-        Pixmap button;
+        Pixmap pixmap;
         Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(GS_BTN_SZ * 2, GS_BTN_SZ * 2, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillRectangle(0, 0, GS_BTN_SZ * 2, GS_BTN_SZ * 2);
-        button.setColor(1, 0, 0, .1f);
-        button.fillCircle(GS_BTN_SZ, GS_BTN_SZ, GS_BTN_SZ);   /// I don't know how you would actually do a circular touchpad area like this
+        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
 
 
-        playerUI.addInputListener(gsListener,
-                button, (Gdx.graphics.getWidth() / 2f) - GS_BTN_SZ, (Gdx.graphics.getHeight() / 2f) + 0);
-        button.dispose();
+        playerUI.addInputListener(gsListener, pixmap, gsBTNx, gsBTNy);
+        pixmap.dispose();
 
-        Pixmap.setBlending(Pixmap.Blending.None);
-        button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-        button.setColor(1, 1, 1, .3f);
-        button.fillCircle(25, 25, 25);
-        playerUI.addInputListener(
-                buttonBListener, button, (2 * Gdx.graphics.getWidth() / 4f), (Gdx.graphics.getHeight() / 9f));
-
-        button.dispose();
 
         multiplexer.addProcessor(playerUI);
         Gdx.input.setInputProcessor(multiplexer);
@@ -462,19 +434,20 @@ listeners.add(gsListener);
 
         engine.update(delta);
 
-            CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
-            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+        CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
+        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
         if (null != comp
                 && GameWorld.getInstance().getIsPaused()  // ooh yuck have to force the update() because the system that updates it is paused!
         ) {
             comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
-
-            mc.modelInst.transform.getTranslation(position);
-            mc.modelInst.transform.getRotation(rotation);
-            lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-            pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
         }
+
+        mc.modelInst.transform.getTranslation(position);
+        mc.modelInst.transform.getRotation(rotation);
+        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+        pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
+
 
         // crude  hack for platform disappear effect
         if (platformColor.a > 0.1f) {

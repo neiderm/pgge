@@ -70,7 +70,7 @@ class SelectScreen implements Screen {
 
     private int selectedIndex;
 
-    private final float Y_COORD_ON_PLATFORM = 0.1f;
+    private final float yCoordOnPlatform = 0.1f;
 
     // position them into equilateral triangle (sin/cos)
     private Vector3[] positions = new Vector3[]{
@@ -116,7 +116,7 @@ class SelectScreen implements Screen {
 // build the platform moanually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
         platform = PrimitivesBuilder.getBoxBuilder().create(
-                0, null, new Vector3(4, Y_COORD_ON_PLATFORM * 2, 4));
+                0, null, new Vector3(4, yCoordOnPlatform * 2, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
 /*
@@ -202,7 +202,7 @@ class SelectScreen implements Screen {
                 mapper.setInputState(InputStruct.InputState.INP_SELECT);
             }
             if (BUTTON_CODE_3 == buttonIndex) {
-                mapper.setInputState(InputStruct.InputState.INP_BACK);
+                mapper.setInputState(InputStruct.InputState.INP_ESC);
             }
 
             return false;
@@ -305,7 +305,7 @@ class SelectScreen implements Screen {
             double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
 
             position.x = (float) Math.cos(rads);
-            position.y = Y_COORD_ON_PLATFORM; // arbitrary amount above platform
+            position.y = yCoordOnPlatform; // arbitrary amount above platform
             position.z = (float) Math.sin(rads);
 
             Entity e = characters.get(n);
@@ -379,7 +379,7 @@ class SelectScreen implements Screen {
 
         InputStruct.InputState inputState = mapper.getInputState(false);
 
-        if (InputStruct.InputState.INP_BACK == inputState) {
+        if (InputStruct.InputState.INP_ESC == inputState) {
 
             GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
 
