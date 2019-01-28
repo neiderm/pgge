@@ -2,9 +2,6 @@ package com.mygdx.game.characters;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -18,8 +15,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.screens.GameWorld;
-
-import java.util.Arrays;
 
 /**
  * Created by neiderm on 5/17/2018.
@@ -70,8 +65,6 @@ public class PlayerCharacter extends Stage {
                     mapper.setAxis(-1, axes);
                 }});
         }
-
-        initController();
     }
 
 /*    @Override
@@ -122,92 +115,6 @@ public class PlayerCharacter extends Stage {
         mapper.setAxis(axisIndex, axes);
 
         return false;
-    }
-
-
-    /*
-    https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
-     */
-
-    private void print(String message) {
-        Gdx.app.log("Input", message);
-    }
-
-    private void initController() {
-
-        // print the currently connected controllers to the console
-        print("Controllers: " + Controllers.getControllers().size);
-        int i = 0;
-        for (Controller controller : Controllers.getControllers()) {
-            print("#" + i++ + ": " + controller.getName());
-        }
-        if (Controllers.getControllers().size == 0)
-            print("No controllers attached");
-
-// hmmmmm when can I clearListeners?
-        Controllers.addListener(new ControllerListenerAdapter() {
-
-            //public
-            int indexOf(Controller controller) {
-                return Controllers.getControllers().indexOf(controller, true);
-            }
-
-            @Override
-            public boolean buttonDown(Controller controller, int buttonIndex) {
-                print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
-
-                final int PAUSE_BUTTON = 4; // temp ... L1 happens to be common to all 3 of my controllers!
-                if (PAUSE_BUTTON == buttonIndex) {
-                    mapper.setInputState(InputStruct.InputState.INP_ESC);
-                }
-                return false;
-            }
-
-            @Override
-            public boolean buttonUp(Controller controller, int buttonIndex) {
-                print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
-                return false;
-            }
-
-            @Override
-            public boolean axisMoved(Controller controller, int axisIndex, float value) {
-                /*          -1.0
-                       -1.0   +   +1.0  (0)
-                            + 1.0        */
-                for (int idx = 0; idx < 4; idx++) {
-                    axes[idx] = controller.getAxis(idx);
-                }
-                mapper.setAxis(axisIndex, axes);
-                print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
-
-                return false;
-            }
-
-            @Override
-            public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
-                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
-
-                Arrays.fill(axes, 0);
-
-                if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    axes[0] = -1;
-                }
-                if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    axes[0] = +1;
-                }
-                if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    axes[1] = -1;
-                }
-                if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    axes[1] = +1;
-                }
-
-                mapper.setAxis(-1, axes);
-                print("#" + indexOf(controller) + ", axes " + axes[0] + ": " + axes[1]);
-
-                return false;
-            }
-        });
     }
 
 

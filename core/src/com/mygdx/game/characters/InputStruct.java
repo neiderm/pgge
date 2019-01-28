@@ -7,6 +7,8 @@ import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.utils.ArrayMap;
 
+import java.util.Arrays;
+
 /**
  * Created by neiderm on 6/28/2018.
  */
@@ -14,6 +16,10 @@ import com.badlogic.gdx.utils.ArrayMap;
    Thanks to https://www.asciiart.eu/computers/joysticks
              https://www.asciiart.eu/computers/game-consoles
       _____________________________
+
+Learning all about Controllers ... controllers have much variation in capabilities and codes
+reported. Furthermore, any given controller may report different codes depending upon the host OS!
+
     -----------------------------
 
 Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
@@ -85,6 +91,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     public InputStruct() {
 
+        initController();
         connectedCtrl = getConnectedCtrl(0);
     }
 
@@ -186,6 +193,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     /*
      * checkisTouched: false if caller is handling the touch event
+     * Using Input.Buttons seems questionable and the codes are all different on Android. Need to
+     * handle in Controller:buttonDown
      */
     public InputState getInputState(boolean checkIsTouched) {
 
@@ -203,11 +212,11 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
             // B
             rv = InputState.INP_B2;
         } else if (getControlButton(Input.Buttons.BACK)) {
-            Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
+//            Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
         } else if (getControlButton(Input.Buttons.FORWARD) ) {
-            Gdx.app.log("InputStruct", "Buttons.FORWARD"); // L1
+//            Gdx.app.log("InputStruct", "Buttons.FORWARD"); // L1
         } else if (getControlButton(Input.Buttons.MIDDLE) ) {
-            Gdx.app.log("InputStruct", "Buttons.MIDDLE");  // Ipega "X"  Belkin "B3" MYGT "A"
+//            Gdx.app.log("InputStruct", "Buttons.MIDDLE");  // Ipega "X"  Belkin "B3" MYGT "A"
         } else if (Gdx.input.justTouched()) {
 
             if (checkIsTouched) {
@@ -317,5 +326,96 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
             dPadAxes.x = 1;
         }
         return dPadAxes;
+    }
+
+
+    /*
+     https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
+    */
+
+    private void print(String message) {
+        Gdx.app.log("Input", message);
+    }
+
+    private float[] axes = new float[4];
+
+    private void initController() {
+
+        // print the currently connected controllers to the console
+        print("Controllers: " + Controllers.getControllers().size);
+        int i = 0;
+        for (Controller controller : Controllers.getControllers()) {
+            print("#" + i++ + ": " + controller.getName());
+        }
+        if (Controllers.getControllers().size == 0)
+            print("No controllers attached");
+
+// hmmmmm when can I clearListeners?
+        Controllers.addListener(new ControllerListenerAdapter() {
+
+            int indexOf(Controller controller) {
+                return Controllers.getControllers().indexOf(controller, true);
+            }
+
+            @Override
+            public boolean buttonDown(Controller controller, int buttonIndex) {
+
+                print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
+
+                InputState state = InputState.INP_NONE;
+
+                final int PAUSE_BUTTON = 4; // temp ... L1 happens to be common to all 3 of my controllers!
+                if (PAUSE_BUTTON == buttonIndex) {
+                    state = InputState.INP_ESC;
+                }
+                setInputState(state);
+                return false;
+            }
+
+            @Override
+            public boolean buttonUp(Controller controller, int buttonIndex) {
+                print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
+                return false;
+            }
+
+            @Override
+            public boolean axisMoved(Controller controller, int axisIndex, float value) {
+                /*          -1.0
+                       -1.0   +   +1.0  (0)
+                            + 1.0        */
+                for (int idx = 0; idx < 4; idx++) {
+                    axes[idx] = controller.getAxis(idx);
+                }
+                setAxis(axisIndex, axes);
+                print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
+
+                return false;
+            }
+
+            @Override
+            public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
+                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
+
+                Arrays.fill(axes, 0);
+
+                if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
+                    axes[0] = -1;
+                }
+                if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
+                    axes[0] = +1;
+                }
+                if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
+                    axes[1] = -1;
+                }
+                if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
+                    axes[1] = +1;
+                }
+
+                setAxis(-1, axes);
+                print("#" + indexOf(controller) + ", axes " + axes[0] + ": " + axes[1]);
+
+                return false;
+            }
+        });
     }
 }
