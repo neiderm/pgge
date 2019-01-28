@@ -19,11 +19,13 @@ public class SplashScreen implements Screen {
     private SpriteBatch batch;
     private Texture ttrSplash;
     private InputStruct mapper;
+    private InputStruct.InputState preInputState;
 
     SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputStruct();
+        preInputState =  mapper.getInputState(); // initial value for debouncing stupid Select input (from game-pad)
     }
 
     @Override
@@ -47,13 +49,16 @@ public class SplashScreen implements Screen {
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
-        // simple polling for a tap on the touch screen
 
-        if (InputStruct.InputState.INP_SELECT == mapper.getInputState()) {
+        InputStruct.InputState inputState =  mapper.getInputState();
+
+        if (InputStruct.InputState.INP_SELECT == inputState
+                && InputStruct.InputState.INP_SELECT != preInputState) {
 
             GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
         }
+        preInputState = inputState;
     }
 
     @Override
