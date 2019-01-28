@@ -166,7 +166,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
     }
 
     // temporary until we have asset manager in
-    private Skin uiSkin = new Skin(Gdx.files.internal("uiSkin/uiskin.json"));
+    private Skin uiSkin = new Skin(Gdx.files.internal("skin/uiskin.json"));
 
     @Override
     public void show() {
