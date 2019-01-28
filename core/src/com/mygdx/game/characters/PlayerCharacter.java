@@ -9,10 +9,8 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -71,30 +69,6 @@ public class PlayerCharacter extends Stage {
                     axes[1] = t.getKnobPercentY() * ( -1 );     // negated
                     mapper.setAxis(-1, axes);
                 }});
-
-            Pixmap pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
-            pixmap.setColor(1, 1, 1, .3f);
-            pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
-
-            addInputListener(
-                    new InputListener() {
-                        @Override
-                        public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                            // "Circle" button
-                            mapper.setInputState(InputStruct.InputState.INP_B2);
-                            return false;
-                        }},
-                    pixmap, 3f * Gdx.graphics.getWidth() / 4, 0);
-            pixmap.dispose();
-        }
-///////////
-// mapping each passed in function callback to an onscreen control, keyboard, gamepad etc.
-        // how to order the InputListener Array
-////////////
-        if (null != buttonListeners) {
-            for (InputListener listenr : buttonListeners) {
-//                 this.cameraSwitchListener = listenr;    ////////// asdlfkjasdf;lkjasdf;lkjsadf;ksadf;klj
-            }
         }
 
         initController();
@@ -278,21 +252,5 @@ public class PlayerCharacter extends Stage {
         this.addActor(touchpad);
 
         background.dispose();
-    }
-
-    public void addInputListener(InputListener listener, Pixmap pixmap, float x, float y) {
-
-// TODO: texture neeeds to be dispose'd
-        Texture myTexture = new Texture(pixmap);
-        TextureRegion myTextureRegion = new TextureRegion(myTexture);
-        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-        ImageButton button = new ImageButton(myTexRegionDrawable);
-        button.setPosition(x, y);
-
-        if (null != listener)
-            button.addListener(listener);
-
-        this.addActor(button);
     }
 }

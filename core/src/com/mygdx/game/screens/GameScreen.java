@@ -11,8 +11,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
@@ -24,8 +26,10 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -358,21 +362,48 @@ class GameScreen implements Screen {
         table.setDebug(true);
         playerUI.addActor(table);
 
+        TextureRegion myTextureRegion;
+        TextureRegionDrawable myTexRegionDrawable;
+        ImageButton button;
         Pixmap pixmap;
         Pixmap.setBlending(Pixmap.Blending.None);
+
         pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
-
-
-        playerUI.addInputListener(gsListener, pixmap, gsBTNx, gsBTNy);
+        gsTexture = new Texture(pixmap);
+        myTextureRegion = new TextureRegion(gsTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+        button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(gsBTNx, gsBTNy);
+        button.addListener(gsListener);
+        playerUI.addActor(button);
         pixmap.dispose();
 
+        pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
+
+        btnTexture = new Texture(pixmap);
+        myTextureRegion = new TextureRegion(btnTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+        button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
+        button.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                mapper.setInputState(InputStruct.InputState.INP_B2);
+                return false;
+            }});
+        playerUI.addActor(button);
+        pixmap.dispose();
 
         multiplexer.addProcessor(playerUI);
         Gdx.input.setInputProcessor(multiplexer);
     }
 
+    private Texture gsTexture;
+    private Texture btnTexture;
 
     /*
      * this is kind of a hack to test some ray casting
@@ -528,6 +559,8 @@ class GameScreen implements Screen {
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
+        btnTexture.dispose();
+        gsTexture.dispose();
         font.dispose();
         batch.dispose();
         shapeRenderer.dispose();
