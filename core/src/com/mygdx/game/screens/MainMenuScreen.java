@@ -21,7 +21,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.mygdx.game.characters.InputStruct;
 
 /**
- * Created by mango on 12/18/17.
+ * Created by neiderm on 12/18/17.
  */
 
    /*
@@ -44,7 +44,7 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
     }
 
 
-    public MainMenuScreen() {
+    MainMenuScreen() {
 //super() ?
         stage = new Stage(new ScreenViewport())
 /*        {
@@ -162,7 +162,11 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
         buttonTexture.dispose();
         stage.dispose();
+        uiSkin.dispose();
     }
+
+    // temporary until we have asset manager in
+    private Skin uiSkin = new Skin(Gdx.files.internal("uiSkin/uiskin.json"));
 
     @Override
     public void show() {
@@ -174,13 +178,11 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         table.setDebug(true);
         stage.addActor(table);
 
-        // temporary until we have asset manager in
-        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
 
         //create buttons
-        TextButton newGame = new TextButton("New Game", skin, "toggle");
-        TextButton preferences = new TextButton("Preferences", skin, "toggle");
-        TextButton exit = new TextButton("Exit", skin, "toggle");
+        TextButton newGame = new TextButton("New Game", uiSkin, "toggle");
+        TextButton preferences = new TextButton("Preferences", uiSkin, "toggle");
+        TextButton exit = new TextButton("Exit", uiSkin, "toggle");
 
 
         bg = new ButtonGroup<TextButton>(newGame, preferences, exit);
