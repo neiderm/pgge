@@ -252,6 +252,8 @@ class GameScreen implements Screen {
                 Gdx.graphics.getHeight() - (gsBTNy + y));
     }
 
+    private InputStruct mapper;
+
     private void setupVehicle(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
@@ -259,7 +261,7 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        InputStruct mapper = new InputStruct() {
+        mapper = new InputStruct() {
 
             btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
             Vector3 tmpV = new Vector3();
@@ -313,7 +315,7 @@ class GameScreen implements Screen {
         SteeringEntity sbe = new SteeringEntity();
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
         sbe.setSteeringBehavior(playerInpSB);
-        pickedPlayer.add(new CharacterComponent(sbe));
+//        pickedPlayer.add(new CharacterComponent(sbe));
 
         setupPlayerUI(mapper);
     }
@@ -468,12 +470,14 @@ class GameScreen implements Screen {
         CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
         ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
+        mapper.update(delta);
+/*
         if (null != comp
                 && GameWorld.getInstance().getIsPaused()  // ooh yuck have to force the update() because the system that updates it is paused!
         ) {
             comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
         }
-
+*/
         mc.modelInst.transform.getTranslation(position);
         mc.modelInst.transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
