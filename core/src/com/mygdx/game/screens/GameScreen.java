@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -24,11 +25,15 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
@@ -56,6 +61,7 @@ import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
+import java.util.Locale;
 import java.util.Random;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
@@ -74,6 +80,7 @@ class GameScreen implements Screen {
     private CameraInputController camController; // FirstPersonCameraController camController;
     private BitmapFont font;
     private OrthographicCamera guiCam;
+    private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -213,8 +220,7 @@ class GameScreen implements Screen {
                 if (v.dst2(sc.origin) > sc.boundsDst2) {
                     roundOver = true; // respawn() ... can't do it in this context??
                 }
-            }
-        };
+            }};
 
         setupVehicle(pickedPlayer);
     }
@@ -341,6 +347,8 @@ class GameScreen implements Screen {
                 return false;
             }};
 
+        Pixmap pixmap;
+
         // Font files from ashley-superjumper
         font = new BitmapFont( Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
@@ -351,17 +359,50 @@ class GameScreen implements Screen {
         playerUI.addActor(fpsLabel);
 
         Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
-        onscreenMenuTbl = new Table();
         onscreenMenuTbl.setFillParent(true);
         onscreenMenuTbl.setDebug(true);
-        onscreenMenuTbl.add(onScreenMenuLabel);
+        onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
+
+        //create a Labels showing the score and some credits
+        pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        uiSkin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+        pixmap.dispose();
+
+//        textStyle.font = font;
+        uiSkin.add("default", new Label.LabelStyle(font, Color.WHITE));
+        // Store the default libgdx font under the name "default".
+        uiSkin.add("default", font);
+
+        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.up = uiSkin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.down = uiSkin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.checked = uiSkin.newDrawable("white", Color.BLUE);
+        textButtonStyle.over = uiSkin.newDrawable("white", Color.LIGHT_GRAY);
+        textButtonStyle.font = uiSkin.getFont("default");
+        uiSkin.add("default", textButtonStyle);
+
+        // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
+        TextButton textButton = new TextButton("Restart", uiSkin);
+        onscreenMenuTbl.row().pad(10, 0, 10, 0);
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+//                Gdx.app.exit();
+//                GameWorld.getInstance().showScreen(new SplashScreen());
+            }
+        });
+
         onscreenMenuTbl.setVisible(false);
         playerUI.addActor(onscreenMenuTbl);
 
         TextureRegion myTextureRegion;
         TextureRegionDrawable myTexRegionDrawable;
         ImageButton button;
-        Pixmap pixmap;
         Pixmap.setBlending(Pixmap.Blending.None);
 
         pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
@@ -398,7 +439,8 @@ class GameScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private Table onscreenMenuTbl;
+    private Skin uiSkin = new Skin();
+    private Table onscreenMenuTbl  = new Table();
     private Texture gsTexture;
     private Texture btnTexture;
 
@@ -437,7 +479,7 @@ class GameScreen implements Screen {
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Ray lookRay = new Ray();
-
+private String s = new String();
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -446,6 +488,7 @@ class GameScreen implements Screen {
     @Override
     public void render(float delta) {
 
+        String s;
         // game box viewport
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -475,6 +518,19 @@ class GameScreen implements Screen {
             platformColor.a = 0;
         }
 
+
+        batch.setProjectionMatrix(guiCam.combined);
+        batch.begin();
+        if (false) {
+            // calls new Formatter() which we dont want!
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            font.draw(batch, s, 100, Gdx.graphics.getHeight());
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            font.draw(batch, s, 250, Gdx.graphics.getHeight());
+            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            font.draw(batch, s, 400, Gdx.graphics.getHeight());
+        }
+        batch.end();
 
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
@@ -531,13 +587,12 @@ if (GameWorld.getInstance().getIsPaused()) {
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
+        uiSkin.dispose();
         btnTexture.dispose();
         gsTexture.dispose();
         font.dispose();
+        batch.dispose();
         shapeRenderer.dispose();
-
-        //maybe we should do something more elegant here ...
-// fixed the case where first time in setupUI, it blew chow here when I try to dispose gameUI .. duh yeh gameUI would still be null
         playerUI.dispose();
     }
 
