@@ -13,13 +13,13 @@ import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -36,7 +36,6 @@ import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.characters.PlayerCharacter;
-import com.mygdx.game.characters.PlayerInput;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -44,7 +43,6 @@ import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringBulletEntity;
-import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.systems.BulletSystem;
@@ -76,7 +74,6 @@ class GameScreen implements Screen {
     private CameraInputController camController; // FirstPersonCameraController camController;
     private BitmapFont font;
     private OrthographicCamera guiCam;
-    private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -84,7 +81,7 @@ class GameScreen implements Screen {
     private PlayerCharacter playerUI;
     private InputMultiplexer multiplexer = new InputMultiplexer();
     private StringBuilder stringBuilder = new StringBuilder();
-    private Label label;
+    private Label fpsLabel;
     private Signal<GameEvent> pickRayEventSignal = new Signal<GameEvent>();
     private boolean roundOver = false;
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
@@ -228,10 +225,9 @@ class GameScreen implements Screen {
     private final GameEvent gameEvent = new GameEvent() {
         @Override
         public void callback(Entity picked, EventType eventType) {
-            if (RAY_PICK == eventType) {
-                    if (null != picked)
-                        ModelInstanceEx.setMaterialColor(
-                                picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+            if (RAY_PICK == eventType && null != picked) {
+                ModelInstanceEx.setMaterialColor(
+                        picked.getComponent(ModelComponent.class).modelInst, Color.RED);
             }
         }};
 
@@ -279,6 +275,7 @@ class GameScreen implements Screen {
                     if (!GameWorld.getInstance().getIsPaused()) {
 
                         GameWorld.getInstance().setIsPaused(true);
+                        onscreenMenuTbl.setVisible(true);
                         cameraSwitch();
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     } else {
@@ -290,6 +287,7 @@ class GameScreen implements Screen {
                     if (GameWorld.getInstance().getIsPaused()) {
 
                         GameWorld.getInstance().setIsPaused(false);
+                        onscreenMenuTbl.setVisible(false);
                         cameraSwitch();
                     } else {
                         // default to center of button
@@ -312,26 +310,20 @@ class GameScreen implements Screen {
         };
 
         // select the Steering Bullet Entity here and pass it to the character
+/*
         SteeringEntity sbe = new SteeringEntity();
         final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
         sbe.setSteeringBehavior(playerInpSB);
-//        pickedPlayer.add(new CharacterComponent(sbe));
-
+        pickedPlayer.add(new CharacterComponent(sbe));
+*/
         setupPlayerUI(mapper);
     }
 
 
     private void setupPlayerUI(final InputStruct mapper){
-
-        // Font files from ashley-superjumper
-        font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
-
-        /*
+    /*
         unfortunately this is duplicating stuff in the mapper
-         */
+    */
         InputListener gsListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -339,30 +331,32 @@ class GameScreen implements Screen {
     mapper.setInputState(InputStruct.InputState.INP_SELECT);
  */
                 if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
-                    if (GameWorld.getInstance().getIsPaused()) {
 
-                        GameWorld.getInstance().setIsPaused(false);
-                        cameraSwitch();
-                    }
-                }
-                else {
+                    GameWorld.getInstance().setIsPaused(false);
+                    onscreenMenuTbl.setVisible(false);
+                    cameraSwitch();
+                } else {
                     pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
                 }
                 return false;
-            }
-        };
+            }};
 
+        // Font files from ashley-superjumper
+        font = new BitmapFont( Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
 
         playerUI = new PlayerCharacter(mapper, null);
+        fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
+        playerUI.addActor(fpsLabel);
 
-        label = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
-        playerUI.addActor(label);
-
-
-        Table table = new Table();
-        table.setFillParent(true);
-        table.setDebug(true);
-        playerUI.addActor(table);
+        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
+        onscreenMenuTbl = new Table();
+        onscreenMenuTbl.setFillParent(true);
+        onscreenMenuTbl.setDebug(true);
+        onscreenMenuTbl.add(onScreenMenuLabel);
+        onscreenMenuTbl.setVisible(false);
+        playerUI.addActor(onscreenMenuTbl);
 
         TextureRegion myTextureRegion;
         TextureRegionDrawable myTexRegionDrawable;
@@ -404,6 +398,7 @@ class GameScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
+    private Table onscreenMenuTbl;
     private Texture gsTexture;
     private Texture btnTexture;
 
@@ -428,21 +423,14 @@ class GameScreen implements Screen {
 
             final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
 
-            switch (eventType) {
-                case RAY_DETECT:
-                    if (null != picked) {
-                        // we have an object in sight so kil it, bump the score, whatever
+            if (RAY_DETECT == eventType && null != picked) {
+
                         RenderSystem.debugGraphics.add(
                                 lineInstance.lineTo(
                                         btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
                                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
+            }}
     };
 
     private Vector3 position = new Vector3();
@@ -464,22 +452,15 @@ class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         camController.update(); // this can probaly be pause as well
-
         engine.update(delta);
-
-        CharacterComponent comp = pickedPlayer.getComponent(CharacterComponent.class);
-        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-
         mapper.update(delta);
 /*
-        if (null != comp
-                && GameWorld.getInstance().getIsPaused()  // ooh yuck have to force the update() because the system that updates it is paused!
-        ) {
-            comp.steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
-        }
+        if (GameWorld.getInstance().getIsPaused())  // ooh yuck have to force the update() because the system that updates it is paused!
+            pickedPlayer.getComponent(CharacterComponent.class).steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
 */
-        mc.modelInst.transform.getTranslation(position);
-        mc.modelInst.transform.getRotation(rotation);
+        Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+        transform.getTranslation(position);
+        transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
         pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
 
@@ -495,18 +476,6 @@ class GameScreen implements Screen {
         }
 
 
-        batch.setProjectionMatrix(guiCam.combined);
-        batch.begin();
-/*
-        String s;
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 100, Gdx.graphics.getHeight());
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 250, Gdx.graphics.getHeight());
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 400, Gdx.graphics.getHeight());
-*/
-        if (null != renderSystem) {
             float visibleCount = renderSystem.visibleCount;
             float renderableCount = renderSystem.renderableCount;
             //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
@@ -514,21 +483,20 @@ class GameScreen implements Screen {
             stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
             stringBuilder.append(" Visible: ").append(visibleCount);
             stringBuilder.append(" / ").append(renderableCount);
-            label.setText(stringBuilder);
-        }
-        batch.end();
+            fpsLabel.setText(stringBuilder);
 
 
-        //        shapeRenderer.setProjectionMatrix ????
-        // semi-opaque filled box over touch area
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(hudOverlayColor);
-        shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H / 4.0f);
-        shapeRenderer.end();
-
+if (GameWorld.getInstance().getIsPaused()) {
+    // example of using ShapeRender to draw directly to screen
+    //        shapeRenderer.setProjectionMatrix ????
+    shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+    shapeRenderer.setColor(hudOverlayColor);
+    shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H);
+    shapeRenderer.end();
+}
 
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
@@ -566,7 +534,6 @@ class GameScreen implements Screen {
         btnTexture.dispose();
         gsTexture.dispose();
         font.dispose();
-        batch.dispose();
         shapeRenderer.dispose();
 
         //maybe we should do something more elegant here ...

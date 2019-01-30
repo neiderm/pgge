@@ -10,7 +10,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
@@ -54,8 +53,7 @@ class SelectScreen implements Screen {
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
 
     private BitmapFont font;
-    private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
+    private ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
@@ -93,18 +91,8 @@ class SelectScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-        // Font files from ashley-superjumper
-        font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
+        environment.remove(shadowLight);
 
-        batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
-
-
-        if (null != shadowLight)  // if this is a new round but not new gamescreen
-            environment.remove(shadowLight);
         shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
         shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
         environment.add(shadowLight);
@@ -112,6 +100,14 @@ class SelectScreen implements Screen {
 
         engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
 
+        // point the camera to platform
+        final Vector3 camPosition = new Vector3(0, 1.2f, 3f); // ook
+        final Vector3 camLookAt = new Vector3(0, 0, 0);
+
+        cam.position.set(camPosition);
+        cam.lookAt(camLookAt);
+        cam.up.set(0, 1, 0);
+        cam.update();
 
 // build the platform moanually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
@@ -119,12 +115,6 @@ class SelectScreen implements Screen {
                 0, null, new Vector3(4, yCoordOnPlatform * 2, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
-/*
-        Entity asdf = PrimitivesBuilder.getBoxBuilder().create(0, null, new Vector3(.1f, .1f, .1f));
-        engine.addEntity(asdf);
-        ModelInstanceEx.setColorAttribute(asdf.getComponent(ModelComponent.class).modelInst, Color.PURPLE, 1f);
-        asdf.getComponent(ModelComponent.class).modelInst.transform.setTranslation(new Vector3(0, 0.25f, 0));
-*/
 
         GameWorld.sceneLoader.buildCharacters(
                 characters, engine, "tanks", true, false);
@@ -153,19 +143,15 @@ class SelectScreen implements Screen {
                           }
         );
 
+        // Font files from ashley-superjumper
+        font = new BitmapFont(
+                Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
+
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
-
-        // point the camera to platform
-        final Vector3 camPosition = new Vector3(0, 1.2f, 3f); // ook
-//        final Vector3 camPosition = new Vector3(0, 2f, .001f); // test above
-        final Vector3 camLookAt = new Vector3(0, 0, 0);
-
-        cam.position.set(camPosition);
-        cam.lookAt(camLookAt);
-        cam.up.set(0, 1, 0);
-        cam.update();
 
         Gdx.input.setInputProcessor(stage);
 
@@ -408,7 +394,6 @@ class SelectScreen implements Screen {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         font.dispose();
-        batch.dispose();
         shapeRenderer.dispose();
         stage.dispose();
     }
