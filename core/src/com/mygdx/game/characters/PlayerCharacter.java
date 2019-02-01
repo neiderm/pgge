@@ -2,13 +2,20 @@ package com.mygdx.game.characters;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -50,7 +57,7 @@ public class PlayerCharacter extends Stage {
       if listener==null then we have already a default base listener
      */
     public PlayerCharacter(final InputStruct mapper, Array<InputListener> buttonListeners) {
-
+//this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
         this.mapper = mapper;
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
@@ -65,6 +72,8 @@ public class PlayerCharacter extends Stage {
                     mapper.setAxis(-1, axes);
                 }});
         }
+
+//        setupPlayerUI(mapper);
     }
 
 /*    @Override
@@ -159,5 +168,150 @@ public class PlayerCharacter extends Stage {
         this.addActor(touchpad);
 
         background.dispose();
+    }
+
+
+    private BitmapFont font;
+    private Label fpsLabel;
+    private Table onscreenMenuTbl = new Table();
+    private Skin uiSkin = new Skin();
+    private Texture gsTexture;
+    private Texture btnTexture;
+    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
+    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
+
+
+    private void setupPlayerUI(final InputStruct mapper){
+    /*
+        unfortunately this is duplicating stuff in the mapper
+    */
+        InputListener gsListener = new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+/*
+    mapper.setInputState(InputStruct.InputState.INP_SELECT);
+ */
+                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
+
+                    GameWorld.getInstance().setIsPaused(false);
+                    onscreenMenuTbl.setVisible(false);
+//                    cameraSwitch();
+                } else {
+//                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
+                }
+                return false;
+            }};
+
+        Pixmap pixmap;
+
+        // Font files from ashley-superjumper
+        font = new BitmapFont( Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
+
+        fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
+        addActor(fpsLabel);
+
+        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
+        onscreenMenuTbl.setFillParent(true);
+        onscreenMenuTbl.setDebug(true);
+        onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
+
+        //create a Labels showing the score and some credits
+        pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        uiSkin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+        pixmap.dispose();
+
+//        textStyle.font = font;
+        uiSkin.add("default", new Label.LabelStyle(font, Color.WHITE));
+        // Store the default libgdx font under the name "default".
+        uiSkin.add("default", font);
+
+        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.up = uiSkin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.down = uiSkin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.checked = uiSkin.newDrawable("white", Color.BLUE);
+        textButtonStyle.over = uiSkin.newDrawable("white", Color.LIGHT_GRAY);
+        textButtonStyle.font = uiSkin.getFont("default");
+        uiSkin.add("default", textButtonStyle);
+
+        // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
+        TextButton textButton = new TextButton("Restart", uiSkin);
+        onscreenMenuTbl.row().pad(10, 0, 10, 0);
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+//                Gdx.app.exit();
+//                GameWorld.getInstance().showScreen(new SplashScreen());
+            }
+        });
+
+        onscreenMenuTbl.setVisible(false);
+        addActor(onscreenMenuTbl);
+
+        TextureRegion myTextureRegion;
+        TextureRegionDrawable myTexRegionDrawable;
+        ImageButton button;
+        Pixmap.setBlending(Pixmap.Blending.None);
+
+        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
+        gsTexture = new Texture(pixmap);
+        myTextureRegion = new TextureRegion(gsTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+        button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(gsBTNx, gsBTNy);
+        button.addListener(gsListener);
+        addActor(button);
+        pixmap.dispose();
+
+        pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
+
+        btnTexture = new Texture(pixmap);
+        myTextureRegion = new TextureRegion(btnTexture);
+        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+        button = new ImageButton(myTexRegionDrawable);
+        button.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
+        button.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                mapper.setInputState(InputStruct.InputState.INP_B2);
+                return false;
+            }});
+        addActor(button);
+        pixmap.dispose();
+    }
+
+
+    private void update(){
+
+    }
+
+    @Override
+    public void act (float delta) {
+        super.act(delta);
+        mapper.update(delta);
+        update();
+    }
+
+    @Override
+    public void dispose () {
+        super.dispose();
+        /*
+        uiSkin.dispose();
+        btnTexture.dispose();
+        gsTexture.dispose();
+        font.dispose();
+        */
     }
 }

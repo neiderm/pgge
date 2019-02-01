@@ -223,6 +223,9 @@ class GameScreen implements Screen {
             }};
 
         setupVehicle(pickedPlayer);
+
+        multiplexer.addProcessor(playerUI);
+        Gdx.input.setInputProcessor(multiplexer);
     }
 
 /*
@@ -254,7 +257,6 @@ class GameScreen implements Screen {
                 Gdx.graphics.getHeight() - (gsBTNy + y));
     }
 
-    private InputStruct mapper;
 
     private void setupVehicle(final Entity pickedPlayer){
 
@@ -263,7 +265,7 @@ class GameScreen implements Screen {
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        mapper = new InputStruct() {
+        InputStruct mapper = new InputStruct() {
 
             btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
             Vector3 tmpV = new Vector3();
@@ -297,7 +299,8 @@ class GameScreen implements Screen {
                         cameraSwitch();
                     } else {
                         // default to center of button
-                        pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
+                        pickRayEventSignal.dispatch(gameEvent.set(
+                                RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
                     }
                 }
                 if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
@@ -322,6 +325,9 @@ class GameScreen implements Screen {
         sbe.setSteeringBehavior(playerInpSB);
         pickedPlayer.add(new CharacterComponent(sbe));
 */
+
+        playerUI = new PlayerCharacter(mapper, null);
+
         setupPlayerUI(mapper);
     }
 
@@ -354,7 +360,6 @@ class GameScreen implements Screen {
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
-        playerUI = new PlayerCharacter(mapper, null);
         fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         playerUI.addActor(fpsLabel);
 
@@ -434,9 +439,6 @@ class GameScreen implements Screen {
             }});
         playerUI.addActor(button);
         pixmap.dispose();
-
-        multiplexer.addProcessor(playerUI);
-        Gdx.input.setInputProcessor(multiplexer);
     }
 
     private Skin uiSkin = new Skin();
@@ -466,9 +468,7 @@ class GameScreen implements Screen {
             final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
 
             if (RAY_DETECT == eventType && null != picked) {
-
-                        RenderSystem.debugGraphics.add(
-                                lineInstance.lineTo(
+                        RenderSystem.debugGraphics.add(lineInstance.lineTo(
                                         btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
                                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
@@ -479,7 +479,7 @@ class GameScreen implements Screen {
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Ray lookRay = new Ray();
-private String s = new String();
+//private String s = new String(); // doesn't help ... String.format calls new Formatter()!
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -496,7 +496,7 @@ private String s = new String();
 
         camController.update(); // this can probaly be pause as well
         engine.update(delta);
-        mapper.update(delta);
+//        mapper.update(delta);
 /*
         if (GameWorld.getInstance().getIsPaused())  // ooh yuck have to force the update() because the system that updates it is paused!
             pickedPlayer.getComponent(CharacterComponent.class).steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
@@ -539,8 +539,9 @@ private String s = new String();
             stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
             stringBuilder.append(" Visible: ").append(visibleCount);
             stringBuilder.append(" / ").append(renderableCount);
+///*
             fpsLabel.setText(stringBuilder);
-
+//*/
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -588,9 +589,11 @@ if (GameWorld.getInstance().getIsPaused()) {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         uiSkin.dispose();
+///*
         btnTexture.dispose();
         gsTexture.dispose();
         font.dispose();
+//*/
         batch.dispose();
         shapeRenderer.dispose();
         playerUI.dispose();
