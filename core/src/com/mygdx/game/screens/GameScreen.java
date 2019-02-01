@@ -277,43 +277,45 @@ class GameScreen implements Screen {
             public void update(float deltaT) {
                 InputState nowInputState = getInputState(false);
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
+                if ( ! GameWorld.getInstance().getIsPaused()) {
 
-                if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
+                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
 
-                    if (!GameWorld.getInstance().getIsPaused()) {
+                    if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
 
                         GameWorld.getInstance().setIsPaused(true);
                         onscreenMenuTbl.setVisible(true);
                         cameraSwitch();
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
-                    } else {
-                        roundOver = true;
                     }
-                }
-                if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
-
-                    if (GameWorld.getInstance().getIsPaused()) {
-
-                        GameWorld.getInstance().setIsPaused(false);
-                        onscreenMenuTbl.setVisible(false);
-                        cameraSwitch();
-                    } else {
+                    if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
                         // default to center of button
                         pickRayEventSignal.dispatch(gameEvent.set(
                                 RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
                     }
-                }
-                if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
-                    // random flip left or right ( only enable jump if in surface conttact ??)
+                    if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
+                        // random flip left or right ( only enable jump if in surface conttact ??)
 
-                    if (rnd.nextFloat() > 0.5f)
-                        tmpV.set(0.1f, 0, 0);
-                    else
-                        tmpV.set(-0.1f, 0, 0);
+                        if (rnd.nextFloat() > 0.5f)
+                            tmpV.set(0.1f, 0, 0);
+                        else
+                            tmpV.set(-0.1f, 0, 0);
 
-                    body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+                        body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
+                    }
+                } else {
+
+                    if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
+
+                        roundOver = true;
+                    }
+                    if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
+
+                        GameWorld.getInstance().setIsPaused(false);
+                        onscreenMenuTbl.setVisible(false);
+                        cameraSwitch();
+                    }
                 }
-                vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
                 preInputState = nowInputState;
             }
         };
@@ -341,7 +343,7 @@ class GameScreen implements Screen {
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 /*
     mapper.setInputState(InputStruct.InputState.INP_SELECT);
- */
+*/
                 if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
 
                     GameWorld.getInstance().setIsPaused(false);
