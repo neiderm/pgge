@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -276,10 +277,11 @@ class GameScreen implements Screen {
             @Override
             public void update(float deltaT) {
                 InputState nowInputState = getInputState(false);
+                Vector2 pointer = getPointer();
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
 
-                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0);
+                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0); // need to use Vector2
 
                     if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
 
@@ -289,9 +291,14 @@ class GameScreen implements Screen {
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     }
                     if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
-                        // default to center of button
-                        pickRayEventSignal.dispatch(gameEvent.set(
-                                RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
+
+                        if (pointer.x < 0 && pointer.y < 0) {
+                            // default to center of button
+                            pickRayEventSignal.dispatch(gameEvent.set(
+                                    RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
+                        } else {
+                            pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(pointer.x, pointer.y), 0));
+                        }
                     }
                     if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
                         // random flip left or right ( only enable jump if in surface conttact ??)
@@ -335,15 +342,13 @@ class GameScreen implements Screen {
 
 
     private void setupPlayerUI(final InputStruct mapper){
-    /*
-        unfortunately this is duplicating stuff in the mapper
-    */
+
         InputListener gsListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-/*
-    mapper.setInputState(InputStruct.InputState.INP_SELECT);
-*/
+
+                mapper.setInputState(InputStruct.InputState.INP_SELECT, x, y);
+  /*
                 if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
 
                     GameWorld.getInstance().setIsPaused(false);
@@ -352,6 +357,7 @@ class GameScreen implements Screen {
                 } else {
                     pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
                 }
+*/
                 return false;
             }};
 

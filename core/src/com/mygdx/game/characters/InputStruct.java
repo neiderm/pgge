@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ArrayMap;
 
 import java.util.Arrays;
@@ -175,6 +176,28 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         return connectedCtrl;
     }
 
+/*
+    public class InputStateSt    {
+        private InputState inputAction;
+        private float x;
+        private float y;
+        private Vector2 xy = new Vector2();
+        public InputState getInputAction() {
+            return inputAction;
+        }
+        public void setInputAction(InputState inputAction) {
+            this.inputAction = inputAction;
+        }
+        public Vector2 getXY() {
+            return xy;
+        }
+        private void setXy(float x, float y) {
+            xy.set(x, y);
+        }
+    }
+    */
+    private Vector2 pointer = new Vector2();
+
 
     public enum InputState {
         INP_NONE,
@@ -231,8 +254,19 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
 
     public void setInputState(InputState inputState) {
 
-        this.inputState = inputState;
+        this.setInputState(inputState, -1, -1);
     }
+
+    public void setInputState(InputState inputState, float x, float y) {
+
+        this.inputState = inputState;
+        pointer.set(x, y);
+    }
+
+    protected Vector2 getPointer(){
+        return pointer;
+    }
+
 
     private PovDirection getControlPov(/*int povCode*/) {
 
@@ -256,6 +290,11 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         int x;
         int y;
 
+        Vector2 axes = new Vector2();
+
+        Vector2 getAxes(){
+            return axes.set(x, y);
+        }
         void clear() {
             x = 0;
             y = 0;
@@ -270,7 +309,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         }
     }
 
-    public class AnalogAxis {
+    private class AnalogAxis {
         float x;
         float y;
 
@@ -288,6 +327,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         }
     }
 
+// Vector2 ??
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
     private AnalogAxis analogAxes = new AnalogAxis(); // would need array of max analog axes, for now just use one
 
@@ -297,7 +337,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
      * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
      * But glitchy and not worth considering.
      */
-    public DpadAxis getDpad(DpadAxis asdf) {
+    public /* Vector2 */ DpadAxis getDpad(DpadAxis asdf) {
 
         dPadAxes.clear();
 
