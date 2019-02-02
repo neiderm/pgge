@@ -28,12 +28,11 @@ public class TankController implements SimpleVehicleModel
     protected float mass;
 
     // working variables
-    private Vector3 trans = new Vector3();
     private Matrix4 tmpM = new Matrix4();
+    private Vector3 trans = new Vector3();
     private Vector3 tmpV = new Vector3();
-    private Vector3 down = new Vector3();
-    private Quaternion rotation = new Quaternion();
-
+    private Vector3 accelV = new Vector3();
+    private GfxUtil gfxLine = new GfxUtil();
 
 
     public TankController(btRigidBody body, float mass) {
@@ -44,11 +43,15 @@ public class TankController implements SimpleVehicleModel
     }
 
 
-    private Vector3 linear = new Vector3();
-    private GfxUtil gfxLine = new GfxUtil();
-
     @Override
-    public void updateControls(float direction, float angular, float time) {
+    public void updateControls(float direction, float angular, boolean coolJump, float time) {
+
+        final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
+
+        if (coolJump) {
+            ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
+            body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
+        }
 
         // this makes reverse steering opposite of my favorite *rigs game ;)
         if (direction < 0)
@@ -57,25 +60,20 @@ public class TankController implements SimpleVehicleModel
 
         // TODO: logic to test orientation for "upside down but not free falling"
 
-        // Determine resultant pushing force by rotating the linear direction vector (0, 0, 1 or 0, 0, -1) to
-        // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
-        // a pushing force to the vehicle along tt's Z axis. This gets a desired effect of i.e. magnitude
-        // of applied force reduces proportionately the more that the vehicle is on an incline
-        ModelInstanceEx.rotateRad(linear.set(0, 0, direction), body.getOrientation());
-
 
         // check for contact w/ surface, only apply force if in contact, not falling
         // 1 meters max from the origin seems to work pretty good
         body.getWorldTransform(tmpM);
         tmpM.getTranslation(trans);
 
-        ModelInstanceEx.rotateRad(down.set(0, -1, 0), body.getOrientation());
+        Quaternion orientation = body.getOrientation();
+        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
 
-        btCollisionObject rayPickObject = world.rayTest(trans, down, 1.0f);
+        btCollisionObject rayPickObject = world.rayTest(trans, tmpV, 1.0f);
 
         if (null != rayPickObject) {
             /*
-             * apply forces only jump if in surface conttact
+             * apply forces only if in surface conttact
              */
             body.applyTorque(tmpV.set(0, angular * ANGULAR_GAIN, 0));
 
@@ -90,15 +88,21 @@ public class TankController implements SimpleVehicleModel
              * velocity seems to be limited and constant ... go look up the math eventually */
             final float MU = 0.5f;
 
-            linear.scl(LINEAR_GAIN * this.mass);
+            // Determine resultant pushing force by rotating the accelV direction vector (0, 0, 1 or 0, 0, -1) to
+            // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
+            // a pushing force to the vehicle along tt's Z axis. This gets a desired effect of i.e. magnitude
+            // of applied force reduces proportionately the more that the vehicle is on an incline
+            ModelInstanceEx.rotateRad(accelV.set(0, 0, direction), orientation);
 
-            body.applyCentralForce(linear);
+            accelV.scl(LINEAR_GAIN * this.mass);
+
+            body.applyCentralForce(accelV);
             body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
             body.setWorldTransform(tmpM);
         }
 
         RenderSystem.debugGraphics.add(gfxLine.line(trans,
-                ModelInstanceEx.rotateRad(down.set(0, -1, 0), tmpM.getRotation(rotation)),
+                ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), tmpM.getRotation(orientation)),
                 Color.RED));
 
 //Gdx.app.log(this.getClass().getName(), String.format("GfxUtil.line x = %f y = %f, z = %f", trans.x, trans. y, trans.z));

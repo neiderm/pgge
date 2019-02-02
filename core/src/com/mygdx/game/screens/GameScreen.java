@@ -281,7 +281,11 @@ class GameScreen implements Screen {
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
 
-                    vehicleModel.updateControls(getAxisY(0), getAxisX(0), 0); // need to use Vector2
+//                    Vector2 axes = getAxes();
+
+                    vehicleModel.updateControls(getAxisY(0), getAxisX(0),
+                            (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState), // so dumb
+                            0); // need to use Vector2
 
                     if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
 
@@ -301,14 +305,6 @@ class GameScreen implements Screen {
                         }
                     }
                     if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
-                        // random flip left or right ( only enable jump if in surface conttact ??)
-
-                        if (rnd.nextFloat() > 0.5f)
-                            tmpV.set(0.1f, 0, 0);
-                        else
-                            tmpV.set(-0.1f, 0, 0);
-
-                        body.applyImpulse(impulseForceV.set(0, rnd.nextFloat() * 10.f + 40.0f, 0), tmpV);
                     }
                 } else {
 
@@ -336,8 +332,9 @@ class GameScreen implements Screen {
 */
 
         playerUI = new PlayerCharacter(mapper, null);
-
+///*
         setupPlayerUI(mapper);
+//*/
     }
 
 

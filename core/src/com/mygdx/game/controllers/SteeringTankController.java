@@ -116,6 +116,6 @@ private TankController tc;
         /*
          update the "VehicleModel" wiht he new virtual controller inputs
          */
-        tc.updateControls(direction, angular,0);
+        tc.updateControls(direction, angular,false, 0);
     }
 }
