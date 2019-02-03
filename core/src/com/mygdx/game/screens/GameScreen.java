@@ -22,7 +22,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -304,9 +303,9 @@ class GameScreen implements Screen {
      */
     private GameEvent nearestObjectToPlayerEvent = new GameEvent() {
 
-        private Vector3 tmpV = new Vector3();
-        private Vector3 posV = new Vector3();
-        private GfxUtil lineInstance = new GfxUtil();
+        Vector3 tmpV = new Vector3();
+        Vector3 posV = new Vector3();
+        GfxUtil lineInstance = new GfxUtil();
         /*
         we have no way to invoke a callback to the picked component.
         Pickable component required to implment some kind of interface to provide a
@@ -318,11 +317,11 @@ class GameScreen implements Screen {
         @Override
         public void callback(Entity picked, GameEvent.EventType eventType) {
 
-            final btRigidBody btRigidBodyPlayer = pickedPlayer.getComponent(BulletComponent.class).body;
+            final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
 
             if (RAY_DETECT == eventType && null != picked) {
                         RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                                        btRigidBodyPlayer.getWorldTransform().getTranslation(posV),
+                                        transform.getTranslation(posV),
                                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
             }}
@@ -411,6 +410,7 @@ if (GameWorld.getInstance().getIsPaused()) {
          */
         if (roundOver) {
             roundOver = false;
+            Gdx.app.log("GameScreen:render", "new MainMenuScreen()");
             GameWorld.getInstance().showScreen(new MainMenuScreen());
         }
     }
