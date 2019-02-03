@@ -82,7 +82,7 @@ UD Axis2    Axis0
     -----------------------------
 */
 
-public /* abstract */ class InputStruct implements CtrlMapperIntrf {
+public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithController extends stage ? */ {
 
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
@@ -252,12 +252,15 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf {
         return rv;
     }
 
+    /*
+     * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
+     */
     public void setInputState(InputState inputState) {
 
-        this.setInputState(inputState, -1, -1);
+        setInputState(inputState, Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f);
     }
 
-    public void setInputState(InputState inputState, float x, float y) {
+    void setInputState(InputState inputState, float x, float y) {
 
         this.inputState = inputState;
         pointer.set(x, y);

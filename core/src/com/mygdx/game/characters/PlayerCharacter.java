@@ -7,7 +7,9 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -27,14 +29,29 @@ import com.mygdx.game.screens.GameWorld;
  * Created by neiderm on 5/17/2018.
  */
 
-public class PlayerCharacter extends Stage {
+public class PlayerCharacter extends Stage /* extends stageWithController ?? */  {
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
     private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
 
+    private ImageButton picButton;
+    private ImageButton xButton;
+    private Touchpad touchpad;
+    private BitmapFont font;
+    private Label fpsLabel;
+    private Table onscreenMenuTbl = new Table();
+    private Skin uiSkin = new Skin();
+    private Texture gsTexture;
+    private Texture btnTexture;
+    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
+    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
+    private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
+    private InputStruct mapper;
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -43,8 +60,6 @@ public class PlayerCharacter extends Stage {
     // maybe do a controller abstraction?
     // https://gist.github.com/nhydock/dc0501f34f89686ddf34
     // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
-
-    private InputStruct mapper;
 
     /*
      TODO: Array<InputListener> buttonListeners should be something like "Array<InputMapping> buttonListeners"
@@ -72,8 +87,7 @@ public class PlayerCharacter extends Stage {
                     mapper.setAxis(-1, axes);
                 }});
         }
-
-//        setupPlayerUI(mapper);
+        setupPlayerUI(mapper);
     }
 
 /*    @Override
@@ -159,7 +173,7 @@ public class PlayerCharacter extends Stage {
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
 
         //Create new TouchPad with the created style
-        Touchpad touchpad = new Touchpad(10, touchpadStyle);
+        touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
 
@@ -171,36 +185,24 @@ public class PlayerCharacter extends Stage {
     }
 
 
-    private BitmapFont font;
-    private Label fpsLabel;
-    private Table onscreenMenuTbl = new Table();
-    private Skin uiSkin = new Skin();
-    private Texture gsTexture;
-    private Texture btnTexture;
-    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
-    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
-    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
-    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
-
-
     private void setupPlayerUI(final InputStruct mapper){
-    /*
-        unfortunately this is duplicating stuff in the mapper
-    */
+
         InputListener gsListener = new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-/*
-    mapper.setInputState(InputStruct.InputState.INP_SELECT);
- */
-                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
 
-                    GameWorld.getInstance().setIsPaused(false);
-                    onscreenMenuTbl.setVisible(false);
-//                    cameraSwitch();
-                } else {
-//                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                }
+                Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
+/*
+                String s = String.format("x:%.3f y:%.3f X:%.3f Y:%.3f",
+                        gsBTNx + x ,
+                        Gdx.graphics.getHeight() - (gsBTNy + y),
+                        toScrnCoord.x,
+                        Gdx.graphics.getHeight() -
+                                toScrnCoord.y );
+            fpsLabel.setText(s);
+*/
+                mapper.setInputState(InputStruct.InputState.INP_SELECT,
+                        toScrnCoord.x, Gdx.graphics.getHeight() - toScrnCoord.y);
                 return false;
             }};
 
@@ -258,7 +260,6 @@ public class PlayerCharacter extends Stage {
 
         TextureRegion myTextureRegion;
         TextureRegionDrawable myTexRegionDrawable;
-        ImageButton button;
         Pixmap.setBlending(Pixmap.Blending.None);
 
         pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
@@ -267,10 +268,10 @@ public class PlayerCharacter extends Stage {
         gsTexture = new Texture(pixmap);
         myTextureRegion = new TextureRegion(gsTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        button = new ImageButton(myTexRegionDrawable);
-        button.setPosition(gsBTNx, gsBTNy);
-        button.addListener(gsListener);
-        addActor(button);
+        picButton = new ImageButton(myTexRegionDrawable);
+        picButton.setPosition(gsBTNx, gsBTNy);
+        picButton.addListener(gsListener);
+        addActor(picButton);
         pixmap.dispose();
 
         pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
@@ -280,38 +281,65 @@ public class PlayerCharacter extends Stage {
         btnTexture = new Texture(pixmap);
         myTextureRegion = new TextureRegion(btnTexture);
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        button = new ImageButton(myTexRegionDrawable);
-        button.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
-        button.addListener(new InputListener() {
+        xButton = new ImageButton(myTexRegionDrawable);
+        xButton.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
+        xButton.addListener(new InputListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 mapper.setInputState(InputStruct.InputState.INP_B2);
                 return false;
             }});
-        addActor(button);
+        addActor(xButton);
         pixmap.dispose();
+    }
+
+    public boolean addImageButton (EventListener listener /* .... */) {
+
+        return addListener(listener);
     }
 
 
     private void update(){
 
+        fpsLabel.setVisible(true);
+
+        if (GameWorld.getInstance().getIsPaused()) {
+
+            fpsLabel.setVisible(false);
+            onscreenMenuTbl.setVisible(true);
+            xButton.setVisible(false);
+//            picButton.setVisible(false);
+
+            if (null != touchpad)
+                touchpad.setVisible(false);
+        }
+        else {
+            onscreenMenuTbl.setVisible(false);
+            xButton.setVisible(true);
+            picButton.setVisible(true);
+
+            if (null != touchpad)
+                touchpad.setVisible(true);
+        }
     }
 
     @Override
     public void act (float delta) {
+
         super.act(delta);
         mapper.update(delta);
+
         update();
     }
 
     @Override
     public void dispose () {
+
         super.dispose();
-        /*
+
         uiSkin.dispose();
         btnTexture.dispose();
         gsTexture.dispose();
         font.dispose();
-        */
     }
 }

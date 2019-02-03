@@ -10,11 +10,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
@@ -26,16 +23,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -63,7 +50,6 @@ import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Locale;
-import java.util.Random;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
 import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
@@ -89,8 +75,7 @@ class GameScreen implements Screen {
     private PlayerCharacter playerUI;
     private InputMultiplexer multiplexer = new InputMultiplexer();
     private StringBuilder stringBuilder = new StringBuilder();
-    private Label fpsLabel;
-    private Signal<GameEvent> pickRayEventSignal = new Signal<GameEvent>();
+    private Signal<GameEvent> gameEventSignal = new Signal<GameEvent>();
     private boolean roundOver = false;
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
@@ -98,9 +83,6 @@ class GameScreen implements Screen {
     private Entity platformEntity;
     private float colorAlpha = 0.9f;
     private Color platformColor = new Color(255, 0, 0, colorAlpha);
-
-    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
-    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
 
 
     GameScreen() {
@@ -142,7 +124,7 @@ class GameScreen implements Screen {
         engine = new Engine();
         engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
         engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
-        engine.addSystem(new PickRaySystem(pickRayEventSignal));
+        engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
 
@@ -249,15 +231,6 @@ class GameScreen implements Screen {
     }
 
 
-    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
-    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
-
-    private Ray setPickRay(float x, float y) {
-        // Note: Y coordinate must be flipped around before passing to cam
-        return cam.getPickRay(gsBTNx + x,
-                Gdx.graphics.getHeight() - (gsBTNy + y));
-    }
-
 
     private void setupVehicle(final Entity pickedPlayer){
 
@@ -268,16 +241,14 @@ class GameScreen implements Screen {
 
         InputStruct mapper = new InputStruct() {
 
-            btRigidBody body = pickedPlayer.getComponent(BulletComponent.class).body;
-            Vector3 tmpV = new Vector3();
-            Random rnd = new Random();
-            final Vector3 impulseForceV = new Vector3();
             InputState preInputState;
 
             @Override
             public void update(float deltaT) {
+
                 InputState nowInputState = getInputState(false);
                 Vector2 pointer = getPointer();
+
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
 
@@ -290,21 +261,15 @@ class GameScreen implements Screen {
                     if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
 
                         GameWorld.getInstance().setIsPaused(true);
-                        onscreenMenuTbl.setVisible(true);
                         cameraSwitch();
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     }
                     if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
 
-                        if (pointer.x < 0 && pointer.y < 0) {
-                            // default to center of button
-                            pickRayEventSignal.dispatch(gameEvent.set(
-                                    RAY_PICK, setPickRay(gsBTNwidth / 2f, gsBTNheight / 2f), 0));
-                        } else {
-                            pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(pointer.x, pointer.y), 0));
-                        }
+                        gameEventSignal.dispatch(
+                                gameEvent.set(RAY_PICK, cam.getPickRay(pointer.x, pointer.y), 0));
                     }
-                    if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) {
+                    if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) { // mt
                     }
                 } else {
 
@@ -315,7 +280,6 @@ class GameScreen implements Screen {
                     if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(false);
-                        onscreenMenuTbl.setVisible(false);
                         cameraSwitch();
                     }
                 }
@@ -332,124 +296,8 @@ class GameScreen implements Screen {
 */
 
         playerUI = new PlayerCharacter(mapper, null);
-///*
-        setupPlayerUI(mapper);
-//*/
     }
 
-
-    private void setupPlayerUI(final InputStruct mapper){
-
-        InputListener gsListener = new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-                mapper.setInputState(InputStruct.InputState.INP_SELECT, x, y);
-  /*
-                if (GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
-
-                    GameWorld.getInstance().setIsPaused(false);
-                    onscreenMenuTbl.setVisible(false);
-                    cameraSwitch();
-                } else {
-                    pickRayEventSignal.dispatch(gameEvent.set(RAY_PICK, setPickRay(x, y), 0));
-                }
-*/
-                return false;
-            }};
-
-        Pixmap pixmap;
-
-        // Font files from ashley-superjumper
-        font = new BitmapFont( Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
-
-        fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
-        playerUI.addActor(fpsLabel);
-
-        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
-        onscreenMenuTbl.setFillParent(true);
-        onscreenMenuTbl.setDebug(true);
-        onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
-
-        //create a Labels showing the score and some credits
-        pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-        uiSkin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-        pixmap.dispose();
-
-//        textStyle.font = font;
-        uiSkin.add("default", new Label.LabelStyle(font, Color.WHITE));
-        // Store the default libgdx font under the name "default".
-        uiSkin.add("default", font);
-
-        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = uiSkin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.down = uiSkin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.checked = uiSkin.newDrawable("white", Color.BLUE);
-        textButtonStyle.over = uiSkin.newDrawable("white", Color.LIGHT_GRAY);
-        textButtonStyle.font = uiSkin.getFont("default");
-        uiSkin.add("default", textButtonStyle);
-
-        // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
-        TextButton textButton = new TextButton("Restart", uiSkin);
-        onscreenMenuTbl.row().pad(10, 0, 10, 0);
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                Gdx.app.exit();
-//                GameWorld.getInstance().showScreen(new SplashScreen());
-            }
-        });
-
-        onscreenMenuTbl.setVisible(false);
-        playerUI.addActor(onscreenMenuTbl);
-
-        TextureRegion myTextureRegion;
-        TextureRegionDrawable myTexRegionDrawable;
-        ImageButton button;
-        Pixmap.setBlending(Pixmap.Blending.None);
-
-        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, .3f);
-        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
-        gsTexture = new Texture(pixmap);
-        myTextureRegion = new TextureRegion(gsTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        button = new ImageButton(myTexRegionDrawable);
-        button.setPosition(gsBTNx, gsBTNy);
-        button.addListener(gsListener);
-        playerUI.addActor(button);
-        pixmap.dispose();
-
-        pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, .3f);
-        pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
-
-        btnTexture = new Texture(pixmap);
-        myTextureRegion = new TextureRegion(btnTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        button = new ImageButton(myTexRegionDrawable);
-        button.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
-        button.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                mapper.setInputState(InputStruct.InputState.INP_B2);
-                return false;
-            }});
-        playerUI.addActor(button);
-        pixmap.dispose();
-    }
-
-    private Skin uiSkin = new Skin();
-    private Table onscreenMenuTbl  = new Table();
-    private Texture gsTexture;
-    private Texture btnTexture;
 
     /*
      * this is kind of a hack to test some ray casting
@@ -501,16 +349,12 @@ class GameScreen implements Screen {
 
         camController.update(); // this can probaly be pause as well
         engine.update(delta);
-//        mapper.update(delta);
-/*
-        if (GameWorld.getInstance().getIsPaused())  // ooh yuck have to force the update() because the system that updates it is paused!
-            pickedPlayer.getComponent(CharacterComponent.class).steerable.update(delta); // hmmmmm ....we have no hook to do regular player update stuff? There used to be a player system ...
-*/
+
         Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
         transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-        pickRayEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
+        gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
 
 
         // crude  hack for platform disappear effect
@@ -544,10 +388,9 @@ class GameScreen implements Screen {
             stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
             stringBuilder.append(" Visible: ").append(visibleCount);
             stringBuilder.append(" / ").append(renderableCount);
-///*
+/*
             fpsLabel.setText(stringBuilder);
-//*/
-
+*/
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -593,12 +436,6 @@ if (GameWorld.getInstance().getIsPaused()) {
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
-        uiSkin.dispose();
-///*
-        btnTexture.dispose();
-        gsTexture.dispose();
-        font.dispose();
-//*/
         batch.dispose();
         shapeRenderer.dispose();
         playerUI.dispose();
