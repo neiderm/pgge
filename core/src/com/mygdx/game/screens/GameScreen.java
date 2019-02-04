@@ -240,8 +240,6 @@ class GameScreen implements Screen {
 
         InputStruct mapper = new InputStruct() {
 
-            InputState preInputState;
-
             @Override
             public void update(float deltaT) {
 
@@ -254,35 +252,34 @@ class GameScreen implements Screen {
 //                    Vector2 axes = getAxes();
 
                     vehicleModel.updateControls(getAxisY(0), getAxisX(0),
-                            (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState), // so dumb
-                            0); // need to use Vector2
+                            (InputState.INP_B2 == nowInputState),0); // need to use Vector2
 
-                    if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
+                    if (InputState.INP_ESC == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(true);
                         cameraSwitch();
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     }
-                    if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
+                    if (InputState.INP_SELECT == nowInputState) {
 
                         gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(pointer.x, pointer.y), 0));
+                                gameEvent.set(RAY_PICK, cam.getPickRay(
+                                        pointer.x, Gdx.graphics.getHeight() - pointer.y), 0));
                     }
-                    if (InputState.INP_B2 != preInputState && InputState.INP_B2 == nowInputState) { // mt
+                    if (InputState.INP_B2 == nowInputState) { // mt
                     }
                 } else {
 
-                    if (InputState.INP_ESC == nowInputState && InputState.INP_ESC != preInputState) {
+                    if (InputState.INP_ESC == nowInputState) {
 
                         roundOver = true;
                     }
-                    if (InputState.INP_SELECT != preInputState && InputState.INP_SELECT == nowInputState) {
+                    if (InputState.INP_SELECT == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(false);
                         cameraSwitch();
                     }
                 }
-                preInputState = nowInputState;
             }
         };
 

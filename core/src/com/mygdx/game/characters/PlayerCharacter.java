@@ -201,8 +201,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
                                 toScrnCoord.y );
             fpsLabel.setText(s);
 */
-                mapper.setInputState(InputStruct.InputState.INP_SELECT,
-                        toScrnCoord.x, Gdx.graphics.getHeight() - toScrnCoord.y);
+                mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
                 return false;
             }};
 

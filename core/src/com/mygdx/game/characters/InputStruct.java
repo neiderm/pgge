@@ -208,6 +208,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 
 
     private InputState inputState;
+    private InputState preInputState;
 
     public InputState getInputState() {
 
@@ -221,19 +222,20 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
      */
     public InputState getInputState(boolean checkIsTouched) {
 
-        InputState rv = inputState;
+        InputState newInputState = inputState;
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
 
-            rv = InputState.INP_ESC;
+            newInputState = InputState.INP_ESC;
 
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)) {
             // A (MYGT-Y)
-            rv = InputState.INP_SELECT;
+            newInputState = InputState.INP_SELECT;
+            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
             // B
-            rv = InputState.INP_B2;
+            newInputState = InputState.INP_B2;
         } else if (getControlButton(Input.Buttons.BACK)) {
 //            Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
         } else if (getControlButton(Input.Buttons.FORWARD) ) {
@@ -243,12 +245,17 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         } else if (Gdx.input.justTouched()) {
 
             if (checkIsTouched) {
-                rv = InputState.INP_SELECT;
+                newInputState = InputState.INP_SELECT;
             }
-        } else {
-//            rv = InputState.INP_NONE; // no-op
         }
+
+        InputState rv = InputState.INP_NONE;
+        if (preInputState != newInputState) { // debounce
+            rv = newInputState;
+        }
+        preInputState = newInputState;
         inputState = InputState.INP_NONE; // unlatch the input state
+
         return rv;
     }
 
@@ -257,12 +264,12 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
      */
     public void setInputState(InputState inputState) {
 
-        setInputState(inputState, Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f);
+        this.inputState = inputState;
     }
 
     void setInputState(InputState inputState, float x, float y) {
 
-        this.inputState = inputState;
+        setInputState(inputState);
         pointer.set(x, y);
     }
 
