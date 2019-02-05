@@ -84,6 +84,21 @@ UD Axis2    Axis0
 
 public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithController extends stage ? */ {
 
+    public enum InputState {
+        INP_NONE,
+        INP_SELECT,
+        INP_ESC,
+        INP_B2
+    }
+
+    private Controller connectedCtrl;
+    private Vector2 pointer = new Vector2();
+    private float[] axes = new float[4];
+    private boolean[] buttons = new boolean[8];
+
+    private InputState inputState;
+    private InputState preInputState;
+
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
 
@@ -160,9 +175,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         analogAxes.y = values[1];
     }
 
-
-    private Controller connectedCtrl;
-
     private static Controller getConnectedCtrl(int selectControl) {
         // If a controller is connected, find it and grab a link to it
         Controller connectedCtrl = null;
@@ -196,19 +208,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         }
     }
     */
-    private Vector2 pointer = new Vector2();
-
-
-    public enum InputState {
-        INP_NONE,
-        INP_SELECT,
-        INP_ESC,
-        INP_B2
-    }
-
-
-    private InputState inputState;
-    private InputState preInputState;
 
     public InputState getInputState() {
 
@@ -219,34 +218,26 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
      * checkisTouched: false if caller is handling the touch event
      * Using Input.Buttons seems questionable and the codes are all different on Android. Need to
      * handle in Controller:buttonDown
+     * Controller:getButton() didn't seem to work on Android, need to replace Input.Buttons.* usage
      */
     public InputState getInputState(boolean checkIsTouched) {
 
         InputState newInputState = inputState;
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)
+                 || getControlButton(Input.Buttons.FORWARD)) {
 
             newInputState = InputState.INP_ESC;
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)) {
-            // A (MYGT-Y)
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)
+                || (Gdx.input.justTouched() && checkIsTouched)) {
+
             newInputState = InputState.INP_SELECT;
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
-            // B
-            newInputState = InputState.INP_B2;
-        } else if (getControlButton(Input.Buttons.BACK)) {
-//            Gdx.app.log("InputStruct", "Buttons.BACK");    // Ipega "Y"    Belkin "B4" MYGT "Y"
-        } else if (getControlButton(Input.Buttons.FORWARD) ) {
-//            Gdx.app.log("InputStruct", "Buttons.FORWARD"); // L1
-        } else if (getControlButton(Input.Buttons.MIDDLE) ) {
-//            Gdx.app.log("InputStruct", "Buttons.MIDDLE");  // Ipega "X"  Belkin "B3" MYGT "A"
-        } else if (Gdx.input.justTouched()) {
 
-            if (checkIsTouched) {
-                newInputState = InputState.INP_SELECT;
-            }
+            newInputState = InputState.INP_B2;
         }
 
         InputState rv = InputState.INP_NONE;
@@ -278,20 +269,11 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     }
 
 
-    private PovDirection getControlPov(/*int povCode*/) {
-
-        PovDirection d = PovDirection.center;
-        if (null != connectedCtrl) {
-            d = connectedCtrl.getPov(0);
-        }
-        return d;
-    }
-
     private boolean getControlButton(int button) {
 
         boolean rv = false;
         if (null != connectedCtrl) {
-            rv = connectedCtrl.getButton(button);
+            rv = buttons[button];
         }
         return rv;
     }
@@ -351,7 +333,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 
         dPadAxes.clear();
 
-//        PovDirection povDir = getControlPov();
         PovDirection povDir = PovDirection.center;
         if (null != connectedCtrl) {
             povDir = connectedCtrl.getPov(0);
@@ -387,8 +368,6 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         Gdx.app.log("Input", message);
     }
 
-    private float[] axes = new float[4];
-
     private void initController() {
 
         // print the currently connected controllers to the console
@@ -401,6 +380,14 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
             print("No controllers attached");
 
 // hmmmmm when can I clearListeners?
+        /*
+         * keep the reference so the listener can be removed at dispose()    ?????????????
+         *
+         * This class doesn't have a 'dispose()' interface to put
+         *         Controllers.removeListener(controllerListener);
+         *
+         *         but if it ends up being a base class of GameStage ...........
+         */
         Controllers.addListener(new ControllerListenerAdapter() {
 
             int indexOf(Controller controller) {
@@ -412,19 +399,14 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                InputState state = InputState.INP_NONE;
-
-                final int PAUSE_BUTTON = 4; // temp ... L1 happens to be common to all 3 of my controllers!
-                if (PAUSE_BUTTON == buttonIndex) {
-                    state = InputState.INP_ESC;
-                }
-                setInputState(state);
+                buttons[buttonIndex] = true;
                 return false;
             }
 
             @Override
             public boolean buttonUp(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
+                buttons[buttonIndex] = false;
                 return false;
             }
 

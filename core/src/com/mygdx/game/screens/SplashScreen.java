@@ -19,13 +19,11 @@ public class SplashScreen implements Screen {
     private SpriteBatch batch;
     private Texture ttrSplash;
     private InputStruct mapper;
-    private InputStruct.InputState preInputState;
 
     SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputStruct();
-        preInputState =  mapper.getInputState(); // initial value for debouncing stupid Select input (from game-pad)
     }
 
     @Override
@@ -52,13 +50,11 @@ public class SplashScreen implements Screen {
 
         InputStruct.InputState inputState =  mapper.getInputState();
 
-        if (InputStruct.InputState.INP_SELECT == inputState
-                && InputStruct.InputState.INP_SELECT != preInputState) {
+        if (InputStruct.InputState.INP_SELECT == inputState) {
 
             GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
         }
-        preInputState = inputState;
     }
 
     @Override
