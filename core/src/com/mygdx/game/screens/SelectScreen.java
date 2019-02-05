@@ -4,8 +4,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.controllers.Controller;
-import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -16,13 +14,13 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.characters.ControllerListenerAdapter;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -44,8 +42,7 @@ class SelectScreen implements Screen {
     private static final int MAXTANKS3_3Z = 3;
 
     private InputStruct mapper = new InputStruct();
-    private Engine engine;
-
+    private Engine engine = new Engine();
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private Environment environment;
@@ -59,7 +56,6 @@ class SelectScreen implements Screen {
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private Stage stage;
-
     private Entity platform;
 
     private Array<Entity> characters = new Array<Entity>();
@@ -77,10 +73,9 @@ class SelectScreen implements Screen {
             new Vector3()
     };
 
+    private Vector2 v2 = new Vector2();
 
     SelectScreen() {
-
-        engine = new Engine();
 
         environment = new Environment();
         environment.set(
@@ -121,9 +116,6 @@ class SelectScreen implements Screen {
 
         GameWorld.sceneLoader.buildArena(engine);
 
-        Controllers.addListener(controllerListener);
-
-
         stage = new Stage();
         stage.addListener(new InputListener() {
                               @Override
@@ -135,13 +127,11 @@ class SelectScreen implements Screen {
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
-
                               @Override
                               public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                                   touchPadDx = 0;
                               }
-                          }
-        );
+                          });
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -170,30 +160,6 @@ class SelectScreen implements Screen {
             updateTanks(selectedIndex * PLATFRM_INC_DEGREES);
         }
     }
-
-
-    /*
-     * keep the reference so the listener can be removed at dispose()
-     */
-    private final ControllerListenerAdapter controllerListener = new ControllerListenerAdapter() {
-        @Override
-        public boolean buttonDown(Controller controller, int buttonIndex) {
-
-            final int BUTTON_CODE_0 = 0; // X   (my cheapo USB labels this "1")
-            final int BUTTON_CODE_3 = 3; // triangle
-
-            Gdx.app.log("SelectScreen", "ControllerListenerAdapter:buttonDown:buttonIndex = " + buttonIndex);
-
-            if (BUTTON_CODE_0 == buttonIndex) {
-                mapper.setInputState(InputStruct.InputState.INP_SELECT);
-            }
-            if (BUTTON_CODE_3 == buttonIndex) {
-                mapper.setInputState(InputStruct.InputState.INP_ESC);
-            }
-
-            return false;
-        }
-    };
 
 
     @Override
@@ -371,6 +337,8 @@ class SelectScreen implements Screen {
 
         } else if (InputStruct.InputState.INP_SELECT == inputState) {
 
+//             v2 = mapper.getPointer();
+
             GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }
@@ -389,7 +357,6 @@ class SelectScreen implements Screen {
     @Override
     public void dispose() {
 
-        Controllers.removeListener(controllerListener);
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
