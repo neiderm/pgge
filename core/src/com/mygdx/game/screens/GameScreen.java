@@ -244,7 +244,6 @@ class GameScreen implements Screen {
             public void update(float deltaT) {
 
                 InputState nowInputState = getInputState(false);
-                Vector2 pointer = getPointer();
 
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
@@ -263,11 +262,11 @@ class GameScreen implements Screen {
                     if (InputState.INP_SELECT == nowInputState) {
 
                         gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(
-                                        pointer.x, Gdx.graphics.getHeight() - pointer.y), 0));
+                                gameEvent.set(RAY_PICK, cam.getPickRay(Gdx.input.getX(), Gdx.input.getY()), 0));
                     }
                     if (InputState.INP_B2 == nowInputState) { // mt
                     }
+
                 } else {
 
                     if (InputState.INP_ESC == nowInputState) {
