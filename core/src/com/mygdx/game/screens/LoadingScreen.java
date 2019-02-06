@@ -127,7 +127,7 @@ public class LoadingScreen implements Screen {
             stringBuilder.append("Ready!");
 
             // simple polling for a tap on the touch screen
-            if (InputStruct.InputState.INP_SELECT == mapper.getInputState() ||  !shouldPause) {
+            if (InputStruct.InputState.INP_SELECT == mapper.getInputState(true) ||  !shouldPause) {
 
                 loadNewScreen();
             }

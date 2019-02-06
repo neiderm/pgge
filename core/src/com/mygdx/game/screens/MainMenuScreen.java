@@ -99,29 +99,29 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         }
     }
 
-    private final int numCkBoxes = 3;
     private int previousIncrement;
 
+    private int checkedUpDown(int step, int checkedIndex){
+
+        final int N_SELECTIONS = 3;
+
+        int selectedIndex = checkedIndex;
+
+        if (0 == previousIncrement)
+            selectedIndex += step;
+
+        previousIncrement = step;
+
+        if (selectedIndex >= N_SELECTIONS)
+            selectedIndex = 0;
+        if (selectedIndex < 0)
+            selectedIndex = N_SELECTIONS - 1;
+
+        return selectedIndex;
+    }
 
     @Override
     public void render(float delta) {
-
-        int checked = bg.getCheckedIndex();
-
-        int dPadXaxis = mapper.getDpad(null).getY();
-
-        if (0 == previousIncrement)
-            checked += dPadXaxis;
-
-        previousIncrement = dPadXaxis;
-
-        if (checked >= numCkBoxes)
-            checked = 0;
-        if (checked < 0)
-            checked = numCkBoxes - 1;
-
-
-        setCheckedBox(checked);
 
 //        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
@@ -130,9 +130,12 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
         stage.act();
         stage.draw();
 
-        if (InputStruct.InputState.INP_SELECT == mapper.getInputState(false)) {
+        int idxCurSel = checkedUpDown(mapper.getDpad(null).getY(), bg.getCheckedIndex());
+        setCheckedBox(idxCurSel);
 
-            switch (checked) {
+        if (InputStruct.InputState.INP_SELECT == mapper.getInputState()) {
+
+            switch (idxCurSel) {
                 default:
                 case 0:
                     GameWorld.getInstance().showScreen(getLoadingScreen());
@@ -154,6 +157,10 @@ public class MainMenuScreen implements Screen /* extends Stage */ {
 
     @Override
     public void resize(int width, int height) {
+          /*
+    https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+    We need to update the stage's viewport in the resize method. The last Boolean argument set the origin to the lower left coordinate, causing the label to be drawn at that location.
+     */
         stage.getViewport().update(width, height, true);
     }
 

@@ -39,7 +39,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  */
 class SelectScreen implements Screen {
 
-    private static final int MAXTANKS3_3Z = 3;
+    private static final int N_SELECTIONS = 3;
 
     private InputStruct mapper = new InputStruct();
     private Engine engine = new Engine();
@@ -62,7 +62,7 @@ class SelectScreen implements Screen {
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
 
-    private int selectedIndex;
+    private int idxCurSel;
 
     private final float yCoordOnPlatform = 0.1f;
 
@@ -146,18 +146,18 @@ class SelectScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
 
 
-        selectedIndex = 2;
+        idxCurSel = 2;
 
         // make sure to initialize in case user does not rotate the selector platform
         GameWorld.getInstance().setPlayerObjectName(
-                characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+                characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
 
 // initialize platform rotation setpoint (further updates will be relative to this i.e. plus/minus the platform increment degrees)
-        degreesSetp = 90 - selectedIndex * PLATFRM_INC_DEGREES;
+        degreesSetp = 90 - idxCurSel * PLATFRM_INC_DEGREES;
 // optional: advance immediately to the setpoint
         if (false) {
             degreesInst = degreesSetp;
-            updateTanks(selectedIndex * PLATFRM_INC_DEGREES);
+            updateTanks(idxCurSel * PLATFRM_INC_DEGREES);
         }
     }
 
@@ -212,7 +212,7 @@ class SelectScreen implements Screen {
     private float degreesInst; // instantaneous commanded rotation of platform
     private float degreesSetp; // demanded rotation of platform
     private float degreesStep; // magnitude of control output (can be ramp rate limited by control algo)
-    private static final float PLATFRM_INC_DEGREES = 360.0f / MAXTANKS3_3Z;
+    private static final float PLATFRM_INC_DEGREES = 360.0f / N_SELECTIONS;
 
 
     /*
@@ -243,7 +243,7 @@ class SelectScreen implements Screen {
      */
     private void updateTanks(float platformDegrees) {
 
-        for (int n = 0; n < MAXTANKS3_3Z; n++) {
+        for (int n = 0; n < N_SELECTIONS; n++) {
 
             // angular offset of unit to position it relative to platform
             float positionDegrees = PLATFRM_INC_DEGREES * n;
@@ -268,7 +268,7 @@ class SelectScreen implements Screen {
             transform.trn(position);
             transform.trn(originCoordinate);
 
-            if (selectedIndex == n) { // raise selected for arbitrary effect ;)
+            if (idxCurSel == n) { // raise selected for arbitrary effect ;)
                 transform.trn(down.set(0, 0.2f, 0));
             }
         }
@@ -284,10 +284,31 @@ class SelectScreen implements Screen {
         transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
 
         // debug graphic
-        transform = characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform;
+        transform = characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform;
         RenderSystem.debugGraphics.add(gfxLine.line(transform.getTranslation(tmpV),
                 ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
                 Color.RED));
+    }
+
+
+    private int previousIncrement;
+
+    private int checkedUpDown(int step, int checkedIndex){
+
+        int selectedIndex = checkedIndex;
+
+//        if (0 == previousIncrement)   // ... alternative to debouncing?) ... can't hurt ;)
+        selectedIndex += step;
+
+        previousIncrement = step;
+
+        if (selectedIndex >= N_SELECTIONS)
+            selectedIndex = 0;
+        else if (selectedIndex < 0)
+            selectedIndex = N_SELECTIONS - 1;
+
+
+        return selectedIndex;
     }
 
     /*
@@ -312,24 +333,18 @@ class SelectScreen implements Screen {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+
         int step = getStep();
+        idxCurSel = checkedUpDown(step, idxCurSel);
+        // Necessary to increment the degrees because we are controlling to it like a setpoint (IOW
+        // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
+        degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
 
-        if (0 != step) {
-            // increment the degrees
-            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
-
-            // lower previous (raise current selection in render step)
-            characters.get(selectedIndex).getComponent(ModelComponent.class).modelInst.transform.trn(
+        // lower previous (raised current selection in updateTanks() )
+        characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
                     down.set(0, -0.5f, 0));
 
-            selectedIndex += step;
-            if (selectedIndex >= MAXTANKS3_3Z)
-                selectedIndex = 0;
-            else if (selectedIndex < 0)
-                selectedIndex = MAXTANKS3_3Z - 1;
-        }
-
-        InputStruct.InputState inputState = mapper.getInputState(false);
+        InputStruct.InputState inputState = mapper.getInputState();
 
         if (InputStruct.InputState.INP_ESC == inputState) {
 
@@ -339,7 +354,7 @@ class SelectScreen implements Screen {
 
 //             v2 = mapper.getPointer();
 
-            GameWorld.getInstance().setPlayerObjectName(characters.get(selectedIndex).getComponent(PickRayComponent.class).objectName); // whatever
+            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
         }
     }

@@ -48,7 +48,7 @@ public class SplashScreen implements Screen {
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
 
-        InputStruct.InputState inputState =  mapper.getInputState();
+        InputStruct.InputState inputState =  mapper.getInputState(true);
 
         if (InputStruct.InputState.INP_SELECT == inputState) {
 

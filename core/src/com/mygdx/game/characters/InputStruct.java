@@ -96,8 +96,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     private float[] axes = new float[4];
     private boolean[] buttons = new boolean[8];
 
-    private InputState inputState;
-    private InputState preInputState;
+    private InputState inputState = InputState.INP_NONE;
+    private InputState preInputState = InputState.INP_NONE;
 
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
@@ -211,7 +211,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 
     public InputState getInputState() {
 
-        return getInputState(true);
+        return getInputState(false);
     }
 
     /*
@@ -264,8 +264,21 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         pointer.set(x, y);
     }
 
-    protected Vector2 getPointer(){
-        return pointer;
+    /*
+    	public int getX () {
+		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
+	}
+     */
+    protected float getPointerX(){
+        return pointer.x;
+    }
+    /*
+    	public int getY () {
+		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
+	}
+     */
+    protected float getPointerY(){
+        return Gdx.graphics.getHeight() - pointer.y; // normalize this to the way libGdx does ;)
     }
 
 
