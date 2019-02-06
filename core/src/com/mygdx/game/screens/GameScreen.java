@@ -19,7 +19,6 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
@@ -243,7 +242,7 @@ class GameScreen implements Screen {
             @Override
             public void update(float deltaT) {
 
-                InputState nowInputState = getInputState(false);
+                InputState nowInputState = getInputState();
 
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
@@ -262,7 +261,7 @@ class GameScreen implements Screen {
                     if (InputState.INP_SELECT == nowInputState) {
 
                         gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(Gdx.input.getX(), Gdx.input.getY()), 0));
+                                gameEvent.set(RAY_PICK, cam.getPickRay(getPointerX(), getPointerY()), 0));
                     }
                     if (InputState.INP_B2 == nowInputState) { // mt
                     }
@@ -281,15 +280,6 @@ class GameScreen implements Screen {
                 }
             }
         };
-
-        // select the Steering Bullet Entity here and pass it to the character
-/*
-        SteeringEntity sbe = new SteeringEntity();
-        final PlayerInput<Vector3> playerInpSB = new PlayerInput<Vector3>(mapper);
-        sbe.setSteeringBehavior(playerInpSB);
-        pickedPlayer.add(new CharacterComponent(sbe));
-*/
-
         playerUI = new PlayerCharacter(mapper, null);
     }
 
