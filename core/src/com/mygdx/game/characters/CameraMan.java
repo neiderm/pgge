@@ -7,9 +7,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.controllers.SteeringEntity;
 
-
 /**
- * Created by mango on 2/4/18.
+ * Created by neiderm on 2/4/18.
  * <p>
  * - work on avoiding jitter experienced when subject is basically still:
  * need the actor/subject to provide its velocity and don't move camera until
@@ -18,11 +17,6 @@ import com.mygdx.game.controllers.SteeringEntity;
  * Can camera have a kinematic body to keep it from going thru dynamic bodies, but yet that
  * wouldn't exert any forces on other bodies?
  * <p>
- * <p>
- * ultimately, i should have a camera system that can be a listener on any entity
- * (having a transform) to lookat and track.
- * for now .... lookat player and track a position relative to it
- * <p>
  * LATEST IDEA:
  * multiple camera system instances and types ...
  */
@@ -30,18 +24,22 @@ import com.mygdx.game.controllers.SteeringEntity;
 public class CameraMan extends SteeringEntity {
 
     private PerspectiveCamera cam;
-    private CameraOpMode cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
+    private CameraOpMode cameraOpMode;
     private int nodeIndex = 0;
 
     // tmp variables
     private Vector3 tmpPosition = new Vector3();
     private Vector3 tmpLookAt = new Vector3();
 
+    private Matrix4 tgtTransfrm;
+    private Matrix4 camTransform;
+
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
     public enum CameraOpMode {
         FIXED_PERSPECTIVE,
-        CHASE
+        CHASE_CLOSE,
+        CHASE_FAR
 // TODO: fixed+lookAT (only implementes the facing part of seek behavior i.e. doesn' update position
                 // FP_PERSPECTIVE,
                 // FOLLOW
@@ -60,16 +58,15 @@ public class CameraMan extends SteeringEntity {
         }
     }
 
-    private static final int FIXED = 1; // idfk
 
     private static class CameraNode {
 
-        private Matrix4 positionRef;
-        private Matrix4 lookAtRef;
-        private int flags; // e.g. FIXED_PERSPECTIVE
+        Matrix4 positionRef;
+        Matrix4 lookAtRef;
+        CameraOpMode opMode; // e.g. FIXED_PERSPECTIVE
 
-        CameraNode(int flags, Matrix4 positionRef, Matrix4 lookAtRef) {
-            this.flags = flags;
+        CameraNode(CameraOpMode  opMode, Matrix4 positionRef, Matrix4 lookAtRef) {
+            this.opMode = opMode;
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
         }
@@ -87,7 +84,7 @@ public class CameraMan extends SteeringEntity {
             new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
 
 
-    private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, int flags) {
+    private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, CameraOpMode  flags) {
 
         CameraNode cameraNode = new CameraNode(flags, posM, lookAtM);
 
@@ -96,6 +93,9 @@ public class CameraMan extends SteeringEntity {
             cameraNodes.setValue(index, cameraNode);
         } else
             cameraNodes.put(key, cameraNode);
+
+
+        setOpModeByKey("chaser1");
     }
 
     private boolean setOpModeByKey(String key) {
@@ -121,23 +121,32 @@ public class CameraMan extends SteeringEntity {
 
         boolean isController = false;
         CameraNode node = cameraNodes.getValueAt(index);
-        cameraOpMode = CameraOpMode.CHASE;
+        cameraOpMode = node.opMode;
         Vector3 tmp = cam.position.cpy();
 
-        if (node.flags == FIXED) {
+        if (node.opMode == CameraOpMode.CHASE_CLOSE){
+            // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
+            // this would be nicer if we could "un-stiffen" the control gain during this zoom!
+            node.getPositionRef().setToTranslation(tmp);
 
-            cameraOpMode = CameraOpMode.FIXED_PERSPECTIVE;
+            setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 2.5f)));
+        }
+        if (node.opMode == CameraOpMode.CHASE_FAR){
+            // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
+            // this would be nicer if we could "un-stiffen" the control gain during this zoom!
+            node.getPositionRef().setToTranslation(tmp);
+
+            setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 3f)));
+        }
+        else // if (node.opMode == CameraOpMode.FIXED_PERSPECTIVE)
+        {
 // offset the cam position on y axis. LookAt doesn't change so grab it from the previous node.
             tmp.y += 1;
             setCameraLocation(tmp, prevNode.getLookAtRef().getTranslation(tmpLookAt));
 
             isController = true;
-
-        } else {
-            // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
-            // this would be nicer if we could "un-stiffen" the control gain during this zoom!
-            node.getPositionRef().setToTranslation(tmp);
         }
+
         return isController;
     }
 
@@ -159,30 +168,31 @@ public class CameraMan extends SteeringEntity {
 
         this(cam, positionV, lookAtV);
 
-        Matrix4 camTransform = new Matrix4();
+        camTransform = new Matrix4();
 
-        setCameraNode("fixed", null, null, FIXED); // don't need transform matrix for fixed camera
-        setCameraNode("chaser1", camTransform, tgtTransfrm, 0);
-        setOpModeByKey("chaser1");
+        this.tgtTransfrm = tgtTransfrm; // make sure set this before setCameraNode() !!
 
-        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 3)));
+// note: when node is set, it also gets its OP Mode set, so last one set will be the op Mode !
+//        setCameraNode("fixed", null, null, CameraOpMode.FIXED_PERSPECTIVE); // don't need transform matrix for fixed camera
+        setCameraNode("chaser1", camTransform, tgtTransfrm, CameraOpMode.CHASE_FAR);
+        setCameraNode("chaser1", camTransform, tgtTransfrm, CameraOpMode.CHASE_CLOSE);
+        //        setOpModeByKey("chaser1");
+
+//        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 2.5f)));
     }
 
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {
 
-        CameraNode node;
+        CameraNode node = cameraNodes.getValueAt(nodeIndex);
 
-        if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {
-            // nothing
-        } else if (CameraOpMode.CHASE == cameraOpMode) {
-
-            node = cameraNodes.getValueAt(nodeIndex);
+        if (CameraOpMode.CHASE_CLOSE == cameraOpMode || CameraOpMode.CHASE_FAR == cameraOpMode) {
 
             setCameraLocation(
                     node.getPositionRef().getTranslation(tmpPosition),
                     node.getLookAtRef().getTranslation(tmpLookAt));
         }
+        // else if (CameraOpMode.FIXED_PERSPECTIVE == cameraOpMode) {}
     }
 }
