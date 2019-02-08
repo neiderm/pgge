@@ -228,15 +228,15 @@ class GameScreen implements Screen {
             multiplexer.removeProcessor(camController);
     }
 
-
-
     private void setupVehicle(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
         final SimpleVehicleModel vehicleModel = new TankController(
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
+/*
+ .... override stage.act() ... ?
+  */
         InputStruct mapper = new InputStruct() {
 
             @Override
@@ -246,16 +246,16 @@ class GameScreen implements Screen {
 
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
-
-//                    Vector2 axes = getAxes();
-
+/* AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
+the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
+So we have to pause it explicitly as it is not governed by ECS
+ */
                     vehicleModel.updateControls(getAxisY(0), getAxisX(0),
                             (InputState.INP_B2 == nowInputState),0); // need to use Vector2
 
                     if (InputState.INP_ESC == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(true);
-                        cameraSwitch();
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     }
                     if (InputState.INP_SELECT == nowInputState) {
@@ -263,10 +263,12 @@ class GameScreen implements Screen {
                         gameEventSignal.dispatch(
                                 gameEvent.set(RAY_PICK, cam.getPickRay(getPointerX(), getPointerY()), 0));
                     }
-                    if (InputState.INP_B2 == nowInputState) { // mt
-                    }
-
                 } else {
+                    if (InputState.INP_CAMCTRL == nowInputState) {
+
+                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
+                        cameraSwitch();
+                    }
 
                     if (InputState.INP_ESC == nowInputState) {
 
@@ -275,14 +277,11 @@ class GameScreen implements Screen {
                     if (InputState.INP_SELECT == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(false);
-                        cameraSwitch();
                     }
-                }
-            }
+                }}
         };
-        playerUI = new PlayerCharacter(mapper, null);
+        playerUI = new PlayerCharacter(mapper);
     }
-
 
     /*
      * this is kind of a hack to test some ray casting

@@ -20,7 +20,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.screens.GameWorld;
@@ -39,6 +38,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     private ImageButton picButton;
     private ImageButton xButton;
     private Touchpad touchpad;
+    private Skin touchpadSkin;
     private BitmapFont font;
     private Label fpsLabel;
     private Table onscreenMenuTbl = new Table();
@@ -71,7 +71,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
       }
       if listener==null then we have already a default base listener
      */
-    public PlayerCharacter(final InputStruct mapper, Array<InputListener> buttonListeners) {
+    public PlayerCharacter(final InputStruct mapper /* , Array<InputListener> buttonListeners */) {
 //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
         this.mapper = mapper;
 
@@ -147,19 +147,17 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     private void addChangeListener(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
-        Skin touchpadSkin;
-        Drawable touchBackground;
 
         //Create a touchpad skin
         touchpadSkin = new Skin();
         //Set background image
-        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+//        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
         //Set knob image
         touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
         //Create TouchPad Style
         touchpadStyle = new Touchpad.TouchpadStyle();
         //Create Drawable's from TouchPad skin
-        touchBackground = touchpadSkin.getDrawable("touchBackground");
+//        Drawable touchBackground = touchpadSkin.getDrawable("touchBackground");
 
 // https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -171,8 +169,8 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
 //        touchpadStyle.background = touchBackground;
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
-
-        //Create new TouchPad with the created style
+        // touchpadStyle.knob = = new TextureRegionDrawable ....
+                //Create new TouchPad with the created style
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
@@ -187,24 +185,6 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
 
     private void setupPlayerUI(final InputStruct mapper){
 
-        InputListener gsListener = new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-
-                Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
-/*
-                String s = String.format("x:%.3f y:%.3f X:%.3f Y:%.3f",
-                        gsBTNx + x ,
-                        Gdx.graphics.getHeight() - (gsBTNy + y),
-                        toScrnCoord.x,
-                        Gdx.graphics.getHeight() -
-                                toScrnCoord.y );
-            fpsLabel.setText(s);
-*/
-                mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
-                return false;
-            }};
-
         Pixmap pixmap;
 
         // Font files from ashley-superjumper
@@ -215,6 +195,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         addActor(fpsLabel);
 
+        // On Screen menu: up/down control over buttons does not wrap
         Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
         onscreenMenuTbl.setFillParent(true);
         onscreenMenuTbl.setDebug(true);
@@ -242,17 +223,22 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         uiSkin.add("default", textButtonStyle);
 
         // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
-        TextButton textButton = new TextButton("Restart", uiSkin);
+        TextButton textButton = new TextButton("Camera", uiSkin);
         onscreenMenuTbl.row().pad(10, 0, 10, 0);
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                Gdx.app.exit();
-//                GameWorld.getInstance().showScreen(new SplashScreen());
+                mapper.setInputState(InputStruct.InputState.INP_CAMCTRL);
+//  ?? GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
+//                onscreenMenuTbl.setVisible(false);
             }
         });
+
+        //resume
+        //restart
+        //quit
 
         onscreenMenuTbl.setVisible(false);
         addActor(onscreenMenuTbl);
@@ -269,7 +255,14 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
         picButton = new ImageButton(myTexRegionDrawable);
         picButton.setPosition(gsBTNx, gsBTNy);
-        picButton.addListener(gsListener);
+        picButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
+                Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
+                mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
+                return false;
+            }});
         addActor(picButton);
         pixmap.dispose();
 
@@ -302,20 +295,24 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
 
         fpsLabel.setVisible(true);
 
+//        boolean paused = GameWorld.getInstance().getIsPaused();
         if (GameWorld.getInstance().getIsPaused()) {
+
+            // update menu selection state by up/down and d-pad
 
             fpsLabel.setVisible(false);
             onscreenMenuTbl.setVisible(true);
             xButton.setVisible(false);
-//            picButton.setVisible(false);
+//            picButton.setVisible(false); // only way for touchscreen system to un-pause right now!
 
-            if (null != touchpad)
+            if (null != touchpad) {
                 touchpad.setVisible(false);
+            }
         }
         else {
             onscreenMenuTbl.setVisible(false);
             xButton.setVisible(true);
-            picButton.setVisible(true);
+//            picButton.setVisible(true); // only way for touchscreen system to un-pause right now!
 
             if (null != touchpad)
                 touchpad.setVisible(true);
@@ -335,6 +332,9 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     public void dispose () {
 
         super.dispose();
+
+        if (null != touchpadSkin)
+            touchpadSkin.dispose();
 
         uiSkin.dispose();
         btnTexture.dispose();

@@ -1,6 +1,7 @@
 package com.mygdx.game.characters;
 
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
+import com.badlogic.gdx.ai.steer.SteeringBehavior;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -31,18 +32,16 @@ public class CameraMan extends SteeringEntity {
     private Vector3 tmpPosition = new Vector3();
     private Vector3 tmpLookAt = new Vector3();
 
-    private Matrix4 tgtTransfrm;
-    private Matrix4 camTransform;
-
+    private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
+    private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
 
     // https://stackoverflow.com/questions/17664445/is-there-an-increment-operator-for-java-enum/17664546
     public enum CameraOpMode {
-        FIXED_PERSPECTIVE,
+        CHASE_FAR,
         CHASE_CLOSE,
-        CHASE_FAR
-// TODO: fixed+lookAT (only implementes the facing part of seek behavior i.e. doesn' update position
+        FIXED_PERSPECTIVE
+        // TODO: fixed+lookAT (only implementes the facing part of seek behavior i.e. doesn' update position
                 // FP_PERSPECTIVE,
-                // FOLLOW
                 // ABOVE
                 {
                     @Override
@@ -58,23 +57,22 @@ public class CameraMan extends SteeringEntity {
         }
     }
 
-
-    private static class CameraNode {
+    private class CameraNode {
 
         Matrix4 positionRef;
         Matrix4 lookAtRef;
         CameraOpMode opMode; // e.g. FIXED_PERSPECTIVE
+        SteeringBehavior sb; // Node holds its own instance of SB and when selected passes a reference to it to the Steerable ("this") at each mode switch
 
-        CameraNode(CameraOpMode  opMode, Matrix4 positionRef, Matrix4 lookAtRef) {
+        CameraNode(CameraOpMode opMode, Matrix4 positionRef, Matrix4 lookAtRef, SteeringBehavior sb) {
             this.opMode = opMode;
             this.positionRef = positionRef;
             this.lookAtRef = lookAtRef;
+            this.sb = sb;
         }
-
         Matrix4 getPositionRef() {
             return positionRef;
         }
-
         Matrix4 getLookAtRef() {
             return lookAtRef;
         }
@@ -84,26 +82,24 @@ public class CameraMan extends SteeringEntity {
             new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
 
 
-    private void setCameraNode(String key, Matrix4 posM, Matrix4 lookAtM, CameraOpMode  flags) {
+    private void setCameraNode(
+            String key, Matrix4 lookAtM, CameraOpMode opMode, Vector3 spOffs) {
 
-        CameraNode cameraNode = new CameraNode(flags, posM, lookAtM);
+        Matrix4 camPosition = new Matrix4();
+        SteeringBehavior sb = null;
+
+        if (null != lookAtM && null != spOffs) {
+            // reminder to myself, when pass "this" ("owner:"), we can override stuff in SteerableAdapter, meaining supply overridden implementations of getPosition() etc. etc.
+            sb = new TrackerSB<Vector3>(this, lookAtM, camPosition, spOffs);
+        }
+        CameraNode cameraNode = new CameraNode(opMode, camPosition, lookAtM, sb);
 
         int index = cameraNodes.indexOfKey(key);
         if (-1 != index) {
-            cameraNodes.setValue(index, cameraNode);
-        } else
-            cameraNodes.put(key, cameraNode);
-
-
-        setOpModeByKey("chaser1");
-    }
-
-    private boolean setOpModeByKey(String key) {
-        int index = cameraNodes.indexOfKey(key);
-        if (index > -1) {
-            return setOpModeByIndex(index);
+            cameraNodes.setValue(index, cameraNode); // already exists so set it
+        } else {
+            cameraNodes.put(key, cameraNode); // insert a new one
         }
-        return false;
     }
 
     public boolean nextOpMode() {
@@ -122,31 +118,24 @@ public class CameraMan extends SteeringEntity {
         boolean isController = false;
         CameraNode node = cameraNodes.getValueAt(index);
         cameraOpMode = node.opMode;
-        Vector3 tmp = cam.position.cpy();
 
-        if (node.opMode == CameraOpMode.CHASE_CLOSE){
+        if (node.opMode == CameraOpMode.CHASE_CLOSE || node.opMode == CameraOpMode.CHASE_FAR){
             // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
             // this would be nicer if we could "un-stiffen" the control gain during this zoom!
-            node.getPositionRef().setToTranslation(tmp);
 
-            setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 2.5f)));
-        }
-        if (node.opMode == CameraOpMode.CHASE_FAR){
-            // set the target node to previous camera position, allowing it to zoom in from wherever it was fixed to
-            // this would be nicer if we could "un-stiffen" the control gain during this zoom!
-            node.getPositionRef().setToTranslation(tmp);
-
-            setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 3f)));
+            if (null != node.sb) { // ????? how to fix this warning??
+                setSteeringBehavior(node.sb);
+            }
+            node.getPositionRef().setToTranslation(cam.position);
         }
         else // if (node.opMode == CameraOpMode.FIXED_PERSPECTIVE)
         {
 // offset the cam position on y axis. LookAt doesn't change so grab it from the previous node.
-            tmp.y += 1;
-            setCameraLocation(tmp, prevNode.getLookAtRef().getTranslation(tmpLookAt));
-
+//            Vector3 tmp = new Vector3(cam.position.x, cam.position.y + 1, cam.position.z);
+//            setCameraLocation(tmp, prevNode.getLookAtRef().getTranslation(tmpLookAt));
+            setCameraLocation(camDefPosition, camDefLookAt);
             isController = true;
         }
-
         return isController;
     }
 
@@ -158,29 +147,20 @@ public class CameraMan extends SteeringEntity {
         cam.update();
     }
 
-    public CameraMan(PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV) {
+    public CameraMan(PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm){
 
         this.cam = cam;
         setCameraLocation(positionV, lookAtV);
+/*
+ note: next will cycle thro the modes in order added here. Also, IMPORTANT: camTransform doesn't
+ have to be a new instance for each node, but maybe it might need to be in some unforerseen circumstance?
+*/
+        setCameraNode("chaser1", tgtTransfrm, CameraOpMode.CHASE_FAR, new Vector3(0, 1, 4f));
+        setCameraNode("chaser2", tgtTransfrm, CameraOpMode.CHASE_CLOSE, new Vector3(0, 1, 2.5f));
+        setCameraNode("fixed", null, CameraOpMode.FIXED_PERSPECTIVE, null);
+
+        setOpModeByIndex(cameraNodes.indexOfKey("chaser1")); // setOpModeByKey("chaser1");
     }
-
-    public CameraMan(final PerspectiveCamera cam, Vector3 positionV, Vector3 lookAtV, Matrix4 tgtTransfrm){
-
-        this(cam, positionV, lookAtV);
-
-        camTransform = new Matrix4();
-
-        this.tgtTransfrm = tgtTransfrm; // make sure set this before setCameraNode() !!
-
-// note: when node is set, it also gets its OP Mode set, so last one set will be the op Mode !
-//        setCameraNode("fixed", null, null, CameraOpMode.FIXED_PERSPECTIVE); // don't need transform matrix for fixed camera
-        setCameraNode("chaser1", camTransform, tgtTransfrm, CameraOpMode.CHASE_FAR);
-        setCameraNode("chaser1", camTransform, tgtTransfrm, CameraOpMode.CHASE_CLOSE);
-        //        setOpModeByKey("chaser1");
-
-//        setSteeringBehavior(new TrackerSB<Vector3>(this, tgtTransfrm, camTransform, /*spOffs*/new Vector3(0, 1, 2.5f)));
-    }
-
 
     @Override
     protected void applySteering(SteeringAcceleration<Vector3> steering, float deltaTime) {

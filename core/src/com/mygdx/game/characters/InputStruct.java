@@ -88,7 +88,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
         INP_NONE,
         INP_SELECT,
         INP_ESC,
-        INP_B2
+        INP_B2,
+        INP_CAMCTRL
     }
 
     private Controller connectedCtrl;
@@ -116,7 +117,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     }
 
 
-    public class ButtonData {
+    private class ButtonData {
 
         int value;
         boolean isRepeatable;
@@ -129,12 +130,12 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     }
 
 
-    void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
+    private void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
 
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
     }
 
-    public enum ButtonsEnum { // idfk
+    private enum ButtonsEnum { // idfk
         BUTTON_NONE,
         BUTTON_1,
         BUTTON_2,
