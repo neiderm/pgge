@@ -10,7 +10,6 @@ import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionWorld;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
@@ -56,7 +55,7 @@ public class BulletWorld implements Disposable {
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
         }
 
-        callback = new ClosestRayResultCallback(rayFrom, rayTo);
+        rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);
 
         // Create the bullet world
         collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -91,6 +90,8 @@ public class BulletWorld implements Disposable {
         collisionWorld = null;
         collisionConfiguration = null;
 
+        rayResultCallback.dispose();
+
         instance = null;
     }
 
@@ -110,27 +111,27 @@ public class BulletWorld implements Disposable {
      */
     private static final Vector3 rayFrom = new Vector3();
     private static final Vector3 rayTo = new Vector3();
-    private static ClosestRayResultCallback callback;
+    private static ClosestRayResultCallback rayResultCallback;
     private static final Vector3 outV = new Vector3();
 
 
-    private static btCollisionObject rayTest(btCollisionWorld collisionWorld, Ray ray, float length) {
+    private btCollisionObject rayTest(Ray ray, float length) {
 
         rayFrom.set(ray.origin);
         rayTo.set(ray.direction).scl(length).add(rayFrom);
 
         // we reuse the ClosestRayResultCallback, thus we need to reset its values
-        callback.setCollisionObject(null);
-        callback.setClosestHitFraction(1f);
-        callback.getRayFromWorld(outV);
+        rayResultCallback.setCollisionObject(null);
+        rayResultCallback.setClosestHitFraction(1f);
+        rayResultCallback.getRayFromWorld(outV);
         outV.set(rayFrom.x, rayFrom.y, rayFrom.z);
-        callback.getRayToWorld(outV);
+        rayResultCallback.getRayToWorld(outV);
         outV.set(rayTo.x, rayTo.y, rayTo.z);
 
-        collisionWorld.rayTest(rayFrom, rayTo, callback);
+        collisionWorld.rayTest(rayFrom, rayTo, rayResultCallback);
 
-        if (callback.hasHit()) {
-            return callback.getCollisionObject();
+        if (rayResultCallback.hasHit()) {
+            return rayResultCallback.getCollisionObject();
         }
         return null;
     }
@@ -139,7 +140,7 @@ public class BulletWorld implements Disposable {
 
     public btCollisionObject rayTest(Vector3 origin, Vector3 direction, float length) {
 
-        return rayTest(this.collisionWorld, ray.set(origin, direction), length);
+        return rayTest(ray.set(origin, direction), length);
     }
 
     public void addBody(btRigidBody body) {

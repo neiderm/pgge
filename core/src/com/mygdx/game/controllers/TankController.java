@@ -24,7 +24,6 @@ public class TankController implements SimpleVehicleModel
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
     protected btRigidBody body;
-    private BulletWorld world;
     protected float mass;
 
     // working variables
@@ -39,7 +38,6 @@ public class TankController implements SimpleVehicleModel
 
         this.body = body;
         this.mass = mass;
-        this.world = BulletWorld.getInstance();
     }
 
 
@@ -69,7 +67,7 @@ public class TankController implements SimpleVehicleModel
         Quaternion orientation = body.getOrientation();
         ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
 
-        btCollisionObject rayPickObject = world.rayTest(trans, tmpV, 1.0f);
+        btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(trans, tmpV, 1.0f);
 
         if (null != rayPickObject) {
             /*
