@@ -23,16 +23,15 @@ import static java.lang.Math.abs;
  *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/tests/BulletSeekTest.java
  */
 
-public class SteeringTankController extends /*TankController */ SteeringBulletEntity {
+public class SteeringTankController extends SteeringBulletEntity {
 
-private TankController tc;
+    private SimpleVehicleModel tc;
 
-    public SteeringTankController(TankController tc, Entity copyEntity, SteeringBulletEntity target ) {
+    public SteeringTankController(SimpleVehicleModel tc, Entity copyEntity, SteeringBulletEntity target ) {
 
         super(copyEntity.getComponent(BulletComponent.class).body);
 
         this.tc = tc;
-
 
         setMaxLinearSpeed(2); // idfk
         setMaxLinearAcceleration(1 /* 200 */); // GN: idfk
