@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.InputStruct;
 
 /**
@@ -20,7 +21,7 @@ public class SplashScreen implements Screen {
     private Texture ttrSplash;
     private InputStruct mapper;
 
-    SplashScreen() {
+    public SplashScreen() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputStruct();

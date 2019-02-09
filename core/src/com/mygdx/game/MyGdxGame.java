@@ -2,7 +2,6 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.mygdx.game.screens.GameWorld;
 
 public class MyGdxGame extends Game {
 

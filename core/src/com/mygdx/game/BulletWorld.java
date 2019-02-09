@@ -19,7 +19,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
-import com.mygdx.game.screens.GameWorld;
 //import com.badlogic.gdx.utils.GdxRuntimeException;
 
 

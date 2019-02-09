@@ -23,6 +23,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.InputStruct;
