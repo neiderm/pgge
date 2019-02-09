@@ -191,14 +191,18 @@ class GameScreen implements Screen {
 // plug in the picked player
         final StatusComponent sc = new StatusComponent();
         pickedPlayer.add(sc);
-        sc.transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
 
         sc.statusUpdater = new BulletEntityStatusUpdate() {
+
+            Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
+            Vector3 bounds = new Vector3(50, 50, 50);
+            // the reference point for determining an object has exitted the level
+            float boundsDst2 = bounds.dst2(origin);
             Vector3 v = new Vector3();
             @Override
-            public void update() {
-                v = sc.transform.getTranslation(v);
-                if (v.dst2(sc.origin) > sc.boundsDst2) {
+            public void update(Entity e) {
+                v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
+                if (v.dst2(origin) > boundsDst2) {
                     roundOver = true; // respawn() ... can't do it in this context??
                 }
             }};
@@ -298,16 +302,17 @@ So we have to pause it explicitly as it is not governed by ECS
           pickedComp = picked.getComponent(PickRayComponent.class).pickInterface.picked( blah foo bar)
           if (null != pickedComp.pickedInterface)
              pickInterface.picked( myEntityReference );
+
+@picked: simpler type (not Entity) eg. Vector3 .... ?
+
          */
         @Override
         public void callback(Entity picked, GameEvent.EventType eventType) {
 
-            final Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-
             if (RAY_DETECT == eventType && null != picked) {
                         RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                                        transform.getTranslation(posV),
-                                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
+                                picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                                         Color.LIME));
             }}
     };
@@ -338,7 +343,7 @@ So we have to pause it explicitly as it is not governed by ECS
         transform.getTranslation(position);
         transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-        gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0));
+        gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
 
 
         // crude  hack for platform disappear effect

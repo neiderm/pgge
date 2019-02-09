@@ -23,7 +23,7 @@ public class StatusSystem extends IteratingSystem {
 //        if (null != comp) 
         {
             if (null != comp.statusUpdater) {
-                comp.statusUpdater.update();
+                comp.statusUpdater.update(entity);
             }
         }
     }
