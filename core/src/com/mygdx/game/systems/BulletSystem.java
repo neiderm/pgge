@@ -7,7 +7,6 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.screens.GameWorld;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -15,27 +14,15 @@ import com.mygdx.game.screens.GameWorld;
 
 public class BulletSystem extends IteratingSystem implements EntityListener {
 
-    private BulletWorld world;
 
-
-    public BulletSystem(BulletWorld world) {
+    public BulletSystem() {
 
         super(Family.all(BulletComponent.class).get());
-        this.world = world;
-    }
-
-    protected void processEntity(Entity entity, float deltaTime) { // empty
     }
 
     @Override
-    public void update(float deltaTime) {
-
-        if (!GameWorld.getInstance().getIsPaused()) {  // would like to allow engine to be actdive if ! paused but on-screen menu is up
-            super.update(deltaTime);
-            world.update(deltaTime);
-        }
+    protected void processEntity(Entity entity, float deltaTime) { // empty
     }
-
 
     @Override
     public void addedToEngine(Engine engine) {
@@ -50,8 +37,6 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
     public void removedFromEngine(Engine engine) {
 
         engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
-
-        world.dispose();
 
         for (Entity e : getEntities()) {
 
@@ -71,7 +56,7 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
         BulletComponent bc = entity.getComponent(BulletComponent.class);
         //assert null != bc
         //assert null != bc.body
-        world.addBody(bc.body);
+        BulletWorld.getInstance().addBody(bc.body);
     }
 
     @Override
@@ -81,6 +66,6 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
 
         // assert null != bc
         // assert null != bc.body
-        world.removeBody(bc.body);
+        BulletWorld.getInstance().removeBody(bc.body);
     }
 }

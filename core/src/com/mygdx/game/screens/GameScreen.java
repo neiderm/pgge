@@ -120,8 +120,10 @@ class GameScreen implements Screen {
 
 
         engine = new Engine();
-        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
-        engine.addSystem(bulletSystem = new BulletSystem(BulletWorld.getInstance()));
+        renderSystem = new RenderSystem(shadowLight, environment, cam);
+        bulletSystem = new BulletSystem();
+        engine.addSystem(renderSystem);
+        engine.addSystem(bulletSystem);
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
@@ -338,6 +340,7 @@ So we have to pause it explicitly as it is not governed by ECS
 
         camController.update(); // this can probaly be pause as well
         engine.update(delta);
+        BulletWorld.getInstance().update(delta);
 
         Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
@@ -426,6 +429,7 @@ if (GameWorld.getInstance().getIsPaused()) {
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
+        BulletWorld.getInstance().dispose();
         batch.dispose();
         shapeRenderer.dispose();
         playerUI.dispose();

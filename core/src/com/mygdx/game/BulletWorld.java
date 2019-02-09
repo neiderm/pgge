@@ -19,6 +19,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.screens.GameWorld;
 //import com.badlogic.gdx.utils.GdxRuntimeException;
 
 
@@ -97,8 +98,11 @@ public class BulletWorld implements Disposable {
 
     public void update(float deltaTime) {
 
-        collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
+            // I let it pause itself, lets the gamescreen render() slightly less cluttery
+        if ( ! GameWorld.getInstance().getIsPaused()) {
 
+            collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
+        }
         // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
         debugDrawer.begin(this.camera);
         collisionWorld.debugDrawWorld();
