@@ -42,8 +42,6 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.characters.InputStruct;
-import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -89,7 +87,7 @@ class GameScreen implements Screen {
     private static final int GAME_BOX_W = Gdx.graphics.getWidth();
     private static final int GAME_BOX_H = Gdx.graphics.getHeight();
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
-    private PlayerCharacter playerUI;
+    private GameUI playerUI;
     private InputMultiplexer multiplexer = new InputMultiplexer();
     private StringBuilder stringBuilder = new StringBuilder();
     private Signal<GameEvent> gameEventSignal = new Signal<GameEvent>();
@@ -260,7 +258,7 @@ class GameScreen implements Screen {
 /*
  .... override stage.act() ... ?
   */
-        InputStruct mapper = new InputStruct() {
+        InputMapper mapper = new InputMapper() {
 
             @Override
             public void update(float deltaT) {
@@ -303,7 +301,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     }
                 }}
         };
-        playerUI = new PlayerCharacter(mapper);
+        playerUI = new GameUI(mapper);
     }
 
     /*

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mygdx.game.characters;
+package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -43,7 +43,7 @@ import com.mygdx.game.GameWorld;
  * Created by neiderm on 5/17/2018.
  */
 
-public class PlayerCharacter extends Stage /* extends stageWithController ?? */  {
+public class GameUI extends Stage /* extends stageWithController ?? */  {
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
@@ -66,7 +66,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
-    private InputStruct mapper;
+    private InputMapper mapper;
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -86,7 +86,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
       }
       if listener==null then we have already a default base listener
      */
-    public PlayerCharacter(final InputStruct mapper /* , Array<InputListener> buttonListeners */) {
+    GameUI(final InputMapper mapper /* , Array<InputListener> buttonListeners */) {
 //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
         this.mapper = mapper;
 
@@ -199,7 +199,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     }
 
 
-    private void setupInGameMenu(final InputStruct mapper) {
+    private void setupInGameMenu(final InputMapper mapper) {
 
         Pixmap pixmap;
 
@@ -249,7 +249,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputStruct.InputState.INP_CAMCTRL);
+                mapper.setInputState(InputMapper.InputState.INP_CAMCTRL);
             }
         });
 
@@ -260,7 +260,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputStruct.InputState.INP_SELECT);
+                mapper.setInputState(InputMapper.InputState.INP_SELECT);
             }
         });
 
@@ -271,7 +271,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputStruct.InputState.INP_ESC);
+                mapper.setInputState(InputMapper.InputState.INP_ESC);
             }
         });
 
@@ -282,7 +282,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputStruct.InputState.INP_ESC);
+                mapper.setInputState(InputMapper.InputState.INP_ESC);
             }
         });
 
@@ -291,7 +291,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
 
     }
 
-    private void setupOnscreenControls(final InputStruct mapper){
+    private void setupOnscreenControls(final InputMapper mapper){
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap;
@@ -307,7 +307,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
                         Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
-                        mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
+                        mapper.setInputState(InputMapper.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
                         return false;
                     }});
         pixmap.dispose();
@@ -320,7 +320,7 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
                 new InputListener() {
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                        mapper.setInputState(InputStruct.InputState.INP_B2);
+                        mapper.setInputState(InputMapper.InputState.INP_B2);
                         return false;
                     }});
         pixmap.dispose();
@@ -350,6 +350,8 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         if (null != touchpad) {
             touchpad.setVisible( ! paused );
         }
+
+//        setCheckedBox(checkedUpDown(mapper.getDpad(null).getY()));
     }
 
     @Override

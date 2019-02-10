@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
@@ -22,7 +38,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.RenderSystem;
@@ -42,7 +57,7 @@ class SelectScreen implements Screen {
 
     private static final int N_SELECTIONS = 3;
 
-    private InputStruct mapper = new InputStruct();
+    private InputMapper mapper = new InputMapper();
     private Engine engine = new Engine();
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
@@ -124,7 +139,7 @@ class SelectScreen implements Screen {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
                                   if (y < 100)
-                                      mapper.setInputState(InputStruct.InputState.INP_SELECT);
+                                      mapper.setInputState(InputMapper.InputState.INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
                               }
@@ -345,13 +360,13 @@ class SelectScreen implements Screen {
         characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
                     down.set(0, -0.5f, 0));
 
-        InputStruct.InputState inputState = mapper.getInputState();
+        InputMapper.InputState inputState = mapper.getInputState();
 
-        if (InputStruct.InputState.INP_ESC == inputState) {
+        if (InputMapper.InputState.INP_ESC == inputState) {
 
             GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
 
-        } else if (InputStruct.InputState.INP_SELECT == inputState) {
+        } else if (InputMapper.InputState.INP_SELECT == inputState) {
 
 //             v2 = mapper.getPointer();
 

@@ -1,4 +1,20 @@
-package com.mygdx.game.characters;
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -82,7 +98,7 @@ UD Axis2    Axis0
     -----------------------------
 */
 
-public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithController extends stage ? */ {
+public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithController extends stage ? */ {
 
     public enum InputState {
         INP_NONE,
@@ -103,10 +119,10 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
 
-    private InputStruct.ButtonData buttonsData = new InputStruct.ButtonData();
+    private InputMapper.ButtonData buttonsData = new InputMapper.ButtonData();
 
 
-    public InputStruct() {
+    InputMapper() {
 
         initController();
         connectedCtrl = getConnectedCtrl(0);
@@ -150,13 +166,13 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     }
 
     // get the "virtual axis"
-    protected float getAxisX(int axisIndex) {
+    float getAxisX(int axisIndex) {
 
         return analogAxes.x;
     }
 
     // get the "virtual axis"
-    protected float getAxisY(int axisIndex) {
+    float getAxisY(int axisIndex) {
 
         return analogAxes.y;
     }
@@ -210,7 +226,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     }
     */
 
-    public InputState getInputState() {
+    InputState getInputState() {
 
         return getInputState(false);
     }
@@ -221,7 +237,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
      * handle in Controller:buttonDown
      * Controller:getButton() didn't seem to work on Android, need to replace Input.Buttons.* usage
      */
-    public InputState getInputState(boolean checkIsTouched) {
+    InputState getInputState(boolean checkIsTouched) {
 
         InputState newInputState = inputState;
 
@@ -254,7 +270,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
     /*
      * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
      */
-    public void setInputState(InputState inputState) {
+    void setInputState(InputState inputState) {
 
         this.inputState = inputState;
     }
@@ -270,7 +286,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
 	}
      */
-    protected float getPointerX(){
+    float getPointerX(){
         return pointer.x;
     }
     /*
@@ -278,7 +294,7 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
 		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
 	}
      */
-    protected float getPointerY(){
+    float getPointerY(){
         return Gdx.graphics.getHeight() - pointer.y; // normalize this to the way libGdx does ;)
     }
 
@@ -343,7 +359,8 @@ public /* abstract */ class InputStruct implements CtrlMapperIntrf /* stageWithC
      * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
      * But glitchy and not worth considering.
      */
-    public /* Vector2 */ DpadAxis getDpad(DpadAxis asdf) {
+    /* Vector2 */
+    DpadAxis getDpad(DpadAxis asdf) {
 
         dPadAxes.clear();
 
