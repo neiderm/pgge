@@ -21,6 +21,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -168,9 +169,11 @@ class GameScreen implements Screen {
 
         for (Entity e : characters) {
 
-            TankController tc = new TankController(e.getComponent(BulletComponent.class).body,
+            btRigidBody chbody = e.getComponent(BulletComponent.class).body;
+            TankController tc = new TankController(chbody,
                     e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
-            e.add(new CharacterComponent(new SteeringTankController(tc, e,
+            e.add(new CharacterComponent(
+                    new SteeringTankController(tc, chbody,
                     new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body))));
             engine.addEntity(e);
         }

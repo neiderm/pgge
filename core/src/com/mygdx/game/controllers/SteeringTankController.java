@@ -1,6 +1,5 @@
 package com.mygdx.game.controllers;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.ai.steer.SteeringAcceleration;
 import com.badlogic.gdx.ai.steer.behaviors.Arrive;
 import com.badlogic.gdx.ai.steer.behaviors.BlendedSteering;
@@ -10,13 +9,13 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.components.BulletComponent;
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
 import static java.lang.Math.abs;
 
 
 /**
- * Created by mango on 2/10/18.
+ * Created by neiderm on 2/10/18.
  * ref:
  *  https://github.com/libgdx/gdx-ai/blob/master/tests/src/com/badlogic/gdx/ai/tests/steer/bullet/BulletSteeringTest.java
  *  https://github.com/libgdx/gdx-ai/wiki/Steering-Behaviors#the-steering-system-api
@@ -27,9 +26,9 @@ public class SteeringTankController extends SteeringBulletEntity {
 
     private SimpleVehicleModel tc;
 
-    public SteeringTankController(SimpleVehicleModel tc, Entity copyEntity, SteeringBulletEntity target ) {
+    public SteeringTankController(SimpleVehicleModel tc, btRigidBody body, SteeringEntity target) {
 
-        super(copyEntity.getComponent(BulletComponent.class).body);
+        super(body);
 
         this.tc = tc;
 
