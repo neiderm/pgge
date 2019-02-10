@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
@@ -26,7 +42,6 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.characters.Chaser;
 import com.mygdx.game.characters.InputStruct;
 import com.mygdx.game.characters.PlayerCharacter;
 import com.mygdx.game.components.BulletComponent;
@@ -36,8 +51,10 @@ import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringBulletEntity;
+import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
+import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -170,28 +187,24 @@ class GameScreen implements Screen {
         for (Entity e : characters) {
 
             btRigidBody chbody = e.getComponent(BulletComponent.class).body;
-            TankController tc = new TankController(chbody,
-                    e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
+            TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
             e.add(new CharacterComponent(
-                    new SteeringTankController(tc, chbody,
-                    new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body))));
+                    new SteeringTankController(
+                            tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body))));
             engine.addEntity(e);
         }
 
+        Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
           */
-        Chaser chaser = new Chaser();
-        engine.addEntity(chaser.create(
-                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform));
+        chaserSteerable.setSteeringBehavior(
+                new TrackerSB<Vector3>(chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
 
+        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt, playerTrnsfm);
 
-        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt,
-                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform);
-
-        CharacterComponent comp = new CharacterComponent(cameraMan);
         Entity cameraEntity = new Entity();
-        cameraEntity.add(comp);
+        cameraEntity.add(new CharacterComponent(cameraMan));
         engine.addEntity(cameraEntity);
 
 // plug in the picked player
@@ -219,9 +232,9 @@ class GameScreen implements Screen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-/*
- game event object for signalling to pickray system
- */
+    /*
+    game event object for signalling to pickray system
+    */
     private final GameEvent gameEvent = new GameEvent() {
         @Override
         public void callback(Entity picked, EventType eventType) {
@@ -323,11 +336,16 @@ So we have to pause it explicitly as it is not governed by ECS
             }}
     };
 
+    private Vector3 tmpV = new Vector3();
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Ray lookRay = new Ray();
-//private String s = new String(); // doesn't help ... String.format calls new Formatter()!
+    private GfxUtil camDbgLineInstance = new GfxUtil();
+    private Matrix4 chaserTransform = new Matrix4();
+    private SteeringEntity chaserSteerable = new SteeringEntity();
+
+    //private String s = new String(); // doesn't help ... String.format calls new Formatter()!
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -341,6 +359,12 @@ So we have to pause it explicitly as it is not governed by ECS
         Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        // put in any debug graphics to the render pipeline
+        chaserSteerable.update(delta);
+        RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
+                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(position),
+                chaserTransform.getTranslation(tmpV), Color.PURPLE));
 
         camController.update(); // this can probaly be pause as well
         engine.update(delta);
