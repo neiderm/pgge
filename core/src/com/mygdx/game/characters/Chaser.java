@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.controllers.SteeringEntity;
+import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 

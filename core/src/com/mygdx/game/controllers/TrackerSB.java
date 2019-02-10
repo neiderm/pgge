@@ -1,4 +1,4 @@
-package com.mygdx.game.characters;
+package com.mygdx.game.controllers;
 
 import com.badlogic.gdx.ai.steer.Limiter;
 import com.badlogic.gdx.ai.steer.Steerable;
@@ -34,7 +34,7 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
      *
      * @param owner the owner of this behavior
      */
-    TrackerSB(Steerable<T> owner,
+    public TrackerSB(Steerable<T> owner,
               Matrix4 setpoint,
               Matrix4 process,
               Vector3 spOffset) {
@@ -50,7 +50,6 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
     private Vector3 output = new Vector3();
     private Vector3 error = new Vector3();
     private  Vector3 translation = new Vector3();
-    private static Vector3 vec3 = new Vector3();
     private Vector3 tmpV = new Vector3();
     private Vector3 adjTgtPosition = new Vector3();
     private static Quaternion quat = new Quaternion();
@@ -63,7 +62,7 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
         Matrix4 currentPositionTransform = this.process;
-        translation = currentPositionTransform.getTranslation(vec3);
+        currentPositionTransform.getTranslation(translation);
 
         adjTgtPosition.set(this.setpoint.getTranslation(tmpV));
 
