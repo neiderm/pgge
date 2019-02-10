@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mygdx.game.characters;
 
 import com.badlogic.gdx.Gdx;
@@ -86,7 +102,8 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
                     mapper.setAxis(-1, axes);
                 }});
         }
-        setupPlayerUI(mapper);
+        setupInGameMenu(mapper);
+        setupOnscreenControls(mapper);
     }
 
 /*    @Override
@@ -182,22 +199,24 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
     }
 
 
-    private void setupPlayerUI(final InputStruct mapper){
+    private void setupInGameMenu(final InputStruct mapper) {
 
         Pixmap pixmap;
 
         // Font files from ashley-superjumper
-        font = new BitmapFont( Gdx.files.internal("data/font.fnt"),
+        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
         fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
         addActor(fpsLabel);
 
-        // On Screen menu: up/down control over buttons does not wrap
-        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
         onscreenMenuTbl.setFillParent(true);
         onscreenMenuTbl.setDebug(true);
+
+        // On Screen menu: up/down control over buttons does not wrap
+        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
+//        onscreenMenuTbl.row().pad(10, 0, 10, 0);
         onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
 
         //create a Labels showing the score and some credits
@@ -207,7 +226,6 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         uiSkin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
         pixmap.dispose();
 
-//        textStyle.font = font;
         uiSkin.add("default", new Label.LabelStyle(font, Color.WHITE));
         // Store the default libgdx font under the name "default".
         uiSkin.add("default", font);
@@ -222,99 +240,115 @@ public class PlayerCharacter extends Stage /* extends stageWithController ?? */ 
         uiSkin.add("default", textButtonStyle);
 
         // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
-        TextButton textButton = new TextButton("Camera", uiSkin);
-        onscreenMenuTbl.row().pad(10, 0, 10, 0);
+        TextButton textButton;
+
+        textButton = new TextButton("Camera", uiSkin);
+        onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 mapper.setInputState(InputStruct.InputState.INP_CAMCTRL);
-//  ?? GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-//                onscreenMenuTbl.setVisible(false);
             }
         });
 
-        //resume
-        //restart
-        //quit
+        textButton = new TextButton("Resume", uiSkin);
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputStruct.InputState.INP_SELECT);
+            }
+        });
+
+        textButton = new TextButton("Restart", uiSkin);
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputStruct.InputState.INP_ESC);
+            }
+        });
+
+        textButton = new TextButton("Quit", uiSkin);
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputStruct.InputState.INP_ESC);
+            }
+        });
 
         onscreenMenuTbl.setVisible(false);
         addActor(onscreenMenuTbl);
 
-        TextureRegion myTextureRegion;
-        TextureRegionDrawable myTexRegionDrawable;
+    }
+
+    private void setupOnscreenControls(final InputStruct mapper){
+
         Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap pixmap;
 
         pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
         gsTexture = new Texture(pixmap);
-        myTextureRegion = new TextureRegion(gsTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        picButton = new ImageButton(myTexRegionDrawable);
-        picButton.setPosition(gsBTNx, gsBTNy);
-        picButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
-                Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
-                mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
-                return false;
-            }});
-        addActor(picButton);
+
+        picButton = addImageButton(gsTexture, gsBTNx, gsBTNy,
+                new InputListener(){
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
+                        Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
+                        mapper.setInputState(InputStruct.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
+                        return false;
+                    }});
         pixmap.dispose();
 
         pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
-
         btnTexture = new Texture(pixmap);
-        myTextureRegion = new TextureRegion(btnTexture);
-        myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-        xButton = new ImageButton(myTexRegionDrawable);
-        xButton.setPosition(3f * Gdx.graphics.getWidth() / 4, 0);
-        xButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                mapper.setInputState(InputStruct.InputState.INP_B2);
-                return false;
-            }});
-        addActor(xButton);
+        xButton = addImageButton(btnTexture, 3f * Gdx.graphics.getWidth() / 4, 0,
+                new InputListener() {
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        mapper.setInputState(InputStruct.InputState.INP_B2);
+                        return false;
+                    }});
         pixmap.dispose();
     }
 
-    public boolean addImageButton (EventListener listener /* .... */) {
+    // libGdx managedTextures ??
+    private ImageButton addImageButton(Texture tex, float posX, float posY, EventListener listener) {
 
-        return addListener(listener);
+        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
+        ImageButton newButton = new ImageButton(myTexRegionDrawable);
+        addActor(newButton);
+        newButton.setPosition(posX, posY);
+        newButton.addListener(listener); // ignored return value
+
+        return newButton;
     }
-
 
     private void update(){
 
-        fpsLabel.setVisible(true);
+        boolean paused = GameWorld.getInstance().getIsPaused();
 
-//        boolean paused = GameWorld.getInstance().getIsPaused();
-        if (GameWorld.getInstance().getIsPaused()) {
+        onscreenMenuTbl.setVisible(paused);
+        fpsLabel.setVisible( ! paused );
+        xButton.setVisible( ! paused );
+        picButton.setVisible( ! paused ); // only way for touchscreen system to un-pause right now!
 
-            // update menu selection state by up/down and d-pad
-
-            fpsLabel.setVisible(false);
-            onscreenMenuTbl.setVisible(true);
-            xButton.setVisible(false);
-//            picButton.setVisible(false); // only way for touchscreen system to un-pause right now!
-
-            if (null != touchpad) {
-                touchpad.setVisible(false);
-            }
-        }
-        else {
-            onscreenMenuTbl.setVisible(false);
-            xButton.setVisible(true);
-//            picButton.setVisible(true); // only way for touchscreen system to un-pause right now!
-
-            if (null != touchpad)
-                touchpad.setVisible(true);
+        if (null != touchpad) {
+            touchpad.setVisible( ! paused );
         }
     }
 
