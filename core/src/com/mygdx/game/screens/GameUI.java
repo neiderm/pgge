@@ -28,7 +28,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -43,7 +42,7 @@ import com.mygdx.game.GameWorld;
  * Created by neiderm on 5/17/2018.
  */
 
-public class GameUI extends Stage /* extends stageWithController ?? */  {
+public class GameUI extends InGameMenu {
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
@@ -66,7 +65,7 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
-    private InputMapper mapper;
+//    private InputMapper mapper;
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -88,6 +87,9 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
      */
     GameUI(final InputMapper mapper /* , Array<InputListener> buttonListeners */) {
 //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
+
+        super();
+
         this.mapper = mapper;
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
@@ -243,6 +245,7 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
         TextButton textButton;
 
         textButton = new TextButton("Camera", uiSkin);
+//        addButton(textButton, "Camera");
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
@@ -254,6 +257,7 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
         });
 
         textButton = new TextButton("Resume", uiSkin);
+//        addButton(textButton, "Resume");
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
@@ -265,6 +269,7 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
         });
 
         textButton = new TextButton("Restart", uiSkin);
+//        addButton(textButton, "Restart");       onscreenMenuTbl.row();
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
@@ -276,6 +281,7 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
         });
 
         textButton = new TextButton("Quit", uiSkin);
+//        addButton(textButton, "Quit");       onscreenMenuTbl.row();
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
@@ -338,7 +344,10 @@ public class GameUI extends Stage /* extends stageWithController ?? */  {
         return newButton;
     }
 
-    private void update(){
+    @Override
+    public void update(){
+
+        super.update();
 
         boolean paused = GameWorld.getInstance().getIsPaused();
 
