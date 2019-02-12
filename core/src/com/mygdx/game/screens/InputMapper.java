@@ -113,7 +113,7 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
     private float[] axes = new float[4];
     private boolean[] buttons = new boolean[8];
 
-    private InputState inputState = InputState.INP_NONE;
+    private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
 
 
@@ -226,23 +226,13 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
     }
     */
 
-    InputState getInputState() {
 
-        return getInputState(false);
-    }
+    private InputState evalNewInputState(boolean checkIsTouched) {
 
-    /*
-     * checkisTouched: false if caller is handling the touch event
-     * Using Input.Buttons seems questionable and the codes are all different on Android. Need to
-     * handle in Controller:buttonDown
-     * Controller:getButton() didn't seem to work on Android, need to replace Input.Buttons.* usage
-     */
-    InputState getInputState(boolean checkIsTouched) {
-
-        InputState newInputState = inputState;
+        InputState newInputState = incomingInputState;
 
         if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)
-                 || getControlButton(Input.Buttons.FORWARD)) {
+                || getControlButton(Input.Buttons.FORWARD)) {
 
             newInputState = InputState.INP_ESC;
 
@@ -257,27 +247,73 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
             newInputState = InputState.INP_B2;
         }
 
+        return newInputState;
+    }
+
+    /*
+     * Eval update and return the input state,
+     * If incoming input state has changed from current (previous) value, then update with stored
+     * input state and return it. If not change, returns NONE.
+     * Since the global Incoming Input State value is always "de-latched" reset then this is only
+     * useful in that situation that the caller needs the actual new input state value for further processing.
+     * Keeping this interface for now just in case but should probably be using checkInputState().
+     */
+    InputState getInputState(boolean checkIsTouched) {
+
+        InputState newInputState = evalNewInputState(checkIsTouched);
+
         InputState rv = InputState.INP_NONE;
+
         if (preInputState != newInputState) { // debounce
             rv = newInputState;
         }
         preInputState = newInputState;
-        inputState = InputState.INP_NONE; // unlatch the input state
+        incomingInputState = InputState.INP_NONE; // unlatch the input state
 
         return rv;
+    }
+
+    InputState getInputState() {
+        return getInputState(false);
+    }
+
+    /*
+     * Eval and update the input state,
+     * Return true if state is changes AND matches the wanted state. Else return false.
+     * Only resets the Incoming State if changes AND matches.
+     * So this is useful for doing a series of tests for different wanted states where it is OK
+     * (and necessary) that the incoming state is not reset.
+     */
+    boolean checkInputState(InputState wantedInputState, boolean checkIsTouched) {
+
+        InputState newInputState = evalNewInputState(checkIsTouched);
+
+        boolean rv = false;
+
+        if (preInputState != newInputState && newInputState == wantedInputState) { // debounce
+            rv = true;
+            preInputState = newInputState;
+            incomingInputState = InputState.INP_NONE; // unlatch the input state
+        }
+        return rv;
+    }
+
+    boolean checkInputState(InputState wantedInputState) {
+
+        return checkInputState(wantedInputState, false);
     }
 
     /*
      * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
      */
-    void setInputState(InputState inputState) {
+    void setInputState(InputState incomingInputState) {
 
-        this.inputState = inputState;
+        this.incomingInputState = incomingInputState;
     }
 
-    void setInputState(InputState inputState, float x, float y) {
+    void setInputState(InputState incomingInputState, float x, float y) {
 
-        setInputState(inputState);
+        setInputState(incomingInputState);
         pointer.set(x, y);
     }
 
@@ -286,15 +322,16 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
 	}
      */
-    float getPointerX(){
+    float getPointerX() {
         return pointer.x;
     }
+
     /*
     	public int getY () {
 		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
 	}
      */
-    float getPointerY(){
+    float getPointerY() {
         return Gdx.graphics.getHeight() - pointer.y; // normalize this to the way libGdx does ;)
     }
 
@@ -314,9 +351,10 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 
         Vector2 axes = new Vector2();
 
-        Vector2 getAxes(){
+        Vector2 getAxes() {
             return axes.set(x, y);
         }
+
         void clear() {
             x = 0;
             y = 0;
@@ -349,7 +387,7 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
         }
     }
 
-// Vector2 ??
+    // Vector2 ??
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
     private AnalogAxis analogAxes = new AnalogAxis(); // would need array of max analog axes, for now just use one
 
