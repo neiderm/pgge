@@ -40,6 +40,7 @@ public class SplashScreen implements Screen {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputMapper();
+        mapper.getInputState(); // work around my quirky input manager :(
     }
 
     @Override

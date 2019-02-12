@@ -241,18 +241,18 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 
         InputState newInputState = inputState;
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyJustPressed(Input.Keys.BACK)
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)
                  || getControlButton(Input.Buttons.FORWARD)) {
 
             newInputState = InputState.INP_ESC;
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)
                 || (Gdx.input.justTouched() && checkIsTouched)) {
 
             newInputState = InputState.INP_SELECT;
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
+        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
 
             newInputState = InputState.INP_B2;
         }
