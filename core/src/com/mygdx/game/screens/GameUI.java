@@ -65,7 +65,7 @@ public class GameUI extends InGameMenu {
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
-//    private InputMapper mapper;
+    private InputMapper mapper;
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -344,10 +344,8 @@ public class GameUI extends InGameMenu {
         return newButton;
     }
 
-    @Override
-    public void update(){
 
-        super.update();
+    public void update(){
 
         boolean paused = GameWorld.getInstance().getIsPaused();
 

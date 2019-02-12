@@ -35,7 +35,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class InGameMenu extends Stage {
 
-    InputMapper mapper = new InputMapper();
+//    InputMapper mapper = new InputMapper();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
@@ -82,23 +82,9 @@ public class InGameMenu extends Stage {
         return selectedIndex;
     }
 
-    public void update(){
-
-    }
-
     @Override
     public void act (float delta) {
 
         super.act(delta);
-        mapper.update(delta);
-
-        update();
-    }
-
-    @Override
-    public void dispose () {
-
-        super.dispose();
-
     }
 }
