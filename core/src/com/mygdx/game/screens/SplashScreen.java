@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2019 Glenn Neidermeier
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.mygdx.game.screens;
@@ -40,7 +40,8 @@ public class SplashScreen implements Screen {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputMapper();
-        mapper.getInputState(); // work around my quirky input manager :(
+        // in case INP SELECT got us here, then debounce it
+        mapper.checkInputState(InputMapper.InputState.INP_SELECT, true);
     }
 
     @Override
@@ -64,10 +65,8 @@ public class SplashScreen implements Screen {
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
-
-        InputMapper.InputState inputState =  mapper.getInputState(true);
-
-        if (InputMapper.InputState.INP_SELECT == inputState) {
+//        if (mapper.checkInputState(InputMapper.InputState.INP_SELECT, true)){   .......... doesn't work for TS :(
+        if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true)) {
 
             GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
             Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
