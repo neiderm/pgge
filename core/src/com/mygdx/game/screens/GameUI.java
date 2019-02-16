@@ -31,7 +31,6 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
@@ -65,7 +64,7 @@ public class GameUI extends InGameMenu {
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
 //    private InputMapper mapper;
-    private Table onscreenMenuTbl = new Table();
+//    private Table onscreenMenuTbl = new Table();
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -246,22 +245,21 @@ public class GameUI extends InGameMenu {
 
         textButton = new TextButton("Resume", uiSkin);
         addButton(textButton, "Resume");
+/*
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-/*        textButton.addListener(new ChangeListener() {
+        textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 mapper.setInputState(InputMapper.InputState.INP_SELECT);
             }
         });*/
-
         textButton = new TextButton("Restart", uiSkin);
         addButton(textButton, "Restart");       onscreenMenuTbl.row();
+/*
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-/*        textButton.addListener(new ChangeListener() {
+        textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 mapper.setInputState(InputMapper.InputState.INP_ESC);
@@ -270,21 +268,20 @@ public class GameUI extends InGameMenu {
 
         textButton = new TextButton("Quit", uiSkin);
         addButton(textButton, "Quit");       onscreenMenuTbl.row();
+/*
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-/*        textButton.addListener(new ChangeListener() {
+        textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 mapper.setInputState(InputMapper.InputState.INP_ESC);
             }
         });*/
-
         textButton = new TextButton("Camera", uiSkin);
         addButton(textButton, "Camera");
+/*
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
-/*
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
@@ -344,6 +341,7 @@ public class GameUI extends InGameMenu {
         return newButton;
     }
 
+    private int idxCurSel;
 
     public void update(){
 
@@ -358,13 +356,20 @@ public class GameUI extends InGameMenu {
             touchpad.setVisible( ! paused );
         }
 
-//        if (!paused)
- //           setCheckedBox(0);
+        if (!paused)
+            idxCurSel = -1; // setCheckedBox(0);
 
-        int idxCurSel = checkedUpDown(mapper.getDpad(null).getY());
+        int iDpadSelection = mapper.getDpad(null).getY();
+
+
+        idxCurSel = checkedUpDown(iDpadSelection);
         setCheckedBox(idxCurSel);
 
-        if ( menuChanged ||
+
+        boolean isTouchSelected = menuSelected && 0 == iDpadSelection; // have to guess on the touch event because the button event is on both touched or button event but not dPad touched so must be touch event
+
+
+        if ( isTouchSelected ||
                 InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
 
             switch (idxCurSel) {
@@ -383,15 +388,14 @@ public class GameUI extends InGameMenu {
                 case 3:
                     Gdx.app.log("GameUI", "3");
                     GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-//                    cameraSwitch();
                     break;
             }
         }
 
-        if (menuChanged) {
+        if (menuSelected) {
 //            mapper.setInputState(InputMapper.InputState.INP_SELECT); // tmp
             Gdx.app.log("GameUI", "menu changed " + checkedUpDown(mapper.getDpad(null).getY()));
-            menuChanged = false;
+            menuSelected = false;
         }
     }
 

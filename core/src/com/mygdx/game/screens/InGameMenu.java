@@ -29,13 +29,13 @@ import com.badlogic.gdx.utils.Array;
  * Created by neiderm on 12/18/17.
  */
 
-   /*
-    * Reference:
-    *  on-screen menus:
-    *   https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
-    *  UI skin defined programmatically:
-    *   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-    */
+/*
+ * Reference:
+ *  on-screen menus:
+ *   https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
+ *  UI skin defined programmatically:
+ *   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+ */
 
 public class InGameMenu extends Stage {
 
@@ -46,16 +46,17 @@ public class InGameMenu extends Stage {
     private ButtonGroup<TextButton> bg;
     private int count;
     Table onscreenMenuTbl = new Table();
-    boolean menuChanged;
+    boolean menuSelected;
 
-    InGameMenu(){
+    InGameMenu() {
         super();
         bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
     }
 
-    void addButton(TextButton button, String name){
+    void addButton(TextButton button, String name) {
+
         buttonNames.add(name);
         bg.add(button);
         setCheckedBox(count++);
@@ -63,17 +64,15 @@ public class InGameMenu extends Stage {
         onscreenMenuTbl.add(button).fillX().uniformX();
 
         // action is same regardless so one change listene
-//        /*
         button.addListener(new ChangeListener() {
+
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
-Gdx.app.log("InGameMeu", "button changed " + event);
-//                if (Gdx.input.isTouched())
-                    menuChanged = true;
+                Gdx.app.log("InGameMeu", "button changed \"" + actor + "\"");
+                menuSelected = true;
             }
         });
-  //    */
     }
 
     /*
@@ -85,7 +84,7 @@ Gdx.app.log("InGameMeu", "button changed " + event);
 
         String name = buttonNames.get(checked);
 
-        if (bg.getChecked().getName() != name){
+        if (bg.getChecked().getName() != name) {
             rv = true;
         }
 
@@ -94,7 +93,7 @@ Gdx.app.log("InGameMeu", "button changed " + event);
         return rv;
     }
 
-    int checkedUpDown(int step){
+    int checkedUpDown(int step) {
 
         int checkedIndex = bg.getCheckedIndex();
 
@@ -116,7 +115,7 @@ Gdx.app.log("InGameMeu", "button changed " + event);
     }
 
     @Override
-    public void act (float delta) {
+    public void act(float delta) {
 
         super.act(delta);
     }
