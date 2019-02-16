@@ -16,9 +16,13 @@
 
 package com.mygdx.game.screens;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -35,12 +39,14 @@ import com.badlogic.gdx.utils.Array;
 
 public class InGameMenu extends Stage {
 
-//    InputMapper mapper = new InputMapper();
+    InputMapper mapper = new InputMapper();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
     private ButtonGroup<TextButton> bg;
     private int count;
+    Table onscreenMenuTbl = new Table();
+    boolean menuChanged;
 
     InGameMenu(){
         super();
@@ -53,12 +59,39 @@ public class InGameMenu extends Stage {
         buttonNames.add(name);
         bg.add(button);
         setCheckedBox(count++);
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(button).fillX().uniformX();
+
+        // action is same regardless so one change listene
+//        /*
+        button.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+
+Gdx.app.log("InGameMeu", "button changed " + event);
+//                if (Gdx.input.isTouched())
+                    menuChanged = true;
+            }
+        });
+  //    */
     }
 
-    void setCheckedBox(int checked) {
+    /*
+     * returns true if new checked box is different from present one
+     */
+    boolean setCheckedBox(int checked) {
+
+        boolean rv = false;
 
         String name = buttonNames.get(checked);
+
+        if (bg.getChecked().getName() != name){
+            rv = true;
+        }
+
         bg.setChecked(name);
+
+        return rv;
     }
 
     int checkedUpDown(int step){

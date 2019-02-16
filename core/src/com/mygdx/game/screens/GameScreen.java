@@ -263,41 +263,46 @@ class GameScreen implements Screen {
             @Override
             public void update(float deltaT) {
 
-                InputState nowInputState = getInputState();
+                InputState nowInputState = InputState.INP_NONE;// = getInputState();
 
                 // have to read the button to be sure it's state is delatched and not activate in a pause!
                 if ( ! GameWorld.getInstance().getIsPaused()) {
+//                    nowInputState = getInputState();
 /* AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
 the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
 So we have to pause it explicitly as it is not governed by ECS
  */
                     vehicleModel.updateControls(getAxisY(0), getAxisX(0),
-                            (InputState.INP_B2 == nowInputState),0); // need to use Vector2
+                            (checkInputState(InputState.INP_B2, true)),0); // need to use Vector2
 
-                    if (InputState.INP_ESC == nowInputState) {
-
+                    if ( checkInputState(InputState.INP_ESC , true)) {
+//                    if (InputState.INP_ESC == nowInputState) {
                         GameWorld.getInstance().setIsPaused(true);
                         //                    gameEventSignal.dispatch(gameEvent.set(IS_PAUSED, null, 0));
                     }
-                    if (InputState.INP_SELECT == nowInputState) {
+                    if ( checkInputState(InputState.INP_SELECT, true)) {
+//                    if (InputState.INP_SELECT == nowInputState) {
 
                         gameEventSignal.dispatch(
                                 gameEvent.set(RAY_PICK, cam.getPickRay(getPointerX(), getPointerY()), 0));
                     }
                 } else {
+//                    nowInputState = getInputState();
+//                    if ( checkInputState(InputState.INP_CAMCTRL, true)) {
                     if (InputState.INP_CAMCTRL == nowInputState) {
 
                         GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
                         cameraSwitch();
                     }
-
-                    if (InputState.INP_ESC == nowInputState) {
+                    if ( checkInputState(InputState.INP_ESC, true)) {
+//                    if (InputState.INP_ESC == nowInputState) {
 
                         roundOver = true;
                     }
+//                    if ( checkInputState(InputState.INP_SELECT, true)) {
                     if (InputState.INP_SELECT == nowInputState) {
 
-                        GameWorld.getInstance().setIsPaused(false);
+//                        GameWorld.getInstance().setIsPaused(false);
                     }
                 }}
         };

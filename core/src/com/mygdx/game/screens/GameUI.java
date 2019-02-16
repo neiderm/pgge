@@ -55,7 +55,6 @@ public class GameUI extends InGameMenu {
     private Skin touchpadSkin;
     private BitmapFont font;
     private Label fpsLabel;
-    private Table onscreenMenuTbl = new Table();
     private Skin uiSkin = new Skin();
     private Texture gsTexture;
     private Texture btnTexture;
@@ -65,7 +64,8 @@ public class GameUI extends InGameMenu {
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
-    private InputMapper mapper;
+//    private InputMapper mapper;
+    private Table onscreenMenuTbl = new Table();
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -244,54 +244,54 @@ public class GameUI extends InGameMenu {
         // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
         TextButton textButton;
 
-        textButton = new TextButton("Camera", uiSkin);
-//        addButton(textButton, "Camera");
+        textButton = new TextButton("Resume", uiSkin);
+        addButton(textButton, "Resume");
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(textButton).fillX().uniformX();
 
+/*        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputMapper.InputState.INP_SELECT);
+            }
+        });*/
+
+        textButton = new TextButton("Restart", uiSkin);
+        addButton(textButton, "Restart");       onscreenMenuTbl.row();
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+/*        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputMapper.InputState.INP_ESC);
+            }
+        });*/
+
+        textButton = new TextButton("Quit", uiSkin);
+        addButton(textButton, "Quit");       onscreenMenuTbl.row();
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+
+/*        textButton.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                mapper.setInputState(InputMapper.InputState.INP_ESC);
+            }
+        });*/
+
+        textButton = new TextButton("Camera", uiSkin);
+        addButton(textButton, "Camera");
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(textButton).fillX().uniformX();
+/*
         textButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 mapper.setInputState(InputMapper.InputState.INP_CAMCTRL);
             }
         });
-
-        textButton = new TextButton("Resume", uiSkin);
-//        addButton(textButton, "Resume");
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_SELECT);
-            }
-        });
-
-        textButton = new TextButton("Restart", uiSkin);
-//        addButton(textButton, "Restart");       onscreenMenuTbl.row();
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_ESC);
-            }
-        });
-
-        textButton = new TextButton("Quit", uiSkin);
-//        addButton(textButton, "Quit");       onscreenMenuTbl.row();
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_ESC);
-            }
-        });
-
+*/
         onscreenMenuTbl.setVisible(false);
         addActor(onscreenMenuTbl);
 
@@ -358,7 +358,41 @@ public class GameUI extends InGameMenu {
             touchpad.setVisible( ! paused );
         }
 
-//        setCheckedBox(checkedUpDown(mapper.getDpad(null).getY()));
+//        if (!paused)
+ //           setCheckedBox(0);
+
+        int idxCurSel = checkedUpDown(mapper.getDpad(null).getY());
+        setCheckedBox(idxCurSel);
+
+        if ( menuChanged ||
+                InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
+
+            switch (idxCurSel) {
+                default:
+                case 0: // resume
+                    Gdx.app.log("GameUI", "0");
+                    GameWorld.getInstance().setIsPaused(false);
+                    break;
+                case 1: // restart
+                    Gdx.app.log("GameUI", "1");
+//                    roundOver = true;
+                    break;
+                case 2: // quit
+                    Gdx.app.log("GameUI", "2");
+                    break;
+                case 3:
+                    Gdx.app.log("GameUI", "3");
+                    GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
+//                    cameraSwitch();
+                    break;
+            }
+        }
+
+        if (menuChanged) {
+//            mapper.setInputState(InputMapper.InputState.INP_SELECT); // tmp
+            Gdx.app.log("GameUI", "menu changed " + checkedUpDown(mapper.getDpad(null).getY()));
+            menuChanged = false;
+        }
     }
 
     @Override
