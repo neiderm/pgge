@@ -59,7 +59,9 @@ public class InGameMenu extends Stage {
 
         buttonNames.add(name);
         bg.add(button);
-        setCheckedBox(count++);
+
+        count += 1;
+
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
 
@@ -70,29 +72,29 @@ public class InGameMenu extends Stage {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
                 Gdx.app.log("InGameMeu", "button changed \"" + actor + "\"");
-                menuSelected = true;
             }
         });
     }
 
     /*
-     * returns true if new checked box is different from present one
+     * returns true if new checked box is different from present one ^H^H^H^H
      */
-    boolean setCheckedBox(int checked) {
-
-        boolean rv = false;
+    void setCheckedBox(int checked) {
 
         String name = buttonNames.get(checked);
 
-        if (bg.getChecked().getName() != name) {
-            rv = true;
-        }
-
         bg.setChecked(name);
-
-        return rv;
     }
 
+    int getCheckedIndex(){
+        return bg.getCheckedIndex();
+    }
+
+/*
+    int getCurrentSelection(){
+        return currentSelection;
+    }
+*/
     int checkedUpDown(int step) {
 
         int checkedIndex = bg.getCheckedIndex();
@@ -106,17 +108,17 @@ public class InGameMenu extends Stage {
 
         previousIncrement = step;
 
-        if (selectedIndex >= N_SELECTIONS)
+        if (selectedIndex >= N_SELECTIONS) {
+//            selectedIndex = 0;
+            selectedIndex = (N_SELECTIONS - 1);
+        }
+        if (selectedIndex < 0) {
+//            selectedIndex = N_SELECTIONS - 1;
             selectedIndex = 0;
-        if (selectedIndex < 0)
-            selectedIndex = N_SELECTIONS - 1;
+        }
+
+//        setCheckedBox(selectedIndex);
 
         return selectedIndex;
-    }
-
-    @Override
-    public void act(float delta) {
-
-        super.act(delta);
     }
 }

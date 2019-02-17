@@ -28,6 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -289,10 +290,29 @@ public class GameUI extends InGameMenu {
             }
         });
 */
+        if (GameWorld.getInstance().getIsTouchScreen()) {
+            nextButton = new TextButton("Next", uiSkin);
+
+            onscreenMenuTbl.row();
+            onscreenMenuTbl.add(nextButton).fillX().uniformX();
+
+            // action is same regardless so one change listene
+            nextButton.addListener(new ChangeListener() {
+
+                @Override
+                public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+
+//                    Gdx.app.log("InGameMeu", "Next ...  \"" + getCheckedIndex() + "\"");
+                    menuSelected = true;
+                }
+            });
+        }
+
         onscreenMenuTbl.setVisible(false);
         addActor(onscreenMenuTbl);
-
     }
+
+    private Button nextButton;
 
     private void setupOnscreenControls(final InputMapper mapper){
 
@@ -341,9 +361,10 @@ public class GameUI extends InGameMenu {
         return newButton;
     }
 
-    private int idxCurSel;
 
     public void update(){
+
+        int idxCurSel;
 
         boolean paused = GameWorld.getInstance().getIsPaused();
 
@@ -356,45 +377,59 @@ public class GameUI extends InGameMenu {
             touchpad.setVisible( ! paused );
         }
 
-        if (!paused)
-            idxCurSel = -1; // setCheckedBox(0);
+        if (!paused) {
 
-        int iDpadSelection = mapper.getDpad(null).getY();
+            menuSelected = false;
 
-
-        idxCurSel = checkedUpDown(iDpadSelection);
-        setCheckedBox(idxCurSel);
-
-
-        boolean isTouchSelected = menuSelected && 0 == iDpadSelection; // have to guess on the touch event because the button event is on both touched or button event but not dPad touched so must be touch event
-
-
-        if ( isTouchSelected ||
-                InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
-
-            switch (idxCurSel) {
-                default:
-                case 0: // resume
-                    Gdx.app.log("GameUI", "0");
-                    GameWorld.getInstance().setIsPaused(false);
-                    break;
-                case 1: // restart
-                    Gdx.app.log("GameUI", "1");
-//                    roundOver = true;
-                    break;
-                case 2: // quit
-                    Gdx.app.log("GameUI", "2");
-                    break;
-                case 3:
-                    Gdx.app.log("GameUI", "3");
-                    GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-                    break;
+            if (null != nextButton){
+                // special sauce for touch screen
+                nextButton.setChecked(false);
+                setCheckedBox( 0 ); // make sure button default at top selection on showing
             }
-        }
 
-        if (menuSelected) {
-//            mapper.setInputState(InputMapper.InputState.INP_SELECT); // tmp
-            Gdx.app.log("GameUI", "menu changed " + checkedUpDown(mapper.getDpad(null).getY()));
+        } else {
+
+            int iDpadSelection = mapper.getDpad(null).getY();
+
+            idxCurSel = getCheckedIndex();
+
+            boolean isTouchSelected = menuSelected && 0 == iDpadSelection; // have to guess on the touch event because the button event is on both touched or button event but not dPad touched so must be touch event
+
+            boolean setIsPaused = true;
+
+            if (isTouchSelected ||
+                    InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
+
+                switch (idxCurSel) {
+                    default:
+                    case 0: // resume
+//                        GameWorld.getInstance().setIsPaused(false);
+                        setIsPaused = false;
+                        break;
+                    case 1: // restart
+//                    roundOver = true;
+                        break;
+                    case 2: // quit
+                        break;
+                    case 3:
+//                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
+                        setIsPaused = false;
+                        break;
+                    case 4:
+//                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
+                        setIsPaused = false;
+                        break;
+                }
+
+                Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
+
+                GameWorld.getInstance().setIsPaused(setIsPaused);
+            }
+
+            int checked = checkedUpDown(iDpadSelection); // calls setCheckedBox
+
+            setCheckedBox(checked);
+
             menuSelected = false;
         }
     }
