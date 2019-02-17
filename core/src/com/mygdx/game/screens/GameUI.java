@@ -103,9 +103,10 @@ public class GameUI extends InGameMenu {
                     axes[1] = t.getKnobPercentY() * ( -1 );     // negated
                     mapper.setAxis(-1, axes);
                 }});
+
+            setupOnscreenControls(mapper);
         }
         setupInGameMenu(mapper);
-        setupOnscreenControls(mapper);
     }
 
 /*    @Override
@@ -246,50 +247,16 @@ public class GameUI extends InGameMenu {
 
         textButton = new TextButton("Resume", uiSkin);
         addButton(textButton, "Resume");
-/*
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_SELECT);
-            }
-        });*/
+
         textButton = new TextButton("Restart", uiSkin);
         addButton(textButton, "Restart");       onscreenMenuTbl.row();
-/*
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_ESC);
-            }
-        });*/
 
         textButton = new TextButton("Quit", uiSkin);
         addButton(textButton, "Quit");       onscreenMenuTbl.row();
-/*
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_ESC);
-            }
-        });*/
+
         textButton = new TextButton("Camera", uiSkin);
         addButton(textButton, "Camera");
-/*
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(textButton).fillX().uniformX();
-        textButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                mapper.setInputState(InputMapper.InputState.INP_CAMCTRL);
-            }
-        });
-*/
+
         if (GameWorld.getInstance().getIsTouchScreen()) {
             nextButton = new TextButton("Next", uiSkin);
 
@@ -301,8 +268,6 @@ public class GameUI extends InGameMenu {
 
                 @Override
                 public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
-//                    Gdx.app.log("InGameMeu", "Next ...  \"" + getCheckedIndex() + "\"");
                     menuSelected = true;
                 }
             });
@@ -370,23 +335,26 @@ public class GameUI extends InGameMenu {
 
         onscreenMenuTbl.setVisible(paused);
         fpsLabel.setVisible( ! paused );
-        xButton.setVisible( ! paused );
-        picButton.setVisible( ! paused ); // only way for touchscreen system to un-pause right now!
 
         if (null != touchpad) {
             touchpad.setVisible( ! paused );
+        }
+        if (null != xButton) {
+            xButton.setVisible( ! paused );
+        }
+        if (null != picButton) {
+            picButton.setVisible( ! paused );
         }
 
         if (!paused) {
 
             menuSelected = false;
+            setCheckedBox( 0 ); // make sure button default at top selection on showing
 
             if (null != nextButton){
                 // special sauce for touch screen
                 nextButton.setChecked(false);
-                setCheckedBox( 0 ); // make sure button default at top selection on showing
             }
-
         } else {
 
             int iDpadSelection = mapper.getDpad(null).getY();
@@ -451,9 +419,16 @@ public class GameUI extends InGameMenu {
         if (null != touchpadSkin)
             touchpadSkin.dispose();
 
-        uiSkin.dispose();
-        btnTexture.dispose();
-        gsTexture.dispose();
-        font.dispose();
+        if (null != uiSkin)
+            uiSkin.dispose();
+
+        if (null != btnTexture)
+            btnTexture.dispose();
+
+        if (null != gsTexture)
+            gsTexture.dispose();
+
+        if (null != font)
+            font.dispose();
     }
 }
