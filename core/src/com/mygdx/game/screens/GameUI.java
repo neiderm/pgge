@@ -268,7 +268,7 @@ public class GameUI extends InGameMenu {
 
                 @Override
                 public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                    menuSelected = true;
+                    nextSelected = true;
                 }
             });
         }
@@ -348,7 +348,7 @@ public class GameUI extends InGameMenu {
 
         if (!paused) {
 
-            menuSelected = false;
+            nextSelected = false;
             setCheckedBox( 0 ); // make sure button default at top selection on showing
 
             if (null != nextButton){
@@ -361,17 +361,14 @@ public class GameUI extends InGameMenu {
 
             idxCurSel = getCheckedIndex();
 
-            boolean isTouchSelected = menuSelected && 0 == iDpadSelection; // have to guess on the touch event because the button event is on both touched or button event but not dPad touched so must be touch event
-
             boolean setIsPaused = true;
 
-            if (isTouchSelected ||
+            if (nextSelected ||
                     InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
 
                 switch (idxCurSel) {
                     default:
                     case 0: // resume
-//                        GameWorld.getInstance().setIsPaused(false);
                         setIsPaused = false;
                         break;
                     case 1: // restart
@@ -383,14 +380,8 @@ public class GameUI extends InGameMenu {
 //                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
                         setIsPaused = false;
                         break;
-                    case 4:
-//                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-                        setIsPaused = false;
-                        break;
                 }
-
                 Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
-
                 GameWorld.getInstance().setIsPaused(setIsPaused);
             }
 
@@ -398,7 +389,7 @@ public class GameUI extends InGameMenu {
 
             setCheckedBox(checked);
 
-            menuSelected = false;
+            nextSelected = false;
         }
     }
 

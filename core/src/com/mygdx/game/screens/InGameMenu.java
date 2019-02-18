@@ -46,7 +46,7 @@ public class InGameMenu extends Stage {
     private ButtonGroup<TextButton> bg;
     private int count;
     Table onscreenMenuTbl = new Table();
-    boolean menuSelected;
+    boolean nextSelected;
 
     InGameMenu() {
         super();
@@ -65,15 +65,15 @@ public class InGameMenu extends Stage {
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
 
-        // action is same regardless so one change listene
-        button.addListener(new ChangeListener() {
-
-            @Override
-            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
-                Gdx.app.log("InGameMeu", "button changed \"" + actor + "\"");
-            }
-        });
+//        // action is same regardless so one change listene
+//        button.addListener(new ChangeListener() {
+//
+//            @Override
+//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+//
+//                Gdx.app.log("InGameMeu", "button changed \"" + actor + "\"");
+//            }
+//        });
     }
 
     /*
