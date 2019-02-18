@@ -290,9 +290,11 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 
         boolean rv = false;
 
-        if (preInputState != newInputState && newInputState == wantedInputState) { // debounce
-            rv = true;
-            preInputState = newInputState;
+        if (newInputState == wantedInputState) {
+            if (preInputState != newInputState) { // debounce
+                rv = true;
+                preInputState = newInputState;
+            }
             incomingInputState = InputState.INP_NONE; // unlatch the input state
         }
         return rv;
