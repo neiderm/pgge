@@ -129,7 +129,9 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
     }
 
     @Override
-    public void update(float deltaT) { // mt
+    public void update(float deltaT) {
+
+//        latchInputState(); // idfk
     }
 
 
@@ -275,6 +277,18 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 
     InputState getInputState() {
         return getInputState(false);
+    }
+
+    private InputState nowInputState;
+
+    void latchInputState(){
+        nowInputState = getInputState();
+    }
+    void unlatchInputstate(){
+        nowInputState = InputState.INP_NONE;
+    }
+    boolean isInputState(InputState inp){
+        return (nowInputState == inp);
     }
 
     /*
@@ -436,7 +450,7 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
     */
 
     private void print(String message) {
-        Gdx.app.log("Input", message);
+//        Gdx.app.log("Input", message);
     }
 
     private void initController() {

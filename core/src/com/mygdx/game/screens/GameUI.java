@@ -329,8 +329,6 @@ public class GameUI extends InGameMenu {
 
     public void update(){
 
-        int idxCurSel;
-
         boolean paused = GameWorld.getInstance().getIsPaused();
 
         onscreenMenuTbl.setVisible(paused);
@@ -355,21 +353,18 @@ public class GameUI extends InGameMenu {
                 // special sauce for touch screen
                 nextButton.setChecked(false);
             }
+            if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+                paused = true;
+            }
         } else {
 
-            int iDpadSelection = mapper.getDpad(null).getY();
-
-            idxCurSel = getCheckedIndex();
-
-            boolean setIsPaused = true;
-
             if (nextSelected ||
-                    InputMapper.InputState.INP_SELECT == mapper.getInputState()) {
+               mapper.isInputState(InputMapper.InputState.INP_SELECT) ) {
 
-                switch (idxCurSel) {
+                switch (getCheckedIndex()) {
                     default:
                     case 0: // resume
-                        setIsPaused = false;
+                        paused = false;
                         break;
                     case 1: // restart
 //                    roundOver = true;
@@ -377,26 +372,27 @@ public class GameUI extends InGameMenu {
                     case 2: // quit
                         break;
                     case 3:
-//                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-                        setIsPaused = false;
+                        paused = false;
                         break;
                 }
                 Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
-                GameWorld.getInstance().setIsPaused(setIsPaused);
             }
 
-            int checked = checkedUpDown(iDpadSelection); // calls setCheckedBox
+            int checked = checkedUpDown(mapper.getDpad(null).getY()); // calls setCheckedBox
 
             setCheckedBox(checked);
 
             nextSelected = false;
         }
+        GameWorld.getInstance().setIsPaused(paused);
     }
 
     @Override
     public void act (float delta) {
 
         super.act(delta);
+
+        mapper.latchInputState();
         mapper.update(delta);
 
         update();
