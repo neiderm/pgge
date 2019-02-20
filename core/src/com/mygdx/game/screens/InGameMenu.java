@@ -17,13 +17,23 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.game.GameWorld;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -37,47 +47,132 @@ import com.badlogic.gdx.utils.Array;
  *   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
  */
 
-public class InGameMenu extends Stage {
+class InGameMenu extends Stage {
 
     InputMapper mapper = new InputMapper();
+    private Table onscreenMenuTbl = new Table();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
     private ButtonGroup<TextButton> bg;
     private int count;
-    Table onscreenMenuTbl = new Table();
-    boolean nextSelected;
+// @dispsables
+    private Texture buttonTexture;
+    private  Skin uiSkin;
+    private BitmapFont font;
 
-    InGameMenu() {
+
+    InGameMenu(String skinName, String menUname) {
+
         super();
+
+
+        if (null != skinName) {
+            uiSkin = new Skin(Gdx.files.internal(skinName/*"skin/uiskin.json"*/));
+        }
+        else{
+            uiSkin = setSkin();
+
+            if (null != menUname){
+                Label onScreenMenuLabel = new Label(menUname, new Label.LabelStyle(font, Color.WHITE));
+                onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
+            }
+        }
+
         bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
+
+        onscreenMenuTbl.setFillParent(true);
+        onscreenMenuTbl.setDebug(true);
+
+        onscreenMenuTbl.setVisible(true);
+        addActor(onscreenMenuTbl);
+
+        // hack ...state for "non-game" screen should be "paused" since we use it as a visibility flag!
+        GameWorld.getInstance().setIsPaused(true);
     }
 
-    void addButton(TextButton button, String name) {
 
-        buttonNames.add(name);
+    void addNextButton(){
+
+        if (GameWorld.getInstance().getIsTouchScreen()) {
+            Pixmap.setBlending(Pixmap.Blending.None);
+            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+            button.setColor(1, 0, 0, 1);
+            button.fillCircle(25, 25, 25);
+
+            buttonTexture = new Texture(button);
+            button.dispose();
+            TextureRegion myTextureRegion = new TextureRegion(buttonTexture);
+            TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
+
+            ImageButton nextButton = new ImageButton(myTexRegionDrawable);
+            nextButton.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
+            nextButton.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    mapper.setInputState(InputMapper.InputState.INP_SELECT);
+                    return false;
+                }
+            });
+            onscreenMenuTbl.row();
+            onscreenMenuTbl.add(nextButton).fillX().uniformX();
+        }
+    }
+
+    private Skin setSkin(){
+
+        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+        font.getData().setScale(1.0f);
+
+        //create a Labels showing the score and some credits
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+
+        Skin skin = new Skin();
+        skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+        pixmap.dispose();
+
+        skin.add("default", new Label.LabelStyle(font, Color.WHITE));
+        // Store the default libgdx font under the name "default".
+        skin.add("default", font);
+
+        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
+        textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
+        textButtonStyle.font = skin.getFont("default");
+        skin.add("default", textButtonStyle);
+
+        return skin;
+    }
+
+    void addButton(String name, String styleName) {
+        addButton(new TextButton(name, uiSkin, styleName));
+    }
+
+    void addButton(String name) {
+        addButton(new TextButton(name, uiSkin));
+    }
+
+    private void addButton(TextButton button) {
+
+        buttonNames.add(button.getText().toString());
         bg.add(button);
 
         count += 1;
 
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
-
-//        // action is same regardless so one change listene
-//        button.addListener(new ChangeListener() {
-//
-//            @Override
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//
-//                Gdx.app.log("InGameMeu", "button changed \"" + actor + "\"");
-//            }
-//        });
     }
 
     /*
-     * returns true if new checked box is different from present one ^H^H^H^H
+     * returns true ^H^H^H^H
      */
     void setCheckedBox(int checked) {
 
@@ -120,5 +215,26 @@ public class InGameMenu extends Stage {
 //        setCheckedBox(selectedIndex);
 
         return selectedIndex;
+    }
+
+    @Override
+    public void act(float delta){
+
+        onscreenMenuTbl.setVisible(GameWorld.getInstance().getIsPaused());
+
+        super.act(delta);
+    }
+
+    @Override
+    public void dispose(){
+
+        if (null != font)
+            font.dispose();
+
+        if (null != uiSkin)
+            uiSkin.dispose();
+
+        if (null != buttonTexture)
+            buttonTexture.dispose();
     }
 }

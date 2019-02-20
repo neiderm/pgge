@@ -18,10 +18,8 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -30,9 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -52,20 +48,17 @@ public class GameUI extends InGameMenu {
     private ImageButton picButton;
     private ImageButton xButton;
     private Touchpad touchpad;
+// @dispoable
     private Skin touchpadSkin;
-    private BitmapFont font;
-    private Label fpsLabel;
-    private Skin uiSkin = new Skin();
     private Texture gsTexture;
     private Texture btnTexture;
+
     private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
     private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
     private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
-//    private InputMapper mapper;
-//    private Table onscreenMenuTbl = new Table();
 
 
     // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
@@ -88,7 +81,9 @@ public class GameUI extends InGameMenu {
     GameUI(final InputMapper mapper /* , Array<InputListener> buttonListeners */) {
 //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
-        super();
+        super(null, "Paused");
+        // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
+        GameWorld.getInstance().setIsPaused(false);
 
         this.mapper = mapper;
 
@@ -106,7 +101,7 @@ public class GameUI extends InGameMenu {
 
             setupOnscreenControls(mapper);
         }
-        setupInGameMenu(mapper);
+        setupInGameMenu();
     }
 
 /*    @Override
@@ -202,79 +197,15 @@ public class GameUI extends InGameMenu {
     }
 
 
-    private void setupInGameMenu(final InputMapper mapper) {
+    private void setupInGameMenu() {
 
-        Pixmap pixmap;
+        addButton("Resume");
+        addButton("Restart");
+        addButton("Quit");
+        addButton("Camera");
 
-        // Font files from ashley-superjumper
-        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
-
-        fpsLabel = new Label("Whatever ... ", new Label.LabelStyle(font, Color.WHITE));
-        addActor(fpsLabel);
-
-        onscreenMenuTbl.setFillParent(true);
-        onscreenMenuTbl.setDebug(true);
-
-        // On Screen menu: up/down control over buttons does not wrap
-        Label onScreenMenuLabel = new Label("Paused", new Label.LabelStyle(font, Color.WHITE));
-//        onscreenMenuTbl.row().pad(10, 0, 10, 0);
-        onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
-
-        //create a Labels showing the score and some credits
-        pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-        uiSkin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-        pixmap.dispose();
-
-        uiSkin.add("default", new Label.LabelStyle(font, Color.WHITE));
-        // Store the default libgdx font under the name "default".
-        uiSkin.add("default", font);
-
-        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = uiSkin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.down = uiSkin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.checked = uiSkin.newDrawable("white", Color.BLUE);
-        textButtonStyle.over = uiSkin.newDrawable("white", Color.LIGHT_GRAY);
-        textButtonStyle.font = uiSkin.getFont("default");
-        uiSkin.add("default", textButtonStyle);
-
-        // Create a button with the "default" TextButtonStyle. A 3rd parameter can be used to specify a name other than "default".
-        TextButton textButton;
-
-        textButton = new TextButton("Resume", uiSkin);
-        addButton(textButton, "Resume");
-
-        textButton = new TextButton("Restart", uiSkin);
-        addButton(textButton, "Restart");       onscreenMenuTbl.row();
-
-        textButton = new TextButton("Quit", uiSkin);
-        addButton(textButton, "Quit");       onscreenMenuTbl.row();
-
-        textButton = new TextButton("Camera", uiSkin);
-        addButton(textButton, "Camera");
-
-        if (GameWorld.getInstance().getIsTouchScreen()) {
-            nextButton = new TextButton("Next", uiSkin);
-
-            onscreenMenuTbl.row();
-            onscreenMenuTbl.add(nextButton).fillX().uniformX();
-
-            // action is same regardless so one change listene
-            nextButton.addListener(new ChangeListener() {
-
-                @Override
-                public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-                    nextSelected = true;
-                }
-            });
-        }
-
-        onscreenMenuTbl.setVisible(false);
-        addActor(onscreenMenuTbl);
+        //        if (GameWorld.getInstance().getIsTouchScreen())
+            addNextButton();
     }
 
     private Button nextButton;
@@ -331,9 +262,6 @@ public class GameUI extends InGameMenu {
 
         boolean paused = GameWorld.getInstance().getIsPaused();
 
-        onscreenMenuTbl.setVisible(paused);
-        fpsLabel.setVisible( ! paused );
-
         if (null != touchpad) {
             touchpad.setVisible( ! paused );
         }
@@ -346,7 +274,6 @@ public class GameUI extends InGameMenu {
 
         if (!paused) {
 
-            nextSelected = false;
             setCheckedBox( 0 ); // make sure button default at top selection on showing
 
             if (null != nextButton){
@@ -358,8 +285,7 @@ public class GameUI extends InGameMenu {
             }
         } else {
 
-            if (nextSelected ||
-               mapper.isInputState(InputMapper.InputState.INP_SELECT) ) {
+            if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                 switch (getCheckedIndex()) {
                     default:
@@ -381,8 +307,6 @@ public class GameUI extends InGameMenu {
             int checked = checkedUpDown(mapper.getDpad(null).getY()); // calls setCheckedBox
 
             setCheckedBox(checked);
-
-            nextSelected = false;
         }
         GameWorld.getInstance().setIsPaused(paused);
     }
@@ -406,16 +330,10 @@ public class GameUI extends InGameMenu {
         if (null != touchpadSkin)
             touchpadSkin.dispose();
 
-        if (null != uiSkin)
-            uiSkin.dispose();
-
         if (null != btnTexture)
             btnTexture.dispose();
 
         if (null != gsTexture)
             gsTexture.dispose();
-
-        if (null != font)
-            font.dispose();
     }
 }
