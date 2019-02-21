@@ -26,7 +26,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
@@ -48,7 +47,7 @@ public class GameUI extends InGameMenu {
     private ImageButton picButton;
     private ImageButton xButton;
     private Touchpad touchpad;
-// @dispoable
+    // @dispoable
     private Skin touchpadSkin;
     private Texture gsTexture;
     private Texture btnTexture;
@@ -61,25 +60,8 @@ public class GameUI extends InGameMenu {
     private float[] axes = new float[4];
 
 
-    // caller passes references to input listeners to be mapped to appropriate "buttons" - some will be UI functions
-    // handled in here, or subsystem controls e.g. dpad controls go to tank steering, function buttons go to
-    // guided missile susbsystem, cannon button inputs go to cannon etc.
-    // maybe do a controller abstraction?
-    // https://gist.github.com/nhydock/dc0501f34f89686ddf34
-    // http://kennycason.com/posts/2015-12-27-libgdx-controller.html
-
-    /*
-     TODO: Array<InputListener> buttonListeners should be something like "Array<InputMapping> buttonListeners"
-      ... where "InputMapping"  should be array of Buttons-Inputs needed for the screen
-      {
-        CONTROL_ID   //   POV_UP, POV_DOWN, BTN_START, BTN_X, BTN_DELTA,
-        InputListener listener
-        Button button
-      }
-      if listener==null then we have already a default base listener
-     */
-    GameUI(final InputMapper mapper /* , Array<InputListener> buttonListeners */) {
-//this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
+    GameUI(final InputMapper mapper) {
+        //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
@@ -184,7 +166,7 @@ public class GameUI extends InGameMenu {
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
         // touchpadStyle.knob = = new TextureRegionDrawable ....
-                //Create new TouchPad with the created style
+        //Create new TouchPad with the created style
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, 200, 200);
@@ -203,12 +185,8 @@ public class GameUI extends InGameMenu {
         addButton("Restart");
         addButton("Quit");
         addButton("Camera");
-
-        //        if (GameWorld.getInstance().getIsTouchScreen())
-            addNextButton();
+        addNextButton();
     }
-
-    private Button nextButton;
 
     private void setupOnscreenControls(final InputMapper mapper){
 
@@ -258,9 +236,7 @@ public class GameUI extends InGameMenu {
     }
 
 
-    public void update(){
-
-        boolean paused = GameWorld.getInstance().getIsPaused();
+    private void update(boolean paused){
 
         if (null != touchpad) {
             touchpad.setVisible( ! paused );
@@ -271,44 +247,6 @@ public class GameUI extends InGameMenu {
         if (null != picButton) {
             picButton.setVisible( ! paused );
         }
-
-        if (!paused) {
-
-            setCheckedBox( 0 ); // make sure button default at top selection on showing
-
-            if (null != nextButton){
-                // special sauce for touch screen
-                nextButton.setChecked(false);
-            }
-            if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-                paused = true;
-            }
-        } else {
-
-            if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
-                switch (getCheckedIndex()) {
-                    default:
-                    case 0: // resume
-                        paused = false;
-                        break;
-                    case 1: // restart
-//                    roundOver = true;
-                        break;
-                    case 2: // quit
-                        break;
-                    case 3:
-                        paused = false;
-                        break;
-                }
-                Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
-            }
-
-            int checked = checkedUpDown(mapper.getDpad(null).getY()); // calls setCheckedBox
-
-            setCheckedBox(checked);
-        }
-        GameWorld.getInstance().setIsPaused(paused);
     }
 
     @Override
@@ -316,10 +254,7 @@ public class GameUI extends InGameMenu {
 
         super.act(delta);
 
-        mapper.latchInputState();
-        mapper.update(delta);
-
-        update();
+        update(GameWorld.getInstance().getIsPaused());
     }
 
     @Override

@@ -224,7 +224,7 @@ class GameScreen implements Screen {
                 }
             }};
 
-        setupVehicle(pickedPlayer);
+        setupplayerUI(pickedPlayer);
 
         multiplexer.addProcessor(playerUI);
         Gdx.input.setInputProcessor(multiplexer);
@@ -249,47 +249,73 @@ class GameScreen implements Screen {
             multiplexer.removeProcessor(camController);
     }
 
-    private void setupVehicle(final Entity pickedPlayer){
+    /*
+     * override stage:act() and handle controls
+     */
+    private void setupplayerUI(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
         final SimpleVehicleModel vehicleModel = new TankController(
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-/*
- .... override stage.act() ... ?
-  */
-        InputMapper mapper = new InputMapper() {
 
+        playerUI = new GameUI(new InputMapper()){
             @Override
-            public void update(float deltaT) {
+            public void act (float delta) {
 
-                if ( ! GameWorld.getInstance().getIsPaused()) {
+                mapper.latchInputState();
 
-                    /* AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
+                boolean paused = GameWorld.getInstance().getIsPaused();
+                int checkedBox = 0; // button default at top selection
+
+                if (!paused) {
+                    /*
+                    AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
 the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
 So we have to pause it explicitly as it is not governed by ECS
- */
-                    vehicleModel.updateControls(getAxisY(0), getAxisX(0),
-                            (isInputState(InputState.INP_B2)),0); // need to use Vector2
+  */
+                    vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
 
-                    if (isInputState(InputState.INP_SELECT)) {
+                    if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                         gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(getPointerX(), getPointerY()), 0));
+                                gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
+                    }
+                    if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+                        paused = true;
                     }
                 } else {
-//                    if ( checkInputState(InputState.INP_CAMCTRL, true)) {
-////                    if (InputState.INP_CAMCTRL == nowInputState) {
-//
-//                        GameWorld.getInstance().setIsPaused(false); // any of the on-screen menu button should un-pause if clicked
-//                        cameraSwitch();
-//                    }
-                    if ( isInputState(InputState.INP_ESC)) {
+
+                    if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
                         roundOver = true;
                     }
-                }}
-        };
-        playerUI = new GameUI(mapper);
+                    if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+
+                        switch (getCheckedIndex()) {
+                            default:
+                            case 0: // resume
+                                paused = false;
+                                break;
+                            case 1: // restart
+                                roundOver = true;
+                                break;
+                            case 2: // quit
+                                break;
+                            case 3: // camera
+                                paused = false;
+                                cameraSwitch();
+                                break;
+                        }
+                        Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
+                    }
+                    checkedBox = checkedUpDown(mapper.getDpad(null).getY());
+                }
+                setCheckedBox(checkedBox);
+                GameWorld.getInstance().setIsPaused(paused);
+
+                super.act(delta);
+            }};
     }
 
     /*
@@ -315,10 +341,10 @@ So we have to pause it explicitly as it is not governed by ECS
         public void callback(Entity picked, GameEvent.EventType eventType) {
 
             if (RAY_DETECT == eventType && null != picked) {
-                        RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
-                                picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                                        Color.LIME));
+                RenderSystem.debugGraphics.add(lineInstance.lineTo(
+                        pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
+                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                        Color.LIME));
             }}
     };
 
@@ -387,27 +413,27 @@ So we have to pause it explicitly as it is not governed by ECS
         }
         batch.end();
 
-            float visibleCount = renderSystem.visibleCount;
-            float renderableCount = renderSystem.renderableCount;
-            //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
-            stringBuilder.setLength(0);
-            stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
-            stringBuilder.append(" Visible: ").append(visibleCount);
-            stringBuilder.append(" / ").append(renderableCount);
+        float visibleCount = renderSystem.visibleCount;
+        float renderableCount = renderSystem.renderableCount;
+        //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
+        stringBuilder.setLength(0);
+        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
+        stringBuilder.append(" Visible: ").append(visibleCount);
+        stringBuilder.append(" / ").append(renderableCount);
 /*
             fpsLabel.setText(stringBuilder);
 */
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-if (GameWorld.getInstance().getIsPaused()) {
-    // example of using ShapeRender to draw directly to screen
-    //        shapeRenderer.setProjectionMatrix ????
-    shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-    shapeRenderer.setColor(hudOverlayColor);
-    shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H);
-    shapeRenderer.end();
-}
+        if (GameWorld.getInstance().getIsPaused()) {
+            // example of using ShapeRender to draw directly to screen
+            //        shapeRenderer.setProjectionMatrix ????
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(hudOverlayColor);
+            shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H);
+            shapeRenderer.end();
+        }
 
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
