@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2019 Glenn Neidermeier
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package com.mygdx.game.screens;
@@ -66,9 +66,17 @@ class InGameMenu extends Stage {
 
         super();
 
-
         if (null != skinName) {
+
             uiSkin = new Skin(Gdx.files.internal(skinName/*"skin/uiskin.json"*/));
+            BitmapFont bf = uiSkin.getFont("commodore-64");
+
+            float scale = Gdx.graphics.getDensity();
+
+            if (scale > 1) {
+//                if (null != asdf)
+                    bf.getData().setScale(scale);
+            }
         }
         else{
             uiSkin = setSkin();
@@ -125,7 +133,6 @@ class InGameMenu extends Stage {
 
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
-        font.getData().setScale(1.0f);
 
         //create a Labels showing the score and some credits
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -148,6 +155,12 @@ class InGameMenu extends Stage {
         textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
         textButtonStyle.font = skin.getFont("default");
         skin.add("default", textButtonStyle);
+
+        float scale = Gdx.graphics.getDensity();
+        BitmapFont bf = skin.getFont("default");
+
+        if (scale > 1)
+            bf.getData().setScale(scale);
 
         return skin;
     }
