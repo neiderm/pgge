@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
@@ -19,6 +20,9 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public final class GameWorld implements Disposable {
 
+    public static final int VIRTUAL_WIDTH =  Gdx.graphics.getWidth(); //tmp ..  640;
+    public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight(); // tmp .. 480;
+
     private Game game;
 
     public static SceneLoader sceneLoader; // can this be non-static?
@@ -36,7 +40,7 @@ public final class GameWorld implements Disposable {
         return instance;
     }
 
-    public void initialize(Game game){
+    void initialize(Game game){
 
         this.game = game;
 

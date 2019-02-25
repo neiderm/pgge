@@ -106,9 +106,9 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        batch.draw(ttrSplash, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         font.draw(batch, stringBuilder,
-                Gdx.graphics.getWidth() / 4f, (Gdx.graphics.getHeight() / 4f) * 3f);
+                GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 4f) * 3f);
         batch.end();
 
 
@@ -116,7 +116,7 @@ public class LoadingScreen implements Screen {
 
         shapeRenderer.setColor(new Color(255, 0 , 0, 1));
         shapeRenderer.rect(
-                (Gdx.graphics.getWidth() / 4f) , (Gdx.graphics.getHeight() / 2f) - 5,
+                (GameWorld.VIRTUAL_WIDTH / 4f) , (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
                 20f + loadCounter, 10);
 
         shapeRenderer.end();
@@ -131,7 +131,7 @@ public class LoadingScreen implements Screen {
 
             // make the bar up to half the screen width
             loadCounter = 
-               (int)(Gdx.graphics.getWidth() * 0.5f * GameWorld.sceneLoader.getAssets().getProgress()) ;
+               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * GameWorld.sceneLoader.getAssets().getProgress()) ;
 
             if (GameWorld.sceneLoader.getAssets().update()) {
                 GameWorld.sceneLoader.doneLoading();
@@ -178,6 +178,7 @@ public class LoadingScreen implements Screen {
         ttrSplash.dispose();
         batch.dispose();
         shapeRenderer.dispose();
+        font.dispose();
 //        sceneLoader.dispose();   //  no  dont be silly ...
     }
 }

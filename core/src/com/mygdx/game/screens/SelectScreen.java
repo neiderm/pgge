@@ -68,8 +68,6 @@ class SelectScreen implements Screen {
     private BitmapFont font;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
 
-    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
-    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
 
     private Stage stage;
     private Entity platform;
@@ -97,7 +95,7 @@ class SelectScreen implements Screen {
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 
-        PerspectiveCamera cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
+        PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
@@ -138,7 +136,7 @@ class SelectScreen implements Screen {
                               public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                                   Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
-                                  if (y < 100)
+                                  if (y < GameWorld.VIRTUAL_HEIGHT / 4)
                                       mapper.setInputState(InputMapper.InputState.INP_SELECT);
 
                                   return true; // must return true in order for touch up, dragged to work!
@@ -307,7 +305,7 @@ class SelectScreen implements Screen {
     }
 
 
-    private int previousIncrement;
+//    private int previousIncrement;
 
     private int checkedUpDown(int step, int checkedIndex){
 
@@ -316,7 +314,7 @@ class SelectScreen implements Screen {
 //        if (0 == previousIncrement)   // ... alternative to debouncing?) ... can't hurt ;)
         selectedIndex += step;
 
-        previousIncrement = step;
+//        previousIncrement = step;
 
         if (selectedIndex >= N_SELECTIONS)
             selectedIndex = 0;
@@ -340,7 +338,7 @@ class SelectScreen implements Screen {
         updatePlatform(degreesInst);
 
         // game box viewport
-        Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 

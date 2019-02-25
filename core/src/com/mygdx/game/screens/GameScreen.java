@@ -84,8 +84,6 @@ class GameScreen implements Screen {
     private OrthographicCamera guiCam;
     private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private static final int GAME_BOX_W = Gdx.graphics.getWidth();
-    private static final int GAME_BOX_H = Gdx.graphics.getHeight();
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private GameUI playerUI;
     private InputMultiplexer multiplexer = new InputMultiplexer();
@@ -112,7 +110,7 @@ class GameScreen implements Screen {
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 //        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
 
-        cam = new PerspectiveCamera(67, GAME_BOX_W, GAME_BOX_H);
+        cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 //        cam.position.set(3f, 7f, 10f);
 //        cam.lookAt(0, 4, 0);
         cam.near = 1f;
@@ -126,7 +124,7 @@ class GameScreen implements Screen {
         BulletWorld.getInstance().initialize(cam);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
-        guiCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        guiCam = new OrthographicCamera(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
@@ -368,7 +366,7 @@ So we have to pause it explicitly as it is not governed by ECS
 
         String s;
         // game box viewport
-        Gdx.gl.glViewport(0, 0, GAME_BOX_W, GAME_BOX_H);
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -402,14 +400,14 @@ So we have to pause it explicitly as it is not governed by ECS
 
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-        if (false) {
+        if (true) {
             // calls new Formatter() which we dont want!
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 100, Gdx.graphics.getHeight());
+            font.draw(batch, s, 10, 0 + font.getLineHeight());
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 250, Gdx.graphics.getHeight());
+            font.draw(batch, s, 250, 0 + font.getLineHeight());
             s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 400, Gdx.graphics.getHeight());
+            font.draw(batch, s, 500, 0 + font.getLineHeight());
         }
         batch.end();
 
@@ -431,7 +429,7 @@ So we have to pause it explicitly as it is not governed by ECS
             //        shapeRenderer.setProjectionMatrix ????
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(hudOverlayColor);
-            shapeRenderer.rect(0, 0, GAME_BOX_W, GAME_BOX_H);
+            shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
             shapeRenderer.end();
         }
 
@@ -450,6 +448,13 @@ So we have to pause it explicitly as it is not governed by ECS
 
     @Override
     public void show() {        // empty
+        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+
+        float scale = Gdx.graphics.getDensity();
+
+        if (scale > 1)
+            font.getData().setScale(scale);
     }
 
     @Override
@@ -473,6 +478,8 @@ So we have to pause it explicitly as it is not governed by ECS
         batch.dispose();
         shapeRenderer.dispose();
         playerUI.dispose();
+
+        font.dispose();
     }
 
     /*
