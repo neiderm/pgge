@@ -51,11 +51,15 @@ public class GameUI extends InGameMenu {
     private Skin touchpadSkin;
     private Texture gsTexture;
     private Texture btnTexture;
+    private Texture tpBackgnd;
+    private Texture tpKnob;
 
     private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
     private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
+    // placement relative to absolute center of screen ... i guess
     private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
+
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
 
@@ -64,6 +68,7 @@ public class GameUI extends InGameMenu {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
+
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
 
@@ -110,6 +115,7 @@ public class GameUI extends InGameMenu {
         if (KEY_CODE_POV_DOWN == keycode) {
             axes[1] = +1;
         }
+
         mapper.setAxis(255, axes);
 
         return false;
@@ -136,7 +142,6 @@ public class GameUI extends InGameMenu {
         return false;
     }
 
-
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
@@ -144,12 +149,34 @@ public class GameUI extends InGameMenu {
 
         Touchpad.TouchpadStyle touchpadStyle;
 
+        // these numbers have been complete arbitrary
+        int tpRadius = 100;
+        int knobRadius = 36;
+
+        float scale = Gdx.graphics.getDensity();
+
+        // fudge scaling to make UI controls visible on my HTC One M8
+        if (scale > 1) {
+            tpRadius = (int)(tpRadius * scale / 2f);
+            knobRadius = (int)(knobRadius * scale / 2);
+        }
+
         //Create a touchpad skin
         touchpadSkin = new Skin();
+
         //Set background image
 //        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
+
+//        Pixmap.setBlending(Pixmap.Blending.None);
+
         //Set knob image
-        touchpadSkin.add("touchKnob", new Texture("data/touchKnob.png"));
+//        tpKnob = new Texture("data/touchKnob.png");
+//        touchpadSkin.add("touchKnob", tpKnob);
+        Pixmap button = new Pixmap(knobRadius * 2, knobRadius * 2, Pixmap.Format.RGBA8888);
+        button.setColor(1, 0, 0, 0.5f);
+        button.fillCircle(knobRadius, knobRadius, knobRadius);
+        tpKnob = new Texture(button);
+
         //Create TouchPad Style
         touchpadStyle = new Touchpad.TouchpadStyle();
         //Create Drawable's from TouchPad skin
@@ -157,24 +184,28 @@ public class GameUI extends InGameMenu {
 
 // https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
         Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap background = new Pixmap(200, 200, Pixmap.Format.RGBA8888);
+        Pixmap background = new Pixmap(tpRadius * 2, tpRadius * 2, Pixmap.Format.RGBA8888);
         background.setColor(1, 1, 1, .2f);
-        background.fillCircle(100, 100, 100);
+        background.fillCircle(tpRadius, tpRadius, tpRadius);
 
         //Apply the Drawables to the TouchPad Style
 //        touchpadStyle.background = touchBackground;
-        touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(new Texture(background)));
-        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
-        // touchpadStyle.knob = = new TextureRegionDrawable ....
+
+        tpBackgnd = new Texture(background);
+        touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(tpBackgnd));
+//        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
+        touchpadStyle.knob = new TextureRegionDrawable(new TextureRegion(tpKnob));
+
         //Create new TouchPad with the created style
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
-        touchpad.setBounds(15, 15, 200, 200);
+        touchpad.setBounds(15, 15, tpRadius * 2f, tpRadius * 2f);
 
         // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
         this.addActor(touchpad);
 
+        button.dispose();
         background.dispose();
     }
 
@@ -213,6 +244,7 @@ public class GameUI extends InGameMenu {
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
         btnTexture = new Texture(pixmap);
+// placement relative to absolute center of screen .. i guess
         xButton = addImageButton(btnTexture, 3f * Gdx.graphics.getWidth() / 4, 0,
                 new InputListener() {
                     @Override
@@ -270,5 +302,11 @@ public class GameUI extends InGameMenu {
 
         if (null != gsTexture)
             gsTexture.dispose();
+
+        if (null != tpBackgnd)
+            tpBackgnd.dispose();
+
+        if (null != tpKnob)
+            tpKnob.dispose();
     }
 }
