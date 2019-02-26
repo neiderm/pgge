@@ -235,7 +235,7 @@ public class GameUI extends InGameMenu {
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
                         Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
-                        mapper.setInputState(InputMapper.InputState.INP_SELECT, toScrnCoord.x, toScrnCoord.y);
+                        mapper.setPointer(toScrnCoord.x, toScrnCoord.y);
                         return false;
                     }});
         pixmap.dispose();

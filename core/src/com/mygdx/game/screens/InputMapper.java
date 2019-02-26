@@ -98,14 +98,13 @@ UD Axis2    Axis0
     -----------------------------
 */
 
-public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithController extends stage ? */ {
+class InputMapper /* stageWithController extends stage ? */ {
 
     public enum InputState {
         INP_NONE,
         INP_SELECT,
         INP_ESC,
-        INP_B2,
-        INP_CAMCTRL
+        INP_B2
     }
 
     private Controller connectedCtrl;
@@ -126,12 +125,6 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
 
         initController();
         connectedCtrl = getConnectedCtrl(0);
-    }
-
-    @Override
-    public void update(float deltaT) {
-
-//        latchInputState(); // idfk
     }
 
 
@@ -296,11 +289,11 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
      * Return true if state is changes AND matches the wanted state. Else return false.
      * Only resets the Incoming State if changes AND matches.
      * So this is useful for doing a series of tests for different wanted states where it is OK
-     * (and necessary) that the incoming state is not reset.
+     * (and necessary) that the incoming state is not reset/cleared.
      */
-    boolean checkInputState(InputState wantedInputState, boolean checkIsTouched) {
+    boolean checkInputState(InputState wantedInputState) {
 
-        InputState newInputState = evalNewInputState(checkIsTouched);
+        InputState newInputState = evalNewInputState(true);
 
         boolean rv = false;
 
@@ -313,12 +306,12 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
         }
         return rv;
     }
-
+/*
     boolean checkInputState(InputState wantedInputState) {
 
         return checkInputState(wantedInputState, false);
     }
-
+*/
     /*
      * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
      */
@@ -327,9 +320,9 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
         this.incomingInputState = incomingInputState;
     }
 
-    void setInputState(InputState incomingInputState, float x, float y) {
+    void setPointer(float x, float y) {
 
-        setInputState(incomingInputState);
+        setInputState(InputState.INP_SELECT);
         pointer.set(x, y);
     }
 
@@ -471,7 +464,7 @@ public /* abstract */ class InputMapper implements CtrlMapperIntrf /* stageWithC
          * This class doesn't have a 'dispose()' interface to put
          *         Controllers.removeListener(controllerListener);
          *
-         *         but if it ends up being a base class of GameStage ...........
+         *         but if it ends up being a base class of GameUI ...........
          */
         Controllers.addListener(new ControllerListenerAdapter() {
 

@@ -41,7 +41,7 @@ public class SplashScreen implements Screen {
         ttrSplash = new Texture("splash-screen.png");
         mapper = new InputMapper();
         // in case INP SELECT got us here, then debounce it
-        mapper.checkInputState(InputMapper.InputState.INP_SELECT, true);
+        mapper.checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
     @Override
