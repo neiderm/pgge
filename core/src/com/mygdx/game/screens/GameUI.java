@@ -216,6 +216,7 @@ public class GameUI extends InGameMenu {
         addButton("Restart");
         addButton("Quit");
         addButton("Camera");
+        addButton("Debug Draw");
         addNextButton();
     }
 

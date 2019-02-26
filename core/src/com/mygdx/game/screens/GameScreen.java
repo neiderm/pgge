@@ -304,6 +304,13 @@ So we have to pause it explicitly as it is not governed by ECS
                                 paused = false;
                                 cameraSwitch();
                                 break;
+                            case 4: // dbg drwr
+                                paused = false;
+                                if (                                BulletWorld.USE_DDBUG_DRAW)
+                                BulletWorld.USE_DDBUG_DRAW = false;
+else
+    BulletWorld.USE_DDBUG_DRAW = true;
+                                break;
                         }
                         Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
                     }
