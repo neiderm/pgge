@@ -30,7 +30,6 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -60,25 +59,19 @@ class SelectScreen implements Screen {
     private InputMapper mapper = new InputMapper();
     private Engine engine = new Engine();
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-
     private Environment environment;
     private DirectionalShadowLight shadowLight;
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
-
     private BitmapFont font;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-
-
     private Stage stage;
     private Entity platform;
-
     private Array<Entity> characters = new Array<Entity>();
-
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
-
     private int idxCurSel;
-
     private final float yCoordOnPlatform = 0.1f;
+    private int touchPadDx;
+    private int dPadYaxis;
 
     // position them into equilateral triangle (sin/cos)
     private Vector3[] positions = new Vector3[]{
@@ -87,9 +80,12 @@ class SelectScreen implements Screen {
             new Vector3()
     };
 
-    private Vector2 v2 = new Vector2();
 
-    SelectScreen() {
+    SelectScreen() { // mt
+    }
+
+    @Override
+    public void show() {
 
         environment = new Environment();
         environment.set(
@@ -175,15 +171,6 @@ class SelectScreen implements Screen {
         }
     }
 
-
-    @Override
-    public void show() {
-        // empty
-    }
-
-
-    private int touchPadDx;
-    private int dPadYaxis;
 
     /*
      * dPad X axis + touch-swipe (left/right)

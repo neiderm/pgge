@@ -36,12 +36,7 @@ public class SplashScreen implements Screen {
     private Texture ttrSplash;
     private InputMapper mapper;
 
-    public SplashScreen() {
-        batch = new SpriteBatch();
-        ttrSplash = new Texture("splash-screen.png");
-        mapper = new InputMapper();
-        // in case INP SELECT got us here, then debounce it
-        mapper.checkInputState(InputMapper.InputState.INP_SELECT);
+    public SplashScreen() { // mt
     }
 
     @Override
@@ -87,7 +82,12 @@ public class SplashScreen implements Screen {
     }
 
     @Override
-    public void show() {  // mt
+    public void show() {
+        batch = new SpriteBatch();
+        ttrSplash = new Texture("splash-screen.png");
+        mapper = new InputMapper();
+        // in case INP SELECT got us here, then debounce it
+        mapper.checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
     @Override

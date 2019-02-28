@@ -42,10 +42,7 @@ public class MainMenuScreen implements Screen {
     }
 
 
-    MainMenuScreen() {
-
-        stage = new InGameMenu("skin/uiskin.json", null);
-        Gdx.input.setInputProcessor(stage);
+    MainMenuScreen() { // mt
     }
 
     @Override
@@ -102,11 +99,17 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
 
+        stage = new InGameMenu("skin/uiskin.json", null);
+        Gdx.input.setInputProcessor(stage);
+
         stage.addButton("New Game", "toggle");
         stage.addButton("Preferences", "toggle");
         stage.addButton("Exit", "toggle");
 
         stage.addNextButton();
+
+        // in case INP SELECT got us here, then debounce it
+        stage.mapper.checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
     @Override
