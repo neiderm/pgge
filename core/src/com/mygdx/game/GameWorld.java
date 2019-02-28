@@ -23,6 +23,14 @@ public final class GameWorld implements Disposable {
     public static final int VIRTUAL_WIDTH =  Gdx.graphics.getWidth(); //tmp ..  640;
     public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight(); // tmp .. 480;
 
+
+    public enum GAME_STATE_T { // idfk ;)
+        ROUND_IS_ACTIVE,
+        ROUND_OVER_RESTART,
+        ROUND_OVER_QUIT,
+        ROUND_OVER_CONTINUE
+    }
+
     private Game game;
 
     public static SceneLoader sceneLoader; // can this be non-static?
@@ -66,7 +74,7 @@ public final class GameWorld implements Disposable {
             return;
 
         // Get current screen to dispose it >>>>>  ???????
-        Screen currentScreen = game.getScreen();
+//        Screen currentScreen = game.getScreen();
 
         // Show new screen
 //        AbstractScreen newScreen = screenEnum.getScreen(params);
@@ -81,26 +89,37 @@ public final class GameWorld implements Disposable {
     }
 
     /*
-     right now this is the only way to signal from the PlayerCharacter:keyDown to GameScreen :(
+     please don't hate the Game World globals needed to be shared between Game World and Game Screen
      */
+
     private boolean isPaused = false;
 
-    public boolean getIsPaused(){
+    public boolean getIsPaused() {
         return isPaused;
     }
-    public void setIsPaused(boolean isPaused){
+
+    public void setIsPaused(boolean isPaused) {
         this.isPaused = isPaused;
     }
 
-
     private boolean isTouchScreen = false;
 
-    public boolean getIsTouchScreen(){
+    public boolean getIsTouchScreen() {
         return isTouchScreen;
     }
 
-    public void setIsTouchScreen(boolean isTouchScreen){
+    public void setIsTouchScreen(boolean isTouchScreen) {
         this.isTouchScreen = isTouchScreen;
+    }
+
+    private GAME_STATE_T roundActiveState; // for better or worse ... ;)  gameScreenState ?? 
+
+    public GAME_STATE_T getRoundActiveState() {
+        return roundActiveState;
+    }
+
+    public void setRoundActiveState(GAME_STATE_T state) {
+        roundActiveState = state;
     }
 
 

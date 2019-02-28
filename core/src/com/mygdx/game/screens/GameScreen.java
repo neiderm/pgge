@@ -89,7 +89,6 @@ class GameScreen implements Screen {
     private InputMultiplexer multiplexer = new InputMultiplexer();
     private StringBuilder stringBuilder = new StringBuilder();
     private Signal<GameEvent> gameEventSignal = new Signal<GameEvent>();
-    private boolean roundOver = false;
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
@@ -97,8 +96,15 @@ class GameScreen implements Screen {
     private float colorAlpha = 0.9f;
     private Color platformColor = new Color(255, 0, 0, colorAlpha);
 
+    private int roundOverCountDown;
 
-    GameScreen() {
+
+    GameScreen() { // mt
+    }
+
+    private void init(){
+
+        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_IS_ACTIVE);
 
         GameWorld.getInstance().setIsPaused(false);
 
@@ -207,18 +213,30 @@ class GameScreen implements Screen {
         final StatusComponent sc = new StatusComponent();
         pickedPlayer.add(sc);
 
+        /*
+         * this goofball thing exists because of dependency between game model and UI i.e. player
+         * dead or whatever in the world model must signal back to UI to pause/restart whatever
+         */
         sc.statusUpdater = new BulletEntityStatusUpdate() {
 
             Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
-            Vector3 bounds = new Vector3(50, 50, 50);
+            Vector3 bounds = new Vector3(20, 20, 20);
+
             // the reference point for determining an object has exitted the level
             float boundsDst2 = bounds.dst2(origin);
             Vector3 v = new Vector3();
             @Override
             public void update(Entity e) {
-                v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
-                if (v.dst2(origin) > boundsDst2) {
-                    roundOver = true; // respawn() ... can't do it in this context??
+
+                if (GameWorld.GAME_STATE_T.ROUND_IS_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+
+                    v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
+
+                    if (v.dst2(origin) > boundsDst2) {
+
+//                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
+                    }
                 }
             }};
 
@@ -279,6 +297,10 @@ So we have to pause it explicitly as it is not governed by ECS
 
                         gameEventSignal.dispatch(
                                 gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
+
+                        if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                        }
                     }
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
                         paused = true;
@@ -286,7 +308,8 @@ So we have to pause it explicitly as it is not governed by ECS
                 } else {
 
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-                        roundOver = true;
+
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                     }
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
@@ -296,9 +319,10 @@ So we have to pause it explicitly as it is not governed by ECS
                                 paused = false;
                                 break;
                             case 1: // restart
-                                roundOver = true;
+                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                                 break;
                             case 2: // quit
+                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                                 break;
                             case 3: // camera
                                 paused = false;
@@ -306,10 +330,9 @@ So we have to pause it explicitly as it is not governed by ECS
                                 break;
                             case 4: // dbg drwr
                                 paused = false;
-                                if (                                BulletWorld.USE_DDBUG_DRAW)
-                                BulletWorld.USE_DDBUG_DRAW = false;
-else
-    BulletWorld.USE_DDBUG_DRAW = true;
+                                BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
+                                // has to reinitialize bullet world to set the flag
+                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                                 break;
                         }
                         Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
@@ -407,14 +430,14 @@ else
 
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-        if (true) {
+        if ( GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
             // calls new Formatter() which we dont want!
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+            s = String.format(Locale.ENGLISH, "%+2d", roundOverCountDown);
             font.draw(batch, s, 10, 0 + font.getLineHeight());
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 250, 0 + font.getLineHeight());
-            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-            font.draw(batch, s, 500, 0 + font.getLineHeight());
+//            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+//            font.draw(batch, s, 250, 0 + font.getLineHeight());
+//            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
+//            font.draw(batch, s, 500, 0 + font.getLineHeight());
         }
         batch.end();
 
@@ -446,15 +469,48 @@ else
         /* "Falling off platform" ... let a "sensor" or some suitable means to detect "fallen off platform" at which point, set gameOver.
           This way user can't pause during falling sequence. Once fallen past certain point, then allow screen switch.
          */
-        if (roundOver) {
-            roundOver = false;
-            Gdx.app.log("GameScreen:render", "new MainMenuScreen()");
-            GameWorld.getInstance().showScreen(new MainMenuScreen());
+        isRoundOver();
+    }
+
+    /*
+     * state machine for lifecycle of a game round
+     */
+    private void isRoundOver() {
+
+        switch (GameWorld.getInstance().getRoundActiveState()) {
+
+            default:
+            case ROUND_IS_ACTIVE:
+                // reset the watchdog timer
+                roundOverCountDown = 10 * 60; // 10 sec * fps
+                break;
+
+            case ROUND_OVER_CONTINUE:
+
+                if (roundOverCountDown-- > 0) {
+
+                    // TODO: show tiime, and any input changes to RESTART
+
+                } else {
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                }
+                break;
+
+            case ROUND_OVER_RESTART:
+                GameWorld.getInstance().showScreen(new GameScreen());
+                break;
+
+            case ROUND_OVER_QUIT:
+                GameWorld.getInstance().showScreen(new MainMenuScreen());
+                break;
         }
     }
 
     @Override
-    public void show() {        // empty
+    public void show() {
+
+        init();
+
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
 
