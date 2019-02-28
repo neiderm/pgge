@@ -269,17 +269,18 @@ public class GameUI extends InGameMenu {
     }
 
 
-    private void update(boolean paused){
+    private void update(boolean menuActive){
 
         if (null != touchpad) {
-            touchpad.setVisible( ! paused );
+            touchpad.setVisible( ! menuActive );
         }
         if (null != xButton) {
-            xButton.setVisible( ! paused );
+            xButton.setVisible( ! menuActive );
         }
-        if (null != picButton) {
-            picButton.setVisible( ! paused );
-        }
+
+            if (null != picButton) {
+                picButton.setVisible(!menuActive);
+            }
     }
 
     @Override
@@ -287,7 +288,16 @@ public class GameUI extends InGameMenu {
 
         super.act(delta);
 
-        update(GameWorld.getInstance().getIsPaused());
+        update(GameWorld.getInstance().getIsPaused()
+                || GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState());
+
+// hackity hack  this is presently only means of generating "SELECT" event on touchscreen
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState())
+        {
+            if (null != picButton) {
+                picButton.setVisible(true);
+            }
+        }
     }
 
     @Override
