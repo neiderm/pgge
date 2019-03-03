@@ -110,7 +110,7 @@ class InputMapper /* stageWithController extends stage ? */ {
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
     private float[] axes = new float[4];
-    private boolean[] buttons = new boolean[8];
+    private boolean[] buttons = new boolean[10 + 1];
 
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
@@ -477,6 +477,9 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
+                if (buttonIndex > 10){
+                    Gdx.app.log("InputMapper", "buttonIndex > 10 (" + buttonIndex + ")" );
+                }
                 buttons[buttonIndex] = true;
                 return false;
             }

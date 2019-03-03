@@ -105,7 +105,7 @@ class GameScreen implements Screen {
     private int gameOverCountDown =  INITIAL_GAME_TIME;
     private int hitCount;
     private boolean textShow = true;
-    private String gameOverMessageString = new String();
+    private String gameOverMessageString;
 
 
     GameScreen() { // mt
@@ -321,7 +321,7 @@ class GameScreen implements Screen {
         font.setColor(cc);
         float scaleX = font.getScaleX();
         float scaleY = font.getScaleY();
-        font.getData().setScale(scaleY  * 2);
+        font.getData().setScale(scaleY  * 1.5f);
 
     }
 
@@ -548,12 +548,13 @@ So we have to pause it explicitly as it is not governed by ECS
             else
             if (textShow
                     || GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
-                s = String.format(Locale.ENGLISH, "(%d)", hitCount);
-                font.draw(batch, s, GameWorld.VIRTUAL_WIDTH / 2.0f, 0 + font.getLineHeight());
 
                 s = String.format(Locale.ENGLISH, "%2d", gameOverCountDown - ROUND_CONTINUE_WAIT_TIME);
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
+
+            s = String.format(Locale.ENGLISH, "(%d)", hitCount);
+            font.draw(batch, s, (GameWorld.VIRTUAL_WIDTH / 4.0f) * 3, 0 + font.getLineHeight());
         }
         batch.end();
 /*
