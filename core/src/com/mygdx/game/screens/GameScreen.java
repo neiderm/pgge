@@ -39,6 +39,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -96,7 +97,15 @@ class GameScreen implements Screen {
     private float colorAlpha = 0.9f;
     private Color platformColor = new Color(255, 0, 0, colorAlpha);
 
-    private int roundOverCountDown;
+    private static final int ALL_HIT_COUNT = 3;
+    private static final int ONE_SECOND = 1;
+    private static final int ROUND_COMPLETE_FADEOUT_TIME = 3;
+    private static final int ROUND_CONTINUE_WAIT_TIME = 10;
+    private static final int INITIAL_GAME_TIME = 17 + ROUND_CONTINUE_WAIT_TIME;
+    private int gameOverCountDown =  INITIAL_GAME_TIME;
+    private int hitCount;
+    private boolean textShow = true;
+    private String gameOverMessageString = new String();
 
 
     GameScreen() { // mt
@@ -104,7 +113,7 @@ class GameScreen implements Screen {
 
     private void init(){
 
-        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_IS_ACTIVE);
+        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
         GameWorld.getInstance().setIsPaused(false);
 
@@ -217,6 +226,10 @@ class GameScreen implements Screen {
          * this goofball thing exists because of dependency between game model and UI i.e. player
          * dead or whatever in the world model must signal back to UI to pause/restart whatever
          */
+        /*
+
+        THIS CXAN BE REPLADED BY TIMER!!!!!
+         */
         sc.statusUpdater = new BulletEntityStatusUpdate() {
 
             Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
@@ -225,38 +238,124 @@ class GameScreen implements Screen {
             // the reference point for determining an object has exitted the level
             float boundsDst2 = bounds.dst2(origin);
             Vector3 v = new Vector3();
+
+            private void onScreenTransition(){
+
+                textShow = false;
+                sillyFontFx(new Color(0, 0, 1, 1f));
+                Timer.schedule(gameOverTask, ROUND_CONTINUE_WAIT_TIME);
+                // start fadeout 2 seconds prior to Continue Wait Time up
+                Timer.schedule(fadeoutTask, ROUND_CONTINUE_WAIT_TIME - 2.0f, 0.1f);
+                gameOverCountDown = ROUND_CONTINUE_WAIT_TIME; // for displaying the timer countdound ...
+                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
+            }
+
             @Override
             public void update(Entity e) {
 
-                if (GameWorld.GAME_STATE_T.ROUND_IS_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()
+                        && !GameWorld.getInstance().getIsPaused()) {
 
                     v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
 
                     if (v.dst2(origin) > boundsDst2) {
-
-//                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
+                        gameOverMessageString ="Elvis is Dead! Continue?";
+                        onScreenTransition();
+                    }
+                    else
+                    if (gameOverCountDown <= ROUND_CONTINUE_WAIT_TIME) {
+                        gameOverMessageString = "Time's Up! Continue?";
+                        onScreenTransition();
                     }
                 }
             }};
 
         setupplayerUI(pickedPlayer);
+        Timer.schedule(oneSecondTask, 0, 1);
 
         multiplexer.addProcessor(playerUI);
         Gdx.input.setInputProcessor(multiplexer);
+    }
+
+    private Timer.Task fadeoutTask = new Timer.Task(){
+        @Override
+        public void run (){
+
+            if (hudOverlayColor.r > .1 )
+                hudOverlayColor.r -= .1;
+            if (hudOverlayColor.g > .1 )
+                hudOverlayColor.g -= .1;
+            if (hudOverlayColor.b > .1 )
+                hudOverlayColor.b -= .1;
+            if (hudOverlayColor.a < 1.0 )
+                hudOverlayColor.a += .1;
+        }
+    };
+
+    private Timer.Task gameOverTask = new Timer.Task(){
+        @Override
+        public void run (){
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+        }
+    };
+
+    private Timer.Task roundCompleteTask = new Timer.Task(){
+        @Override
+        public void run (){
+            /*
+            do whgatever here, set the next screen name so forth ... then from there it's the same as a Round Restart
+             */
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+        }
+    };
+
+    private Timer.Task oneSecondTask = new Timer.Task(){
+        @Override
+        public void run (){
+            gameOverCountDown -= ONE_SECOND; // fps for now
+                textShow = !textShow;
+        }
+    };
+
+    private void sillyFontFx(Color cc){
+        font.setColor(cc);
+        float scaleX = font.getScaleX();
+        float scaleY = font.getScaleY();
+        font.getData().setScale(scaleY  * 2);
+
     }
 
     /*
     game event object for signalling to pickray system
     */
     private final GameEvent gameEvent = new GameEvent() {
+
+        private void onScreenTransition(){
+
+            sillyFontFx(new Color(0, 1, 0, 1f));
+            gameOverCountDown = ROUND_COMPLETE_FADEOUT_TIME; // short delay before Next Screen
+            Timer.schedule(roundCompleteTask, ROUND_COMPLETE_FADEOUT_TIME);
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE);
+            gameOverMessageString = "Congratulations!";
+        }
+
         @Override
         public void callback(Entity picked, EventType eventType) {
             if (RAY_PICK == eventType && null != picked) {
                 ModelInstanceEx.setMaterialColor(
                         picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+
+                hitCount += 1;
+
+                if (ALL_HIT_COUNT == hitCount) {
+                    onScreenTransition();
+                } else
+                    if (hitCount < ALL_HIT_COUNT) {
+                    gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
+                }
             }
-        }};
+        }
+    };
 
     private void cameraSwitch(){
         if (cameraMan.nextOpMode())
@@ -290,8 +389,13 @@ class GameScreen implements Screen {
 the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
 So we have to pause it explicitly as it is not governed by ECS
   */
-                    vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
-                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                    GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
+// don't update controls during Continue State
+                    if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
+                            GameWorld.GAME_STATE_T.ROUND_COMPLETE == GameWorld.getInstance().getRoundActiveState() ) {
+                        vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                    }
 
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
@@ -305,7 +409,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
                         paused = true;
                     }
-                } else {
+                } else { // paused
 
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
@@ -363,7 +467,6 @@ So we have to pause it explicitly as it is not governed by ECS
              pickInterface.picked( myEntityReference );
 
 @picked: simpler type (not Entity) eg. Vector3 .... ?
-
          */
         @Override
         public void callback(Entity picked, GameEvent.EventType eventType) {
@@ -427,20 +530,33 @@ So we have to pause it explicitly as it is not governed by ECS
             platformColor.a = 0;
         }
 
-
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-        if ( GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
-            // calls new Formatter() which we dont want!
-            s = String.format(Locale.ENGLISH, "%+2d", roundOverCountDown);
+            // String.format calls new Formatter() which we dont want!
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
+///*
+            s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
             font.draw(batch, s, 10, 0 + font.getLineHeight());
-//            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-//            font.draw(batch, s, 250, 0 + font.getLineHeight());
-//            s = String.format(Locale.ENGLISH, "%+2.1f %+2.1f %+2.1f", 0f, 0f, 0f);
-//            font.draw(batch, s, 500, 0 + font.getLineHeight());
+ //*/
+
+        } else {
+
+            if (GameWorld.GAME_STATE_T.ROUND_COMPLETE == GameWorld.getInstance().getRoundActiveState()){
+                s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
+                font.draw(batch, s, 10, 0 + font.getLineHeight());
+            }
+            else
+            if (textShow
+                    || GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+                s = String.format(Locale.ENGLISH, "(%d)", hitCount);
+                font.draw(batch, s, GameWorld.VIRTUAL_WIDTH / 2.0f, 0 + font.getLineHeight());
+
+                s = String.format(Locale.ENGLISH, "%2d", gameOverCountDown - ROUND_CONTINUE_WAIT_TIME);
+                font.draw(batch, s, 10, 0 + font.getLineHeight());
+            }
         }
         batch.end();
-
+/*
         float visibleCount = renderSystem.visibleCount;
         float renderableCount = renderSystem.renderableCount;
         //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
@@ -448,13 +564,13 @@ So we have to pause it explicitly as it is not governed by ECS
         stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
         stringBuilder.append(" Visible: ").append(visibleCount);
         stringBuilder.append(" / ").append(renderableCount);
-/*
             fpsLabel.setText(stringBuilder);
 */
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
-        if (GameWorld.getInstance().getIsPaused()) {
+        if (GameWorld.getInstance().getIsPaused()
+                || GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
             // example of using ShapeRender to draw directly to screen
             //        shapeRenderer.setProjectionMatrix ????
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -469,39 +585,29 @@ So we have to pause it explicitly as it is not governed by ECS
         /* "Falling off platform" ... let a "sensor" or some suitable means to detect "fallen off platform" at which point, set gameOver.
           This way user can't pause during falling sequence. Once fallen past certain point, then allow screen switch.
          */
-        isRoundOver();
+        checkForScreenTransition();
     }
 
     /*
-     * state machine for lifecycle of a game round
+     * collect all the screen transition state management here
      */
-    private void isRoundOver() {
+    private void checkForScreenTransition() {
 
         switch (GameWorld.getInstance().getRoundActiveState()) {
 
             default:
-            case ROUND_IS_ACTIVE:
-                // reset the watchdog timer
-                roundOverCountDown = 10 * 60; // 10 sec * fps
-                break;
-
-            case ROUND_OVER_CONTINUE:
-
-                if (roundOverCountDown-- > 0) {
-
-                    // TODO: show tiime, and any input changes to RESTART
-
-                } else {
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                }
+            case ROUND_ACTIVE:
+            case ROUND_COMPLETE:
+            case ROUND_OVER_CONTINUE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
                 break;
 
             case ROUND_OVER_RESTART:
+                Timer.instance().clear();
                 GameWorld.getInstance().showScreen(new GameScreen());
                 break;
 
             case ROUND_OVER_QUIT:
-                GameWorld.getInstance().showScreen(new MainMenuScreen());
+                GameWorld.getInstance().showScreen(new SplashScreen()); // need this here so it can be triggered from in-game menu
                 break;
         }
     }
@@ -513,6 +619,8 @@ So we have to pause it explicitly as it is not governed by ECS
 
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
+
+//        font.setColor(1, 1, 1, 0.5f);
 
         float scale = Gdx.graphics.getDensity();
 

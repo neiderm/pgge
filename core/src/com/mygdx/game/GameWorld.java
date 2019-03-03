@@ -24,11 +24,12 @@ public final class GameWorld implements Disposable {
     public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight(); // tmp .. 480;
 
 
-    public enum GAME_STATE_T { // idfk ;)
-        ROUND_IS_ACTIVE,
+    public enum GAME_STATE_T {
+        ROUND_ACTIVE,
         ROUND_OVER_RESTART,
         ROUND_OVER_QUIT,
-        ROUND_OVER_CONTINUE
+        ROUND_OVER_CONTINUE,
+        ROUND_COMPLETE
     }
 
     private Game game;
