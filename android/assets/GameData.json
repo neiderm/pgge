@@ -343,6 +343,18 @@ modelGroups: {
 		modelName: scene
 		gameObjects: [
 			{
+				objectName: mushroom*
+				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
+				objectName: cube*
+				meshShape: btBoxShape
+				isKinematic: true
+				isShadowed: true
+			}
+			{
 				objectName: Wall*
 				meshShape: btBoxShape
 				isKinematic: true
@@ -370,7 +382,29 @@ modelGroups: {
 		]
 	}
 	areeners: {
+		modelName: landscape
 		gameObjects: [
+			{
+				instanceData: [
+					{
+						rotation: {
+							x: 0.17364818
+							y: 0
+							z: 0
+							w: 0.9848077
+						}
+						translation: {
+							x: 0
+							y: -10
+							z: 0
+						}
+					}
+				]
+				objectName: landscape
+				meshShape: triangleMeshShape
+				isKinematic: true
+				isShadowed: true
+			}
 		]
 	}
 }
@@ -393,8 +427,8 @@ modelInfo: {
 		fileName: tanks/offroadcar.g3db
 	}
 	scene: {
-		fileName: data/scene.g3dj
-	}
+		fileName: data/scene.g3db
+	},
 	landscape: {
 		fileName: data/landscape.g3db
 	}
