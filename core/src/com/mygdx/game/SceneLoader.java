@@ -34,13 +34,12 @@ import java.util.Random;
 
 
 /**
- * Created by mango on 12/18/17.
+ * Created by neiderm on 12/18/17.
  */
 
 public class SceneLoader implements Disposable {
 
     private GameData gameData;
-    //    private static FileHandle fileHandle = Gdx.files.local("GameData.json");
     private static boolean useTestObjects = true;
     private AssetManager assets;
 
@@ -100,7 +99,7 @@ public class SceneLoader implements Disposable {
         assets.load("tanks/panzerwagen.g3db", Model.class);
         assets.load("data/scene.g3dj", Model.class);
 */
-        int i = gameData.modelInfo.values().size();
+//        int i = gameData.modelInfo.values().size();
         for (String key : gameData.modelInfo.keySet()) {
             if (null != gameData.modelInfo.get(key).fileName) {
                 assets.load(gameData.modelInfo.get(key).fileName, Model.class);
@@ -298,32 +297,38 @@ public class SceneLoader implements Disposable {
 
     private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
 
+        Entity e;
+
         if (0 == gameObject.instanceData.size) {
             // no instance data ... default translation etc.
-
             if (gameObject.objectName.endsWith("*")) {
                 /* load all nodes from model that match /objectName.*/
                 for (Node node : model.nodes) {
-                    String gameObjectName = gameObject.objectName;
-                    String unGlobbedObjectName = gameObjectName.replaceAll("\\*$", "");
+
+                    String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
 
                     if (node.id.contains(unGlobbedObjectName)) {
-                        Entity e = buildObjectInstance(gameObject, null, model, node.id);
-                        engine.addEntity(e);
-                    }
+                        e = buildObjectInstance(gameObject, null, model, node.id);
+                        if (null != e) {
+                            engine.addEntity(e);
+                        }
+                    } // else  ?????
                 }
             } else {
-                Entity e = buildObjectInstance(gameObject, null, model, gameObject.objectName);
-                engine.addEntity(e);
+                e = buildObjectInstance(gameObject, null, model, gameObject.objectName);
+                if (null != e) {
+                    engine.addEntity(e);
+                }
             }
         } else {
             for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
 /*
 instances should be same size/scale so that we can pass one collision shape to share between them
  */
-                Entity e = buildObjectInstance(gameObject, i, model, gameObject.objectName);
-                if (null != e)
+                e = buildObjectInstance(gameObject, i, model, gameObject.objectName);
+                if (null != e) {
                     engine.addEntity(e);
+                }
             }
         }
     }
@@ -332,10 +337,7 @@ instances should be same size/scale so that we can pass one collision shape to s
     private Entity buildObjectInstance(
             GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String node) {
 
-//        Model model; // if null then get model reference from object
-
         btCollisionShape shape = null;
-//        String node = gameObject.objectName;
 
 /// BaseEntityBuilder.load ??
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
@@ -461,22 +463,21 @@ instances should be same size/scale so that we can pass one collision shape to s
 
     public void buildArena(Engine engine) {
 
-        Model model;
-        ModelInfo mi;
+        for (String key : gameData.modelGroups.keySet()) {
 
-        mi = gameData.modelInfo.get("scene");
-        if (null != mi) {
-            model = gameData.modelInfo.get("scene").model;
-            for (GameData.GameObject gameObject : gameData.modelGroups.get("scene").gameObjects) {
-                buildObject(engine, gameObject, model);
-            }
-        }
+            // todo: define a e.g. enum or flag field in the data to identify object that can be loaded in this way
+            if (key.contains("scene") || key.contains("objects")) {
 
-        mi = gameData.modelInfo.get("objects");
-        if (null != mi) {
-            model = gameData.modelInfo.get("objects").model;
-            for (GameData.GameObject gameObject : gameData.modelGroups.get("objects").gameObjects) {
-                buildObject(engine, gameObject, model);
+                ModelGroup mg = gameData.modelGroups.get(key);
+                ModelInfo mi = gameData.modelInfo.get(key);
+
+                if (null != mi && null != mg) {
+
+                    for (GameData.GameObject gameObject : mg.gameObjects) {
+
+                        buildObject(engine, gameObject, mi.model);
+                    }
+                }
             }
         }
 
