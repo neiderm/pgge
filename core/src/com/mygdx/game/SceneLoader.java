@@ -444,10 +444,11 @@ instances should be same size/scale so that we can pass one collision shape to s
         inst.transform.idt().rotate(rotation).trn(trans);
         e.add(new ModelComponent(inst));
 
-        btCollisionShape shape = new btBvhTriangleMeshShape(model.meshParts);
+//        btCollisionShape shape = new btBvhTriangleMeshShape(model.meshParts);
 
         // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
-//        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
+        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
+
         BulletComponent bc = new BulletComponent(shape, inst.transform, 0f);
         e.add(bc);
 
@@ -469,13 +470,17 @@ instances should be same size/scale so that we can pass one collision shape to s
             if (key.contains("scene") || key.contains("objects")) {
 
                 ModelGroup mg = gameData.modelGroups.get(key);
-                ModelInfo mi = gameData.modelInfo.get(key);
 
-                if (null != mi && null != mg) {
+                if (null != mg) {
 
-                    for (GameData.GameObject gameObject : mg.gameObjects) {
+                    ModelInfo mi = gameData.modelInfo.get(mg.modelName);
 
-                        buildObject(engine, gameObject, mi.model);
+                    if (null != mi) {
+
+                        for (GameData.GameObject gameObject : mg.gameObjects) {
+
+                            buildObject(engine, gameObject, mi.model);
+                        }
                     }
                 }
             }
