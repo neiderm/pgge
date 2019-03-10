@@ -294,47 +294,43 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-
+// searching the model for the given gameObject.objectName* ... so this is not efficient and would not scale well with increasing number of model nodes!
     private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
 
         Entity e;
 
-        if (0 == gameObject.instanceData.size) {
-            // no instance data ... default translation etc.
-            if (gameObject.objectName.endsWith("*")) {
-                /* load all nodes from model that match /objectName.*/
-                for (Node node : model.nodes) {
+        /* load all nodes from model that match /objectName.*/
+        for (Node node : model.nodes) {
 
-                    String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
+            String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
 
-                    if (node.id.contains(unGlobbedObjectName)) {
-                        e = buildObjectInstance(gameObject, null, model, node.id);
-                        if (null != e) {
-                            engine.addEntity(e);
-                        }
-                    } // else  ?????
-                }
-            } else {
-                e = buildObjectInstance(gameObject, null, model, gameObject.objectName);
-                if (null != e) {
-                    engine.addEntity(e);
-                }
-            }
-        } else {
-            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+            if (node.id.contains(unGlobbedObjectName)) {
+
+                GameData.GameObject.InstanceData id;
+                int n = 0;
+
+                do {
+                    id = null;
+
+                    if (gameObject.instanceData.size > 0) {
 /*
 instances should be same size/scale so that we can pass one collision shape to share between them
- */
-                e = buildObjectInstance(gameObject, i, model, gameObject.objectName);
-                if (null != e) {
-                    engine.addEntity(e);
-                }
-            }
+*/
+                        id = gameObject.instanceData.get(n++);
+                    }
+                    e = buildObjectInstance(gameObject, id, model, node.id);
+
+                    if (null != e) {
+                        engine.addEntity(e);
+                    }
+                } while (null != id && n < gameObject.instanceData.size);
+            } // else  ... bail out if matched an un-globbed name ?
         }
+        Gdx.app.log("Sceneloader", "gameObject.objectName = " + gameObject.objectName);
     }
 
     /* could end up "modelGroup.build()" */
-    private Entity buildObjectInstance(
+    private Entity buildObjectInstance (
             GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String node) {
 
         btCollisionShape shape = null;
@@ -373,7 +369,7 @@ instances should be same size/scale so that we can pass one collision shape to s
         mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
         e.add(mc);
 
-        if (gameObject.meshShape.equals("none")) {
+        if (null == gameObject.meshShape || gameObject.meshShape.equals("none")) {
             // no mesh, no bullet
         } else {
             if (gameObject.meshShape.equals("convexHullShape")) {
