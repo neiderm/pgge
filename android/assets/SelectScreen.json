@@ -3,39 +3,8 @@ modelGroups: {
 	characters: {
 		gameObjects: [
 		]
-	}
+	},
 	primitives: {
-		modelName: primitivesModel
-		gameObjects: [
-			{
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 0
-							y: 0
-							z: 0
-						}
-						color: {
-							r: 1.0
-							g: 0
-							b: 0
-							a: 1
-						}
-					}
-				]
-				objectName: skySphere
-				scale: {
-					x: 200
-					y: 200
-					z: 200
-				}
-				mass: 0.0
-				meshShape: none
-				isKinematic: false
-				isShadowed: false
-			}
-		]
 	}
 	objects: {
 	}
@@ -102,7 +71,7 @@ modelGroups: {
 		gameObjects: [
 		]
 	}
-}
+},
 modelInfo: {
 	primitives: {
 	}
