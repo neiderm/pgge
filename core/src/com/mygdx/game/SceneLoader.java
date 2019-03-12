@@ -326,7 +326,6 @@ instances should be same size/scale so that we can pass one collision shape to s
                 } while (null != id && n < gameObject.instanceData.size);
             } // else  ... bail out if matched an un-globbed name ?
         }
-        Gdx.app.log("Sceneloader", "gameObject.objectName = " + gameObject.objectName);
     }
 
     /* could end up "modelGroup.build()" */
@@ -396,6 +395,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
         }
+        Gdx.app.log("Sceneloader", "node Name = " + node);
 
         return e;
     }
@@ -463,80 +463,74 @@ instances should be same size/scale so that we can pass one collision shape to s
         for (String key : gameData.modelGroups.keySet()) {
 
             // todo: define a e.g. enum or flag field in the data to identify object that can be loaded in this way
-            if (key.contains("scene") || key.contains("objects")) {
 
-                ModelGroup mg = gameData.modelGroups.get(key);
+            ModelGroup mg = gameData.modelGroups.get(key);
 
-                if (null != mg) {
+            if (null != mg) {
 
-                    ModelInfo mi = gameData.modelInfo.get(mg.modelName);
+                ModelInfo mi = gameData.modelInfo.get(mg.modelName);
+
+                for (GameData.GameObject gameObject : mg.gameObjects) {
 
                     if (null != mi) {
 
-                        for (GameData.GameObject gameObject : mg.gameObjects) {
+                        if (key.contains("areeners")) {
+                            /*
+                             * refer to buildTank: entire model is taken and bullet shape applied to whole model.
+                             * so each model is a chunk of or possibly even the entire arena .
+                             * Allowing them to be instanced and offset/rotated as can be done with "ordinary" objects.
+                             */
+                            if (0 == gameObject.instanceData.size) {
+                                // no instance data ... default translation etc.
+                            } else
+                                {
+                                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+
+                                    Entity e = objectFromMeshParts(
+                                            gameData.modelInfo.get(gameObject.objectName).model, i.translation, i.rotation);
+                                    engine.addEntity(e);
+                                }
+                            }
+
+                        } else /*if (key.contains("scene") || key.contains("objects"))*/ {
 
                             buildObject(engine, gameObject, mi.model);
                         }
+
+                    } else /* (key.contains("primitives"))*/ {
+
+                        buildPrimitiveObject(engine, gameObject);
                     }
                 }
             }
         }
+    }
 
-        /*
-         * refer to buildTank: entire model is taken and bullet shape applied to whole model.
-         * so each model is a chunk of or possibly even the entire arena .
-         * Allowing them to be instanced and offset/rotated as can be done with "ordinary" objects.
-         */
-        for (GameData.GameObject gameObject : gameData.modelGroups.get("areeners").gameObjects) {
-            Entity e;
-
-            if (0 == gameObject.instanceData.size) {
-                // no instance data ... default translation etc.
-            } else {
-                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-
-                    e = objectFromMeshParts(
-                            gameData.modelInfo.get(gameObject.objectName).model, i.translation, i.rotation);
-                    engine.addEntity(e);
-                }
-            }
+    private void buildPrimitiveObject(Engine engine, GameData.GameObject o)
+    {
+        PrimitivesBuilder pb = null;
+        if (o.objectName.contains("box")) {
+// bulletshape given in file but get box builder is tied to it already
+            pb = PrimitivesBuilder.getBoxBuilder(o.objectName); // this constructor could use a size param ?
+        }
+        if (o.objectName.contains("sphere")) {
+// bulletshape given in file but get Sphere builder is tied to it already
+            pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
+        }
+        if (o.objectName.contains("cylinder")) {
+            pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
         }
 
-        ModelGroup mmm = gameData.modelGroups.get("primitives");
-        for (GameData.GameObject o : mmm.gameObjects) {
-
-            PrimitivesBuilder pb = null;
-            if (o.objectName.contains("box")) {
-// bulletshape given in file but get box builder is tied to it already
-                pb = PrimitivesBuilder.getBoxBuilder(o.objectName); // this constructor could use a size param ?
-            }
-            if (o.objectName.contains("sphere")) {
-// bulletshape given in file but get Sphere builder is tied to it already
-                pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
-            }
-            if (o.objectName.contains("cylinder")) {
-                pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
-            }
-
-            if (null != pb) {
-                Vector3 scale = o.scale;
-//                if (null == scale) scale = new Vector3(1, 1,1);
-                for (GameData.GameObject.InstanceData i : o.instanceData) {
-                    Entity e = pb.create(o.mass, i.translation, scale);
-                    if (null != i.color)
-                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
-                    engine.addEntity(e);
-                }
-                // hmmm .. here is for the skybox - generalize it? (anything else, load it this way?)
-            } else // if (o.objectName.equals("skySphere"))
-            {
-                // hack this is here only to get the model name
-                buildObject(engine, o, PrimitivesBuilder.primitivesModel);
+        if (null != pb) {
+            Vector3 scale = o.scale;
+            for (GameData.GameObject.InstanceData i : o.instanceData) {
+                Entity e = pb.create(o.mass, i.translation, scale);
+                if (null != i.color)
+                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
+                engine.addEntity(e);
             }
         }
     }
-
-
     @Override
     public void dispose() {
 
