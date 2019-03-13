@@ -15,7 +15,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
-import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -278,15 +277,14 @@ public class SceneLoader implements Disposable {
 
                 e = new Entity();
 
-                // leave translation null if using translation from the file layout ??
-                ModelInstance inst = new ModelInstance(model);
-// can be loaded this way but the tank can't ;(
-                //        ModelInstance inst = ModelInstanceEx.getModelInstance(model, "ship");
+                // special sauce to hand off the model node
+                ModelInstance inst =  ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
                 inst.transform.trn(i.translation);
                 e.add(new ModelComponent(inst));
 
                 if (useBulletComp) {
                     btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
+//                    btCollisionShape shape = MeshHelper.createConvexHullShape( model, inst, null, true);
                     e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
                 }
             }
@@ -294,8 +292,12 @@ public class SceneLoader implements Disposable {
         return e;
     }
 
-// searching the model for the given gameObject.objectName* ... so this is not efficient and would not scale well with increasing number of model nodes!
-    private void buildObject(Engine engine, GameData.GameObject gameObject, Model model) {
+ /*
+  * searching the model for the given gameObject.objectName* ... so this is not efficient and would not scale well with increasing number of model nodes!
+  *
+  * @return: gameObject?
+  */
+    private void loadModelNodes(Engine engine, GameData.GameObject gameObject, Model model) {
 
         Entity e;
 
@@ -328,14 +330,14 @@ instances should be same size/scale so that we can pass one collision shape to s
         }
     }
 
-    /* could end up "modelGroup.build()" */
+    /* could end up "gameObject.build()" ?? */
     private Entity buildObjectInstance (
-            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String node) {
+            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String nodeID) {
 
         btCollisionShape shape = null;
 
 /// BaseEntityBuilder.load ??
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, node);
+        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
         if (null == instance)
             return null;
 
@@ -372,10 +374,13 @@ instances should be same size/scale so that we can pass one collision shape to s
             // no mesh, no bullet
         } else {
             if (gameObject.meshShape.equals("convexHullShape")) {
-                shape = MeshHelper.createConvexHullShape(instance.getNode(node));
+
+                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
+//                shape = MeshHelper.createConvexHullShape( model, instance, nodeID, true);
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+
             } else if (gameObject.meshShape.equals("triangleMeshShape")) {
-                shape = Bullet.obtainStaticNodeShape(instance.getNode(node), false);
+                shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
             } else if (gameObject.meshShape.equals("btBoxShape")) {
                 BoundingBox boundingBox = new BoundingBox();
                 Vector3 dimensions = new Vector3();
@@ -395,7 +400,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
         }
-        Gdx.app.log("Sceneloader", "node Name = " + node);
+        Gdx.app.log("Sceneloader", "node Name = " + nodeID);
 
         return e;
     }
@@ -409,6 +414,7 @@ instances should be same size/scale so that we can pass one collision shape to s
     public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject, boolean useBulletComp) {
 
         String tmpName;
+
         if (null != groupName)
             tmpName = groupName;
         else
@@ -416,7 +422,10 @@ instances should be same size/scale so that we can pass one collision shape to s
 
         for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
 
-            Entity e = buildTank(gameObject, useBulletComp);
+            Model model = gameData.modelInfo.get(gameObject.objectName).model;
+            Entity e;
+            e = buildTank(gameObject, useBulletComp);
+//            e = buildObjectInstance( gameObject, gameObject.instanceData.get(0), model, model.nodes.get(0).id);
 
             if (null != characters) {
                 characters.add(e);
@@ -428,41 +437,9 @@ instances should be same size/scale so that we can pass one collision shape to s
         }
     }
 
-
-    /* normally loading entire model.meshparts and tying together w/ single triangle mesh shape
-     but trans and rotation are provided for models that I don't have object to modify or if
-     instances are used (don't anticipate instances being typical on this one)
-     */
-    private Entity objectFromMeshParts(Model model, Vector3 trans, Quaternion rotation) {
-
-        Entity e = new Entity();
-        ModelInstance inst = new ModelInstance(model);
-        inst.transform.idt().rotate(rotation).trn(trans);
-        e.add(new ModelComponent(inst));
-
-//        btCollisionShape shape = new btBvhTriangleMeshShape(model.meshParts);
-
-        // obtainStaticNodeShape works for terrain mesh - selects a triangleMeshShape  - but is overkill. anything else
-        btCollisionShape shape = Bullet.obtainStaticNodeShape(model.nodes);
-
-        BulletComponent bc = new BulletComponent(shape, inst.transform, 0f);
-        e.add(bc);
-
-        // special sauce here for static entity
-// set these flags in bullet comp?
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-
-        return e;
-    }
-
-
     public void buildArena(Engine engine) {
 
         for (String key : gameData.modelGroups.keySet()) {
-
-            // todo: define a e.g. enum or flag field in the data to identify object that can be loaded in this way
 
             ModelGroup mg = gameData.modelGroups.get(key);
 
@@ -473,33 +450,19 @@ instances should be same size/scale so that we can pass one collision shape to s
                 for (GameData.GameObject gameObject : mg.gameObjects) {
 
                     if (null != mi) {
+                        loadModelNodes(engine, gameObject, mi.model);
+                    } else {
+                        // look for a model file  named as the object
+                        ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
-                        if (key.contains("areeners")) {
-                            /*
-                             * refer to buildTank: entire model is taken and bullet shape applied to whole model.
-                             * so each model is a chunk of or possibly even the entire arena .
-                             * Allowing them to be instanced and offset/rotated as can be done with "ordinary" objects.
-                             */
-                            if (0 == gameObject.instanceData.size) {
-                                // no instance data ... default translation etc.
-                            } else
-                                {
-                                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-
-                                    Entity e = objectFromMeshParts(
-                                            gameData.modelInfo.get(gameObject.objectName).model, i.translation, i.rotation);
-                                    engine.addEntity(e);
-                                }
-                            }
-
-                        } else /*if (key.contains("scene") || key.contains("objects"))*/ {
-
-                            buildObject(engine, gameObject, mi.model);
+                        if (null == mdlinfo)
+                        {
+                            buildPrimitiveObject(engine, gameObject);
                         }
-
-                    } else /* (key.contains("primitives"))*/ {
-
-                        buildPrimitiveObject(engine, gameObject);
+                        else {
+//                            Model model = gameData.modelInfo.get(gameObject.objectName).model;
+                            Gdx.app.log("SceneLoader", "gameObject.objectName = " + gameObject.objectName);
+                        }
                     }
                 }
             }
@@ -509,15 +472,16 @@ instances should be same size/scale so that we can pass one collision shape to s
     private void buildPrimitiveObject(Engine engine, GameData.GameObject o)
     {
         PrimitivesBuilder pb = null;
+
         if (o.objectName.contains("box")) {
 // bulletshape given in file but get box builder is tied to it already
             pb = PrimitivesBuilder.getBoxBuilder(o.objectName); // this constructor could use a size param ?
         }
-        if (o.objectName.contains("sphere")) {
+        else if (o.objectName.contains("sphere")) {
 // bulletshape given in file but get Sphere builder is tied to it already
             pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
         }
-        if (o.objectName.contains("cylinder")) {
+        else if (o.objectName.contains("cylinder")) {
             pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
         }
 
