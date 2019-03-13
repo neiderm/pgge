@@ -316,7 +316,7 @@ modelGroups: {
 		gameObjects: [
 			{
 				objectName: mushroom*
-				meshShape: btBoxShape
+				meshShape: convexHullShape
 				isKinematic: true
 				isShadowed: true
 			}
@@ -353,7 +353,7 @@ modelGroups: {
 			}
 		]
 	}
-	areeners: {
+	misc: {
 		modelName: landscape
 		gameObjects: [
 			{
