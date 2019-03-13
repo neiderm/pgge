@@ -2,6 +2,7 @@ package com.mygdx.game.util;
 
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
@@ -12,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 /**
- * Created by mango on 3/24/18.
+ * Created by neiderm on 3/24/18.
  */
 
 public class MeshHelper /* extends btConvexHullShape */ {
@@ -43,7 +44,7 @@ public class MeshHelper /* extends btConvexHullShape */ {
     /*
      * going off script ... found no other way to properly get the vertices from an "indexed" object
      */
-    public static float[] getVertices(MeshPart meshPart) {
+    static float[] getVertices(MeshPart meshPart) {
 
         int numMeshVertices = meshPart.mesh.getNumVertices();
         int numPartIndices = meshPart.size;
@@ -87,5 +88,27 @@ public class MeshHelper /* extends btConvexHullShape */ {
 
         return MeshHelper.createConvexHullShape(
                 mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), optimize);
+    }
+
+
+    public static btConvexHullShape createConvexHullShape(
+            Model model, // kind of redundant to bring in instance
+            ModelInstance instance, String nodeID, boolean optimize) {
+
+        btConvexHullShape shape = null;
+        MeshPart meshPart = null;
+
+        if (null != nodeID) {
+            Node node = instance.getNode(nodeID);
+            meshPart = node.parts.get(0).meshPart;
+        }
+        if (null != meshPart) {
+            shape = createConvexHullShape(instance.getNode(nodeID)); // optimize=true
+        }
+        else {
+            shape = MeshHelper.createConvexHullShape(model, optimize);
+        }
+
+        return shape;
     }
 }
