@@ -32,13 +32,14 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
  * Created by mango on 12/18/17.
  */
 
-public class PrimitivesBuilder extends BulletEntityBuilder /* implements Disposable */ {
+public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposable */ {
 
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
     protected static final float DIM_UNIT = 1.0f;
     protected static final float DIM_HE = 1f / 2f; // primitives half extent constant
     protected static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
+    protected Model model;
 
 //    public static final PrimitivesModel instance = new PrimitivesModel();
 
@@ -93,33 +94,6 @@ public class PrimitivesBuilder extends BulletEntityBuilder /* implements Disposa
         new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
         primitivesModel = mb.end();
     }
-
-
-    public static Entity loadSphere(float r, Vector3 pos) {
-        return BaseEntityBuilder.load(
-                primitivesModel, "sphere", new Vector3(r, r, r), pos);
-    }
-/*
-    public static Entity loadCone(float mass, Vector3 trans, Vector3 size) {
-        return getConeBuilder().create(mass, trans, size);
-    }
-
-    public static Entity loadCapsule(float mass, Vector3 trans, Vector3 size) {
-        return getCapsuleBuilder().create(mass, trans, size);
-    }
-
-    public static Entity loadCylinder(float mass, Vector3 trans, Vector3 size) {
-        return getCylinderBuilder().create(mass, trans, size);
-    }
-
-    public static Entity loadBox(float mass, Vector3 trans, Vector3 size) {
-        return getBoxBuilder().create(mass, trans, size);
-    }
-
-    public static Entity loadSphere(float mass, Vector3 trans, float r) {
-        return getSphereBuilder().create(mass, trans, new Vector3(r, r, r));
-    }
-*/
 
     /*
     Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh.
