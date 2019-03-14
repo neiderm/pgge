@@ -17,15 +17,6 @@ modelGroups: {
 							z: -5
 						}
 					}
-				]
-			}
-			{
-				objectName: ship
-				mass: 5.1
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-				instanceData: [
 					{
 						rotation: {}
 						translation: {
@@ -34,15 +25,6 @@ modelGroups: {
 							z: -5
 						}
 					}
-				]
-			}
-			{
-				objectName: ship
-				mass: 5.1
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-				instanceData: [
 					{
 						rotation: {}
 						translation: {

@@ -178,7 +178,7 @@ public class SceneLoader implements Disposable {
             Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
             float mass;
             String meshShape; // triangleMeshShape, convexHullShape
-            boolean isKinematic;
+            boolean isKinematic;  // TODO: change "isStatic"
             boolean isShadowed;
         }
     }
@@ -252,7 +252,6 @@ public class SceneLoader implements Disposable {
             }
         }
 
-
         Vector3 t = new Vector3(-10, +15f, -15f);
         Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
         if (useTestObjects) {
@@ -262,34 +261,6 @@ public class SceneLoader implements Disposable {
             addPickObject(engine, PrimitivesBuilder.getCylinderBuilder().create(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.getBoxBuilder().create(5f, t, s));
         }
-    }
-
-
-    private Entity buildTank(GameData.GameObject gameObject, boolean useBulletComp) {
-
-        Entity e = null;
-        Model model = gameData.modelInfo.get(gameObject.objectName).model;
-
-        if (0 == gameObject.instanceData.size) {
-            // no instance data ... default translation etc.
-        } else {
-            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
-
-                e = new Entity();
-
-                // special sauce to hand off the model node
-                ModelInstance inst =  ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-                inst.transform.trn(i.translation);
-                e.add(new ModelComponent(inst));
-
-                if (useBulletComp) {
-                    btCollisionShape shape = MeshHelper.createConvexHullShape(model, true);
-//                    btCollisionShape shape = MeshHelper.createConvexHullShape( model, inst, null, true);
-                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-                }
-            }
-        }
-        return e;
     }
 
  /*
@@ -375,8 +346,9 @@ instances should be same size/scale so that we can pass one collision shape to s
         } else {
             if (gameObject.meshShape.equals("convexHullShape")) {
 
-                shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
-//                shape = MeshHelper.createConvexHullShape( model, instance, nodeID, true);
+                Node node = instance.getNode(nodeID);
+                shape = MeshHelper.createConvexHullShape( node );
+
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
 
             } else if (gameObject.meshShape.equals("triangleMeshShape")) {
@@ -424,15 +396,28 @@ instances should be same size/scale so that we can pass one collision shape to s
 
             Model model = gameData.modelInfo.get(gameObject.objectName).model;
             Entity e;
-            e = buildTank(gameObject, useBulletComp);
-//            e = buildObjectInstance( gameObject, gameObject.instanceData.get(0), model, model.nodes.get(0).id);
 
-            if (null != characters) {
-                characters.add(e);
-            }
+            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
 
-            if (addPickObject) {
-                addPickObject(engine, e, gameObject.objectName);
+                e = new Entity();
+
+                // special sauce to hand off the model node
+                ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
+                inst.transform.trn(i.translation);
+                e.add(new ModelComponent(inst));
+
+                if (useBulletComp) {
+                    btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                }
+
+                if (null != characters) {
+                    characters.add(e);
+                }
+
+                if (addPickObject) {
+                    addPickObject(engine, e, gameObject.objectName);
+                }
             }
         }
     }
@@ -526,14 +511,13 @@ instances should be same size/scale so that we can pass one collision shape to s
         saveData(cpGameData);
     }
 
-    private static Entity addPickObject(Engine engine, Entity e) {
-        return addPickObject(engine, e, null);
+    private static void addPickObject(Engine engine, Entity e) {
+        addPickObject(engine, e, null);
     }
 
-    private static Entity addPickObject(Engine engine, Entity e, String objectName) {
+    private static void addPickObject(Engine engine, Entity e, String objectName) {
 
         e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
         engine.addEntity(e);
-        return e; // for method call chaining
     }
 }
