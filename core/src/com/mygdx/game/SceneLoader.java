@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mygdx.game;
 
 import com.badlogic.ashley.core.Engine;
@@ -260,6 +276,7 @@ public class SceneLoader implements Disposable {
             addPickObject(engine, PrimitivesBuilder.getCapsuleBuilder().create(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.getCylinderBuilder().create(5f, t, s));
             addPickObject(engine, PrimitivesBuilder.getBoxBuilder().create(5f, t, s));
+            addPickObject(engine, PrimitivesBuilder.getSphereBuilder().create(5f, t, new Vector3(3, 3, 3)));
         }
     }
 
@@ -392,31 +409,35 @@ instances should be same size/scale so that we can pass one collision shape to s
         else
             tmpName = "tanks";
 
-        for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
+        ModelGroup mg = gameData.modelGroups.get(tmpName);
 
-            Model model = gameData.modelInfo.get(gameObject.objectName).model;
-            Entity e;
+        if (null != mg) {
+            for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
 
-            for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+                Model model = gameData.modelInfo.get(gameObject.objectName).model;
+                Entity e;
 
-                e = new Entity();
+                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
 
-                // special sauce to hand off the model node
-                ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-                inst.transform.trn(i.translation);
-                e.add(new ModelComponent(inst));
+                    e = new Entity();
 
-                if (useBulletComp) {
-                    btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-                }
+                    // special sauce to hand off the model node
+                    ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
+                    inst.transform.trn(i.translation);
+                    e.add(new ModelComponent(inst));
 
-                if (null != characters) {
-                    characters.add(e);
-                }
+                    if (useBulletComp) {
+                        btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+                        e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                    }
 
-                if (addPickObject) {
-                    addPickObject(engine, e, gameObject.objectName);
+                    if (null != characters) {
+                        characters.add(e);
+                    }
+
+                    if (addPickObject) {
+                        addPickObject(engine, e, gameObject.objectName);
+                    }
                 }
             }
         }
