@@ -74,7 +74,6 @@ class InGameMenu extends Stage {
             float scale = Gdx.graphics.getDensity();
 
             if (scale > 1) {
-//                if (null != asdf)
                     bf.getData().setScale(scale);
             }
         }
@@ -116,7 +115,6 @@ class InGameMenu extends Stage {
             TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
             ImageButton nextButton = new ImageButton(myTexRegionDrawable);
-            nextButton.setPosition(3 * Gdx.graphics.getWidth() / 4f, Gdx.graphics.getHeight() / 9f);
             nextButton.addListener(new InputListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
