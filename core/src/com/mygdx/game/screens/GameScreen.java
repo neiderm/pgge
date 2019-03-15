@@ -101,7 +101,7 @@ class GameScreen implements Screen {
     private static final int ONE_SECOND = 1;
     private static final int ROUND_COMPLETE_FADEOUT_TIME = 3;
     private static final int ROUND_CONTINUE_WAIT_TIME = 10;
-    private static final int INITIAL_GAME_TIME = 17 + ROUND_CONTINUE_WAIT_TIME;
+    private static final int INITIAL_GAME_TIME = 30 + ROUND_CONTINUE_WAIT_TIME;
     private int gameOverCountDown =  INITIAL_GAME_TIME;
     private int hitCount;
     private boolean textShow = true;
@@ -302,10 +302,8 @@ class GameScreen implements Screen {
     private Timer.Task roundCompleteTask = new Timer.Task(){
         @Override
         public void run (){
-            /*
-            do whgatever here, set the next screen name so forth ... then from there it's the same as a Round Restart
-             */
-            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
         }
     };
 
@@ -335,7 +333,7 @@ class GameScreen implements Screen {
             sillyFontFx(new Color(0, 1, 0, 1f));
             gameOverCountDown = ROUND_COMPLETE_FADEOUT_TIME; // short delay before Next Screen
             Timer.schedule(roundCompleteTask, ROUND_COMPLETE_FADEOUT_TIME);
-            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE);
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
             gameOverMessageString = "Congratulations!";
         }
 
@@ -392,7 +390,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
 // don't update controls during Continue State
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
-                            GameWorld.GAME_STATE_T.ROUND_COMPLETE == GameWorld.getInstance().getRoundActiveState() ) {
+                            GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState() ) {
                         vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
@@ -541,7 +539,7 @@ So we have to pause it explicitly as it is not governed by ECS
 
         } else {
 
-            if (GameWorld.GAME_STATE_T.ROUND_COMPLETE == GameWorld.getInstance().getRoundActiveState()){
+            if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()){
                 s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
@@ -598,17 +596,21 @@ So we have to pause it explicitly as it is not governed by ECS
 
             default:
             case ROUND_ACTIVE:
-            case ROUND_COMPLETE:
+            case ROUND_COMPLETE_WAIT:
             case ROUND_OVER_CONTINUE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
                 break;
 
             case ROUND_OVER_RESTART:
                 Timer.instance().clear();
-                GameWorld.getInstance().showScreen(new GameScreen());
+                GameWorld.getInstance().showScreen(new GameScreen()); // TODO: init()? onPLayer()?
+                break;
+
+            case ROUND_COMPLETE_NEXT:
+                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
                 break;
 
             case ROUND_OVER_QUIT:
-                GameWorld.getInstance().showScreen(new SplashScreen()); // need this here so it can be triggered from in-game menu
+                GameWorld.getInstance().showScreen(new SplashScreen());
                 break;
         }
     }
@@ -652,6 +654,15 @@ So we have to pause it explicitly as it is not governed by ECS
         playerUI.dispose();
 
         font.dispose();
+
+        // TODO: screens that load assets must calls assetLoader.dispose() !
+// this is not going to work on a Restart tho since right now that will destroy and reinstantiate GameScreen class :(
+        /*
+        if (null != GameWorld.sceneLoader) {
+            GameWorld.sceneLoader.dispose();
+            GameWorld.sceneLoader = null;
+        }
+        */
     }
 
     /*
