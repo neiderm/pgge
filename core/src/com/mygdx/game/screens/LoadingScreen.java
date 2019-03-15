@@ -46,6 +46,7 @@ public class LoadingScreen implements Screen {
     private boolean isLoaded;
     private boolean shouldPause = true;
     private ScreenTypes screenType = LEVEL;
+    private String path;
     private InputMapper mapper;
 
 
@@ -61,6 +62,12 @@ public class LoadingScreen implements Screen {
     }
 
     LoadingScreen(String path) {
+
+        this.path = path;
+    }
+
+    @Override
+    public void show() {
 
         batch = new SpriteBatch();
         ttrSplash = new Texture("data/crate.png");
@@ -78,7 +85,7 @@ public class LoadingScreen implements Screen {
             GameWorld.sceneLoader = null;
         }
 
-        GameWorld.sceneLoader = new SceneLoader(path);  // bah
+        GameWorld.sceneLoader = new SceneLoader(this.path);
 
         mapper = new InputMapper();
     }
@@ -143,7 +150,7 @@ public class LoadingScreen implements Screen {
             stringBuilder.append("Ready!");
 
             // simple polling for a tap on the touch screen
-            if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true) ||  !shouldPause) {
+            if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true) || !shouldPause) {
 
                 loadNewScreen();
             }
@@ -166,10 +173,6 @@ public class LoadingScreen implements Screen {
     }
 
     @Override
-    public void show() {        // mt
-    }
-
-    @Override
     public void resize(int width, int height) {        // mt
     }
 
@@ -179,6 +182,5 @@ public class LoadingScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         font.dispose();
-//        sceneLoader.dispose();   //  no  dont be silly ...
     }
 }
