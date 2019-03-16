@@ -37,6 +37,7 @@ import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.utils.JsonWriter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -92,7 +93,6 @@ public class SceneLoader implements Disposable {
         primitivesGroup.gameObjects.add(object);
         gameData.modelGroups.put("primitives", primitivesGroup);
 
-
         gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
         gameData.modelInfo.put("landscape", new ModelInfo("landscape", "data/landscape.g3db"));
         gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
@@ -121,7 +121,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-//        saveData();
+        saveData(gameData);
     }
 
     public AssetManager getAssets() {
@@ -215,8 +215,9 @@ public class SceneLoader implements Disposable {
 
     private void saveData(GameData data) {
         Json json = new Json();
+        json.setOutputType(JsonWriter.OutputType.json); // see "https://github.com/libgdx/libgdx/wiki/Reading-and-writing-JSON"
         FileHandle fileHandle = Gdx.files.local("GameData_out.json");
-        if (gameData != null) {
+        if (data != null) {
 //            fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
             fileHandle.writeString(json.prettyPrint(data), false);
             //System.out.println(json.prettyPrint(gameData));
@@ -529,7 +530,7 @@ instances should be same size/scale so that we can pass one collision shape to s
             cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
 
         }
-        saveData(cpGameData);
+//        saveData(cpGameData);
     }
 
     private static void addPickObject(Engine engine, Entity e) {

@@ -1,91 +1,75 @@
 {
-modelGroups: {
-	characters: {
-		gameObjects: [
+"modelGroups": {
+	"characters": {},
+	"primitives": {},
+	"objects": {},
+	"tanks": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": 1,
+							"y": 11,
+							"z": -6
+						}
+					}
+				],
+				"objectName": "offroadcar",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -1,
+							"y": 11,
+							"z": -6
+						}
+					}
+				],
+				"objectName": "militaryvan",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"y": 11,
+							"z": -4
+						}
+					}
+				],
+				"objectName": "tank",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isShadowed": true
+			}
 		]
 	},
-	primitives: {
-	}
-	objects: {
-	}
-	tanks: {
-		gameObjects: [
-			{
-				objectName: offroadcar
-				mass: 5.1
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 1
-							y: 11
-							z: -6
-						}
-					}
-				]
-			}
-			{
-				objectName: militaryvan
-				mass: 5.1
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: -1
-							y: 11
-							z: -6
-						}
-					}
-				]
-			}
-			{
-				objectName: tank
-				mass: 5.1
-				meshShape: convexHullShape
-				isKinematic: false
-				isShadowed: true
-				instanceData: [
-					{
-						rotation: {}
-						translation: {
-							x: 0
-							y: 11
-							z: -4
-						}
-					}
-				]
-			}
-		]
-	}
-	scene: {
-		gameObjects: [
-		]
-	}
-	areeners: {
-		gameObjects: [
-		]
-	}
+	"areeners": {},
+	"scene": {}
 },
-modelInfo: {
-	primitives: {
+"modelInfo": {
+	"primitives": {},
+	"militaryvan": {
+		"fileName": "tanks/militaryvan.g3db"
+	},
+	"ship": {
+		"fileName": "tanks/ship.g3db"
+	},
+	"tank": {
+		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"offroadcar": {
+		"fileName": "tanks/offroadcar.g3db"
 	}
-	militaryvan: {
-		fileName: tanks/militaryvan.g3db
-	}	
-	ship: {
-		fileName: tanks/ship.g3db
-	}
-	tank: {
-		fileName: tanks/panzerwagen.g3db
-	}
-	offroadcar: {
-		fileName: tanks/offroadcar.g3db
-	}	
 }
 }
