@@ -108,8 +108,9 @@ public class MainMenuScreen implements Screen {
 
         stage.addNextButton();
 
+
         // in case INP SELECT got us here, then debounce it
-        stage.mapper.checkInputState(InputMapper.InputState.INP_SELECT);
+//        stage.mapper.checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
     @Override

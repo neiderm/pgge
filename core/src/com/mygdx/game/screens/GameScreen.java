@@ -87,22 +87,23 @@ class GameScreen implements Screen {
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private GameUI playerUI;
-    private InputMultiplexer multiplexer = new InputMultiplexer();
+    private InputMultiplexer multiplexer;
     private StringBuilder stringBuilder = new StringBuilder();
     private Signal<GameEvent> gameEventSignal = new Signal<GameEvent>();
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
     private Entity platformEntity;
-    private float colorAlpha = 0.9f;
-    private Color platformColor = new Color(255, 0, 0, colorAlpha);
+    private final float colorAlpha = 0.9f;
+    private Color platformColor;
 
     private static final int ALL_HIT_COUNT = 3;
     private static final int ONE_SECOND = 1;
     private static final int ROUND_COMPLETE_FADEOUT_TIME = 3;
     private static final int ROUND_CONTINUE_WAIT_TIME = 10;
     private static final int INITIAL_GAME_TIME = 30 + ROUND_CONTINUE_WAIT_TIME;
-    private int gameOverCountDown =  INITIAL_GAME_TIME;
+
+    private int gameOverCountDown;
     private int hitCount;
     private boolean textShow = true;
     private String gameOverMessageString;
@@ -111,7 +112,24 @@ class GameScreen implements Screen {
     GameScreen() { // mt
     }
 
-    private void init(){
+    private void screenInit(){
+
+        platformColor = new Color(255, 0, 0, colorAlpha);
+
+        multiplexer = new InputMultiplexer(); // make sure get a new one since there will be a new Stage instance ;)
+
+        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
+                Gdx.files.internal("data/font.png"), false);
+
+//        font.setColor(1, 1, 1, 0.5f);
+
+        float fontGetDensity = Gdx.graphics.getDensity();
+
+        if (fontGetDensity > 1)
+            font.getData().setScale(fontGetDensity);
+
+        hitCount = 0;
+        gameOverCountDown =  INITIAL_GAME_TIME;
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
@@ -166,13 +184,15 @@ class GameScreen implements Screen {
                 platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         engine.addEntity(platformEntity);
 
-        GameWorld.sceneLoader.buildArena(engine);
 
         onPlayerPicked();
     }
 
-
+    // this is kind of an arbitrary
     private void onPlayerPicked() {
+
+        GameWorld.sceneLoader.buildArena(engine);
+
 
         GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
 
@@ -601,8 +621,8 @@ So we have to pause it explicitly as it is not governed by ECS
                 break;
 
             case ROUND_OVER_RESTART:
-                Timer.instance().clear();
-                GameWorld.getInstance().showScreen(new GameScreen()); // TODO: init()? onPLayer()?
+                screenTeardown();
+                screenInit();
                 break;
 
             case ROUND_COMPLETE_NEXT:
@@ -618,17 +638,7 @@ So we have to pause it explicitly as it is not governed by ECS
     @Override
     public void show() {
 
-        init();
-
-        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-
-//        font.setColor(1, 1, 1, 0.5f);
-
-        float scale = Gdx.graphics.getDensity();
-
-        if (scale > 1)
-            font.getData().setScale(scale);
+        screenInit();
     }
 
     @Override
@@ -641,28 +651,38 @@ So we have to pause it explicitly as it is not governed by ECS
         //        stage.getViewport().update(width, height, true);
     }
 
-    @Override
-    public void dispose() {
+    /*
+     * because some stuff but not all stuff done every screen (re)start
+     */
+    private void screenTeardown(){
+
+        Gdx.app.log("GameScreen", "screenTearDown");
+
+        Timer.instance().clear();
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         BulletWorld.getInstance().dispose();
-        batch.dispose();
-        shapeRenderer.dispose();
         playerUI.dispose();
 
-        font.dispose();
+        font.dispose(); // only instantiated on show()  for some reaseon
+    }
+
+    @Override
+    public void dispose() {
+
+        screenTeardown();
+
+        batch.dispose();
+        shapeRenderer.dispose();
 
         // TODO: screens that load assets must calls assetLoader.dispose() !
-// this is not going to work on a Restart tho since right now that will destroy and reinstantiate GameScreen class :(
-        /*
         if (null != GameWorld.sceneLoader) {
             GameWorld.sceneLoader.dispose();
             GameWorld.sceneLoader = null;
         }
-        */
     }
 
     /*

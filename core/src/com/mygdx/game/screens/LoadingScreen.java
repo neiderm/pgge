@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
 
@@ -79,10 +80,8 @@ public class LoadingScreen implements Screen {
 
         isLoaded = false;
 
-        // hmm yep hackish awright
         if (null != GameWorld.sceneLoader) {
-            GameWorld.sceneLoader.dispose();
-            GameWorld.sceneLoader = null;
+            throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
         }
 
         GameWorld.sceneLoader = new SceneLoader(this.path);

@@ -349,14 +349,12 @@ class SelectScreen implements Screen {
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
-            GameWorld.getInstance().showScreen(new MainMenuScreen());     // presently I'm not sure what should go here
+            GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json")); // LevelOne.json
 
         } else if (InputMapper.InputState.INP_SELECT == inputState) {
 
-//             v2 = mapper.getPointer();
-
             GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
-            GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json"));
+            GameWorld.getInstance().showScreen(new LoadingScreen("vr_zone.json")); // LevelOne.json
         }
     }
 
@@ -379,6 +377,12 @@ class SelectScreen implements Screen {
         font.dispose();
         shapeRenderer.dispose();
         stage.dispose();
+
+// TODO: screens that load assets must calls assetLoader.dispose() !
+        if (null != GameWorld.sceneLoader) {
+        GameWorld.sceneLoader.dispose();
+            GameWorld.sceneLoader = null;
+        }
     }
 
     /*
