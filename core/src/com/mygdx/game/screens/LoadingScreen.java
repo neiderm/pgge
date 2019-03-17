@@ -24,7 +24,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
 
@@ -50,6 +49,10 @@ public class LoadingScreen implements Screen {
     private String path;
     private InputMapper mapper;
 
+    private ScreenAvecAssets newScreen;
+
+    private SceneLoader screenData;
+
 
     public enum ScreenTypes {
         SETUP,
@@ -70,6 +73,21 @@ public class LoadingScreen implements Screen {
     @Override
     public void show() {
 
+        // instancing asset Loader class kicks off asynchronous asset loading which we need to start
+        // right now obviously. Then the asset loader instance must be passed off to the Screen to use and dispose.
+        screenData = new SceneLoader(this.path);
+
+        switch (screenType) {
+            default:
+            case LEVEL:
+                newScreen  = new GameScreen(screenData);
+                break;
+            case SETUP:
+                newScreen   = new SelectScreen(screenData);
+                break;
+        }
+
+
         batch = new SpriteBatch();
         ttrSplash = new Texture("data/crate.png");
 
@@ -80,26 +98,7 @@ public class LoadingScreen implements Screen {
 
         isLoaded = false;
 
-        if (null != GameWorld.sceneLoader) {
-            throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
-        }
-
-        GameWorld.sceneLoader = new SceneLoader(this.path);
-
         mapper = new InputMapper();
-    }
-
-    private void loadNewScreen() {
-
-        switch (screenType) {
-            default:
-            case LEVEL:
-                GameWorld.getInstance().showScreen(new GameScreen());
-                break;
-            case SETUP:
-                GameWorld.getInstance().showScreen(new SelectScreen());
-                break;
-        }
     }
 
     private StringBuilder stringBuilder = new StringBuilder();
@@ -137,10 +136,10 @@ public class LoadingScreen implements Screen {
 
             // make the bar up to half the screen width
             loadCounter = 
-               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * GameWorld.sceneLoader.getAssets().getProgress()) ;
+               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * screenData.getAssets().getProgress()) ;
 
-            if (GameWorld.sceneLoader.getAssets().update()) {
-                GameWorld.sceneLoader.doneLoading();
+            if (screenData.getAssets().update()) {
+                screenData.doneLoading();
                 isLoaded = true;
             }
         } else {
@@ -151,7 +150,7 @@ public class LoadingScreen implements Screen {
             // simple polling for a tap on the touch screen
             if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true) || !shouldPause) {
 
-                loadNewScreen();
+                GameWorld.getInstance().showScreen(newScreen);
             }
         }
 

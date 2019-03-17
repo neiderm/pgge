@@ -50,12 +50,8 @@ public final class GameWorld implements Disposable {
 
     private Game game;
 
-    public static SceneLoader sceneLoader; // can this be non-static?
-
     private static GameWorld instance;
 
-    private GameWorld() {
-    }
 
     // created lazily and cached for later usage.
     public static GameWorld getInstance(){
@@ -156,8 +152,7 @@ public final class GameWorld implements Disposable {
 
         game.getScreen().dispose();
 
-        PrimitivesBuilder.dispose(); // hack, call static method
-//        BulletWorld.getInstance().dispose();
+        PrimitivesBuilder.dispose(); //  call static method
 
         instance = null;
     }

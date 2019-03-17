@@ -21,7 +21,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -42,6 +41,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -73,7 +73,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 /**
  * Created by neiderm on 12/18/17.
  */
-class GameScreen implements Screen {
+class GameScreen extends ScreenAvecAssets {
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -109,7 +109,9 @@ class GameScreen implements Screen {
     private String gameOverMessageString;
 
 
-    GameScreen() { // mt
+    GameScreen(SceneLoader assetLoader){
+
+        super(assetLoader);
     }
 
     private void screenInit(){
@@ -153,8 +155,8 @@ class GameScreen implements Screen {
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
-        // must be done before any bullet object can be created
-        BulletWorld.getInstance().initialize(cam);
+        // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
+        BulletWorld.getInstance().initialize(cam);              // TODO: screen inheritcs from e.g. "ScreenWithBulletWorld"
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -191,14 +193,14 @@ class GameScreen implements Screen {
     // this is kind of an arbitrary
     private void onPlayerPicked() {
 
-        GameWorld.sceneLoader.buildArena(engine);
+        screenData.buildArena(engine);
 
 
-        GameWorld.sceneLoader.onPlayerPicked(engine); // creates test objects
+        screenData.onPlayerPicked(engine); // creates test objects
 
 // load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
         Array<Entity> characters = new Array<Entity>();
-        GameWorld.sceneLoader.buildCharacters(characters, engine, "tanks", true); // hack object name embedded into pick component
+        screenData.buildCharacters(characters, engine, "tanks", true); // hack object name embedded into pick component
 
         String objectName = GameWorld.getInstance().getPlayerObjectName();
 
@@ -213,7 +215,7 @@ class GameScreen implements Screen {
 
         characters = new Array<Entity>();
 
-        GameWorld.sceneLoader.buildCharacters(characters, engine, "characters", false);
+        screenData.buildCharacters(characters, engine, "characters", false);
 
         for (Entity e : characters) {
 
@@ -678,11 +680,8 @@ So we have to pause it explicitly as it is not governed by ECS
         batch.dispose();
         shapeRenderer.dispose();
 
-        // TODO: screens that load assets must calls assetLoader.dispose() !
-        if (null != GameWorld.sceneLoader) {
-            GameWorld.sceneLoader.dispose();
-            GameWorld.sceneLoader = null;
-        }
+        // screens that load assets must calls assetLoader.dispose() !
+        super.dispose();
     }
 
     /*

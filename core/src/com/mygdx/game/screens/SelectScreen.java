@@ -19,7 +19,6 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -37,6 +36,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.SceneLoader;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.systems.RenderSystem;
@@ -52,7 +52,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
  * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
  */
-class SelectScreen implements Screen {
+class SelectScreen extends ScreenAvecAssets {
 
     private static final int N_SELECTIONS = 3;
 
@@ -81,7 +81,9 @@ class SelectScreen implements Screen {
     };
 
 
-    SelectScreen() { // mt
+    SelectScreen(SceneLoader data){
+
+        super(data);
     }
 
     @Override
@@ -121,10 +123,10 @@ class SelectScreen implements Screen {
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
 
-        GameWorld.sceneLoader.buildCharacters(
+        screenData.buildCharacters(
                 characters, engine, "tanks", true, false);
 
-        GameWorld.sceneLoader.buildArena(engine);
+        screenData.buildArena(engine);
 
         stage = new Stage();
         stage.addListener(new InputListener() {
@@ -378,11 +380,8 @@ class SelectScreen implements Screen {
         shapeRenderer.dispose();
         stage.dispose();
 
-// TODO: screens that load assets must calls assetLoader.dispose() !
-        if (null != GameWorld.sceneLoader) {
-        GameWorld.sceneLoader.dispose();
-            GameWorld.sceneLoader = null;
-        }
+// screens that load assets must calls assetLoader.dispose() !
+        super.dispose();
     }
 
     /*
