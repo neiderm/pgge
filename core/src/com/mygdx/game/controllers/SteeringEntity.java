@@ -13,7 +13,7 @@ import com.badlogic.gdx.math.Vector3;
  */
 public class SteeringEntity extends SteerableAdapter<Vector3> {
 
-    SteeringBehavior<Vector3> steeringBehavior;
+    private SteeringBehavior<Vector3> steeringBehavior;
     private final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
 
     public SteeringEntity(){ /* empty */ }

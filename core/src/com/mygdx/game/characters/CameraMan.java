@@ -113,7 +113,6 @@ public class CameraMan extends SteeringEntity {
 
     private boolean setOpModeByIndex(int index) {
 
-        CameraNode prevNode = cameraNodes.getValueAt(nodeIndex);
         nodeIndex = index;
 
         boolean isController = false;
@@ -156,8 +155,8 @@ public class CameraMan extends SteeringEntity {
  note: next will cycle thro the modes in order added here. Also, IMPORTANT: camTransform doesn't
  have to be a new instance for each node, but maybe it might need to be in some unforerseen circumstance?
 */
-        setCameraNode("chaser1", tgtTransfrm, CameraOpMode.CHASE_FAR, new Vector3(0, 1, 4f));
-        setCameraNode("chaser2", tgtTransfrm, CameraOpMode.CHASE_CLOSE, new Vector3(0, 1, 2.5f));
+        setCameraNode("chaser1", tgtTransfrm, CameraOpMode.CHASE_FAR, new Vector3(0, 1, 2.5f));
+        setCameraNode("chaser2", tgtTransfrm, CameraOpMode.CHASE_CLOSE, new Vector3(0, 1, 1.5f));
         setCameraNode("fixed", null, CameraOpMode.FIXED_PERSPECTIVE, null);
 
         setOpModeByIndex(cameraNodes.indexOfKey("chaser1")); // setOpModeByKey("chaser1");

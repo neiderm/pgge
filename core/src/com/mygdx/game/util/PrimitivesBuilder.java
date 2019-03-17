@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.util;
 
 import com.badlogic.ashley.core.Entity;
@@ -10,7 +25,6 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -25,11 +39,8 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 
-import static com.badlogic.gdx.graphics.GL20.GL_BACK;
-import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
-
 /**
- * Created by mango on 12/18/17.
+ * Created by neiderm on 12/18/17.
  */
 
 public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposable */ {
@@ -41,15 +52,17 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 
     protected Model model;
 
-//    public static final PrimitivesModel instance = new PrimitivesModel();
 
     /* private */ public // hakakakakakakak
     static /*final */ Model primitivesModel;
 
+    /* instances only access the protected reference to the model */
     private PrimitivesBuilder() {
-        model = primitivesModel;
+
+        this.model = primitivesModel;
     }
 
+    /* one instance of the primitives model is allowed to persist for the entire app lifetime */
     public static void init() {
 
         final ModelBuilder mb = new ModelBuilder();
@@ -62,7 +75,6 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         mb.node().id = "sphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
-//                new Material(ColorAttribute.createDiffuse(Color.GREEN), IntAttribute.createCullFace(GL_BACK))).sphere(1f, 1f, 1f, 10, 10);
         mb.node().id = "box";
         mb.part("box", GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
@@ -87,11 +99,12 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         mb.node().id = "sphereTex";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
-
+/* example of createCullFace */ /*
         tex = new Texture(Gdx.files.internal("data/sky.jpg"), true);
         mb.node().id = "skySphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
         new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
+*/
         primitivesModel = mb.end();
     }
 

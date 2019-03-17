@@ -36,7 +36,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
-    public static Model makeModelMesh(int nVertices, String meshPartID) {
+    private static Model makeModelMesh(int nVertices, String meshPartID) {
 
         Model model;
         int maxVertices = nVertices;
@@ -57,6 +57,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
         modelBuilder.part(meshPartID, mesh, GL20.GL_LINES, new Material());
         model = modelBuilder.end();
+
         return model;
     }
 
@@ -67,7 +68,6 @@ public class GfxUtil  /*extends ModelInstance*/ {
         lineModel.dispose();
     }
 
-    private Vector3[] lineVertsBuffer = new Vector3[2];
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
      */
@@ -75,12 +75,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
 
-        lineVertsBuffer[0] = from;
-        lineVertsBuffer[1] = to;
-
-        return lineTo(
-//                lineVertsBuffer, 2,
-                from, to, c);
+        return lineTo(from, to, c);
     }
 
     /*
@@ -112,7 +107,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
         c.set(array[offset + 3], array[offset + 4], array[offset + 5], array[offset + 6]);
     }
 
-    public static void setVertex(float[] array, int index, int stride, Vector3 point, Color c){
+    private static void setVertex(float[] array, int index, int stride, Vector3 point, Color c){
 
         int offset = index * stride;
         array[offset + 0] = point.x;
