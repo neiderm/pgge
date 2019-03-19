@@ -239,7 +239,7 @@ public class SceneLoader implements Disposable {
                 gameData.modelInfo.get(key).model = assets.get(gameData.modelInfo.get(key).fileName, Model.class);
             }
         }
-        gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // special sauce hakakakakakak
+//        gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // maybe we don't need it
     }
 
     private final Random rnd = new Random();
@@ -331,7 +331,7 @@ instances should be same size/scale so that we can pass one collision shape to s
             return null;
 
         Entity e = new Entity();
-
+Gdx.app.log("SceneLoader", "new Entity");
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
@@ -365,9 +365,14 @@ instances should be same size/scale so that we can pass one collision shape to s
             if (gameObject.meshShape.equals("convexHullShape")) {
 
                 Node node = instance.getNode(nodeID);
+
+                Gdx.app.log("SceneLoader", "createConvexHullShape( node ) node.id = " + node.id);
+
                 shape = MeshHelper.createConvexHullShape( node );
 
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+
+                Gdx.app.log("SceneLoader", "convexHullShape  OKKKKKKKKKKKKKK");
 
             } else if (gameObject.meshShape.equals("triangleMeshShape")) {
                 shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
@@ -446,32 +451,54 @@ instances should be same size/scale so that we can pass one collision shape to s
 
     public void buildArena(Engine engine) {
 
+        Gdx.app.log("SceneLoader", "======================== " );
+
+
         for (String key : gameData.modelGroups.keySet()) {
+
+            if (null == key ) {
+
+                Gdx.app.log("SceneLoader", "gameData.modelGroups ... key = " );
+            }
+            else{
+
+                Gdx.app.log("SceneLoader", "  mg = gameData.modelGroups.get(key) ... key = " + key);
 
             ModelGroup mg = gameData.modelGroups.get(key);
 
-            if (null != mg) {
+            if (null == mg) {
+                Gdx.app.log("SceneLoader", "gameData.modelGroups.get(key) = NULL   (key = " + key);
+            }else{
 
                 ModelInfo mi = gameData.modelInfo.get(mg.modelName);
 
+                Gdx.app.log("SceneLoader", "Loading modelGroup = " + mg.modelName);
+
                 for (GameData.GameObject gameObject : mg.gameObjects) {
 
+                    Gdx.app.log("SceneLoader", " ... gameObject.objectName = " + gameObject.objectName);
+
                     if (null != mi) {
+
                         loadModelNodes(engine, gameObject, mi.model);
+
+                        Gdx.app.log("SceneLoader", " ... +++ loadModelNodes() gameObject.objectName = " + gameObject.objectName);
+
                     } else {
                         // look for a model file  named as the object
                         ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
-                        if (null == mdlinfo)
-                        {
+                        if (null == mdlinfo) {
                             buildPrimitiveObject(engine, gameObject);
-                        }
-                        else {
+
+                            Gdx.app.log("SceneLoader", " ... +++ buildPrimitiveObject() gameObject.objectName = " + gameObject.objectName);
+                        } else {
 //                            Model model = gameData.modelInfo.get(gameObject.objectName).model;
-                            Gdx.app.log("SceneLoader", "gameObject.objectName = " + gameObject.objectName);
+//                            Gdx.app.log("SceneLoader", "gameObject.objectName = " + gameObject.objectName);
                         }
                     }
                 }
+            }
             }
         }
     }

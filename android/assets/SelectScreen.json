@@ -1,8 +1,5 @@
 {
 "modelGroups": {
-	"characters": {},
-	"primitives": {},
-	"objects": {},
 	"tanks": {
 		"gameObjects": [
 			{
@@ -53,12 +50,9 @@
 				"isShadowed": true
 			}
 		]
-	},
-	"areeners": {},
-	"scene": {}
+	}
 },
 "modelInfo": {
-	"primitives": {},
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
 	},
