@@ -20,12 +20,9 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -36,16 +33,14 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Json;
-import com.badlogic.gdx.utils.JsonWriter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.screens.SceneData;
 import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
-import java.util.HashMap;
 import java.util.Random;
 
 
@@ -55,7 +50,7 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    private GameData gameData;
+    private SceneData gameData;
     private static boolean useTestObjects = true;
     private AssetManager assets;
 
@@ -64,7 +59,7 @@ public class SceneLoader implements Disposable {
 
     public SceneLoader(String path) {
 
-        gameData = new GameData();
+        gameData = new SceneData();
 /*
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
@@ -104,7 +99,7 @@ public class SceneLoader implements Disposable {
 
 //        initializeGameData();
 
-        loadData(path);
+        gameData = SceneData.loadData(path);
 
         assets = new AssetManager();
 /*
@@ -121,7 +116,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-        saveData(gameData);
+        SceneData.saveData(gameData);
     }
 
     public AssetManager getAssets() {
@@ -129,77 +124,6 @@ public class SceneLoader implements Disposable {
     }
 
 
-
-    public static class GameData {
-
-        public static class ModelGroup {
-            ModelGroup() {
-            }
-
-            ModelGroup(String groupName) {
-            }
-
-            ModelGroup(String groupName, String modelName) {
-                this(groupName);
-                this.modelName = modelName;
-            }
-
-            String modelName;
-            Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
-        }
-
-        public static class ModelInfo {
-            ModelInfo() {
-            }
-
-            ModelInfo(String fileName) {
-                this.fileName = fileName;
-            }
-
-            String fileName;
-            Model model = PrimitivesBuilder.primitivesModel;  // allow it to be default
-        }
-
-        HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
-        HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
-
-        static class GameObject {
-            GameObject() {
-            }
-
-            GameObject(String objectName, String meshShape) {
-                this.objectName = objectName;
-                this.meshShape = meshShape;
-                this.isShadowed = true;
-                this.isKinematic = true;
-                this.scale = new Vector3(1, 1, 1); // placeholder
-            }
-
-            static class InstanceData {
-                InstanceData() {
-                }
-
-                InstanceData(Vector3 translation, Quaternion rotation) {
-                    this.translation = new Vector3(translation);
-                    this.rotation = new Quaternion(rotation);
-                    this.color = Color.CORAL;
-                }
-
-                Quaternion rotation;
-                Vector3 translation;
-                Color color;
-            }
-
-            Array<InstanceData> instanceData = new Array<InstanceData>();
-            String objectName;
-            //            Vector3 translation; // needs to be only per-instance
-            Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
-            float mass;
-            String meshShape; // triangleMeshShape, convexHullShape
-            boolean isKinematic;  // TODO: change "isStatic"
-            boolean isShadowed;
-        }
-    }
 
     /*
         http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
@@ -215,23 +139,6 @@ public class SceneLoader implements Disposable {
         }
     }*/
 
-    private void saveData(GameData data) {
-        Json json = new Json();
-        json.setOutputType(JsonWriter.OutputType.json); // see "https://github.com/libgdx/libgdx/wiki/Reading-and-writing-JSON"
-        FileHandle fileHandle = Gdx.files.local("GameData_out.json");
-        if (data != null) {
-//            fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
-            fileHandle.writeString(json.prettyPrint(data), false);
-            //System.out.println(json.prettyPrint(gameData));
-        }
-    }
-
-    private void loadData(String path) {
-        Json json = new Json();
-        FileHandle fileHandle = Gdx.files.internal(path);
-        //        gameData = json.fromJson(GameData.class, Base64Coder.decodeString(fileHandle.readString()));
-        gameData = json.fromJson(GameData.class, fileHandle.readString());
-    }
 
 
     public void doneLoading() {
@@ -288,7 +195,7 @@ public class SceneLoader implements Disposable {
   *
   * @return: gameObject?
   */
-    private void loadModelNodes(Engine engine, GameData.GameObject gameObject, Model model) {
+    private void loadModelNodes(Engine engine, SceneData.GameObject gameObject, Model model) {
 
         Entity e;
 
@@ -299,7 +206,7 @@ public class SceneLoader implements Disposable {
 
             if (node.id.contains(unGlobbedObjectName)) {
 
-                GameData.GameObject.InstanceData id;
+                SceneData.GameObject.InstanceData id;
                 int n = 0;
 
                 do {
@@ -323,7 +230,7 @@ instances should be same size/scale so that we can pass one collision shape to s
 
     /* could end up "gameObject.build()" ?? */
     private Entity buildObjectInstance (
-            GameData.GameObject gameObject, GameData.GameObject.InstanceData i, Model model, String nodeID) {
+            SceneData.GameObject gameObject, SceneData.GameObject.InstanceData i, Model model, String nodeID) {
 
         btCollisionShape shape = null;
 
@@ -417,15 +324,15 @@ Gdx.app.log("SceneLoader", "new Entity");
         else
             tmpName = "tanks";
 
-        GameData.ModelGroup mg = gameData.modelGroups.get(tmpName);
+        SceneData.ModelGroup mg = gameData.modelGroups.get(tmpName);
 
         if (null != mg) {
-            for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
+            for (SceneData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
 
                 Model model = gameData.modelInfo.get(gameObject.objectName).model;
                 Entity e;
 
-                for (GameData.GameObject.InstanceData i : gameObject.instanceData) {
+                for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
 
                     e = new Entity();
 
@@ -453,47 +360,25 @@ Gdx.app.log("SceneLoader", "new Entity");
 
     public void buildArena(Engine engine) {
 
-        Gdx.app.log("SceneLoader", "======================== " );
-
-
         for (String key : gameData.modelGroups.keySet()) {
 
-            if (null == key ) {
+            SceneData.ModelGroup mg = gameData.modelGroups.get(key);
 
-                Gdx.app.log("SceneLoader", "gameData.modelGroups ... key = " );
-            }
-            else{
+            if (null != mg) {
 
-                Gdx.app.log("SceneLoader", "  mg = gameData.modelGroups.get(key) ... key = " + key);
+                SceneData.ModelInfo mi = gameData.modelInfo.get(mg.modelName);
 
-                GameData.ModelGroup mg = gameData.modelGroups.get(key);
-
-            if (null == mg) {
-                Gdx.app.log("SceneLoader", "gameData.modelGroups.get(key) = NULL   (key = " + key);
-            }else{
-
-                GameData.ModelInfo mi = gameData.modelInfo.get(mg.modelName);
-
-                Gdx.app.log("SceneLoader", "Loading modelGroup = " + mg.modelName);
-
-                for (GameData.GameObject gameObject : mg.gameObjects) {
-
-                    Gdx.app.log("SceneLoader", " ... gameObject.objectName = " + gameObject.objectName);
+                for (SceneData.GameObject gameObject : mg.gameObjects) {
 
                     if (null != mi) {
-
                         loadModelNodes(engine, gameObject, mi.model);
-
-                        Gdx.app.log("SceneLoader", " ... +++ loadModelNodes() gameObject.objectName = " + gameObject.objectName);
-
                     } else {
                         // look for a model file  named as the object
-                        GameData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+                        SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
                         if (null == mdlinfo) {
                             buildPrimitiveObject(engine, gameObject);
 
-                            Gdx.app.log("SceneLoader", " ... +++ buildPrimitiveObject() gameObject.objectName = " + gameObject.objectName);
                         } else {
 //                            Model model = gameData.modelInfo.get(gameObject.objectName).model;
 //                            Gdx.app.log("SceneLoader", "gameObject.objectName = " + gameObject.objectName);
@@ -501,11 +386,10 @@ Gdx.app.log("SceneLoader", "new Entity");
                     }
                 }
             }
-            }
         }
     }
 
-    private void buildPrimitiveObject(Engine engine, GameData.GameObject o)
+    private void buildPrimitiveObject(Engine engine, SceneData.GameObject o)
     {
         PrimitivesBuilder pb = null;
 
@@ -523,7 +407,7 @@ Gdx.app.log("SceneLoader", "new Entity");
 
         if (null != pb) {
             Vector3 scale = o.scale;
-            for (GameData.GameObject.InstanceData i : o.instanceData) {
+            for (SceneData.GameObject.InstanceData i : o.instanceData) {
                 Entity e = pb.create(o.mass, i.translation, scale);
                 if (null != i.color)
                     ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
@@ -540,17 +424,17 @@ Gdx.app.log("SceneLoader", "new Entity");
 
 
 // new test file writer
-        GameData cpGameData = new GameData();
+        SceneData cpGameData = new SceneData();
 
         for (String key : gameData.modelGroups.keySet()) {
 
-            GameData.ModelGroup mg = new GameData.ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
+            SceneData.ModelGroup mg = new SceneData.ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
 
-            for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
+            for (SceneData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
-                GameData.GameObject cpObject = new GameData.GameObject(o.objectName, o.meshShape);
+                SceneData.GameObject cpObject = new SceneData.GameObject(o.objectName, o.meshShape);
 
-                for (GameData.GameObject.InstanceData i : o.instanceData) {
+                for (SceneData.GameObject.InstanceData i : o.instanceData) {
 
                     cpObject.instanceData.add(i);
                 }
