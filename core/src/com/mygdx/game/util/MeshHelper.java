@@ -58,9 +58,10 @@ public class MeshHelper /* extends btConvexHullShape */ {
 
         float[] nVerts = getVertices(meshPart);
 
-        int size = numVertices * vertexSize; // nbr of floats
+        int size = numVertices * vertexSize / 4; // nbr of floats
 
         FloatBuffer buffer = ByteBuffer.allocateDirect(size * 4).asFloatBuffer();
+
         BufferUtils.copy(nVerts, 0, buffer, size);
 
         return createConvexHullShapeOptimize(buffer, numVertices, vertexSize, true);
