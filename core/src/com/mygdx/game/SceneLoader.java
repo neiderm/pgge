@@ -128,35 +128,37 @@ public class SceneLoader implements Disposable {
         return assets;
     }
 
-    public static class ModelGroup {
-        ModelGroup() {
-        }
 
-        ModelGroup(String groupName) {
-        }
-
-        ModelGroup(String groupName, String modelName) {
-            this(groupName);
-            this.modelName = modelName;
-        }
-
-        String modelName;
-        Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
-    }
-
-    public static class ModelInfo {
-        ModelInfo() {
-        }
-
-        ModelInfo(String fileName) {
-            this.fileName = fileName;
-        }
-
-        String fileName;
-        Model model;
-    }
 
     public static class GameData {
+
+        public static class ModelGroup {
+            ModelGroup() {
+            }
+
+            ModelGroup(String groupName) {
+            }
+
+            ModelGroup(String groupName, String modelName) {
+                this(groupName);
+                this.modelName = modelName;
+            }
+
+            String modelName;
+            Array<GameData.GameObject> gameObjects = new Array<GameData.GameObject>();
+        }
+
+        public static class ModelInfo {
+            ModelInfo() {
+            }
+
+            ModelInfo(String fileName) {
+                this.fileName = fileName;
+            }
+
+            String fileName;
+            Model model = PrimitivesBuilder.primitivesModel;  // allow it to be default
+        }
 
         HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
         HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
@@ -415,7 +417,7 @@ Gdx.app.log("SceneLoader", "new Entity");
         else
             tmpName = "tanks";
 
-        ModelGroup mg = gameData.modelGroups.get(tmpName);
+        GameData.ModelGroup mg = gameData.modelGroups.get(tmpName);
 
         if (null != mg) {
             for (GameData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
@@ -464,13 +466,13 @@ Gdx.app.log("SceneLoader", "new Entity");
 
                 Gdx.app.log("SceneLoader", "  mg = gameData.modelGroups.get(key) ... key = " + key);
 
-            ModelGroup mg = gameData.modelGroups.get(key);
+                GameData.ModelGroup mg = gameData.modelGroups.get(key);
 
             if (null == mg) {
                 Gdx.app.log("SceneLoader", "gameData.modelGroups.get(key) = NULL   (key = " + key);
             }else{
 
-                ModelInfo mi = gameData.modelInfo.get(mg.modelName);
+                GameData.ModelInfo mi = gameData.modelInfo.get(mg.modelName);
 
                 Gdx.app.log("SceneLoader", "Loading modelGroup = " + mg.modelName);
 
@@ -486,7 +488,7 @@ Gdx.app.log("SceneLoader", "new Entity");
 
                     } else {
                         // look for a model file  named as the object
-                        ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+                        GameData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
                         if (null == mdlinfo) {
                             buildPrimitiveObject(engine, gameObject);
@@ -542,7 +544,7 @@ Gdx.app.log("SceneLoader", "new Entity");
 
         for (String key : gameData.modelGroups.keySet()) {
 
-            ModelGroup mg = new ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
+            GameData.ModelGroup mg = new GameData.ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
 
             for (GameData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
