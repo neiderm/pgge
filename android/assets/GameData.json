@@ -37,8 +37,11 @@
 		]
 	},
 	"primitives": {
-		"modelName": "primitivesModel",
+		"modelName": "doesntneedone",
 		"gameObjects": [
+			{
+				"objectName": "testObjects"
+			},
 			{
 				"instanceData": [
 					{

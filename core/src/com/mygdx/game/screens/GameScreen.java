@@ -195,9 +195,6 @@ class GameScreen extends ScreenAvecAssets {
 
         screenData.buildArena(engine);
 
-
-        screenData.onPlayerPicked(engine); // creates test objects
-
 // load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
         Array<Entity> characters = new Array<Entity>();
         screenData.buildCharacters(characters, engine, "tanks", true); // hack object name embedded into pick component

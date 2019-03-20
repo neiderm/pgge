@@ -151,9 +151,9 @@ public class SceneLoader implements Disposable {
 //        gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // maybe we don't need it
     }
 
-    private final Random rnd = new Random();
+    private static void createTestObjects(Engine engine) {
 
-    public void onPlayerPicked(Engine engine) {
+        Random rnd = new Random();
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
@@ -195,7 +195,7 @@ public class SceneLoader implements Disposable {
   *
   * @return: gameObject?
   */
-    private void loadModelNodes(Engine engine, SceneData.GameObject gameObject, Model model) {
+    private static void loadModelNodes(Engine engine, SceneData.GameObject gameObject, Model model) {
 
         Entity e;
 
@@ -229,7 +229,7 @@ instances should be same size/scale so that we can pass one collision shape to s
     }
 
     /* could end up "gameObject.build()" ?? */
-    private Entity buildObjectInstance (
+    private static Entity buildObjectInstance (
             SceneData.GameObject gameObject, SceneData.GameObject.InstanceData i, Model model, String nodeID) {
 
         btCollisionShape shape = null;
@@ -389,7 +389,7 @@ Gdx.app.log("SceneLoader", "new Entity");
         }
     }
 
-    private void buildPrimitiveObject(Engine engine, SceneData.GameObject o)
+    private static void buildPrimitiveObject(Engine engine, SceneData.GameObject o)
     {
         PrimitivesBuilder pb = null;
 
@@ -403,6 +403,10 @@ Gdx.app.log("SceneLoader", "new Entity");
         }
         else if (o.objectName.contains("cylinder")) {
             pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+        }
+        else if (o.objectName.contains("testObject")) {
+
+            createTestObjects(engine);
         }
 
         if (null != pb) {
