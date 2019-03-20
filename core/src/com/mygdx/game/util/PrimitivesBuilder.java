@@ -115,6 +115,36 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
     Constant "DIM_HE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
 
+    public static PrimitivesBuilder getPrimitiveBuilder(final String objectName /*, Engine engine */) {
+
+        PrimitivesBuilder pb = null;
+
+        if (objectName.contains("box")) {
+// bulletshape given in file but get box builder is tied to it already
+            pb = PrimitivesBuilder.getBoxBuilder(objectName); // this constructor could use a size param ?
+        }
+        else if (objectName.contains("sphere")) {
+// bulletshape given in file but get Sphere builder is tied to it already
+            pb = PrimitivesBuilder.getSphereBuilder(objectName); // this constructor could use a size param ?
+        }
+        else if (objectName.contains("cylinder")) {
+            pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+        }
+        else if (objectName.contains("capsule")) {
+            pb = PrimitivesBuilder.getCapsuleBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+        }
+        else if (objectName.contains("cone")) {
+            pb = PrimitivesBuilder.getConeBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+        }
+        else if (objectName.contains("testObject")) {
+
+//            createTestObjects(engine);
+        }
+
+        return pb;
+    }
+
+
     public static PrimitivesBuilder getSphereBuilder(final String nodeID) {
         return new PrimitivesBuilder() {
             @Override

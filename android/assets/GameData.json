@@ -47,6 +47,111 @@
 					{
 						"rotation": {},
 						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "cone",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				},
+				"mass": 5,
+				"isPickable": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "capsule",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				},
+				"mass": 5,
+				"isPickable": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				},
+				"mass": 5,
+				"isPickable": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "box",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				},
+				"mass": 5,
+				"isPickable": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "sphere",
+				"scale": {
+					"x": 3,
+					"y": 3,
+					"z": 3
+				},
+				"mass": 5,
+				"isPickable": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
 							"x": 10,
 							"y": 10,
 							"z": -5

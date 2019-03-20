@@ -177,17 +177,6 @@ public class SceneLoader implements Disposable {
                 engine.addEntity(sphereBuilder.create(size.x, translation, new Vector3(size.x, size.x, size.x)));
             }
         }
-
-        Vector3 t = new Vector3(-10, +15f, -15f);
-        Vector3 s = new Vector3(2, 3, 2); // scale (w, h, d, but usually should w==d )
-        if (useTestObjects) {
-            // assert (s.x == s.z) ... scaling of w & d dimensions should be equal
-            addPickObject(engine, PrimitivesBuilder.getConeBuilder().create(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.getCapsuleBuilder().create(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.getCylinderBuilder().create(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.getBoxBuilder().create(5f, t, s));
-            addPickObject(engine, PrimitivesBuilder.getSphereBuilder().create(5f, t, new Vector3(3, 3, 3)));
-        }
     }
 
  /*
@@ -393,32 +382,33 @@ Gdx.app.log("SceneLoader", "new Entity");
     {
         PrimitivesBuilder pb = null;
 
-        if (o.objectName.contains("box")) {
-// bulletshape given in file but get box builder is tied to it already
-            pb = PrimitivesBuilder.getBoxBuilder(o.objectName); // this constructor could use a size param ?
-        }
-        else if (o.objectName.contains("sphere")) {
-// bulletshape given in file but get Sphere builder is tied to it already
-            pb = PrimitivesBuilder.getSphereBuilder(o.objectName); // this constructor could use a size param ?
-        }
-        else if (o.objectName.contains("cylinder")) {
-            pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
-        }
-        else if (o.objectName.contains("testObject")) {
-
-            createTestObjects(engine);
-        }
+        pb = PrimitivesBuilder.getPrimitiveBuilder(o.objectName);
 
         if (null != pb) {
+
             Vector3 scale = o.scale;
+
+            // so far, pickability only handled in primitives  .. for now
+            boolean isPickable = o.isPickable;
+
             for (SceneData.GameObject.InstanceData i : o.instanceData) {
                 Entity e = pb.create(o.mass, i.translation, scale);
                 if (null != i.color)
                     ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
+
                 engine.addEntity(e);
+
+                if (isPickable) {
+//                    addPickObject(engine, e);
+                    e.add(new PickRayComponent(o.objectName)); // set the object name ... yeh pretty hacky
+                }
             }
+        } else {
+
+            createTestObjects(engine); // tmp
         }
     }
+
     @Override
     public void dispose() {
 
