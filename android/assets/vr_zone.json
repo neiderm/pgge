@@ -206,6 +206,7 @@
 				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
+				"isPickable": true,
 				"isShadowed": true
 			},
 			{
@@ -227,6 +228,7 @@
 				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
+				"isPickable": true,
 				"isShadowed": true
 			},
 			{
@@ -248,6 +250,7 @@
 				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
+				"isPickable": true,
 				"isShadowed": true
 			}
 		]

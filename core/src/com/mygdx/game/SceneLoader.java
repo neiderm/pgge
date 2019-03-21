@@ -229,7 +229,6 @@ instances should be same size/scale so that we can pass one collision shape to s
             return null;
 
         Entity e = new Entity();
-Gdx.app.log("SceneLoader", "new Entity");
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
@@ -264,17 +263,16 @@ Gdx.app.log("SceneLoader", "new Entity");
 
                 Node node = instance.getNode(nodeID);
 
-                Gdx.app.log("SceneLoader", "createConvexHullShape( node ) node.id = " + node.id);
-
                 shape = MeshHelper.createConvexHullShape( node );
 
                 int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
 
-                Gdx.app.log("SceneLoader", "convexHullShape  OKKKKKKKKKKKKKK");
-
             } else if (gameObject.meshShape.equals("triangleMeshShape")) {
+
                 shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
+
             } else if (gameObject.meshShape.equals("btBoxShape")) {
+
                 BoundingBox boundingBox = new BoundingBox();
                 Vector3 dimensions = new Vector3();
                 instance.calculateBoundingBox(boundingBox);
@@ -293,18 +291,15 @@ Gdx.app.log("SceneLoader", "new Entity");
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
         }
-        Gdx.app.log("Sceneloader", "node Name = " + nodeID);
 
         return e;
     }
 
 
-    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject) {
 
-        buildCharacters(characters, engine, groupName, addPickObject, true);
-    }
+    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName) {
 
-    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName, boolean addPickObject, boolean useBulletComp) {
+//        boolean useBulletComp = true;
 
         String tmpName;
 
@@ -330,7 +325,7 @@ Gdx.app.log("SceneLoader", "new Entity");
                     inst.transform.trn(i.translation);
                     e.add(new ModelComponent(inst));
 
-                    if (useBulletComp) {
+                    if (gameObject.mass > 0 /* useBulletComp */) {
                         btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                         e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
                     }
@@ -339,7 +334,7 @@ Gdx.app.log("SceneLoader", "new Entity");
                         characters.add(e);
                     }
 
-                    if (addPickObject) {
+                    if (gameObject.isPickable) {
                         addPickObject(engine, e, gameObject.objectName);
                     }
                 }
