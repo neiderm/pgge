@@ -36,8 +36,7 @@
 			}
 		]
 	},
-	"primitives": {
-		"modelName": "primitivesModel",
+	"primitivesKinematic": {
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -62,66 +61,20 @@
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
 				"isShadowed": true
+			}
+		],
+		"isKinematic": true
+	},
+	"sceneStaticObjects": {
+		"modelName": "scene",
+		"gameObjects": [
+			{
+				"objectName": "SkyBox",
+				"meshShape": "none"
 			},
 			{
-				"instanceData": [
-					{
-						"rotation": {},
-						"translation": {
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -2,
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -4,
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"y": 6,
-							"z": -15
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -2,
-							"y": 6,
-							"z": -15
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -4,
-							"y": 6,
-							"z": -15
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 2,
-					"y": 2,
-					"z": 2
-				},
-				"mass": 0.1,
-				"meshShape": "btBoxShape",
+				"objectName": "Cube*",
 				"isShadowed": true
 			}
 		]
@@ -142,21 +95,6 @@
 						"rotation": {},
 						"translation": {
 							"x": -2,
-							"y": 4,
-							"z": -5
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -4,
-							"y": 4,
-							"z": -5
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
 							"y": 6,
 							"z": -5
 						}
@@ -255,26 +193,64 @@
 			}
 		]
 	},
-	"scene": {
-		"modelName": "scene",
+	"primitivesDynamicObjects": {
 		"gameObjects": [
 			{
-				"objectName": "SkyBox",
-				"meshShape": "none"
-			},
-			{
-				"objectName": "Cube*",
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": -4,
+							"y": 4,
+							"z": -1
+						}
+					},
+					{
+						"rotation": {},
+						"translation": {
+							"y": 6,
+							"z": -1
+						}
+					},
+					{
+						"rotation": {},
+						"translation": {
+							"x": -2,
+							"y": 6,
+							"z": -1
+						}
+					},
+					{
+						"rotation": {},
+						"translation": {
+							"x": -4,
+							"y": 6,
+							"z": -1
+						}
+					}
+				],
+				"objectName": "boxTex",
+				"scale": {
+					"x": 2,
+					"y": 2,
+					"z": 2
+				},
+				"mass": 0.1,
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
-			},
-			{
-				"objectName": "Plane*",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true,
 				"isShadowed": true
 			}
 		]
+	},
+	"sceneKinematicObjects": {
+		"modelName": "scene",
+		"gameObjects": [
+			{
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isShadowed": true
+			}
+		],
+		"isKinematic": true
 	}
 },
 "modelInfo": {

@@ -180,13 +180,14 @@ public class SceneLoader implements Disposable {
     }
 
  /*
-  * searching the model for the given gameObject.objectName* ... so this is not efficient and would not scale well with increasing number of model nodes!
+  * searching the model for the given gameObject.objectName* ...
+  * may not be super efficient and  ... increasing number of model nodes ???
+  * However walking the model does possibly make sense in the case for globbed object name, not
+  * seeing a more efficient way right now.
   *
   * @return: gameObject?
   */
     private static void loadModelNodes(Engine engine, SceneData.GameObject gameObject, Model model) {
-
-        Entity e;
 
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
@@ -207,7 +208,8 @@ instances should be same size/scale so that we can pass one collision shape to s
 */
                         id = gameObject.instanceData.get(n++);
                     }
-                    e = buildObjectInstance(gameObject, id, model, node.id);
+
+                    Entity e = buildObjectInstance(gameObject, id, model, node.id);
 
                     if (null != e) {
                         engine.addEntity(e);
@@ -348,25 +350,26 @@ instances should be same size/scale so that we can pass one collision shape to s
 
             SceneData.ModelGroup mg = gameData.modelGroups.get(key);
 
-            if (null != mg) {
+            for (SceneData.GameObject gameObject : mg.gameObjects) {
 
-                SceneData.ModelInfo mi = gameData.modelInfo.get(mg.modelName);
+                gameObject.isKinematic = mg.isKinematic; // hmmmmmm
 
-                for (SceneData.GameObject gameObject : mg.gameObjects) {
+                SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName); // apparently does NOT blow up if NULL==modelName !
 
-                    if (null != mi) {
-                        loadModelNodes(engine, gameObject, mi.model);
+                if (null != mgmdlinfo) {
+
+                    loadModelNodes(engine, gameObject, mgmdlinfo.model);
+
+                } else {
+                    // look for a model file  named as the object
+                    SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+
+                    if (null == mdlinfo) {
+                        buildPrimitiveObject(engine, gameObject);
+
                     } else {
-                        // look for a model file  named as the object
-                        SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
-
-                        if (null == mdlinfo) {
-                            buildPrimitiveObject(engine, gameObject);
-
-                        } else {
 //                            Model model = gameData.modelInfo.get(gameObject.objectName).model;
-//                            Gdx.app.log("SceneLoader", "gameObject.objectName = " + gameObject.objectName);
-                        }
+                        Gdx.app.log("SceneLoader", "TODO: handle gameObject.objectName = " + gameObject.objectName + " ????");
                     }
                 }
             }
@@ -387,7 +390,9 @@ instances should be same size/scale so that we can pass one collision shape to s
             boolean isPickable = o.isPickable;
 
             for (SceneData.GameObject.InstanceData i : o.instanceData) {
+
                 Entity e = pb.create(o.mass, i.translation, scale);
+
                 if (null != i.color)
                     ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
 
@@ -435,9 +440,6 @@ instances should be same size/scale so that we can pass one collision shape to s
 //        saveData(cpGameData);
     }
 
-    private static void addPickObject(Engine engine, Entity e) {
-        addPickObject(engine, e, null);
-    }
 
     private static void addPickObject(Engine engine, Entity e, String objectName) {
 

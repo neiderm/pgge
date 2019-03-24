@@ -25,10 +25,14 @@ public class SceneData {
         ModelGroup(String groupName, String modelName) {
             this(groupName);
             this.modelName = modelName;
+
+            this.isKinematic = true;
         }
 
         public String modelName;
         public Array<GameObject> gameObjects = new Array<GameObject>();
+
+        public boolean isKinematic;
     }
 
     public static class ModelInfo {
@@ -54,7 +58,7 @@ public class SceneData {
             this.objectName = objectName;
             this.meshShape = meshShape;
             this.isShadowed = true;
-            this.isKinematic = true;
+//            this.isKinematic = true;
             this.isPickable = false;
             this.scale = new Vector3(1, 1, 1); // placeholder
         }
@@ -72,6 +76,8 @@ public class SceneData {
             public Quaternion rotation;
             public Vector3 translation;
             public Color color;
+//            public boolean hasCharacterStatus;
+//            public int timeCharacterLifeSecs;
         }
 
         public Array<GameObject.InstanceData> instanceData = new Array<GameObject.InstanceData>();
