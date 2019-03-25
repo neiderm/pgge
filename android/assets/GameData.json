@@ -32,7 +32,8 @@
 				"objectName": "ship",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			}
 		]
 	},
@@ -225,7 +226,7 @@
 							"g": 0.125,
 							"b": 0.941,
 							"a": 0.9
-						},
+						}
 					}
 				],
 				"objectName": "box",
@@ -378,7 +379,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			},
 			{
 				"instanceData": [
@@ -400,7 +402,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			},
 			{
 				"instanceData": [
@@ -422,7 +425,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			}
 		]
 	},

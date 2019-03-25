@@ -32,7 +32,8 @@
 				"objectName": "ship",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			}
 		]
 	},
@@ -145,7 +146,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			},
 			{
 				"instanceData": [
@@ -167,7 +169,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			},
 			{
 				"instanceData": [
@@ -189,7 +192,8 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
-				"isShadowed": true
+				"isShadowed": true,
+				"isSteerable": true
 			}
 		]
 	},
@@ -200,32 +204,33 @@
 					{
 						"rotation": {},
 						"translation": {
-							"x": -4,
-							"y": 4,
-							"z": -1
+							"x": -12,
+							"y": 6,
+							"z": -10
 						}
 					},
 					{
 						"rotation": {},
 						"translation": {
-							"y": 6,
-							"z": -1
+							"x": -12,
+							"y": 9,
+							"z": -10
 						}
 					},
 					{
 						"rotation": {},
 						"translation": {
-							"x": -2,
-							"y": 6,
-							"z": -1
+							"x": -12,
+							"y": 12,
+							"z": -10
 						}
 					},
 					{
 						"rotation": {},
 						"translation": {
-							"x": -4,
-							"y": 6,
-							"z": -1
+							"x": -12,
+							"y": 15,
+							"z": -10
 						}
 					}
 				],
@@ -235,7 +240,7 @@
 					"y": 2,
 					"z": 2
 				},
-				"mass": 0.1,
+				"mass": 1,
 				"meshShape": "btBoxShape",
 				"isShadowed": true
 			}
