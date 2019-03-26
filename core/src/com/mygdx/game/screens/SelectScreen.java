@@ -350,6 +350,7 @@ class SelectScreen extends ScreenAvecAssets {
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
+            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json")); // LevelOne.json
 
         } else if (InputMapper.InputState.INP_SELECT == inputState) {
