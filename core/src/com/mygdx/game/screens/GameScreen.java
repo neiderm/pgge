@@ -194,13 +194,11 @@ class GameScreen extends ScreenAvecAssets {
     // this is kind of an arbitrary
     private void onPlayerPicked() {
 
-        screenData.buildArena(engine);
+        screenData.buildScene(engine);
 
         // load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
-        screenData.buildCharacters(engine, "tanks"); // hack object name embedded into pick component
 
-        ImmutableArray<Entity> characters
-                = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
+        ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         String objectName = GameWorld.getInstance().getPlayerObjectName();
 

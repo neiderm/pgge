@@ -299,21 +299,28 @@ instances should be same size/scale so that we can pass one collision shape to s
     }
 
 
-//    private Array<Entity> charactersArray;
-//
-//    public Array<Entity> getCharactersArray(){
-//        return charactersArray;
-//    }
+    private static void addPickObject(Entity e, String objectName) {
+
+        e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
+    }
+
+
+    // tmp special sauce for selectScreen
+    private Array<Entity> charactersArray = new Array<Entity>();
+
+    public Array<Entity> getCharactersArray(){
+        return charactersArray;
+    }
 
     public void buildCharacters(Engine engine, String groupName) {
 // pass a dummy parameter
-        Array<Entity> charactersArray = new Array<Entity>();
+//        Array<Entity> charactersArray = new Array<Entity>();
 
         buildCharacters(charactersArray, engine, groupName);
     }
 
     //TODO: deprecated (selectScreen)
-    public void buildCharacters(Array<Entity> characters, Engine engine, String groupName) {
+    private void buildCharacters(Array<Entity> characters, Engine engine, String groupName) {
 
         SceneData.ModelGroup mg = gameData.modelGroups.get(groupName);
 
@@ -419,6 +426,15 @@ instances should be same size/scale so that we can pass one collision shape to s
         }
     }
 
+
+    public void buildScene(Engine engine) {
+
+        buildCharacters(engine, "tanks");
+
+        buildArena(engine);
+    }
+
+
     @Override
     public void dispose() {
 
@@ -448,11 +464,5 @@ instances should be same size/scale so that we can pass one collision shape to s
 
         }
 //        saveData(cpGameData);
-    }
-
-
-    private static void addPickObject(Entity e, String objectName) {
-
-        e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
     }
 }
