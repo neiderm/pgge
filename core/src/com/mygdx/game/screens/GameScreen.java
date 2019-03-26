@@ -18,7 +18,9 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
@@ -37,7 +39,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -135,7 +136,7 @@ class GameScreen extends ScreenAvecAssets {
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
-        GameWorld.getInstance().setIsPaused(false);
+//        GameWorld.getInstance().setIsPaused(true);
 
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
@@ -195,34 +196,39 @@ class GameScreen extends ScreenAvecAssets {
 
         screenData.buildArena(engine);
 
-// load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
-        Array<Entity> characters = new Array<Entity>();
-        screenData.buildCharacters(characters, engine, "tanks"); // hack object name embedded into pick component
+        // load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
+        screenData.buildCharacters(engine, "tanks"); // hack object name embedded into pick component
+
+        ImmutableArray<Entity> characters
+                = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         String objectName = GameWorld.getInstance().getPlayerObjectName();
 
         for (Entity e : characters) {
+
+            if (null == pickedPlayer)
+                    pickedPlayer = e; // hakakakakakaka
+
             if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
                 pickedPlayer = e;
                 pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
             }
-//            else
-//                engine.removeEntity(e); // let'em become zombies ;)
+            else { // if (pickedPlayer != e) {
+
+                btRigidBody chbody = e.getComponent(BulletComponent.class).body;
+                TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
+
+                CharacterComponent cc = e.getComponent(CharacterComponent.class);
+
+                cc.setSteerable(
+                        new SteeringTankController(
+                                tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
+
+//                engine.addEntity(e);
+            }
         }
 
-        characters = new Array<Entity>();
-
-        screenData.buildCharacters(characters, engine, "characters");
-
-        for (Entity e : characters) {
-
-            btRigidBody chbody = e.getComponent(BulletComponent.class).body;
-            TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
-            e.add(new CharacterComponent(
-                    new SteeringTankController(
-                            tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body))));
-            engine.addEntity(e);
-        }
+        pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -235,6 +241,11 @@ class GameScreen extends ScreenAvecAssets {
 
         Entity cameraEntity = new Entity();
         cameraEntity.add(new CharacterComponent(cameraMan));
+        /*
+        cameraEntity.add(new CharacterComponent());
+        CharacterComponent cc = cameraEntity.getComponent(CharacterComponent.class);
+        cc.setSteerable(cameraMan);
+*/
         engine.addEntity(cameraEntity);
 
 // plug in the picked player
@@ -329,8 +340,10 @@ class GameScreen extends ScreenAvecAssets {
     private Timer.Task oneSecondTask = new Timer.Task(){
         @Override
         public void run (){
-            gameOverCountDown -= ONE_SECOND; // fps for now
+            if ( ! GameWorld.getInstance().getIsPaused() ) {
+                gameOverCountDown -= ONE_SECOND; // fps for now
                 textShow = !textShow;
+            }
         }
     };
 

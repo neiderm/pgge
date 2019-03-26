@@ -30,6 +30,10 @@ public class CharacterSystem extends IteratingSystem /*implements EntityListener
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
 
-        entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
+        CharacterComponent cc = entity.getComponent(CharacterComponent.class);
+
+        if (null != cc.steerable ){
+            entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
+        }
     }
 }

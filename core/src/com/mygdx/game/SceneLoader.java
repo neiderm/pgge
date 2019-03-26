@@ -34,6 +34,7 @@ import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.screens.SceneData;
@@ -298,22 +299,26 @@ instances should be same size/scale so that we can pass one collision shape to s
     }
 
 
+//    private Array<Entity> charactersArray;
+//
+//    public Array<Entity> getCharactersArray(){
+//        return charactersArray;
+//    }
 
+    public void buildCharacters(Engine engine, String groupName) {
+// pass a dummy parameter
+        Array<Entity> charactersArray = new Array<Entity>();
+
+        buildCharacters(charactersArray, engine, groupName);
+    }
+
+    //TODO: deprecated (selectScreen)
     public void buildCharacters(Array<Entity> characters, Engine engine, String groupName) {
 
-//        boolean useBulletComp = true;
-
-        String tmpName;
-
-        if (null != groupName)
-            tmpName = groupName;
-        else
-            tmpName = "tanks";
-
-        SceneData.ModelGroup mg = gameData.modelGroups.get(tmpName);
+        SceneData.ModelGroup mg = gameData.modelGroups.get(groupName);
 
         if (null != mg) {
-            for (SceneData.GameObject gameObject : gameData.modelGroups.get(tmpName).gameObjects) {
+            for (SceneData.GameObject gameObject : gameData.modelGroups.get(groupName).gameObjects) {
 
                 Model model = gameData.modelInfo.get(gameObject.objectName).model;
                 Entity e;
@@ -332,13 +337,20 @@ instances should be same size/scale so that we can pass one collision shape to s
                         e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
                     }
 
+                    if (gameObject.isSteerable) {
+                        e.add(new CharacterComponent());
+                    }
+
                     if (null != characters) {
                         characters.add(e);
                     }
 
-                    if (gameObject.isPickable) {
-                        addPickObject(engine, e, gameObject.objectName);
+//                    if (gameObject.isPickable)
+                    {
+//                        e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
+                        addPickObject(e, gameObject.objectName);
                     }
+                    engine.addEntity(e);
                 }
             }
         }
@@ -378,9 +390,7 @@ instances should be same size/scale so that we can pass one collision shape to s
 
     private static void buildPrimitiveObject(Engine engine, SceneData.GameObject o)
     {
-        PrimitivesBuilder pb = null;
-
-        pb = PrimitivesBuilder.getPrimitiveBuilder(o.objectName);
+        PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(o.objectName);
 
         if (null != pb) {
 
@@ -399,8 +409,8 @@ instances should be same size/scale so that we can pass one collision shape to s
                 engine.addEntity(e);
 
                 if (isPickable) {
-//                    addPickObject(engine, e);
-                    e.add(new PickRayComponent(o.objectName)); // set the object name ... yeh pretty hacky
+                    addPickObject(e, o.objectName);
+//                    e.add(new PickRayComponent(o.objectName)); // set the object name ... yeh pretty hacky
                 }
             }
         } else {
@@ -441,9 +451,8 @@ instances should be same size/scale so that we can pass one collision shape to s
     }
 
 
-    private static void addPickObject(Engine engine, Entity e, String objectName) {
+    private static void addPickObject(Entity e, String objectName) {
 
         e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
-        engine.addEntity(e);
     }
 }

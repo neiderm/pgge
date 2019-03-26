@@ -89,6 +89,7 @@ public class SceneData {
         public boolean isKinematic;  //  "isStatic" ?
         public boolean isPickable;
         public boolean isShadowed;
+        public boolean isSteerable;
     }
 
 

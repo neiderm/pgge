@@ -4,7 +4,7 @@ import com.badlogic.ashley.core.Component;
 import com.mygdx.game.controllers.SteeringEntity;
 
 /**
- * Created by mango on 2/10/18.
+ * Created by neiderm on 2/10/18.
  */
 
 /*
@@ -15,7 +15,15 @@ public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
 
+    public CharacterComponent() { // mt
+    }
+///*
     public CharacterComponent(SteeringEntity steeringEntity) {
+
+        setSteerable(steeringEntity);
+    }
+//*/
+    public void setSteerable (SteeringEntity steeringEntity) {
 
         this.steerable = steeringEntity;
     }
