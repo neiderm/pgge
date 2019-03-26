@@ -204,16 +204,19 @@ class GameScreen extends ScreenAvecAssets {
 
         String objectName = GameWorld.getInstance().getPlayerObjectName();
 
+
+        pickedPlayer = null; // bad w3e have to depend on this crap for now
+
         for (Entity e : characters) {
 
-            if (null == pickedPlayer)
-                    pickedPlayer = e; // hakakakakakaka
+//            if (null == pickedPlayer)
+//                    pickedPlayer = e; // hakakakakakaka
 
             if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
                 pickedPlayer = e;
                 pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
             }
-            else { // if (pickedPlayer != e) {
+            else if (null != pickedPlayer) {   // ... more of this crap
 
                 btRigidBody chbody = e.getComponent(BulletComponent.class).body;
                 TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
