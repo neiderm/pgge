@@ -312,83 +312,84 @@ instances should be same size/scale so that we can pass one collision shape to s
         return charactersArray;
     }
 
-    public void buildCharacters(Engine engine, String groupName) {
-// pass a dummy parameter
-//        Array<Entity> charactersArray = new Array<Entity>();
 
-        buildCharacters(charactersArray, engine, groupName);
-    }
+    private Entity getCharacterEntity (SceneData.GameObject.InstanceData i, SceneData.GameObject gameObject) {
 
-    //TODO: deprecated (selectScreen)
-    private void buildCharacters(Array<Entity> characters, Engine engine, String groupName) {
+        Model model = gameData.modelInfo.get(gameObject.objectName).model;
 
-        SceneData.ModelGroup mg = gameData.modelGroups.get(groupName);
+        Entity e = new Entity();
 
-        if (null != mg) {
-            for (SceneData.GameObject gameObject : gameData.modelGroups.get(groupName).gameObjects) {
+        // special sauce to hand off the model node
+        ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
+        inst.transform.trn(i.translation);
+        e.add(new ModelComponent(inst));
 
-                Model model = gameData.modelInfo.get(gameObject.objectName).model;
-                Entity e;
+        if (gameObject.mass > 0 /* useBulletComp */) {
+            btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+            e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+        }
 
-                for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
-
-                    e = new Entity();
-
-                    // special sauce to hand off the model node
-                    ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-                    inst.transform.trn(i.translation);
-                    e.add(new ModelComponent(inst));
-
-                    if (gameObject.mass > 0 /* useBulletComp */) {
-                        btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                        e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-                    }
-
-                    if (gameObject.isSteerable) {
-                        e.add(new CharacterComponent());
-                    }
-
-                    if (null != characters) {
-                        characters.add(e);
-                    }
+        if (gameObject.isSteerable) {
+            e.add(new CharacterComponent());
+        }
 
 //                    if (gameObject.isPickable)
-                    {
+        {
 //                        e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
-                        addPickObject(e, gameObject.objectName);
-                    }
-                    engine.addEntity(e);
-                }
-            }
+            addPickObject(e, gameObject.objectName);
         }
+
+        return e;
     }
 
-    public void buildArena(Engine engine) {
+
+    private void buildArena(Engine engine) {
 
         for (String key : gameData.modelGroups.keySet()) {
 
             SceneData.ModelGroup mg = gameData.modelGroups.get(key);
 
+            SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
+
+            Model groupModel = null;
+
+            if (null != mgmdlinfo) {
+                groupModel = mgmdlinfo.model;
+            }
+
             for (SceneData.GameObject gameObject : mg.gameObjects) {
 
                 gameObject.isKinematic = mg.isKinematic; // hmmmmmm
 
-                SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName); // apparently does NOT blow up if NULL==modelName !
+                if (null != groupModel) {
 
-                if (null != mgmdlinfo) {
-
-                    loadModelNodes(engine, gameObject, mgmdlinfo.model);
+                    // the purpose of binding a model to a group is for iterating all model nodes in
+                    // sequence and ideally walk the model only once to build and retain a list of nodes
+                    loadModelNodes(engine, gameObject, groupModel);
 
                 } else {
                     // look for a model file  named as the object
                     SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
+                    // ugly ... need to allow primitive object to be seelcted as character ... just because
+
                     if (null == mdlinfo) {
+
                         buildPrimitiveObject(engine, gameObject);
 
                     } else {
-//                            Model model = gameData.modelInfo.get(gameObject.objectName).model;
-                        Gdx.app.log("SceneLoader", "TODO: handle gameObject.objectName = " + gameObject.objectName + " ????");
+
+                        Entity e;
+
+                        for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
+
+                            e = getCharacterEntity(i, gameObject);
+
+                            if (null != charactersArray) {
+                                charactersArray.add(e);
+                            }
+                            engine.addEntity(e);
+                        }
                     }
                 }
             }
@@ -428,8 +429,6 @@ instances should be same size/scale so that we can pass one collision shape to s
 
 
     public void buildScene(Engine engine) {
-
-        buildCharacters(engine, "tanks");
 
         buildArena(engine);
     }
