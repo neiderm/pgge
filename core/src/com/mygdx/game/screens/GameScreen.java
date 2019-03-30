@@ -210,11 +210,14 @@ class GameScreen extends ScreenAvecAssets {
 //            if (null == pickedPlayer)
 //                    pickedPlayer = e; // hakakakakakaka
 
-            if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
+            PickRayComponent pc = e.getComponent(PickRayComponent.class);
+
+            if (null != pc && null != pc.objectName && pc.objectName.equals(objectName)) {
+
                 pickedPlayer = e;
                 pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
             }
-            else if (null != pickedPlayer) {   // ... more of this crap
+            else if (null != pickedPlayer) {   // ... crap .. make sure we have a valid refrence to picked player transform
 
                 btRigidBody chbody = e.getComponent(BulletComponent.class).body;
                 TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
@@ -229,7 +232,8 @@ class GameScreen extends ScreenAvecAssets {
             }
         }
 
-        pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
+        if (null != pickedPlayer) // assert
+            pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*

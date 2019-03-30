@@ -299,9 +299,11 @@ instances should be same size/scale so that we can pass one collision shape to s
     }
 
 
-    private static void addPickObject(Entity e, String objectName) {
+    private static void addPickObject(Entity e, SceneData.GameObject gameObject) {
 
-        e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
+        if (gameObject.isPickable) {
+            e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
+        }
     }
 
 
@@ -312,41 +314,15 @@ instances should be same size/scale so that we can pass one collision shape to s
         return charactersArray;
     }
 
-
     private Entity getCharacterEntity (SceneData.GameObject.InstanceData i, SceneData.GameObject gameObject) {
-
-        Model model = gameData.modelInfo.get(gameObject.objectName).model;
-
         Entity e = new Entity();
-
-        // special sauce to hand off the model node
-        ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-        inst.transform.trn(i.translation);
-        e.add(new ModelComponent(inst));
-
-        if (gameObject.mass > 0 /* useBulletComp */) {
-            btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-            e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-        }
-
-        if (gameObject.isSteerable) {
-            e.add(new CharacterComponent());
-        }
-
-//                    if (gameObject.isPickable)
-        {
-//                        e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
-            addPickObject(e, gameObject.objectName);
-        }
-
         return e;
     }
-
 
     private void buildArena(Engine engine) {
 
         for (String key : gameData.modelGroups.keySet()) {
-
+Gdx.app.log("SceneLoader", "key = " + key);
             SceneData.ModelGroup mg = gameData.modelGroups.get(key);
 
             SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
@@ -355,6 +331,10 @@ instances should be same size/scale so that we can pass one collision shape to s
 
             if (null != mgmdlinfo) {
                 groupModel = mgmdlinfo.model;
+            } else {
+                if (null == mg.modelName && 0 == mg.gameObjects.size) {
+                    createTestObjects(engine); // tmp hakkkkk
+                }
             }
 
             for (SceneData.GameObject gameObject : mg.gameObjects) {
@@ -368,62 +348,54 @@ instances should be same size/scale so that we can pass one collision shape to s
                     loadModelNodes(engine, gameObject, groupModel);
 
                 } else {
-                    // look for a model file  named as the object
-                    SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+                    for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
 
-                    // ugly ... need to allow primitive object to be seelcted as character ... just because
+                        Entity e = null;
+                        SceneData.ModelInfo    mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
-                    if (null == mdlinfo) {
+                        if (null == mdlinfo) {
 
-                        buildPrimitiveObject(engine, gameObject);
+                            PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
-                    } else {
+                            if (null != pb) {
 
-                        Entity e;
+                                e = pb.create(gameObject.mass, i.translation, gameObject.scale);
 
-                        for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
-
-                            e = getCharacterEntity(i, gameObject);
-
-                            if (null != charactersArray) {
-                                charactersArray.add(e);
+                                if (null != i.color)
+                                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
                             }
-                            engine.addEntity(e);
+                        } else {
+
+                            // look for a model file  named as the object
+                            Model model = mdlinfo.model;
+
+                            e = new Entity();
+
+                            // special sauce to hand off the model node
+                            ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
+                            inst.transform.trn(i.translation);
+                            e.add(new ModelComponent(inst));
+
+                            if (gameObject.mass > 0 /* useBulletComp */) {
+                                btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+                                e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                            }
                         }
+
+                        addPickObject(e, gameObject);
+
+                        if (gameObject.isSteerable) {
+                            e.add(new CharacterComponent());
+                        }
+
+                        if (null != charactersArray) {
+                            charactersArray.add(e);
+                        }
+
+                        engine.addEntity(e);
                     }
                 }
             }
-        }
-    }
-
-    private static void buildPrimitiveObject(Engine engine, SceneData.GameObject o)
-    {
-        PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(o.objectName);
-
-        if (null != pb) {
-
-            Vector3 scale = o.scale;
-
-            // so far, pickability only handled in primitives  .. for now
-            boolean isPickable = o.isPickable;
-
-            for (SceneData.GameObject.InstanceData i : o.instanceData) {
-
-                Entity e = pb.create(o.mass, i.translation, scale);
-
-                if (null != i.color)
-                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
-
-                engine.addEntity(e);
-
-                if (isPickable) {
-                    addPickObject(e, o.objectName);
-//                    e.add(new PickRayComponent(o.objectName)); // set the object name ... yeh pretty hacky
-                }
-            }
-        } else {
-
-            createTestObjects(engine); // tmp
         }
     }
 
