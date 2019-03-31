@@ -339,13 +339,30 @@ instances should be same size/scale so that we can pass one collision shape to s
                     }
                 }
             } else if (null == mdlinfo) {
-                SceneData.ModelInfo mmmmmmmmmmmm = gameData.modelInfo.get(gameObject.objectName);
+
                 PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
                 if (null != pb) {
 
-                    e = pb.create(gameObject.mass, id.translation, gameObject.scale);
+                    ModelInstance instance =
+                            ModelInstanceEx.getModelInstance(PrimitivesBuilder.getPrimitivesModel(), gameObject.objectName);
 
+                    btCollisionShape shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
+///*
+                    BulletComponent bc = new BulletComponent(shape, instance.transform, gameObject.mass);
+
+                    if (0 == gameObject.mass) {
+                        // special sauce here for static entity
+// set these flags in bullet comp?
+                        bc.body.setCollisionFlags(
+                                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                    }
+
+                    e = new Entity();
+                    e.add(new ModelComponent(instance));
+                    e.add(bc);
+//*/
                     if (null != id.color)
                         ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, id.color, id.color.a); // kind of a hack ;)
                 }
