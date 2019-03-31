@@ -1,6 +1,6 @@
 {
 "modelGroups": {
-	"tanks": {
+	"characters": {
 		"gameObjects": [
 			{
 				"instanceData": [

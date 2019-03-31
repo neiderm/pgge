@@ -180,124 +180,6 @@ public class SceneLoader implements Disposable {
         }
     }
 
- /*
-  * searching the model for the given gameObject.objectName* ...
-  * may not be super efficient and  ... increasing number of model nodes ???
-  * However walking the model does possibly make sense in the case for globbed object name, not
-  * seeing a more efficient way right now.
-  *
-  * @return: gameObject?
-  */
-    private static void loadModelNodes(Engine engine, SceneData.GameObject gameObject, Model model) {
-
-        /* load all nodes from model that match /objectName.*/
-        for (Node node : model.nodes) {
-
-            String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
-
-            if (node.id.contains(unGlobbedObjectName)) {
-
-                SceneData.GameObject.InstanceData id;
-                int n = 0;
-
-                do {
-                    id = null;
-
-                    if (gameObject.instanceData.size > 0) {
-/*
-instances should be same size/scale so that we can pass one collision shape to share between them
-*/
-                        id = gameObject.instanceData.get(n++);
-                    }
-
-                    Entity e = buildObjectInstance(gameObject, id, model, node.id);
-
-                    if (null != e) {
-                        engine.addEntity(e);
-                    }
-                } while (null != id && n < gameObject.instanceData.size);
-            } // else  ... bail out if matched an un-globbed name ?
-        }
-    }
-
-    /* could end up "gameObject.build()" ?? */
-    private static Entity buildObjectInstance (
-            SceneData.GameObject gameObject, SceneData.GameObject.InstanceData i, Model model, String nodeID) {
-
-        btCollisionShape shape = null;
-
-/// BaseEntityBuilder.load ??
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
-        if (null == instance)
-            return null;
-
-        Entity e = new Entity();
-        /*
-        scale is in parent object (not instances) because object should be able to share same bullet shape!
-        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
-         */
-        if (null != gameObject.scale) {
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-            instance.nodes.get(0).scale.set(gameObject.scale);
-            instance.calculateTransforms();
-        }
-
-        // leave translation null if using translation from the model layout
-        if (null != i) {
-            if (null != i.rotation) {
-                instance.transform.idt();
-                instance.transform.rotate(i.rotation);
-            }
-            if (null != i.translation) {
-                // nullify any translation from the model, apply instance translation
-                instance.transform.setTranslation(0, 0, 0);
-                instance.transform.trn(i.translation);
-            }
-        }
-
-        ModelComponent mc = new ModelComponent(instance);
-        mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
-        e.add(mc);
-
-        if (null == gameObject.meshShape || gameObject.meshShape.equals("none")) {
-            // no mesh, no bullet
-        } else {
-            if (gameObject.meshShape.equals("convexHullShape")) {
-
-                Node node = instance.getNode(nodeID);
-
-                shape = MeshHelper.createConvexHullShape( node );
-
-                int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-
-            } else if (gameObject.meshShape.equals("triangleMeshShape")) {
-
-                shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
-
-            } else if (gameObject.meshShape.equals("btBoxShape")) {
-
-                BoundingBox boundingBox = new BoundingBox();
-                Vector3 dimensions = new Vector3();
-                instance.calculateBoundingBox(boundingBox);
-                shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
-            }
-
-            float mass = gameObject.mass;
-            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
-            e.add(bc);
-
-            // special sauce here for static entity
-            if (gameObject.isKinematic) {  // if (0 == mass) ??
-// set these flags in bullet comp?
-                bc.body.setCollisionFlags(
-                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-            }
-        }
-
-        return e;
-    }
-
 
     private static void addPickObject(Entity e, SceneData.GameObject gameObject) {
 
@@ -314,27 +196,27 @@ instances should be same size/scale so that we can pass one collision shape to s
         return charactersArray;
     }
 
-    private Entity getCharacterEntity (SceneData.GameObject.InstanceData i, SceneData.GameObject gameObject) {
-        Entity e = new Entity();
-        return e;
-    }
 
-    private void buildArena(Engine engine) {
+    public void buildScene(Engine engine) {
 
         for (String key : gameData.modelGroups.keySet()) {
-Gdx.app.log("SceneLoader", "key = " + key);
+
+            Gdx.app.log("SceneLoader", "key = " + key);
+            /*
+             * build a model group
+             */
             SceneData.ModelGroup mg = gameData.modelGroups.get(key);
-
             SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
-
             Model groupModel = null;
 
             if (null != mgmdlinfo) {
+
                 groupModel = mgmdlinfo.model;
-            } else {
-                if (null == mg.modelName && 0 == mg.gameObjects.size) {
-                    createTestObjects(engine); // tmp hakkkkk
-                }
+
+            } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
+
+                createTestObjects(engine); // tmp hakkkkk
+                continue;
             }
 
             for (SceneData.GameObject gameObject : mg.gameObjects) {
@@ -342,69 +224,162 @@ Gdx.app.log("SceneLoader", "key = " + key);
                 gameObject.isKinematic = mg.isKinematic; // hmmmmmm
 
                 if (null != groupModel) {
+                    // the purpose of binding a model to a group is for iterating all model nodes to support Node name globbing
+                    /*
+                     * searching the group model for the given gameObject.objectName* ...
+                     * may not be super efficient and  ... increasing number of model nodes ???
+                     * However walking the model is needed for globbed object name, not
+                     * seeing a more efficient way right now.
+                     */
+                    /* load all nodes from model that match /objectName.*/
+                    for (Node node : groupModel.nodes) {
 
-                    // the purpose of binding a model to a group is for iterating all model nodes in
-                    // sequence and ideally walk the model only once to build and retain a list of nodes
-                    loadModelNodes(engine, gameObject, groupModel);
+                        String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
 
-                } else {
-                    for (SceneData.GameObject.InstanceData i : gameObject.instanceData) {
+                        if (node.id.contains(unGlobbedObjectName)) {
 
-                        Entity e = null;
-                        SceneData.ModelInfo    mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+                            ModelInstance instance = ModelInstanceEx.getModelInstance(groupModel, node.id);
 
-                        if (null == mdlinfo) {
-
-                            PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
-
-                            if (null != pb) {
-
-                                e = pb.create(gameObject.mass, i.translation, gameObject.scale);
-
-                                if (null != i.color)
-                                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, i.color, i.color.a); // kind of a hack ;)
+                            // as far as i'm concerned, game Object instances should share scale so they can share bullet Shapes
+                            //
+                            // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+                            if (null != gameObject.scale) {
+                                instance.nodes.get(0).scale.set(gameObject.scale);
+                                instance.calculateTransforms();
                             }
-                        } else {
 
-                            // look for a model file  named as the object
-                            Model model = mdlinfo.model;
-
-                            e = new Entity();
-
-                            // special sauce to hand off the model node
-                            ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-                            inst.transform.trn(i.translation);
-                            e.add(new ModelComponent(inst));
-
-                            if (gameObject.mass > 0 /* useBulletComp */) {
-                                btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                                e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
-                            }
-                        }
-
-                        addPickObject(e, gameObject);
-
-                        if (gameObject.isSteerable) {
-                            e.add(new CharacterComponent());
-                        }
-
-                        if (null != charactersArray) {
-                            charactersArray.add(e);
-                        }
-
-                        engine.addEntity(e);
+                            buildGameObject(engine, gameObject, instance, node.id);
+                        } // else  ... bail out if matched an un-globbed name ?
                     }
+                } else {
+                    buildGameObject(engine, gameObject, null, null);
                 }
             }
         }
     }
 
+    // gameObject.build() ?
+    private void buildGameObject(Engine engine, SceneData.GameObject gameObject, ModelInstance instance , String nodeID) {
 
-    public void buildScene(Engine engine) {
+        SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+        SceneData.GameObject.InstanceData id;
+        int n = 0;
 
-        buildArena(engine);
+        do { // for (SceneData.GameObject.InstanceData i : gameObject.instanceData) ... but not because game objects may not populate any instance data
+            id = null;
+
+            if (gameObject.instanceData.size > 0) {
+/*
+instances should be same size/scale so that we can pass one collision shape to share between them
+*/
+                id = gameObject.instanceData.get(n++);
+            }
+// if (null != id) ... todo
+
+            Entity e = null;
+
+            if (null != nodeID) {
+
+                btCollisionShape shape = null;
+
+                e = new Entity();
+        /*
+        scale is in parent object (not instances) because object should be able to share same bullet shape!
+        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
+         */
+                // leave translation null if using translation from the model layout
+                if (null != id) {
+                    if (null != id.rotation) {
+                        instance.transform.idt();
+                        instance.transform.rotate(id.rotation);
+                    }
+                    if (null != id.translation) {
+                        // nullify any translation from the model, apply instance translation
+                        instance.transform.setTranslation(0, 0, 0);
+                        instance.transform.trn(id.translation);
+                    }
+                }
+
+                ModelComponent mc = new ModelComponent(instance);
+                mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
+                e.add(mc);
+
+                if (null != gameObject.meshShape) {
+
+                    if (gameObject.meshShape.equals("convexHullShape")) {
+
+                        shape = MeshHelper.createConvexHullShape( instance.getNode(nodeID) );
+
+//                        int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+
+                    } else if (gameObject.meshShape.equals("triangleMeshShape")) {
+
+                        shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
+
+                    } else if (gameObject.meshShape.equals("btBoxShape")) {
+
+                        BoundingBox boundingBox = new BoundingBox();
+                        Vector3 dimensions = new Vector3();
+                        instance.calculateBoundingBox(boundingBox);
+
+                        shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
+                    }
+                    // sphere?
+
+                    float mass = gameObject.mass;
+                    BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+                    e.add(bc);
+
+                    // special sauce here for static entity
+                    if (gameObject.isKinematic) {  // if (0 == mass) ??
+// set these flags in bullet comp?
+                        bc.body.setCollisionFlags(
+                                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                    }
+                }
+            } else if (null == mdlinfo) {
+
+                PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
+
+                if (null != pb) {
+
+                    e = pb.create(gameObject.mass, id.translation, gameObject.scale);
+
+                    if (null != id.color)
+                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, id.color, id.color.a); // kind of a hack ;)
+                }
+            } else {
+                // look for a model file  named as the object
+                Model model = mdlinfo.model;
+
+                e = new Entity();
+
+                // special sauce to hand off the model node
+                ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
+                inst.transform.trn(id.translation);
+                e.add(new ModelComponent(inst));
+
+                if (gameObject.mass > 0 /* useBulletComp */) {
+                    btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                }
+            }
+
+            addPickObject(e, gameObject);
+
+            if (gameObject.isSteerable) {
+                e.add(new CharacterComponent());
+            }
+
+            if (null != charactersArray) {
+                charactersArray.add(e);
+            }
+//                    if (null != e) // assert
+            engine.addEntity(e);
+
+        } while (null != id && n < gameObject.instanceData.size);
     }
-
 
     @Override
     public void dispose() {
@@ -412,7 +387,6 @@ Gdx.app.log("SceneLoader", "key = " + key);
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
         //  Disposing the file will automatically make all instances invalid!
         assets.dispose();
-
 
 // new test file writer
         SceneData cpGameData = new SceneData();
@@ -431,8 +405,8 @@ Gdx.app.log("SceneLoader", "key = " + key);
                 }
                 mg.gameObjects.add(cpObject);
             }
-            cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
 
+            cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
         }
 //        saveData(cpGameData);
     }

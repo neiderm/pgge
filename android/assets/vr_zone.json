@@ -1,6 +1,6 @@
 {
 "modelGroups": {
-	"tanks": {
+	"characters": {
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -14,11 +14,6 @@
 					}
 				],
 				"objectName": "offroadcar",
-				"scale": {
-					"x": 1,
-					"y": 1,
-					"z": 1
-				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
@@ -37,11 +32,6 @@
 					}
 				],
 				"objectName": "militaryvan",
-				"scale": {
-					"x": 1,
-					"y": 1,
-					"z": 1
-				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
@@ -60,11 +50,6 @@
 					}
 				],
 				"objectName": "tank",
-				"scale": {
-					"x": 1,
-					"y": 1,
-					"z": 1
-				},
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
@@ -140,8 +125,12 @@
 		"modelName": "scene",
 		"gameObjects": [
 			{
-				"objectName": "SkyBox",
-				"meshShape": "none"
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isShadowed": true
+			},
+			{
+				"objectName": "SkyBox"
 			},
 			{
 				"objectName": "Cube*",
@@ -241,17 +230,6 @@
 				"isShadowed": true
 			}
 		]
-	},
-	"sceneKinematicObjects": {
-		"modelName": "scene",
-		"gameObjects": [
-			{
-				"objectName": "Plane*",
-				"meshShape": "triangleMeshShape",
-				"isShadowed": true
-			}
-		],
-		"isKinematic": true
 	}
 },
 "modelInfo": {
