@@ -238,17 +238,8 @@ public class SceneLoader implements Disposable {
 
                         if (node.id.contains(unGlobbedObjectName)) {
 
-                            ModelInstance instance = ModelInstanceEx.getModelInstance(groupModel, node.id);
 
-                            // as far as i'm concerned, game Object instances should share scale so they can share bullet Shapes
-                            //
-                            // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-                            if (null != gameObject.scale) {
-                                instance.nodes.get(0).scale.set(gameObject.scale);
-                                instance.calculateTransforms();
-                            }
-
-                            buildGameObject(engine, gameObject, instance, node.id);
+                            buildGameObject(engine, gameObject, groupModel, node.id);
                         } // else  ... bail out if matched an un-globbed name ?
                     }
                 } else {
@@ -259,7 +250,7 @@ public class SceneLoader implements Disposable {
     }
 
     // gameObject.build() ?
-    private void buildGameObject(Engine engine, SceneData.GameObject gameObject, ModelInstance instance , String nodeID) {
+    private void buildGameObject(Engine engine, SceneData.GameObject gameObject, Model groupModel, String nodeID) {
 
         SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
         SceneData.GameObject.InstanceData id;
@@ -283,10 +274,19 @@ instances should be same size/scale so that we can pass one collision shape to s
                 btCollisionShape shape = null;
 
                 e = new Entity();
+
+                ModelInstance instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
+
+                // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
+                if (null != gameObject.scale) {
+                    instance.nodes.get(0).scale.set(gameObject.scale);
+                    instance.calculateTransforms();
+                }
+
                 // leave translation null if using translation from the model layout
                 if (null != id) {
                     if (null != id.rotation) {
@@ -339,7 +339,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                     }
                 }
             } else if (null == mdlinfo) {
-
+                SceneData.ModelInfo mmmmmmmmmmmm = gameData.modelInfo.get(gameObject.objectName);
                 PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
                 if (null != pb) {
@@ -364,18 +364,19 @@ instances should be same size/scale so that we can pass one collision shape to s
                     btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                     e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
                 }
+
+                if (gameObject.isSteerable) {
+                    e.add(new CharacterComponent());
+                }
+
+                if (null != charactersArray) {
+                    charactersArray.add(e);
+                }
             }
 
             addPickObject(e, gameObject);
 
-            if (gameObject.isSteerable) {
-                e.add(new CharacterComponent());
-            }
-
-            if (null != charactersArray) {
-                charactersArray.add(e);
-            }
-//                    if (null != e) // assert
+//if (null != e) // assert
             engine.addEntity(e);
 
         } while (null != id && n < gameObject.instanceData.size);

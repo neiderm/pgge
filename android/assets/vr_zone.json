@@ -91,7 +91,24 @@
 			}
 		]
 	},
-	"primitivesKinematic": {
+	"sceneStaticObjects": {
+		"modelName": "scene",
+		"gameObjects": [
+			{
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isShadowed": true
+			},
+			{
+				"objectName": "SkyBox"
+			},
+			{
+				"objectName": "Cube*",
+				"isShadowed": true
+			}
+		]
+	},
+	"primitivesMisc": {
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -117,73 +134,7 @@
 				},
 				"meshShape": "btBoxShape",
 				"isShadowed": true
-			}
-		],
-		"isKinematic": true
-	},
-	"sceneStaticObjects": {
-		"modelName": "scene",
-		"gameObjects": [
-			{
-				"objectName": "Plane*",
-				"meshShape": "triangleMeshShape",
-				"isShadowed": true
 			},
-			{
-				"objectName": "SkyBox"
-			},
-			{
-				"objectName": "Cube*",
-				"isShadowed": true
-			}
-		]
-	},
-	"objects": {
-		"modelName": "objects",
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"rotation": {},
-						"translation": {
-							"y": 4,
-							"z": -5
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -2,
-							"y": 6,
-							"z": -5
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -2,
-							"y": 6,
-							"z": -5
-						}
-					},
-					{
-						"rotation": {},
-						"translation": {
-							"x": -4,
-							"y": 6,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "Crate.000",
-				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
-			}
-		]
-	},
-	"primitivesDynamicObjects": {
-		"gameObjects": [
 			{
 				"instanceData": [
 					{
@@ -226,6 +177,35 @@
 					"z": 2
 				},
 				"mass": 1,
+				"meshShape": "btBoxShape",
+				"isShadowed": true
+			}
+		]
+	},
+	"objects": {
+		"modelName": "objects",
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"rotation": {},
+						"translation": {
+							"x": 6,
+							"y": 20,
+							"z": 5
+						}
+					},
+					{
+						"rotation": {},
+						"translation": {
+							"x": 6,
+							"y": 12,
+							"z": 5
+						}
+					}
+				],
+				"objectName": "Crate.001",
+				"mass": 0.1,
 				"meshShape": "btBoxShape",
 				"isShadowed": true
 			}
