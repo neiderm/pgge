@@ -33,6 +33,7 @@ public class SceneData {
         public Array<GameObject> gameObjects = new Array<GameObject>();
 
         public boolean isKinematic;
+        public boolean isCharacter;
     }
 
     public static class ModelInfo {
@@ -76,8 +77,6 @@ public class SceneData {
             public Quaternion rotation;
             public Vector3 translation;
             public Color color;
-//            public boolean hasCharacterStatus;
-//            public int timeCharacterLifeSecs;
         }
 
         public Array<GameObject.InstanceData> instanceData = new Array<GameObject.InstanceData>();
@@ -90,6 +89,7 @@ public class SceneData {
         public boolean isPickable;
         public boolean isShadowed;
         public boolean isSteerable;
+        public boolean isCharacter;
     }
 
 

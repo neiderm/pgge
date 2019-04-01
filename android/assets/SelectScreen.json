@@ -46,7 +46,8 @@
 				"isPickable": true,
 				"isShadowed": true
 			}
-		]
+		],
+		"isCharacter": true
 	}
 },
 "modelInfo": {

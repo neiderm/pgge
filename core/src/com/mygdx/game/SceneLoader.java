@@ -221,7 +221,8 @@ public class SceneLoader implements Disposable {
 
             for (SceneData.GameObject gameObject : mg.gameObjects) {
 
-                gameObject.isKinematic = mg.isKinematic; // hmmmmmm
+                gameObject.isKinematic = mg.isKinematic;
+                gameObject.isCharacter = mg.isCharacter;
 
                 if (null != groupModel) {
                     // the purpose of binding a model to a group is for iterating all model nodes to support Node name globbing
@@ -237,7 +238,6 @@ public class SceneLoader implements Disposable {
                         String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
 
                         if (node.id.contains(unGlobbedObjectName)) {
-
 
                             buildGameObject(engine, gameObject, groupModel, node.id);
                         } // else  ... bail out if matched an un-globbed name ?
@@ -255,6 +255,10 @@ public class SceneLoader implements Disposable {
         SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
         SceneData.GameObject.InstanceData id;
         int n = 0;
+
+        if (null == gameObject.scale){
+            gameObject.scale = new Vector3(1, 1, 1);
+        }
 
         do { // for (SceneData.GameObject.InstanceData i : gameObject.instanceData) ... but not because game objects may not populate any instance data
             id = null;
@@ -282,7 +286,8 @@ instances should be same size/scale so that we can pass one collision shape to s
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
-                if (null != gameObject.scale) {
+///                if (null != gameObject.scale) // already asserted ... see above
+                {
                     instance.nodes.get(0).scale.set(gameObject.scale);
                     instance.calculateTransforms();
                 }
@@ -338,7 +343,9 @@ instances should be same size/scale so that we can pass one collision shape to s
                         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
                     }
                 }
-            } else if (null == mdlinfo) {
+            } else
+
+                if (null == mdlinfo) {
 
                 PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
@@ -381,14 +388,13 @@ instances should be same size/scale so that we can pass one collision shape to s
                     btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                     e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
                 }
+            }
 
-                if (gameObject.isSteerable) {
-                    e.add(new CharacterComponent());
-                }
-
-                if (null != charactersArray) {
-                    charactersArray.add(e);
-                }
+            if (gameObject.isSteerable) {
+                e.add(new CharacterComponent());
+            }
+            if (  gameObject.isCharacter   &&  null != charactersArray) {
+                charactersArray.add(e);
             }
 
             addPickObject(e, gameObject);

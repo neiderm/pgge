@@ -89,7 +89,8 @@
 				"isShadowed": true,
 				"isSteerable": true
 			}
-		]
+		],
+		"isCharacter": true
 	},
 	"primitiveStatics": {
 		"modelName": "",

@@ -83,13 +83,14 @@
 						}
 					}
 				],
-				"objectName": "ship",
+				"objectName": "sphereCharacter",
 				"mass": 5.1,
-				"meshShape": "convexHullShape",
+				"meshShape": "btSphereShape",
 				"isShadowed": true,
 				"isSteerable": true
 			}
-		]
+		],
+		"isCharacter": true
 	},
 	"sceneStaticObjects": {
 		"modelName": "scene",
@@ -132,7 +133,6 @@
 					"y": 1,
 					"z": 4
 				},
-				"meshShape": "btBoxShape",
 				"isShadowed": true
 			},
 			{

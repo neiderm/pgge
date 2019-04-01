@@ -103,7 +103,13 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         mb.node().id = "sphereTex";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
-/* example of createCullFace */ /*
+
+        tex = new Texture(Gdx.files.internal("data/badlogic.jpg"), true);
+        mb.node().id = "sphereCharacter";
+        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
+                new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
+
+        /* example of createCullFace */ /*
         tex = new Texture(Gdx.files.internal("data/sky.jpg"), true);
         mb.node().id = "skySphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
