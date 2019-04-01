@@ -256,11 +256,12 @@ public class SceneLoader implements Disposable {
         SceneData.GameObject.InstanceData id;
         int n = 0;
 
-        if (null == gameObject.scale){
+        if (null == gameObject.scale) {
             gameObject.scale = new Vector3(1, 1, 1);
         }
 
-        do { // for (SceneData.GameObject.InstanceData i : gameObject.instanceData) ... but not because game objects may not populate any instance data
+        do
+        { // for (SceneData.GameObject.InstanceData i : gameObject.instanceData) ... but not because game objects may not populate any instance data
             id = null;
 
             if (gameObject.instanceData.size > 0) {
@@ -271,7 +272,7 @@ instances should be same size/scale so that we can pass one collision shape to s
             }
 // if (null != id) ... todo
 
-            Entity e = null;
+            Entity e;
 
             if (null != nodeID) {
 
@@ -313,7 +314,7 @@ instances should be same size/scale so that we can pass one collision shape to s
 
                     if (gameObject.meshShape.equals("convexHullShape")) {
 
-                        shape = MeshHelper.createConvexHullShape( instance.getNode(nodeID) );
+                        shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
 
 //                        int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
 
@@ -343,19 +344,30 @@ instances should be same size/scale so that we can pass one collision shape to s
                         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
                     }
                 }
-            } else
+            } else if (null == mdlinfo) {
 
-                if (null == mdlinfo) {
+                e = new Entity();
+
+                ModelInstance instance =
+                        ModelInstanceEx.getModelInstance(PrimitivesBuilder.getPrimitivesModel(), gameObject.objectName);
+
+                e.add(new ModelComponent(instance));
+
+                if (null != id.color)
+                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, id.color, id.color.a); // kind of a hack ;)
 
                 PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
+                btCollisionShape shape = null;
+
                 if (null != pb) {
+                    shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
+                }
 
-                    ModelInstance instance =
-                            ModelInstanceEx.getModelInstance(PrimitivesBuilder.getPrimitivesModel(), gameObject.objectName);
+                if (!gameObject.isKinematic && null == gameObject.meshShape && 0 == gameObject.mass) {
+                    shape.dispose(); ///  needed to get the model instance scaled etc. but we gotta silly shape to dispose()
 
-                    btCollisionShape shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
-///*
+                } else {
                     BulletComponent bc = new BulletComponent(shape, instance.transform, gameObject.mass);
 
                     if (0 == gameObject.mass) {
@@ -365,13 +377,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
                         bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
                     }
-
-                    e = new Entity();
-                    e.add(new ModelComponent(instance));
                     e.add(bc);
-//*/
-                    if (null != id.color)
-                        ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, id.color, id.color.a); // kind of a hack ;)
                 }
             } else {
                 // look for a model file  named as the object
@@ -393,7 +399,7 @@ instances should be same size/scale so that we can pass one collision shape to s
             if (gameObject.isSteerable) {
                 e.add(new CharacterComponent());
             }
-            if (  gameObject.isCharacter   &&  null != charactersArray) {
+            if (gameObject.isCharacter && null != charactersArray) {
                 charactersArray.add(e);
             }
 
