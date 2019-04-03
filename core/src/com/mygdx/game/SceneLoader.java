@@ -273,14 +273,16 @@ instances should be same size/scale so that we can pass one collision shape to s
 // if (null != id) ... todo
 
             Entity e;
+            ModelInstance instance;
+            BulletComponent bc = null;
+            btCollisionShape shape = null;
 
             if (null != nodeID) {
-
-                btCollisionShape shape = null;
-
+                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
+                // ........ HOWEVER it might be desirable to load dynamic object from the so-called "object" model ?
                 e = new Entity();
 
-                ModelInstance instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
+                instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
 
                 // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         /*
@@ -289,7 +291,7 @@ instances should be same size/scale so that we can pass one collision shape to s
          */
 ///                if (null != gameObject.scale) // already asserted ... see above
                 {
-                    instance.nodes.get(0).scale.set(gameObject.scale);
+                    instance.nodes.get(0).scale.set(gameObject.scale);              // do we ever scale anything here ?
                     instance.calculateTransforms();
                 }
 
@@ -306,12 +308,8 @@ instances should be same size/scale so that we can pass one collision shape to s
                     }
                 }
 
-                ModelComponent mc = new ModelComponent(instance);
-                mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
-                e.add(mc);
-
                 if (null != gameObject.meshShape) {
-
+// some way to commonize mesh shapes generation with "primitives" factory ???
                     if (gameObject.meshShape.equals("convexHullShape")) {
 
                         shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
@@ -331,69 +329,63 @@ instances should be same size/scale so that we can pass one collision shape to s
                         shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
                     }
                     // sphere?
-
-                    float mass = gameObject.mass;
-                    BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
-                    e.add(bc);
-
-                    // special sauce here for static entity
-                    if (gameObject.isKinematic) {  // if (0 == mass) ??
-// set these flags in bullet comp?
-                        bc.body.setCollisionFlags(
-                                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-                        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-                    }
-                }
-            } else if (null == mdlinfo) {
-
-                e = new Entity();
-
-                ModelInstance instance =
-                        ModelInstanceEx.getModelInstance(PrimitivesBuilder.getPrimitivesModel(), gameObject.objectName);
-
-                e.add(new ModelComponent(instance));
-
-                if (null != id.color)
-                    ModelInstanceEx.setColorAttribute(e.getComponent(ModelComponent.class).modelInst, id.color, id.color.a); // kind of a hack ;)
-
-                PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
-
-                btCollisionShape shape = null;
-
-                if (null != pb) {
-                    shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
-                }
-
-                if (!gameObject.isKinematic && null == gameObject.meshShape && 0 == gameObject.mass) {
-                    shape.dispose(); ///  needed to get the model instance scaled etc. but we gotta silly shape to dispose()
-
-                } else {
-                    BulletComponent bc = new BulletComponent(shape, instance.transform, gameObject.mass);
-
-                    if (0 == gameObject.mass) {
-                        // special sauce here for static entity
-// set these flags in bullet comp?
-                        bc.body.setCollisionFlags(
-                                bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-                        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-                    }
-                    e.add(bc);
                 }
             } else {
-                // look for a model file  named as the object
-                Model model = mdlinfo.model;
 
                 e = new Entity();
+                Model model;
+                String nodeName;
 
-                // special sauce to hand off the model node
-                ModelInstance inst = ModelInstanceEx.getModelInstance(model, model.nodes.get(0).id);
-                inst.transform.trn(id.translation);
-                e.add(new ModelComponent(inst));
+                if (null != mdlinfo) {
+                    // look for a model file  named as the object
+                    model = mdlinfo.model;
+                    nodeName = model.nodes.get(0).id;
+                    // special sauce to hand off the model node
+                    instance = ModelInstanceEx.getModelInstance(model, nodeName);
+// translation
+                    instance.transform.trn(id.translation);
 
-                if (gameObject.mass > 0 /* useBulletComp */) {
-                    btCollisionShape shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                    e.add(new BulletComponent(shape, inst.transform, gameObject.mass));
+                    if (gameObject.mass > 0  && !gameObject.isKinematic) {
+                        shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
+                    }                     // else ... non bullet entity (e.g cars in select screen)
+
+                } else {
+                    model = PrimitivesBuilder.getPrimitivesModel();
+                    nodeName = gameObject.objectName;
+                    instance = ModelInstanceEx.getModelInstance(model, nodeName);
+
+                    if (null != id.color)
+                        ModelInstanceEx.setColorAttribute(instance, id.color, id.color.a); // kind of a hack ;)
+
+                    PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
+
+// translation etc. done in create() ...
+                    if (null != pb) {
+                        shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
+                    }
+
+                    if (!gameObject.isKinematic && null == gameObject.meshShape && 0 == gameObject.mass) {
+                        shape.dispose(); ///  needed to get the model instance scaled etc. but we gotta silly shape to dispose()
+                        shape = null;
+                    }
                 }
+            }
+
+            ModelComponent mc = new ModelComponent(instance);
+            mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
+            e.add(mc);
+
+            if (null != shape){
+                bc = new BulletComponent(shape, instance.transform, gameObject.mass);
+                e.add(bc);
+            }
+
+            // special sauce here for static entity
+            if (gameObject.isKinematic) {  // if (0 == mass) ??
+// set these flags in bullet comp?
+                bc.body.setCollisionFlags(
+                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
 
             if (gameObject.isSteerable) {
