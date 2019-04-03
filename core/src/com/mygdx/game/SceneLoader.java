@@ -272,15 +272,13 @@ instances should be same size/scale so that we can pass one collision shape to s
             }
 // if (null != id) ... todo
 
-            Entity e;
+            Entity e = new Entity();
             ModelInstance instance;
-            BulletComponent bc = null;
             btCollisionShape shape = null;
 
             if (null != nodeID) {
                 // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
                 // ........ HOWEVER it might be desirable to load dynamic object from the so-called "object" model ?
-                e = new Entity();
 
                 instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
 
@@ -332,7 +330,6 @@ instances should be same size/scale so that we can pass one collision shape to s
                 }
             } else {
 
-                e = new Entity();
                 Model model;
                 String nodeName;
 
@@ -346,6 +343,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                     instance.transform.trn(id.translation);
 
                     if (gameObject.mass > 0  && !gameObject.isKinematic) {
+//if ( gameObject.meshShape.equals("convexHullShape"))    ??????
                         shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                     }                     // else ... non bullet entity (e.g cars in select screen)
 
@@ -354,38 +352,40 @@ instances should be same size/scale so that we can pass one collision shape to s
                     nodeName = gameObject.objectName;
                     instance = ModelInstanceEx.getModelInstance(model, nodeName);
 
-                    if (null != id.color)
-                        ModelInstanceEx.setColorAttribute(instance, id.color, id.color.a); // kind of a hack ;)
-
                     PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
 // translation etc. done in create() ...
                     if (null != pb) {
                         shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
-                    }
-
-                    if (!gameObject.isKinematic && null == gameObject.meshShape && 0 == gameObject.mass) {
-                        shape.dispose(); ///  needed to get the model instance scaled etc. but we gotta silly shape to dispose()
-                        shape = null;
+                        gameObject.meshShape = "primitive"; // maybe
                     }
                 }
             }
+
+            if (null != id && null != id.color)
+                ModelInstanceEx.setColorAttribute(instance, id.color, id.color.a); // kind of a hack ;)
 
             ModelComponent mc = new ModelComponent(instance);
             mc.isShadowed = gameObject.isShadowed; // disable shadowing of skybox)
             e.add(mc);
 
-            if (null != shape){
-                bc = new BulletComponent(shape, instance.transform, gameObject.mass);
-                e.add(bc);
+// tmp hack
+            if (!gameObject.isKinematic && null == gameObject.meshShape && 0 == gameObject.mass && null != shape) {
+                shape.dispose(); ///  needed to get the model instance scaled etc. but we gotta silly shape to dispose()
+                shape = null;
             }
 
-            // special sauce here for static entity
-            if (gameObject.isKinematic) {  // if (0 == mass) ??
+            if (null != shape){
+                BulletComponent bc = new BulletComponent(shape, instance.transform, gameObject.mass);
+                e.add(bc);
+
+                // special sauce here for static entity
+                if (gameObject.isKinematic) {  // if (0 == mass) ??
 // set these flags in bullet comp?
-                bc.body.setCollisionFlags(
-                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                    bc.body.setCollisionFlags(
+                            bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                    bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                }
             }
 
             if (gameObject.isSteerable) {
