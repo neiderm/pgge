@@ -273,66 +273,91 @@ instances should be same size/scale so that we can pass one collision shape to s
 // if (null != id) ... todo
 
             Entity e = new Entity();
-            ModelInstance instance;
+            ModelInstance instance = null;
             btCollisionShape shape = null;
 
-            if (null != nodeID) {
-                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
-                // ........ HOWEVER it might be desirable to load dynamic object from the so-called "object" model ?
+            if (null != nodeID || null == mdlinfo) {
 
-                instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
+                Model model = groupModel;
 
-                // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+                if (null == model && null == mdlinfo && null != gameObject.objectName) {
+
+                    model = PrimitivesBuilder.getPrimitivesModel();
+                    String nodeName = gameObject.objectName;
+                    instance = ModelInstanceEx.getModelInstance(model, nodeName);
+
+                    PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
+
+// translation etc. done in create() ...
+                    if (null != pb) {
+
+//                        shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
+                        shape = pb.getShape(gameObject.scale);
+                        pb.load(instance, shape,gameObject.scale, id.translation);
+
+                        gameObject.meshShape = "primitive"; // maybe
+                    }
+                } else {
+
+                    // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
+                    // ........ HOWEVER it might be desirable to load dynamic object from the so-called "object" model ?
+
+                    instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
+
+                    // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
 ///                if (null != gameObject.scale) // already asserted ... see above
-                {
-                    instance.nodes.get(0).scale.set(gameObject.scale);              // do we ever scale anything here ?
-                    instance.calculateTransforms();
-                }
-
-                // leave translation null if using translation from the model layout
-                if (null != id) {
-                    if (null != id.rotation) {
-                        instance.transform.idt();
-                        instance.transform.rotate(id.rotation);
+                    {
+                        instance.nodes.get(0).scale.set(gameObject.scale);              // do we ever scale anything here ?
+                        instance.calculateTransforms();
                     }
-                    if (null != id.translation) {
-                        // nullify any translation from the model, apply instance translation
-                        instance.transform.setTranslation(0, 0, 0);
-                        instance.transform.trn(id.translation);
-                    }
-                }
 
-                if (null != gameObject.meshShape) {
+                    // leave translation null if using translation from the model layout
+                    if (null != id) {
+                        if (null != id.rotation) {
+                            instance.transform.idt();
+                            instance.transform.rotate(id.rotation);
+                        }
+                        if (null != id.translation) {
+                            // nullify any translation from the model, apply instance translation
+                            instance.transform.setTranslation(0, 0, 0);
+                            instance.transform.trn(id.translation);
+                        }
+                    }
+
+                    if (null != gameObject.meshShape) {
 // some way to commonize mesh shapes generation with "primitives" factory ???
-                    if (gameObject.meshShape.equals("convexHullShape")) {
+                        if (gameObject.meshShape.equals("convexHullShape")) {
 
-                        shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
+                            shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
 
 //                        int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
 
-                    } else if (gameObject.meshShape.equals("triangleMeshShape")) {
+                        } else if (gameObject.meshShape.equals("triangleMeshShape")) {
 
-                        shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
+                            shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
 
-                    } else if (gameObject.meshShape.equals("btBoxShape")) {
+                        } else if (gameObject.meshShape.equals("btBoxShape")) {
 
-                        BoundingBox boundingBox = new BoundingBox();
-                        Vector3 dimensions = new Vector3();
-                        instance.calculateBoundingBox(boundingBox);
+                            BoundingBox boundingBox = new BoundingBox();
+                            Vector3 dimensions = new Vector3();
+                            instance.calculateBoundingBox(boundingBox);
 
-                        shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
+                            shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
+                        }
+                        // sphere?
                     }
-                    // sphere?
                 }
+
+
             } else {
 
                 Model model;
                 String nodeName;
-
+// mdlinfo = gameData.modelInfo.get(gameObject.objectName)
                 if (null != mdlinfo) {
                     // look for a model file  named as the object
                     model = mdlinfo.model;
@@ -342,23 +367,10 @@ instances should be same size/scale so that we can pass one collision shape to s
 // translation
                     instance.transform.trn(id.translation);
 
-                    if (gameObject.mass > 0  && !gameObject.isKinematic) {
+                    if (gameObject.mass > 0 && !gameObject.isKinematic) {
 //if ( gameObject.meshShape.equals("convexHullShape"))    ??????
                         shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                     }                     // else ... non bullet entity (e.g cars in select screen)
-
-                } else {
-                    model = PrimitivesBuilder.getPrimitivesModel();
-                    nodeName = gameObject.objectName;
-                    instance = ModelInstanceEx.getModelInstance(model, nodeName);
-
-                    PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
-
-// translation etc. done in create() ...
-                    if (null != pb) {
-                        shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
-                        gameObject.meshShape = "primitive"; // maybe
-                    }
                 }
             }
 
@@ -375,7 +387,7 @@ instances should be same size/scale so that we can pass one collision shape to s
                 shape = null;
             }
 
-            if (null != shape){
+            if (null != shape) {
                 BulletComponent bc = new BulletComponent(shape, instance.transform, gameObject.mass);
                 e.add(bc);
 

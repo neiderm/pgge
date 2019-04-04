@@ -11,12 +11,16 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 
 public abstract class BaseEntityBuilder /* extends EntityBuilder */ {
 
-//    @Override
     public Entity create(float mass, Vector3 trans, Vector3 size) {
         return null;
     }
 
+    public btCollisionShape getShape(Vector3 size) {
+        return null;
+    }
+///*
     public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
         return null;
     }
+//*/
 }

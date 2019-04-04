@@ -56,6 +56,8 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
     /* private */ public // hakakakakakakak
     static /*final */ Model primitivesModel;
 
+    public static btCollisionShape selectedShape; // idkf
+
     /* instances only access the protected reference to the model */
     private PrimitivesBuilder() {
 
@@ -161,7 +163,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, nodeID, new btSphereShape(size.x * DIM_HE), size, mass, trans);
+                return load(this.model, nodeID, getShape(size), size, mass, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+                return new btSphereShape(size.x * DIM_HE);
             }
         };
     }
@@ -170,7 +175,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, nodeID, new btBoxShape(size.cpy().scl(DIM_HE)), size, mass, trans);
+                return load(this.model, nodeID, getShape(size), size, mass, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+                return new btBoxShape(size.cpy().scl(DIM_HE));
             }
         };
     }
@@ -180,7 +188,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
             @Override
             public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, new btSphereShape(size.x * DIM_HE), size, trans);
+                return load(instance, getShape(size), size, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+                return new btSphereShape(size.x * DIM_HE);
             }
         };
     }
@@ -190,7 +201,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
             @Override
             public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, new btBoxShape(size.cpy().scl(DIM_HE)), size, trans);
+                return load(instance, getShape(size), size, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+                return new btBoxShape(size.cpy().scl(DIM_HE));
             }
         };
     }
@@ -200,7 +214,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
             @Override
             public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, new btConeShape(size.x * DIM_HE, size.y), size, trans);
+                return load(instance, getShape(size), size, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+                return new btConeShape(size.x * DIM_HE, size.y);
             }
         };
     }
@@ -219,7 +236,15 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
                 // the base mesh height and then subtracting the (scaled) end radii
                 float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
 
-                return load(instance, new btCapsuleShape(radius, height), size, trans);
+                return load(instance, getShape(size), size, trans);
+            }
+
+            public btCollisionShape getShape(Vector3 size) {
+
+                float radius = size.x * DIM_HE;
+                float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
+
+                return new btCapsuleShape(radius, height);
             }
         };
     }
@@ -230,7 +255,11 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
             // cylinder shape apparently allow both width (x) and height (y) to be specified
             public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, new btCylinderShape(size.cpy().scl(DIM_HE)), size, trans);
+                return load(instance, getShape(size), size, trans);
+            }
+            public btCollisionShape getShape(Vector3 size) {
+
+                return new btCylinderShape(size.cpy().scl(DIM_HE));
             }
         };
     }
@@ -241,7 +270,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
      *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
      *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
      */
-    static btCollisionShape load(
+    public static btCollisionShape load(
             ModelInstance instance, btCollisionShape shape, Vector3 size, Vector3 translation) {
 
         //        if (null != size)
