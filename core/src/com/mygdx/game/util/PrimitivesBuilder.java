@@ -64,7 +64,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         this.model = primitivesModel;
     }
 
-    public static Model getPrimitivesModel(){
+    public static Model getModel(){
         return primitivesModel;
     }
 

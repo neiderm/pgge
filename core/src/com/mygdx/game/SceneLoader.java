@@ -30,14 +30,17 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.screens.SceneData;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.InstanceData;
+import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.ModelInfo;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -181,7 +184,7 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void addPickObject(Entity e, SceneData.GameObject gameObject) {
+    private static void addPickObject(Entity e, GameObject gameObject) {
 
         if (gameObject.isPickable) {
             e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
@@ -205,8 +208,8 @@ public class SceneLoader implements Disposable {
             /*
              * build a model group
              */
-            SceneData.ModelGroup mg = gameData.modelGroups.get(key);
-            SceneData.ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
+            ModelGroup mg = gameData.modelGroups.get(key);
+            ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
             Model groupModel = null;
 
             if (null != mgmdlinfo) {
@@ -219,7 +222,7 @@ public class SceneLoader implements Disposable {
                 continue;
             }
 
-            for (SceneData.GameObject gameObject : mg.gameObjects) {
+            for (GameObject gameObject : mg.gameObjects) {
 
                 gameObject.isKinematic = mg.isKinematic;
                 gameObject.isCharacter = mg.isCharacter;
@@ -250,10 +253,10 @@ public class SceneLoader implements Disposable {
     }
 
     // gameObject.build() ?
-    private void buildGameObject(Engine engine, SceneData.GameObject gameObject, Model groupModel, String nodeID) {
+    private void buildGameObject(Engine engine, GameObject gameObject, Model groupModel, String nodeID) {
 
-        SceneData.ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
-        SceneData.GameObject.InstanceData id;
+        ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+        InstanceData id;
         int n = 0;
 
         if (null == gameObject.scale) {
@@ -282,7 +285,7 @@ instances should be same size/scale so that we can pass one collision shape to s
 
                 if (null == model && null == mdlinfo && null != gameObject.objectName) {
 
-                    model = PrimitivesBuilder.getPrimitivesModel();
+                    model = PrimitivesBuilder.getModel();
                     String nodeName = gameObject.objectName;
                     instance = ModelInstanceEx.getModelInstance(model, nodeName);
 
@@ -427,13 +430,13 @@ instances should be same size/scale so that we can pass one collision shape to s
 
         for (String key : gameData.modelGroups.keySet()) {
 
-            SceneData.ModelGroup mg = new SceneData.ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
+            ModelGroup mg = new ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
 
-            for (SceneData.GameObject o : gameData.modelGroups.get(key).gameObjects) {
+            for (GameObject o : gameData.modelGroups.get(key).gameObjects) {
 
-                SceneData.GameObject cpObject = new SceneData.GameObject(o.objectName, o.meshShape);
+                GameObject cpObject = new GameObject(o.objectName, o.meshShape);
 
-                for (SceneData.GameObject.InstanceData i : o.instanceData) {
+                for (InstanceData i : o.instanceData) {
 
                     cpObject.instanceData.add(i);
                 }
