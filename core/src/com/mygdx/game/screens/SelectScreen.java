@@ -18,6 +18,8 @@ package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -34,7 +36,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.SceneLoader;
 import com.mygdx.game.components.ModelComponent;
@@ -66,7 +67,7 @@ class SelectScreen extends ScreenAvecAssets {
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Stage stage;
     private Entity platform;
-    private Array<Entity> characters = new Array<Entity>();
+    private ImmutableArray<Entity> characters;
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private int idxCurSel;
     private final float yCoordOnPlatform = 0.1f;
@@ -116,7 +117,7 @@ class SelectScreen extends ScreenAvecAssets {
         cam.up.set(0, 1, 0);
         cam.update();
 
-// build the platform moanually (not from data file) for simplicity of retrieving entity
+// build the platform manually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
 
         platform = PrimitivesBuilder.getBoxBuilder( "boxTex" ).create(
@@ -124,9 +125,8 @@ class SelectScreen extends ScreenAvecAssets {
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
 
-
         screenData.buildScene(engine);
-        characters = screenData.getCharactersArray();
+        characters = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
 
         stage = new Stage();
         stage.addListener(new InputListener() {

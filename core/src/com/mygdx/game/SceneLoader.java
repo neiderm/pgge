@@ -30,7 +30,7 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -192,15 +192,11 @@ public class SceneLoader implements Disposable {
     }
 
 
-    // tmp special sauce for selectScreen
-    private Array<Entity> charactersArray = new Array<Entity>();
-
-    public Array<Entity> getCharactersArray(){
-        return charactersArray;
-    }
 
 
     public void buildScene(Engine engine) {
+
+        createTestObjects(engine); // tmp hakkkkk
 
         for (String key : gameData.modelGroups.keySet()) {
 
@@ -218,7 +214,6 @@ public class SceneLoader implements Disposable {
 
             } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
 
-                createTestObjects(engine); // tmp hakkkkk
                 continue;
             }
 
@@ -405,9 +400,6 @@ instances should be same size/scale so that we can pass one collision shape to s
 
             if (gameObject.isSteerable) {
                 e.add(new CharacterComponent());
-            }
-            if (gameObject.isCharacter && null != charactersArray) {
-                charactersArray.add(e);
             }
 
             addPickObject(e, gameObject);
