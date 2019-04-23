@@ -195,45 +195,39 @@ class GameScreen extends ScreenAvecAssets {
     private void onPlayerPicked() {
 
         screenData.buildScene(engine);
-
-        // load the rigs and search for matching name (name of rig as read from model is stashed in PickRayComp as a hack ;)
-
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
+        // name of picked player rig as read from model is stashed in PickRayComp as a hack ;)
         String objectName = GameWorld.getInstance().getPlayerObjectName();
-
-
         pickedPlayer = null; // bad w3e have to depend on this crap for now
 
         for (Entity e : characters) {
 
-//            if (null == pickedPlayer)
-//                    pickedPlayer = e; // hakakakakakaka
-
             PickRayComponent pc = e.getComponent(PickRayComponent.class);
-
             if (null != pc && null != pc.objectName && pc.objectName.equals(objectName)) {
+//            if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
 
                 pickedPlayer = e;
-                pickedPlayer.remove(PickRayComponent.class); // component no longer needed, remove  it
-            }
-            else if (null != pickedPlayer) {   // ... crap .. make sure we have a valid refrence to picked player transform
-
-                btRigidBody chbody = e.getComponent(BulletComponent.class).body;
-                TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass);/* should be a property of the tank? */
-
-                CharacterComponent cc = e.getComponent(CharacterComponent.class);
-
-                cc.setSteerable(
-                        new SteeringTankController(
-                                tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
-
-//                engine.addEntity(e);
+                pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
+                pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
             }
         }
 
-        if (null != pickedPlayer) // assert
-            pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
+        for (Entity e : characters) {
+//            if (e != pickedPlayer)  /// removed comp, so the immuatble array no longer contain picked player entity ...
+
+            btRigidBody chbody = e.getComponent(BulletComponent.class).body;
+            TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass); /* should be a property of the tank? */
+
+            CharacterComponent cc = e.getComponent(CharacterComponent.class);
+
+            cc.setSteerable(
+                    new SteeringTankController(
+                            tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
+        }
+
+//        if (null != pickedPlayer) // assert
+//            pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -294,16 +288,15 @@ class GameScreen extends ScreenAvecAssets {
                     v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
 
                     if (v.dst2(origin) > boundsDst2) {
-                        gameOverMessageString ="Elvis is Dead! Continue?";
+                        gameOverMessageString = "Elvis is Dead! Continue?";
                         onScreenTransition();
-                    }
-                    else
-                    if (gameOverCountDown <= ROUND_CONTINUE_WAIT_TIME) {
+                    } else if (gameOverCountDown <= ROUND_CONTINUE_WAIT_TIME) {
                         gameOverMessageString = "Time's Up! Continue?";
                         onScreenTransition();
                     }
                 }
-            }};
+            }
+        };
 
         setupplayerUI(pickedPlayer);
         Timer.schedule(oneSecondTask, 0, 1);
@@ -561,6 +554,7 @@ So we have to pause it explicitly as it is not governed by ECS
             ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         } else if (null != platformEntity) {
             engine.removeEntity(platformEntity);
+            platformEntity = null;
             //platformEntity.remove(BulletComponent.class); // idfk
             platformColor.a = 0;
         }
