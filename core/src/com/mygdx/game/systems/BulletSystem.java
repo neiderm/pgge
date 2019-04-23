@@ -67,5 +67,6 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
         // assert null != bc
         // assert null != bc.body
         BulletWorld.getInstance().removeBody(bc.body);
+        bc.body.dispose();
     }
 }
