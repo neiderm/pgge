@@ -50,22 +50,14 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
     protected static final float DIM_HE = 1f / 2f; // primitives half extent constant
     protected static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
-    protected Model model;
 
-
-    /* private */ public // hakakakakakakak
-    static /*final */ Model primitivesModel;
-
-    public static btCollisionShape selectedShape; // idkf
+    public static Model model;
 
     /* instances only access the protected reference to the model */
-    private PrimitivesBuilder() {
-
-        this.model = primitivesModel;
-    }
+//    private PrimitivesBuilder() { }
 
     public static Model getModel(){
-        return primitivesModel;
+        return model;
     }
 
     /* one instance of the primitives model is allowed to persist for the entire app lifetime */
@@ -117,7 +109,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
         new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
 */
-        primitivesModel = mb.end();
+        model = mb.end();
     }
 
     /*
@@ -134,99 +126,90 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return pb;
     }
 */
-    public static PrimitivesBuilder getPrimitiveBuilder(final String objectName /*, Engine engine */) {
+    public static PrimitivesBuilder getPrimitiveBuilder(final String objectName) {
 
         PrimitivesBuilder pb = null;
 
         if (objectName.contains("box")) {
 // bulletshape given in file but get box builder is tied to it already
-            pb = PrimitivesBuilder.getBoxBuilder(); // this constructor could use a size param ?
+            pb = PrimitivesBuilder.getBoxBuilder(objectName); // this constructor could use a size param ?
         }
         else if (objectName.contains("sphere")) {
 // bulletshape given in file but get Sphere builder is tied to it already
-            pb = PrimitivesBuilder.getSphereBuilder(); // this constructor could use a size param ?
+            pb = PrimitivesBuilder.getSphereBuilder(objectName); // this constructor could use a size param ?
         }
         else if (objectName.contains("cylinder")) {
-            pb = PrimitivesBuilder.getCylinderBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+            pb = PrimitivesBuilder.getCylinderBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
         }
         else if (objectName.contains("capsule")) {
-            pb = PrimitivesBuilder.getCapsuleBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+            pb = PrimitivesBuilder.getCapsuleBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
         }
         else if (objectName.contains("cone")) {
-            pb = PrimitivesBuilder.getConeBuilder(); // currently I don't have a cylinder builder with name parameter for texturing
+            pb = PrimitivesBuilder.getConeBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
         }
 
         return pb;
     }
 
-    public static PrimitivesBuilder getSphereBuilder(final String nodeID) {
+    public static btCollisionShape getShape(final String objectName, Vector3 size) {
+
+        PrimitivesBuilder pb = getPrimitiveBuilder(objectName);
+        btCollisionShape shape = null;
+
+        if (null != pb)
+            shape = pb.getShape(size);
+
+        return shape;
+    }
+
+    public static PrimitivesBuilder getSphereBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, nodeID, getShape(size), size, mass, trans);
+                return load(this.model, objectName, getShape(size), size, mass, trans);
             }
+            @Override
             public btCollisionShape getShape(Vector3 size) {
                 return new btSphereShape(size.x * DIM_HE);
             }
         };
     }
 
-    public static PrimitivesBuilder getBoxBuilder(final String nodeID) {
+    public static PrimitivesBuilder getBoxBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, nodeID, getShape(size), size, mass, trans);
+                return load(this.model, objectName, getShape(size), size, mass, trans);
             }
+            @Override
             public btCollisionShape getShape(Vector3 size) {
                 return new btBoxShape(size.cpy().scl(DIM_HE));
             }
         };
     }
 
-    private static PrimitivesBuilder getSphereBuilder() {
+    private static PrimitivesBuilder getConeBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
-            public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
-
-                return load(instance, getShape(size), size, trans);
+            public Entity create(float mass, Vector3 trans, Vector3 size) {
+                return load(this.model, objectName, getShape(size), size, mass, trans);
             }
-            public btCollisionShape getShape(Vector3 size) {
-                return new btSphereShape(size.x * DIM_HE);
-            }
-        };
-    }
-
-    public static PrimitivesBuilder getBoxBuilder() {
-        return new PrimitivesBuilder() {
             @Override
-            public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
-
-                return load(instance, getShape(size), size, trans);
-            }
-            public btCollisionShape getShape(Vector3 size) {
-                return new btBoxShape(size.cpy().scl(DIM_HE));
-            }
-        };
-    }
-
-    public static PrimitivesBuilder getConeBuilder() {
-        return new PrimitivesBuilder() {
-            @Override
-            public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
-
-                return load(instance, getShape(size), size, trans);
-            }
             public btCollisionShape getShape(Vector3 size) {
                 return new btConeShape(size.x * DIM_HE, size.y);
             }
         };
     }
 
-    public static PrimitivesBuilder getCapsuleBuilder() {
+    public static PrimitivesBuilder getCapsuleBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
+                return load(instance, getShape(size), size, trans);
+            }
+            @Override
+            public btCollisionShape getShape(Vector3 size) {
                 // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
                 //  so we apply half extent factor to our size.x here.
                 float radius = size.x * DIM_HE;
@@ -236,20 +219,12 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
                 // the base mesh height and then subtracting the (scaled) end radii
                 float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
 
-                return load(instance, getShape(size), size, trans);
-            }
-
-            public btCollisionShape getShape(Vector3 size) {
-
-                float radius = size.x * DIM_HE;
-                float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
-
                 return new btCapsuleShape(radius, height);
             }
         };
     }
 
-    public static PrimitivesBuilder getCylinderBuilder() {
+    private static PrimitivesBuilder getCylinderBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             // cylinder shape apparently allow both width (x) and height (y) to be specified
@@ -257,6 +232,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 
                 return load(instance, getShape(size), size, trans);
             }
+            @Override
             public btCollisionShape getShape(Vector3 size) {
 
                 return new btCylinderShape(size.cpy().scl(DIM_HE));
@@ -264,21 +240,13 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         };
     }
 
-    /*
-     *  For the case of a static model, the Bullet wrapper provides a convenient method to create a
-     *  collision shape of it:
-     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
-     *  But in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)
-     */
     public static btCollisionShape load(
             ModelInstance instance, btCollisionShape shape, Vector3 size, Vector3 translation) {
 
-        //        if (null != size)
-// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-        // note : modelComponent creating bounding box
-        instance.nodes.get(0).scale.set(size);
-        instance.calculateTransforms();
-
+        if (null != size) {
+            instance.nodes.get(0).scale.set(size);
+            instance.calculateTransforms();
+        }
         // leave translation null if using translation from the model layout
         if (null != translation) {
             instance.transform.trn(translation);
@@ -315,7 +283,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
     public static void dispose() {
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
 //  Disposing the primitivesModel will automatically make all instances invalid!
-        primitivesModel.dispose();
-        primitivesModel = null;
+        model.dispose();
+        model = null;
     }
 }
