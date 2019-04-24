@@ -184,11 +184,41 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void addPickObject(Entity e, GameObject gameObject) {
+    /*
+     *  re "obtainStaticNodeShape()"
+     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
+     *  "collision shape will share the same data (vertices) as the model"
+     *
+     *  need to look at this comment again ? ...
+     *   "in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)"
+     */
+    private static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node)
+    {
+        btCollisionShape shape;
 
-        if (gameObject.isPickable) {
-            e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
+        if (shapeName.equals("convexHullShape")) {
+
+            shape = MeshHelper.createConvexHullShape(node);
+//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+
+        } else if (shapeName.equals("triangleMeshShape")) {
+
+            shape = Bullet.obtainStaticNodeShape(node, false);
+
+        } else if (shapeName.equals("btBoxShape")) {
+
+            shape = new btBoxShape(dimensions.scl(0.5f));
         }
+        else{ // default?
+
+            shape = new btSphereShape(dimensions.scl(0.5f).x);
+        }
+        return shape;
+    }
+
+    private static void addPickObject(Entity e, String objectName) {
+
+            e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
     }
 
 
@@ -196,21 +226,19 @@ public class SceneLoader implements Disposable {
 
     public void buildScene(Engine engine) {
 
-        createTestObjects(engine); // tmp hakkkkk
+        createTestObjects(engine);
 
         for (String key : gameData.modelGroups.keySet()) {
 
             Gdx.app.log("SceneLoader", "key = " + key);
-            /*
-             * build a model group
-             */
+
             ModelGroup mg = gameData.modelGroups.get(key);
-            ModelInfo mgmdlinfo = gameData.modelInfo.get(mg.modelName);
+            ModelInfo mi = gameData.modelInfo.get(mg.modelName);
             Model groupModel = null;
 
-            if (null != mgmdlinfo) {
+            if (null != mi) {
 
-                groupModel = mgmdlinfo.model;
+                groupModel = mi.model;
 
             } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
 
@@ -250,9 +278,11 @@ public class SceneLoader implements Disposable {
     // gameObject.build() ?
     private void buildGameObject(Engine engine, GameObject gameObject, Model groupModel, String nodeID) {
 
-        ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
+        Entity e;
         InstanceData id;
         int n = 0;
+
+        ModelInfo mdlinfo = gameData.modelInfo.get(gameObject.objectName);
 
         if (null == gameObject.scale) {
             gameObject.scale = new Vector3(1, 1, 1);
@@ -260,6 +290,8 @@ public class SceneLoader implements Disposable {
 
         do
         { // for (SceneData.GameObject.InstanceData i : gameObject.instanceData) ... but not because game objects may not populate any instance data
+            e = new Entity();
+            engine.addEntity(e);
             id = null;
 
             if (gameObject.instanceData.size > 0) {
@@ -270,7 +302,6 @@ instances should be same size/scale so that we can pass one collision shape to s
             }
 // if (null != id) ... todo
 
-            Entity e = new Entity();
             ModelInstance instance = null;
             btCollisionShape shape = null;
 
@@ -286,10 +317,8 @@ instances should be same size/scale so that we can pass one collision shape to s
 
                     PrimitivesBuilder pb = PrimitivesBuilder.getPrimitiveBuilder(gameObject.objectName);
 
-// translation etc. done in create() ...
                     if (null != pb) {
 
-//                        shape = pb.create(instance, gameObject.mass, id.translation, gameObject.scale);
                         shape = pb.getShape(gameObject.scale);
                         pb.load(instance, shape,gameObject.scale, id.translation);
 
@@ -301,15 +330,14 @@ instances should be same size/scale so that we can pass one collision shape to s
                     // ........ HOWEVER it might be desirable to load dynamic object from the so-called "object" model ?
 
                     instance = ModelInstanceEx.getModelInstance(groupModel, nodeID);
-
-                    // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
-///                if (null != gameObject.scale) // already asserted ... see above
+                    if (null != gameObject.scale)
                     {
-                        instance.nodes.get(0).scale.set(gameObject.scale);              // do we ever scale anything here ?
+// https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+                        instance.nodes.get(0).scale.set(gameObject.scale);
                         instance.calculateTransforms();
                     }
 
@@ -327,46 +355,28 @@ instances should be same size/scale so that we can pass one collision shape to s
                     }
 
                     if (null != gameObject.meshShape) {
-// some way to commonize mesh shapes generation with "primitives" factory ???
-                        if (gameObject.meshShape.equals("convexHullShape")) {
-
-                            shape = MeshHelper.createConvexHullShape(instance.getNode(nodeID));
-
-//                        int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-
-                        } else if (gameObject.meshShape.equals("triangleMeshShape")) {
-
-                            shape = Bullet.obtainStaticNodeShape(instance.getNode(nodeID), false);
-
-                        } else if (gameObject.meshShape.equals("btBoxShape")) {
-
-                            BoundingBox boundingBox = new BoundingBox();
-                            Vector3 dimensions = new Vector3();
-                            instance.calculateBoundingBox(boundingBox);
-
-                            shape = new btBoxShape(boundingBox.getDimensions(dimensions).scl(0.5f));
-                        }
-                        // sphere?
+                        BoundingBox boundingBox = new BoundingBox();
+                        Vector3 dimensions = new Vector3();
+                        instance.calculateBoundingBox(boundingBox);
+                        shape = getShape(gameObject.meshShape, boundingBox.getDimensions(dimensions), instance.getNode(nodeID));
                     }
                 }
-
-
             } else {
 
                 Model model;
                 String nodeName;
+                // look for model Info name matching object name
 // mdlinfo = gameData.modelInfo.get(gameObject.objectName)
                 if (null != mdlinfo) {
-                    // look for a model file  named as the object
                     model = mdlinfo.model;
                     nodeName = model.nodes.get(0).id;
                     // special sauce to hand off the model node
                     instance = ModelInstanceEx.getModelInstance(model, nodeName);
-// translation
+
                     instance.transform.trn(id.translation);
 
                     if (gameObject.mass > 0 && !gameObject.isKinematic) {
-//if ( gameObject.meshShape.equals("convexHullShape"))    ??????
+
                         shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
                     }                     // else ... non bullet entity (e.g cars in select screen)
                 }
@@ -402,10 +412,9 @@ instances should be same size/scale so that we can pass one collision shape to s
                 e.add(new CharacterComponent());
             }
 
-            addPickObject(e, gameObject);
-
-//if (null != e) // assert
-            engine.addEntity(e);
+            if (gameObject.isPickable) {
+                addPickObject(e, gameObject.objectName);
+            }
 
         } while (null != id && n < gameObject.instanceData.size);
     }

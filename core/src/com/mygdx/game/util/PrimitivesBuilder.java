@@ -203,11 +203,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 
     public static PrimitivesBuilder getCapsuleBuilder(final String objectName) {
         return new PrimitivesBuilder() {
-            @Override
-            public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, getShape(size), size, trans);
-            }
             @Override
             public btCollisionShape getShape(Vector3 size) {
                 // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
@@ -226,12 +222,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 
     private static PrimitivesBuilder getCylinderBuilder(final String objectName) {
         return new PrimitivesBuilder() {
-            @Override
-            // cylinder shape apparently allow both width (x) and height (y) to be specified
-            public btCollisionShape create(ModelInstance instance, float mass, Vector3 trans, Vector3 size) {
 
-                return load(instance, getShape(size), size, trans);
-            }
             @Override
             public btCollisionShape getShape(Vector3 size) {
 
