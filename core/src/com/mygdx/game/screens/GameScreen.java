@@ -226,9 +226,6 @@ class GameScreen extends ScreenAvecAssets {
                             tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
         }
 
-//        if (null != pickedPlayer) // assert
-//            pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
-
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
