@@ -126,4 +126,16 @@ mat.remove(BlendingAttribute.Type);
         }
         return instance;
     }
+
+    public static ModelInstance getModelInstance(Model model, String node, Vector3 scale) {
+
+        ModelInstance instance = getModelInstance(model, node);
+
+        // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+        if (null != scale) {
+            instance.nodes.get(0).scale.set(scale);
+            instance.calculateTransforms();
+        }
+        return instance;
+    }
 }
