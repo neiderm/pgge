@@ -19,6 +19,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -26,8 +27,10 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
@@ -149,6 +152,46 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         }
 
         return pb;
+    }
+
+    /*
+     *  re "obtainStaticNodeShape()"
+     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
+     *  "collision shape will share the same data (vertices) as the model"
+     *
+     *  need to look at this comment again ? ...
+     *   "in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)"
+     */
+    public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node, Mesh mesh) {
+
+        btCollisionShape shape = null;
+
+        if (null == dimensions)
+            dimensions = new Vector3(1, 1, 1);
+
+        if (shapeName.equals("convexHullShape")) {
+
+            if (null != mesh) {
+                shape = MeshHelper.createConvexHullShape(mesh);
+            }
+            else if (null != node) {
+                shape = MeshHelper.createConvexHullShape(node);
+//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+            }
+
+        } else if (shapeName.equals("triangleMeshShape")) {
+
+            shape = Bullet.obtainStaticNodeShape(node, false);
+
+        } else if (shapeName.equals("btBoxShape")) {
+
+            shape = new btBoxShape(dimensions.scl(0.5f));
+
+        } else { // default?
+
+            shape = new btSphereShape(dimensions.scl(0.5f).x);
+        }
+        return shape;
     }
 
     public static btCollisionShape getShape(final String objectName, Vector3 size) {

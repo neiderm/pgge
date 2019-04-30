@@ -20,18 +20,14 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
-import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -42,7 +38,6 @@ import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.util.MeshHelper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -183,45 +178,6 @@ public class SceneLoader implements Disposable {
         }
     }
 
-    /*
-     *  re "obtainStaticNodeShape()"
-     *   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Using-models
-     *  "collision shape will share the same data (vertices) as the model"
-     *
-     *  need to look at this comment again ? ...
-     *   "in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)"
-     */
-    private static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node, Mesh mesh) {
-
-        btCollisionShape shape = null;
-
-        if (null == dimensions)
-            dimensions = new Vector3(1, 1, 1);
-
-        if (shapeName.equals("convexHullShape")) {
-
-            if (null != mesh) {
-                shape = MeshHelper.createConvexHullShape(mesh);
-            }
-            else if (null != node) {
-                shape = MeshHelper.createConvexHullShape(node);
-//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-            }
-
-        } else if (shapeName.equals("triangleMeshShape")) {
-
-            shape = Bullet.obtainStaticNodeShape(node, false);
-
-        } else if (shapeName.equals("btBoxShape")) {
-
-            shape = new btBoxShape(dimensions.scl(0.5f));
-
-        } else { // default?
-
-            shape = new btSphereShape(dimensions.scl(0.5f).x);
-        }
-        return shape;
-    }
 
     private static void addPickObject(Entity e, String objectName) {
 
@@ -237,12 +193,12 @@ public class SceneLoader implements Disposable {
             Gdx.app.log("SceneLoader", "key = " + key);
 
             ModelGroup mg = gameData.modelGroups.get(key);
-            ModelInfo mi = gameData.modelInfo.get(mg.modelName);
+            ModelInfo mi = gameData.modelInfo.get(mg.modelName); // mg can't be null ;)
             Model groupModel = null;
 
             if (null != mi) {
 
-                groupModel = mi.model;
+                groupModel = mi.model; // should maybe check model valid ;)
 
             } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
 // whatever
@@ -273,7 +229,7 @@ public class SceneLoader implements Disposable {
 
                         if (gameObject.mass > 0 && !gameObject.isKinematic) {
 //                shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                            shape = getShape(gameObject.meshShape, null, null, model.meshes.get(0));
+                            shape = PrimitivesBuilder.getShape(gameObject.meshShape, null, null, model.meshes.get(0));
                         }                     // else ... non bullet entity (e.g cars in select screen)
                     } else {
 
@@ -311,7 +267,8 @@ public class SceneLoader implements Disposable {
                                 BoundingBox boundingBox = new BoundingBox();
                                 Vector3 dimensions = new Vector3();
                                 instance.calculateBoundingBox(boundingBox);
-                                shape = getShape(gameObject.meshShape, boundingBox.getDimensions(dimensions), instance.getNode(node.id), null);
+                                shape = PrimitivesBuilder.getShape(
+                                        gameObject.meshShape, boundingBox.getDimensions(dimensions), instance.getNode(node.id), null);
                             }
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
