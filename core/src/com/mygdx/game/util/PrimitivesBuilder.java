@@ -162,7 +162,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
      *  need to look at this comment again ? ...
      *   "in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)"
      */
-    public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node, Mesh mesh) {
+    public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node /* , Mesh mesh */) {
 
         btCollisionShape shape = null;
 
@@ -171,11 +171,12 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 
         if (shapeName.equals("convexHullShape")) {
 
-            if (null != mesh) {
-                shape = MeshHelper.createConvexHullShape(mesh);
-            }
-            else if (null != node) {
-                shape = MeshHelper.createConvexHullShape(node);
+//            if (null != mesh) {
+//                shape = MeshHelper.createConvexHullShape(mesh);
+//            }
+//            else
+                if (null != node) {
+                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
 //            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
             }
 
@@ -192,6 +193,27 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
             shape = new btSphereShape(dimensions.scl(0.5f).x);
         }
         return shape;
+    }
+
+    public static btCollisionShape getShape(Node node) {
+
+        btCollisionShape shape = null;
+
+        if (null != node) {
+            shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
+//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+        }
+        return shape;
+    }
+
+    public static btCollisionShape getShape( /* String shapeName, */ Mesh mesh) {
+
+        btCollisionShape shape = null;
+        if (null != mesh) {
+            shape = MeshHelper.createConvexHullShape(mesh);
+        }
+        return shape;
+//        return getShape(shapeName, null, null, mesh);
     }
 
     public static btCollisionShape getShape(final String objectName, Vector3 size) {

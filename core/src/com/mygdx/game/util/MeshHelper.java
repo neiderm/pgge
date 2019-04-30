@@ -2,7 +2,6 @@ package com.mygdx.game.util;
 
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btShapeHull;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -48,9 +47,9 @@ public class MeshHelper /* extends btConvexHullShape */ {
     /*
       http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
      */
-    public static btConvexHullShape createConvexHullShape(Node node) {
+    public static btConvexHullShape createConvexHullShape(MeshPart meshPart) { // Node node
 
-        MeshPart meshPart = node.parts.get(0).meshPart;
+//         MeshPart meshPart = node.parts.get(0).meshPart;
 
 //        int numVertices  = meshPart.mesh.getNumVertices();    // no only works where our subject is the only node in the mesh!
         int numVertices = meshPart.size;

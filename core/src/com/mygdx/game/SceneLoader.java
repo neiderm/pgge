@@ -216,24 +216,29 @@ public class SceneLoader implements Disposable {
 
                 if (null == groupModel){
 
-                    Model model = PrimitivesBuilder.getModel();
-                    String rootNodeId = gameObject.objectName;
+                    Model model;
+                    String rootNodeId;
                     btCollisionShape shape = null;
 
                     // look for model Info name matching object name
                     ModelInfo mdlInfo = gameData.modelInfo.get(gameObject.objectName);
 
                     if (null != mdlInfo) {
+
                         model = mdlInfo.model;
-                        rootNodeId = model.nodes.get(0).id; // note does not use the gamObject.meshSHape name
+                        rootNodeId = model.nodes.get(0).id;
 
                         if (gameObject.mass > 0 && !gameObject.isKinematic) {
 //                shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                            shape = PrimitivesBuilder.getShape(gameObject.meshShape, null, null, model.meshes.get(0));
+                            shape = PrimitivesBuilder.getShape( /* gameObject.meshShape, */ model.meshes.get(0));
                         }                     // else ... non bullet entity (e.g cars in select screen)
                     } else {
 
+                        model = PrimitivesBuilder.getModel();
+                        rootNodeId = gameObject.objectName;
+
                         if (gameObject.isKinematic || gameObject.mass > 0) { // note does not use the gamObject.meshSHape name
+
                             shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
 //                    gameObject.meshShape = "primitive"; // maybe
                         }
@@ -267,8 +272,9 @@ public class SceneLoader implements Disposable {
                                 BoundingBox boundingBox = new BoundingBox();
                                 Vector3 dimensions = new Vector3();
                                 instance.calculateBoundingBox(boundingBox);
+
                                 shape = PrimitivesBuilder.getShape(
-                                        gameObject.meshShape, boundingBox.getDimensions(dimensions), instance.getNode(node.id), null);
+                                        gameObject.meshShape, boundingBox.getDimensions(dimensions), node); // instance.getNode(node.id),
                             }
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
