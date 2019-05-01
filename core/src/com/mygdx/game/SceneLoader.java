@@ -159,9 +159,6 @@ public class SceneLoader implements Disposable {
         if (!useTestObjects) N_ENTITIES = 0;
         Vector3 size = new Vector3();
 
-        PrimitivesBuilder boxBuilder = PrimitivesBuilder.getBoxBuilder("boxTex");
-        PrimitivesBuilder sphereBuilder = PrimitivesBuilder.getSphereBuilder("sphereTex");
-
         for (int i = 0; i < N_ENTITIES; i++) {
 
             size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
@@ -171,9 +168,15 @@ public class SceneLoader implements Disposable {
                     new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
 
             if (i < N_BOXES) {
-                engine.addEntity(boxBuilder.create(size.x, translation, size));
+                btCollisionShape shape = PrimitivesBuilder.getShape("boxTex", size); // note: 1 shape re-used
+                engine.addEntity(
+                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "boxTex", shape, size, size.x, translation));
+
             } else {
-                engine.addEntity(sphereBuilder.create(size.x, translation, new Vector3(size.x, size.x, size.x)));
+                btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
+                engine.addEntity(
+                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
+
             }
         }
     }

@@ -46,7 +46,7 @@ import com.mygdx.game.components.ModelComponent;
  * Created by neiderm on 12/18/17.
  */
 
-public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposable */ {
+public class PrimitivesBuilder /* implements Disposable */ {
 
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
     protected static final float DIM_UNIT = 1.0f;
@@ -121,37 +121,35 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
     In some cases we have to take special care as bullet shapes don't all parameterize same way as gdx model primitives.
     Constant "DIM_HE" (primitives-half-extent) is used interchangeably to compute radius from size.x, as well as half extents where needed.
     */
-/*
-    public static PrimitivesBuilder getPrimitiveBuilder(final Model model, final String objectName ) {
+    public static btCollisionShape getShape(final String objectName, Vector3 size) {
 
-        PrimitivesBuilder pb = getPrimitiveBuilder(objectName);
-        pb.model = model;
-        return pb;
-    }
-*/
-    public static PrimitivesBuilder getPrimitiveBuilder(final String objectName) {
-
-        PrimitivesBuilder pb = null;
+        btCollisionShape shape = null;
 
         if (objectName.contains("box")) {
 // bulletshape given in file but get box builder is tied to it already
-            pb = PrimitivesBuilder.getBoxBuilder(objectName); // this constructor could use a size param ?
-        }
-        else if (objectName.contains("sphere")) {
+            shape = new btBoxShape(size.cpy().scl(DIM_HE));
+        } else if (objectName.contains("sphere")) {
 // bulletshape given in file but get Sphere builder is tied to it already
-            pb = PrimitivesBuilder.getSphereBuilder(objectName); // this constructor could use a size param ?
-        }
-        else if (objectName.contains("cylinder")) {
-            pb = PrimitivesBuilder.getCylinderBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
-        }
-        else if (objectName.contains("capsule")) {
-            pb = PrimitivesBuilder.getCapsuleBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
-        }
-        else if (objectName.contains("cone")) {
-            pb = PrimitivesBuilder.getConeBuilder(objectName); // currently I don't have a cylinder builder with name parameter for texturing
+            shape = new btSphereShape(size.x * DIM_HE);
+        } else if (objectName.contains("cylinder")) {
+            shape = new btCylinderShape(size.cpy().scl(DIM_HE));
+        } else if (objectName.contains("capsule")) {
+
+            // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
+            //  so we apply half extent factor to our size.x here.
+            float radius = size.x * DIM_HE;
+            // btcapsuleShape total height is height+2*radius (unlike gdx capsule mesh where height specifies TOTAL height!
+            //  (http://bulletphysics.org/Bullet/BulletFull/classbtCapsuleShape.html#details)
+            // determine the equivalent bullet-compatible height parameter by explicitly scaling
+            // the base mesh height and then subtracting the (scaled) end radii
+            float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
+
+            shape = new btCapsuleShape(radius, height);
+        } else if (objectName.contains("cone")) {
+            shape = new btConeShape(size.x * DIM_HE, size.y);
         }
 
-        return pb;
+        return shape;
     }
 
     /*
@@ -217,85 +215,6 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return shape;
     }
 
-    public static btCollisionShape getShape(final String objectName, Vector3 size) {
-
-        PrimitivesBuilder pb = getPrimitiveBuilder(objectName);
-        btCollisionShape shape = null;
-
-        if (null != pb)
-            shape = pb.getShape(size);
-
-        return shape;
-    }
-
-    private static PrimitivesBuilder getSphereBuilder(final String objectName) {
-        return new PrimitivesBuilder() {
-            @Override
-            public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(model, objectName, getShape(size), size, mass, trans);
-            }
-            @Override
-            public btCollisionShape getShape(Vector3 size) {
-                return new btSphereShape(size.x * DIM_HE);
-            }
-        };
-    }
-
-    private static PrimitivesBuilder getBoxBuilder(final String objectName) {
-        return new PrimitivesBuilder() {
-            @Override
-            public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(model, objectName, getShape(size), size, mass, trans);
-            }
-            @Override
-            public btCollisionShape getShape(Vector3 size) {
-                return new btBoxShape(size.cpy().scl(DIM_HE));
-            }
-        };
-    }
-
-    private static PrimitivesBuilder getConeBuilder(final String objectName) {
-        return new PrimitivesBuilder() {
-            @Override
-            public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(model, objectName, getShape(size), size, mass, trans);
-            }
-            @Override
-            public btCollisionShape getShape(Vector3 size) {
-                return new btConeShape(size.x * DIM_HE, size.y);
-            }
-        };
-    }
-
-    private static PrimitivesBuilder getCapsuleBuilder(final String objectName) {
-        return new PrimitivesBuilder() {
-
-            @Override
-            public btCollisionShape getShape(Vector3 size) {
-                // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
-                //  so we apply half extent factor to our size.x here.
-                float radius = size.x * DIM_HE;
-                // btcapsuleShape total height is height+2*radius (unlike gdx capsule mesh where height specifies TOTAL height!
-                //  (http://bulletphysics.org/Bullet/BulletFull/classbtCapsuleShape.html#details)
-                // determine the equivalent bullet-compatible height parameter by explicitly scaling
-                // the base mesh height and then subtracting the (scaled) end radii
-                float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
-
-                return new btCapsuleShape(radius, height);
-            }
-        };
-    }
-
-    private static PrimitivesBuilder getCylinderBuilder(final String objectName) {
-        return new PrimitivesBuilder() {
-
-            @Override
-            public btCollisionShape getShape(Vector3 size) {
-
-                return new btCylinderShape(size.cpy().scl(DIM_HE));
-            }
-        };
-    }
 
     private static void load(
             ModelInstance instance, Vector3 size, Vector3 translation) {

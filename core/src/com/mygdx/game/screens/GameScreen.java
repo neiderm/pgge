@@ -38,6 +38,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
@@ -181,10 +182,15 @@ class GameScreen extends ScreenAvecAssets {
 
         Vector3 scale = new Vector3(4, 1, 4);
         Vector3 trans = new Vector3(0, 10, -5);
+
+        btCollisionShape shape = PrimitivesBuilder.getShape("box", scale); // note: 1 shape re-used
         platformEntity =
-                PrimitivesBuilder.getPrimitiveBuilder("box").create(0.0f, trans, scale);
+                PrimitivesBuilder.load(
+                        PrimitivesBuilder.getModel(), "box", shape, scale, 0, trans);
+
         ModelInstanceEx.setColorAttribute(
                 platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
+
         engine.addEntity(platformEntity);
 
 
