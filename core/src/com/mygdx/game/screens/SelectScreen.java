@@ -120,7 +120,7 @@ class SelectScreen extends ScreenAvecAssets {
 // build the platform manually (not from data file) for simplicity of retrieving entity
 //        platform = PrimitivesBuilder.getCylinderBuilder().create(0, new Vector3(0, 10, -5), new Vector3(4, 1, 4));
 
-        platform = PrimitivesBuilder.getBoxBuilder( "boxTex" ).create(
+        platform = PrimitivesBuilder.getPrimitiveBuilder( "boxTex" ).create(
                 0, null, new Vector3(4, yCoordOnPlatform * 2, 4));
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);

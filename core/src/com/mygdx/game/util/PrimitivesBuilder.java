@@ -175,10 +175,10 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
 //                shape = MeshHelper.createConvexHullShape(mesh);
 //            }
 //            else
-                if (null != node) {
-                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
-//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
-            }
+//                if (null != node) { // assert
+//                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
+                    shape = getShape(node);
+                    //            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
 
         } else if (shapeName.equals("triangleMeshShape")) {
 
@@ -187,11 +187,13 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         } else if (shapeName.equals("btBoxShape")) {
 
             shape = new btBoxShape(dimensions.scl(0.5f));
+        }
 
-        } else { // default?
+        if (null == shape){ // default
 
             shape = new btSphereShape(dimensions.scl(0.5f).x);
         }
+
         return shape;
     }
 
@@ -206,14 +208,13 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return shape;
     }
 
-    public static btCollisionShape getShape( /* String shapeName, */ Mesh mesh) {
+    public static btCollisionShape getShape(Mesh mesh) {
 
         btCollisionShape shape = null;
         if (null != mesh) {
             shape = MeshHelper.createConvexHullShape(mesh);
         }
         return shape;
-//        return getShape(shapeName, null, null, mesh);
     }
 
     public static btCollisionShape getShape(final String objectName, Vector3 size) {
@@ -227,11 +228,11 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return shape;
     }
 
-    public static PrimitivesBuilder getSphereBuilder(final String objectName) {
+    private static PrimitivesBuilder getSphereBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, objectName, getShape(size), size, mass, trans);
+                return load(model, objectName, getShape(size), size, mass, trans);
             }
             @Override
             public btCollisionShape getShape(Vector3 size) {
@@ -240,11 +241,11 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         };
     }
 
-    public static PrimitivesBuilder getBoxBuilder(final String objectName) {
+    private static PrimitivesBuilder getBoxBuilder(final String objectName) {
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, objectName, getShape(size), size, mass, trans);
+                return load(model, objectName, getShape(size), size, mass, trans);
             }
             @Override
             public btCollisionShape getShape(Vector3 size) {
@@ -257,7 +258,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         return new PrimitivesBuilder() {
             @Override
             public Entity create(float mass, Vector3 trans, Vector3 size) {
-                return load(this.model, objectName, getShape(size), size, mass, trans);
+                return load(model, objectName, getShape(size), size, mass, trans);
             }
             @Override
             public btCollisionShape getShape(Vector3 size) {
@@ -266,7 +267,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         };
     }
 
-    public static PrimitivesBuilder getCapsuleBuilder(final String objectName) {
+    private static PrimitivesBuilder getCapsuleBuilder(final String objectName) {
         return new PrimitivesBuilder() {
 
             @Override
@@ -296,8 +297,8 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         };
     }
 
-    public static btCollisionShape load(
-            ModelInstance instance, btCollisionShape shape, Vector3 size, Vector3 translation) {
+    private static void load(
+            ModelInstance instance, Vector3 size, Vector3 translation) {
 
         if (null != size) {
             instance.nodes.get(0).scale.set(size);
@@ -307,8 +308,6 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         if (null != translation) {
             instance.transform.trn(translation);
         }
-
-        return shape;
     }
 
     public static Entity load(
@@ -317,7 +316,7 @@ public class PrimitivesBuilder extends BaseEntityBuilder /* implements Disposabl
         // we can roll the instance scale transform into the getModelInstance ;)
         ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
 
-        load(instance, shape, size, translation);
+        load(instance, size, translation);
 
         BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
 

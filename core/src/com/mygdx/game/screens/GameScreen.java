@@ -182,7 +182,7 @@ class GameScreen extends ScreenAvecAssets {
         Vector3 scale = new Vector3(4, 1, 4);
         Vector3 trans = new Vector3(0, 10, -5);
         platformEntity =
-                PrimitivesBuilder.getBoxBuilder("box").create(0.0f, trans, scale);
+                PrimitivesBuilder.getPrimitiveBuilder("box").create(0.0f, trans, scale);
         ModelInstanceEx.setColorAttribute(
                 platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
         engine.addEntity(platformEntity);
