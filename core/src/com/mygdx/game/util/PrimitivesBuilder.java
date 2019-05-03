@@ -39,6 +39,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 
@@ -53,6 +54,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
     protected static final float DIM_HE = 1f / 2f; // primitives half extent constant
     protected static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
+    private static Array<btCollisionShape> savedShapeRefs = new Array<btCollisionShape>();
 
     public static Model model;
 
@@ -115,6 +117,17 @@ public class PrimitivesBuilder /* implements Disposable */ {
         model = mb.end();
     }
 
+    private static btCollisionShape saveShapeRef(btCollisionShape shape){
+        savedShapeRefs.add(shape);
+        return shape;
+    }
+
+    public static void clearShapeRefs(){
+        for (btCollisionShape shape : savedShapeRefs){
+            shape.dispose();
+        }
+    }
+
     /*
     Generate bullet shapes by applying the same scale/size as shall be applied to the vertices of the instance mesh.
     primitive meshes should use unit value (1.0) for the extent dimensions, thus those base dimensions don't have to be multiplied in explicitly in the shape sizing calculation below.
@@ -128,13 +141,15 @@ public class PrimitivesBuilder /* implements Disposable */ {
         if (objectName.contains("box")) {
 // bulletshape given in file but get box builder is tied to it already
             shape = new btBoxShape(size.cpy().scl(DIM_HE));
+
         } else if (objectName.contains("sphere")) {
 // bulletshape given in file but get Sphere builder is tied to it already
             shape = new btSphereShape(size.x * DIM_HE);
+
         } else if (objectName.contains("cylinder")) {
             shape = new btCylinderShape(size.cpy().scl(DIM_HE));
-        } else if (objectName.contains("capsule")) {
 
+        } else if (objectName.contains("capsule")) {
             // btcapsuleShape() takes actual radius parameter (unlike cone/cylinder which use width+depth)
             //  so we apply half extent factor to our size.x here.
             float radius = size.x * DIM_HE;
@@ -145,11 +160,13 @@ public class PrimitivesBuilder /* implements Disposable */ {
             float height = DIM_CAPS_HT * size.y - size.x * DIM_HE - size.x * DIM_HE;
 
             shape = new btCapsuleShape(radius, height);
+
         } else if (objectName.contains("cone")) {
+
             shape = new btConeShape(size.x * DIM_HE, size.y);
         }
 
-        return shape;
+        return saveShapeRef(shape);
     }
 
     /*
@@ -192,10 +209,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
             shape = new btSphereShape(dimensions.scl(0.5f).x);
         }
 
-        return shape;
+        return saveShapeRef(shape);
     }
 
-    public static btCollisionShape getShape(Node node) {
+    private static btCollisionShape getShape(Node node) {
 
         btCollisionShape shape = null;
 
@@ -209,10 +226,12 @@ public class PrimitivesBuilder /* implements Disposable */ {
     public static btCollisionShape getShape(Mesh mesh) {
 
         btCollisionShape shape = null;
+
         if (null != mesh) {
             shape = MeshHelper.createConvexHullShape(mesh);
         }
-        return shape;
+
+        return saveShapeRef(shape);
     }
 
 

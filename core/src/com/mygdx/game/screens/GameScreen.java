@@ -682,6 +682,8 @@ So we have to pause it explicitly as it is not governed by ECS
         playerUI.dispose();
 
         font.dispose(); // only instantiated on show()  for some reaseon
+
+        PrimitivesBuilder.clearShapeRefs();
     }
 
     @Override
