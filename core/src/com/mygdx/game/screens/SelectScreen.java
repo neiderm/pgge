@@ -21,6 +21,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
@@ -118,6 +119,15 @@ class SelectScreen extends ScreenAvecAssets {
         cam.update();
 
 // build the platform manually (not from data file) for simplicity of retrieving entity
+
+        // to be "primitive" cylinder, cube whatever
+        // stored in SceneData in a new group called "features"
+        // we will retrieve platformo entity from SceneData.getFeature(0) ... i.e. SceneData.features[0]
+        // SceneData.features[0] can contain whatever classes of features and within class of feature, various capabiliities (think gatt!)
+        // GameObject go = scenedata.getGroup("Features");
+        // Feature ff = go.getFeature("liftPlatform");
+// String args = ff.getArgs(); // args can be regular old command line style args! (keyword/value pairs ... could expand to e.g. LUA script
+        // "standard" "command line" arguments parser/ regex, etc?
         platform =
                 PrimitivesBuilder.load(
                         PrimitivesBuilder.getModel(), "boxTex", null, new Vector3(4, yCoordOnPlatform * 2, 4), 0, null);
@@ -313,6 +323,23 @@ class SelectScreen extends ScreenAvecAssets {
         return selectedIndex;
     }
 
+    private Screen newLoadingScreen(String path){
+
+        // show loading bar on this screen? omit LoadingScreen? allowing the
+        // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
+        // Can have a "generic" pass-off ... each screen as closed sets parameters in next screens data.
+// Next screen i.e. Loading screen, knows it needs to pass certain data (againi, i.e. player name)
+// So the screen may actually own and instance the scene data, not the sceene loader.
+        // screen pass sceneData to scene loader as parameter.
+        Screen screen =  new LoadingScreen(path);
+
+// get player referernce
+        GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
+
+        // set player reference in new screens game data
+
+        return screen;
+    }
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -350,13 +377,13 @@ class SelectScreen extends ScreenAvecAssets {
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
-            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
-            GameWorld.getInstance().showScreen(new LoadingScreen("GameData.json")); // LevelOne.json
+//            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
+            GameWorld.getInstance().showScreen(newLoadingScreen("GameData.json")); // LevelOne.json
 
         } else if (InputMapper.InputState.INP_SELECT == inputState) {
 
-            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
-            GameWorld.getInstance().showScreen(new LoadingScreen("vr_zone.json")); // LevelOne.json
+//            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
+            GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
         }
     }
 
