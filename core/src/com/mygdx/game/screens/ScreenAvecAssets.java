@@ -8,20 +8,20 @@ import com.mygdx.game.SceneLoader;
 abstract class ScreenAvecAssets implements Screen {
 
     // private // tmp
-    SceneLoader screenData;
+    SceneLoader sceneLoader;
 
-    ScreenAvecAssets(SceneLoader data){
+    ScreenAvecAssets(){
 
-        this.screenData = data;
+        this.sceneLoader = new SceneLoader();
     }
 
     /** Called when this screen should release all resources. */
     public void dispose (){
 
         //  screens that load assets must calls assetLoader.dispose() !
-        if (null != screenData) {
-            screenData.dispose();
-            screenData = null;
+        if (null != sceneLoader) {
+            sceneLoader.dispose();
+            sceneLoader = null;
         }
     }
  }

@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.screens.SplashScreen;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -145,6 +146,18 @@ public final class GameWorld implements Disposable {
     public String getPlayerObjectName(){
         return playerObjectName;
     }
+
+
+    private SceneData sceneData;
+
+    public void setSceneData(String path) {
+        sceneData = SceneData.loadData(path);
+    }
+
+    public SceneData getSceneData() {
+        return sceneData;
+    }
+
 
     /* I don't think we see a dispose event on Android */
 @Override

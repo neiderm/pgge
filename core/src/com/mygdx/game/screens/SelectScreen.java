@@ -83,11 +83,6 @@ class SelectScreen extends ScreenAvecAssets {
     };
 
 
-    SelectScreen(SceneLoader data){
-
-        super(data);
-    }
-
     @Override
     public void show() {
 
@@ -134,7 +129,7 @@ class SelectScreen extends ScreenAvecAssets {
         engine.addEntity(platform);
         ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
 
-        screenData.buildScene(engine);
+        sceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
 
         stage = new Stage();
@@ -325,13 +320,15 @@ class SelectScreen extends ScreenAvecAssets {
 
     private Screen newLoadingScreen(String path){
 
+        GameWorld.getInstance().setSceneData(path);
+
         // show loading bar on this screen? omit LoadingScreen? allowing the
         // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
         // Can have a "generic" pass-off ... each screen as closed sets parameters in next screens data.
 // Next screen i.e. Loading screen, knows it needs to pass certain data (againi, i.e. player name)
 // So the screen may actually own and instance the scene data, not the sceene loader.
         // screen pass sceneData to scene loader as parameter.
-        Screen screen =  new LoadingScreen(path);
+        Screen screen = new LoadingScreen();
 
 // get player referernce
         GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
@@ -377,12 +374,10 @@ class SelectScreen extends ScreenAvecAssets {
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
-//            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(newLoadingScreen("GameData.json")); // LevelOne.json
 
         } else if (InputMapper.InputState.INP_SELECT == inputState) {
 
-//            GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
             GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
         }
     }

@@ -56,8 +56,7 @@ public class SceneLoader implements Disposable {
 
 //    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
-
-    public SceneLoader(String path) {
+    public SceneLoader(){
 
 //        gameData = new SceneData();
 /*
@@ -99,7 +98,7 @@ public class SceneLoader implements Disposable {
 
 //        initializeGameData();
 
-        gameData = SceneData.loadData(path);
+        this.gameData = GameWorld.getInstance().getSceneData();//        gameData = SceneData.loadData(path);
 
         assets = new AssetManager();
 /*

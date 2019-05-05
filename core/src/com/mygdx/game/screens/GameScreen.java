@@ -111,11 +111,6 @@ class GameScreen extends ScreenAvecAssets {
     private String gameOverMessageString;
 
 
-    GameScreen(SceneLoader assetLoader){
-
-        super(assetLoader);
-    }
-
     private void screenInit(){
 
         platformColor = new Color(255, 0, 0, colorAlpha);
@@ -200,7 +195,7 @@ class GameScreen extends ScreenAvecAssets {
     // this is kind of an arbitrary
     private void onPlayerPicked() {
 
-        screenData.buildScene(engine);
+        sceneLoader.buildScene(engine);
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         // name of picked player rig as read from model is stashed in PickRayComp as a hack ;)

@@ -63,8 +63,8 @@ public class SplashScreen implements Screen {
 //        if (mapper.checkInputState(InputMapper.InputState.INP_SELECT, true)){   .......... doesn't work for TS :(
         if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true)) {
 
-            GameWorld.getInstance().showScreen(new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
-            Gdx.app.log("Splash Screen", "-> GameWorld.getInstance().showScreen(new LoadingScreen");
+            GameWorld.getInstance().setSceneData(dataFileName);
+            GameWorld.getInstance().showScreen(new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
         }
     }
 

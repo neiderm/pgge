@@ -37,10 +37,6 @@ public class MainMenuScreen implements Screen {
 
     private InGameMenu stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
 
-    private Screen getLoadingScreen() {
-        return new LoadingScreen("GameData.json");
-    }
-
 
     MainMenuScreen() { // mt
     }
@@ -63,22 +59,22 @@ public class MainMenuScreen implements Screen {
             switch (idxCurSel) {
                 default:
                 case 0:
-                    GameWorld.getInstance().showScreen(getLoadingScreen());
+                    GameWorld.getInstance().setSceneData("GameData.json");
+                    GameWorld.getInstance().showScreen(new LoadingScreen());
                     break;
+
                 case 1:
+                    GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
                     GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
-                            new LoadingScreen(dataFileName, false, LoadingScreen.ScreenTypes.SETUP));
+                            new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
                     break;
+
                 case 2:
                     GameWorld.getInstance().showScreen(new SplashScreen());
                     break;
             }
         }
     }
-
-
-    private static String dataFileName = "SelectScreen.json";
-
 
     @Override
     public void resize(int width, int height) {

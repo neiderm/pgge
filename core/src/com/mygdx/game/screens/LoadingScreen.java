@@ -46,12 +46,11 @@ public class LoadingScreen implements Screen {
     private boolean isLoaded;
     private boolean shouldPause = true;
     private ScreenTypes screenType = LEVEL;
-    private String path;
     private InputMapper mapper;
 
     private ScreenAvecAssets newScreen;
 
-    private SceneLoader screenData;
+    private SceneLoader sceneLoader;
 
 
     public enum ScreenTypes {
@@ -59,15 +58,13 @@ public class LoadingScreen implements Screen {
         LEVEL
     }
 
-    LoadingScreen(String path, boolean shouldPause, ScreenTypes screenType) {
-        this(path);
+    LoadingScreen(boolean shouldPause, ScreenTypes screenType) {
+
         this.shouldPause = shouldPause;
         this.screenType = screenType;
     }
 
-    LoadingScreen(String path) {
-
-        this.path = path;
+    LoadingScreen() {    //mt
     }
 
     @Override
@@ -75,15 +72,15 @@ public class LoadingScreen implements Screen {
 
         // instancing asset Loader class kicks off asynchronous asset loading which we need to start
         // right now obviously. Then the asset loader instance must be passed off to the Screen to use and dispose.
-        screenData = new SceneLoader(this.path);
+        sceneLoader = new SceneLoader();
 
         switch (screenType) {
             default:
             case LEVEL:
-                newScreen  = new GameScreen(screenData);
+                newScreen = new GameScreen();
                 break;
             case SETUP:
-                newScreen   = new SelectScreen(screenData);
+                newScreen = new SelectScreen();
                 break;
         }
 
@@ -136,10 +133,10 @@ public class LoadingScreen implements Screen {
 
             // make the bar up to half the screen width
             loadCounter = 
-               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * screenData.getAssets().getProgress()) ;
+               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * sceneLoader.getAssets().getProgress()) ;
 
-            if (screenData.getAssets().update()) {
-                screenData.doneLoading();
+            if (sceneLoader.getAssets().update()) {
+                sceneLoader.doneLoading();
                 isLoaded = true;
             }
         } else {
