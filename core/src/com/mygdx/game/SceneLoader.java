@@ -33,6 +33,7 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
@@ -115,7 +116,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-        SceneData.saveData(gameData);
+                SceneData.saveData(gameData);
     }
 
     public AssetManager getAssets() {
@@ -184,6 +185,28 @@ public class SceneLoader implements Disposable {
     private static void addPickObject(Entity e, String objectName) {
 
         e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
+    }
+
+
+    private void checkIfFeature(GameObject gameObject, Entity e){
+
+        if (null != gameObject.featureName){
+            GameFeature f = gameData.features.get(gameObject.featureName);
+
+            if (null != f) {
+                if (gameObject.objectName.equals(f.objectName))
+                {
+                    f.entity = e;
+//                    f.featureName = "awesome_feature";
+                    gameData.features.put(gameObject.featureName, f);
+                }
+            }
+        }
+    }
+
+    public GameFeature getFeature(String featureName){
+
+        return gameData.features.get(featureName);
     }
 
     public void buildScene(Engine engine) {
@@ -304,8 +327,10 @@ public class SceneLoader implements Disposable {
                 id = gameObject.instanceData.get(n++);
             }
 
-            engine.addEntity(
-                    buildObjectInstance(instance.copy(), gameObject, shape, id));
+            Entity e = buildObjectInstance(instance.copy(), gameObject, shape, id);
+            engine.addEntity(e);
+
+            checkIfFeature(gameObject, e);
 
         } while (null != id && n < gameObject.instanceData.size);
     }

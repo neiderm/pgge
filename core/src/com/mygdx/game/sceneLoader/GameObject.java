@@ -35,8 +35,10 @@ public class GameObject {
 
     public Array<InstanceData> instanceData = new Array<InstanceData>();
     public String objectName;
+//public Entity entity; // reference to an entity, if one is used
+    public String featureName; // if Entity is to be part of a feature
     //            Vector3 translation; // needs to be only per-instance
-    public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
+    public Vector3 scale; // NOT per-instancfeatureNamee, all instances should be same scale (share same collision Shape)
     public float mass;
     public String meshShape; // triangleMeshShape, convexHullShape
     public boolean isKinematic;  //  "isStatic" ?

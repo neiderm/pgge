@@ -25,7 +25,7 @@ import java.util.HashMap;
 
 public class SceneData {
 
-
+    public HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
     public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
     public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
@@ -47,5 +47,4 @@ public class SceneData {
         //        gameData = json.fromJson(sceneData.class, Base64Coder.decodeString(fileHandle.readString()));
         return json.fromJson(SceneData.class, fileHandle.readString());
     }
-
 }

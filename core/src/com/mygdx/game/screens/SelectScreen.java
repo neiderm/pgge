@@ -38,9 +38,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.SceneLoader;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -71,7 +71,7 @@ class SelectScreen extends ScreenAvecAssets {
     private ImmutableArray<Entity> characters;
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private int idxCurSel;
-    private final float yCoordOnPlatform = 0.1f;
+    private final float platformHt = 0.2f; // tmp
     private int touchPadDx;
     private int dPadYaxis;
 
@@ -123,14 +123,16 @@ class SelectScreen extends ScreenAvecAssets {
         // Feature ff = go.getFeature("liftPlatform");
 // String args = ff.getArgs(); // args can be regular old command line style args! (keyword/value pairs ... could expand to e.g. LUA script
         // "standard" "command line" arguments parser/ regex, etc?
-        platform =
-                PrimitivesBuilder.load(
-                        PrimitivesBuilder.getModel(), "boxTex", null, new Vector3(4, yCoordOnPlatform * 2, 4), 0, null);
-        engine.addEntity(platform);
-        ModelInstanceEx.setColorAttribute(platform.getComponent(ModelComponent.class).modelInst, Color.GOLD, 0.1f);
+//        platform = PrimitivesBuilder.load( PrimitivesBuilder.getModel(), "boxTex", null, new Vector3(4, platformHt, 4), 0, null);
+//        engine.addEntity(platform);
 
         sceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
+
+GameFeature f = sceneLoader.getFeature("player");
+if (null != f){
+       platform = f.entity;
+}
 
         stage = new Stage();
         stage.addListener(new InputListener() {
@@ -264,7 +266,8 @@ class SelectScreen extends ScreenAvecAssets {
             double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
 
             position.x = (float) Math.cos(rads);
-            position.y = yCoordOnPlatform; // arbitrary amount above platform
+            position.y = 0.5f // tmp
+                              + platformHt / 2; // arbitrary amount above platform
             position.z = (float) Math.sin(rads);
 
             Entity e = characters.get(n);

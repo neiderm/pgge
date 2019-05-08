@@ -1,50 +1,43 @@
 {
+"features": {
+	"player": {
+		"objectName": "boxTex"
+	}
+},
 "modelGroups": {
 	"characters": {
 		"gameObjects": [
 			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 1,
-							"y": 11,
-							"z": -6
-						}
-					}
-				],
 				"objectName": "offroadcar",
 				"isPickable": true,
 				"isShadowed": true
 			},
 			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": -1,
-							"y": 11,
-							"z": -6
-						}
-					}
-				],
 				"objectName": "militaryvan",
 				"isPickable": true,
 				"isShadowed": true
 			},
 			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": 11,
-							"z": -4
-						}
-					}
-				],
 				"objectName": "tank",
 				"isPickable": true,
 				"isShadowed": true
 			}
 		],
 		"isCharacter": true
+	},
+	"platforms": {
+		"gameObjects": [
+			{
+				"objectName": "boxTex",
+				"featureName": "player",
+				"scale": {
+					"x": 4,
+					"y": 0.2,
+					"z": 4
+				},
+				"isShadowed": true
+			}
+		]
 	}
 },
 "modelInfo": {
