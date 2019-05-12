@@ -9,8 +9,10 @@ import com.mygdx.game.util.IStatusUpdater;
 
 public class StatusComponent implements Component {
 
+    public String name;
+
     public final static int  FPS = 60;
-    public final static int LIFECLOCKDEFAULT = 30 * FPS;
+    public final static int LIFECLOCKDEFAULT = 30000 * FPS;
     public final static int DIECLOCKDEFAULT = 10 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
@@ -21,5 +23,11 @@ public class StatusComponent implements Component {
     public IStatusUpdater statusUpdater;
 
     public StatusComponent() {
+        this("no-name");
+    }
+
+    public StatusComponent(String name) {
+
+        this.name = name;
     }
 }

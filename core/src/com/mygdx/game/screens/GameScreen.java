@@ -94,7 +94,7 @@ class GameScreen extends ScreenAvecAssets {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
-    private Entity platformEntity;
+//    private Entity platformEntity;
     private final float colorAlpha = 0.9f;
     private Color platformColor;
 
@@ -179,20 +179,6 @@ class GameScreen extends ScreenAvecAssets {
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
 
-        Vector3 scale = new Vector3(4, 1, 4);
-        Vector3 trans = new Vector3(0, 10, -5);
-
-        btCollisionShape shape = PrimitivesBuilder.getShape("box", scale); // note: 1 shape re-used
-        platformEntity =
-                PrimitivesBuilder.load(
-                        PrimitivesBuilder.getModel(), "box", shape, scale, 0, trans);
-
-        ModelInstanceEx.setColorAttribute(
-                platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
-
-        engine.addEntity(platformEntity);
-
-
         onPlayerPicked();
     }
 
@@ -252,7 +238,7 @@ class GameScreen extends ScreenAvecAssets {
         engine.addEntity(cameraEntity);
 
 // plug in the picked player
-        final StatusComponent sc = new StatusComponent();
+        final StatusComponent sc = new StatusComponent("picked-player");
         pickedPlayer.add(sc);
 
         /*
@@ -564,18 +550,6 @@ So we have to pause it explicitly as it is not governed by ECS
         transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
         gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-
-
-        // crude  hack for platform disappear effect
-        if (platformColor.a > 0.1f) {
-            platformColor.a -= 0.005f;
-            ModelInstanceEx.setColorAttribute(platformEntity.getComponent(ModelComponent.class).modelInst, platformColor);
-        } else if (null != platformEntity) {
-            engine.removeEntity(platformEntity);
-            platformEntity = null;
-            //platformEntity.remove(BulletComponent.class); // idfk
-            platformColor.a = 0;
-        }
 
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
