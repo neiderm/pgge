@@ -1,6 +1,44 @@
 {
+"features": {
+	"player": {},
+	"Platform1": {
+		"lifeTimeSecs": 5,
+		"dieTimeSecs": 5
+	}
+},
 "modelGroups": {
 	"whatever": {},
+	"platforms": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 10,
+							"z": -5
+						},
+						"color": {
+							"r": 0.627,
+							"g": 0.125,
+							"b": 0.941,
+							"a": 0.9
+						}
+					}
+				],
+				"featureName": "Platform1",
+				"objectName": "box",
+				"scale": {
+					"x": 4,
+					"y": 1,
+					"z": 4
+				},
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"isShadowed": true
+			}
+		]
+	},
 	"characters": {
 		"gameObjects": [
 			{

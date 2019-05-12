@@ -43,7 +43,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.SceneLoader;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -106,16 +105,21 @@ class GameScreen extends ScreenAvecAssets {
     private static final int INITIAL_GAME_TIME = 30 + ROUND_CONTINUE_WAIT_TIME;
 
     private int gameOverCountDown;
-    private int hitCount;
     private boolean textShow = true;
     private String gameOverMessageString;
 
+//    private void setHitCount(int ct){
+//        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
+//    }
+
+    private int incHitCount(int ct) {
+        pickedPlayer.getComponent(StatusComponent.class).hitCount += ct;
+        return pickedPlayer.getComponent(StatusComponent.class).hitCount;
+    }
 
     private void screenInit(){
 
         platformColor = new Color(255, 0, 0, colorAlpha);
-
-        multiplexer = new InputMultiplexer(); // make sure get a new one since there will be a new Stage instance ;)
 
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
@@ -127,7 +131,7 @@ class GameScreen extends ScreenAvecAssets {
         if (fontGetDensity > 1)
             font.getData().setScale(fontGetDensity);
 
-        hitCount = 0;
+//        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
         gameOverCountDown =  INITIAL_GAME_TIME;
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
@@ -230,6 +234,8 @@ class GameScreen extends ScreenAvecAssets {
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
+ (a "chaser-camera" entity - no visual but has transform and possibly AI and/or physics chaacterisitics - can be active at most time
+ and camera may or may not actually be on it)
           */
         chaserSteerable.setSteeringBehavior(
                 new TrackerSB<Vector3>(chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
@@ -271,9 +277,12 @@ class GameScreen extends ScreenAvecAssets {
                 textShow = false;
                 sillyFontFx(new Color(0, 0, 1, 1f));
                 Timer.schedule(gameOverTask, ROUND_CONTINUE_WAIT_TIME);
+
                 // start fadeout 2 seconds prior to Continue Wait Time up
                 Timer.schedule(fadeoutTask, ROUND_CONTINUE_WAIT_TIME - 2.0f, 0.1f);
+
                 gameOverCountDown = ROUND_CONTINUE_WAIT_TIME; // for displaying the timer countdound ...
+
                 GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
             }
 
@@ -299,7 +308,7 @@ class GameScreen extends ScreenAvecAssets {
         setupplayerUI(pickedPlayer);
         Timer.schedule(oneSecondTask, 0, 1);
 
-        multiplexer.addProcessor(playerUI);
+        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
 
@@ -365,18 +374,29 @@ class GameScreen extends ScreenAvecAssets {
             gameOverMessageString = "Congratulations!";
         }
 
+        // placeholder for "picked" action (fadeout, explode, etc.)
+        void onPicked(Entity e){
+
+            // entity.lifeTimeRemain = 0;
+
+            ModelInstanceEx.setMaterialColor(
+                    e.getComponent(ModelComponent.class).modelInst, Color.RED);
+        }
+
         @Override
         public void callback(Entity picked, EventType eventType) {
+
             if (RAY_PICK == eventType && null != picked) {
-                ModelInstanceEx.setMaterialColor(
-                        picked.getComponent(ModelComponent.class).modelInst, Color.RED);
 
-                hitCount += 1;
+                onPicked(picked);
 
-                if (ALL_HIT_COUNT == hitCount) {
+//pickedPlayer.getComponent(StatusComponent.class).hitCount += 1;
+                int ct = incHitCount(1);
+
+                if (ALL_HIT_COUNT == ct /* pickedPlayer.getComponent(StatusComponent.class).hitCount */) {
                     onScreenTransition();
                 } else
-                    if (hitCount < ALL_HIT_COUNT) {
+                    if (ct /* pickedPlayer.getComponent(StatusComponent.class).hitCountj */ < ALL_HIT_COUNT) {
                     gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
                 }
             }
@@ -580,7 +600,7 @@ So we have to pause it explicitly as it is not governed by ECS
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
 
-            s = String.format(Locale.ENGLISH, "(%d)", hitCount);
+            s = String.format(Locale.ENGLISH, "(%d)", incHitCount(0) /* pickedPlayer.getComponent(StatusComponent.class).hitCount */);
             font.draw(batch, s, (GameWorld.VIRTUAL_WIDTH / 4.0f) * 3, 0 + font.getLineHeight());
         }
         batch.end();

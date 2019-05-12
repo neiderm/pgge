@@ -9,5 +9,17 @@ import com.mygdx.game.util.IStatusUpdater;
 
 public class StatusComponent implements Component {
 
+    public final static int  FPS = 60;
+    public final static int LIFECLOCKDEFAULT = 30 * FPS;
+    public final static int DIECLOCKDEFAULT = 10 * FPS;
+
+    public int lifeClock = LIFECLOCKDEFAULT;
+    public int dieClock = DIECLOCKDEFAULT;
+
+    public int hitCount;
+
     public IStatusUpdater statusUpdater;
+
+    public StatusComponent() {
+    }
 }

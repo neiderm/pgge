@@ -33,6 +33,7 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -182,20 +183,23 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private static void addPickObject(Entity e, String objectName) {
-
-        e.add(new PickRayComponent(objectName)); // set the object name ... yeh pretty hacky
-    }
-
-
     private void checkIfFeature(GameObject gameObject, Entity e){
 
         if (null != gameObject.featureName){
-            GameFeature f = gameData.features.get(gameObject.featureName);
+            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key 
 
             if (null != f) {
 //                if (gameObject.objectName.equals(f.objectName))
                 {
+StatusComponent sc = new StatusComponent();
+if (f.dieTimeSecs > 0)
+    sc.dieClock = f.dieTimeSecs * 60; // TODO: global FPS
+
+if (f.lifeTimeSecs > 0)
+    sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
+
+                    e.add(sc);
+
                     f.entity = e;
                     gameData.features.put(gameObject.featureName, f);
                 }
@@ -231,8 +235,12 @@ public class SceneLoader implements Disposable {
 
             for (GameObject gameObject : mg.gameObjects) {
 
-                gameObject.isKinematic = mg.isKinematic;
-                gameObject.isCharacter = mg.isCharacter;
+                if (mg.isKinematic){
+                    gameObject.isKinematic = mg.isKinematic;
+                }
+                if (mg.isCharacter){
+                    gameObject.isCharacter = mg.isCharacter;
+                }
 
                 if (null == gameObject.scale) {
                     gameObject.scale = new Vector3(1, 1, 1);
@@ -329,7 +337,7 @@ public class SceneLoader implements Disposable {
             Entity e = buildObjectInstance(instance.copy(), gameObject, shape, id);
             engine.addEntity(e);
 
-            checkIfFeature(gameObject, e);
+            checkIfFeature(gameObject, e); // this is not really supported on a per-instance basis
 
         } while (null != id && n < gameObject.instanceData.size);
     }
@@ -377,7 +385,7 @@ public class SceneLoader implements Disposable {
         }
 
         if (gameObject.isPickable) {
-            addPickObject(e, gameObject.objectName);
+            e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
         }
 
         return e;
