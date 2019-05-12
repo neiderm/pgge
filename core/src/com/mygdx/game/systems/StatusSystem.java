@@ -21,10 +21,8 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class StatusSystem extends IteratingSystem {
 
-    private Vector3 translation = new Vector3();
-
-
     public StatusSystem() {
+
         super(Family.all(StatusComponent.class).get());
     }
 
@@ -52,25 +50,25 @@ public class StatusSystem extends IteratingSystem {
             else //       if (comp.lifeClock == 0)
             {
                 if (comp.dieClock > 0) {
+
                     comp.dieClock -= 1;
-                }
 
-                BulletComponent bc = entity.getComponent(BulletComponent.class);
-                ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
-                //                instance.transform.setTranslation(0, 8, -7);
-                translation.set(0, 0, 0.075f);
-                instance.transform.trn(translation); // only moves visual model, not the body!
+                    if (1 == comp.dieClock) {
+                        // really die
+                        entity.add(new DeleteMeComponent());
+                    }
 
-                messWithColor(instance);
+                    ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
+                    messWithColor(instance);
+//tmp ....
+                    //                instance.transform.setTranslation(0, 8, -7);
+                    instance.transform.trn(0, 0, 0.075f); // only moves visual model, not the body!
 
-                if (null != bc) {
-                    bc.body.setWorldTransform(instance.transform);
-                }
+                    BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-                if (1 == comp.dieClock) {
-                    // really die
-                    Gdx.app.log("Status", "comp.dieClock == " + comp.dieClock);
-                    entity.add(new DeleteMeComponent());
+                    if (null != bc) {
+                        bc.body.setWorldTransform(instance.transform);
+                    }
                 }
             }
         }
