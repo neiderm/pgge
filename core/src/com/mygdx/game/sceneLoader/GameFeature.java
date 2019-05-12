@@ -20,6 +20,8 @@ import com.badlogic.ashley.core.Entity;
 
 public class GameFeature {
 
-    public String objectName;
+//    public String objectName;
     public Entity entity;
+    public int lifeTimeSecs;
+    public int dieTimeSecs;
 }

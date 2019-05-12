@@ -194,10 +194,9 @@ public class SceneLoader implements Disposable {
             GameFeature f = gameData.features.get(gameObject.featureName);
 
             if (null != f) {
-                if (gameObject.objectName.equals(f.objectName))
+//                if (gameObject.objectName.equals(f.objectName))
                 {
                     f.entity = e;
-//                    f.featureName = "awesome_feature";
                     gameData.features.put(gameObject.featureName, f);
                 }
             }
