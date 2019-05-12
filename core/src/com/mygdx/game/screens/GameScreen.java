@@ -38,7 +38,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
@@ -46,6 +45,7 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -66,6 +66,7 @@ import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
+
 import java.util.Locale;
 
 import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
@@ -76,6 +77,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
  */
 class GameScreen extends ScreenAvecAssets {
 
+    private ImmutableArray<Entity> purgeEntities;
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
@@ -608,6 +610,14 @@ So we have to pause it explicitly as it is not governed by ECS
           This way user can't pause during falling sequence. Once fallen past certain point, then allow screen switch.
          */
         checkForScreenTransition();
+
+        purgeEntities = engine.getEntitiesFor(Family.all(DeleteMeComponent.class).get());
+
+        for (Entity e : purgeEntities){
+            if (null != e){
+                engine.removeEntity(e);
+            }
+        }
     }
 
     /*

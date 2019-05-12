@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -69,6 +70,7 @@ public class StatusSystem extends IteratingSystem {
                 if (1 == comp.dieClock) {
                     // really die
                     Gdx.app.log("Status", "comp.dieClock == " + comp.dieClock);
+                    entity.add(new DeleteMeComponent());
                 }
             }
         }
