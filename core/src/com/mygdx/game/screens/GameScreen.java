@@ -96,9 +96,6 @@ class GameScreen extends ScreenAvecAssets {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
-//    private Entity platformEntity;
-    private final float colorAlpha = 0.9f;
-    private Color platformColor;
 
     private static final int ALL_HIT_COUNT = 3;
     private static final int ONE_SECOND = 1;
@@ -108,7 +105,7 @@ class GameScreen extends ScreenAvecAssets {
 
     private int gameOverCountDown;
     private boolean textShow = true;
-    private String gameOverMessageString;
+    private String gameOverMessageString = "none";
 
 //    private void setHitCount(int ct){
 //        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
@@ -120,8 +117,6 @@ class GameScreen extends ScreenAvecAssets {
     }
 
     private void screenInit(){
-
-        platformColor = new Color(255, 0, 0, colorAlpha);
 
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
@@ -240,16 +235,12 @@ class GameScreen extends ScreenAvecAssets {
         engine.addEntity(cameraEntity);
 
 // plug in the picked player
-        final StatusComponent sc = new StatusComponent("picked-player");
+        final StatusComponent sc = new StatusComponent();
         pickedPlayer.add(sc);
 
         /*
          * this goofball thing exists because of dependency between game model and UI i.e. player
          * dead or whatever in the world model must signal back to UI to pause/restart whatever
-         */
-        /*
-
-        THIS CXAN BE REPLADED BY TIMER!!!!!
          */
         sc.statusUpdater = new BulletEntityStatusUpdate() {
 
@@ -286,7 +277,7 @@ class GameScreen extends ScreenAvecAssets {
                         gameOverMessageString = "Elvis is Dead! Continue?";
                         onScreenTransition();
                     } else if (gameOverCountDown <= ROUND_CONTINUE_WAIT_TIME) {
-                        gameOverMessageString = "Time's Up! Continue?";
+                        gameOverMessageString = "10 ... 9 .. 8 ....";
                         onScreenTransition();
                     }
                 }
@@ -557,10 +548,9 @@ So we have to pause it explicitly as it is not governed by ECS
         batch.begin();
             // String.format calls new Formatter() which we dont want!
         if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
-///*
+
             s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
             font.draw(batch, s, 10, 0 + font.getLineHeight());
- //*/
 
         } else {
 
@@ -568,8 +558,7 @@ So we have to pause it explicitly as it is not governed by ECS
                 s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
-            else
-            if (textShow
+            else  if (textShow
                     || GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
 
                 s = String.format(Locale.ENGLISH, "%2d", gameOverCountDown - ROUND_CONTINUE_WAIT_TIME);

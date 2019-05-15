@@ -7,7 +7,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.DeleteMeComponent;
@@ -16,7 +15,7 @@ import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /**
- * Created by utf1247 on 7/5/2018.
+ * Created by neiderm on 7/5/2018.
  */
 
 public class StatusSystem extends IteratingSystem {
@@ -55,7 +54,9 @@ public class StatusSystem extends IteratingSystem {
 
                     if (1 == comp.dieClock) {
                         // really die
-                        entity.add(new DeleteMeComponent());
+                        if (comp.isEntityRemoveable){
+                            entity.add(new DeleteMeComponent());
+                        }
                     }
 
                     ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
