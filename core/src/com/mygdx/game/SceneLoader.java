@@ -31,6 +31,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -191,15 +192,18 @@ public class SceneLoader implements Disposable {
             if (null != f) {
 //                if (gameObject.objectName.equals(f.objectName))
                 {
-StatusComponent sc = new StatusComponent();
-if (f.dieTimeSecs > 0)
-    sc.dieClock = f.dieTimeSecs * 60; // TODO: global FPS
+                    StatusComponent sc = new StatusComponent(gameObject.featureName);
 
-if (f.lifeTimeSecs > 0)
-    sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
+// for now, statusComponent.isDRemoveable default is true and feature entity gets a DeleteMe comp by default
+                    e.add(new DeleteMeComponent());
+
+                    if (f.dieTimeSecs > 0)
+                        sc.dieClock = f.dieTimeSecs * 60; // TODO: global FPS
+
+                    if (f.lifeTimeSecs > 0)
+                            sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
 
                     e.add(sc);
-
                     f.entity = e;
                     gameData.features.put(gameObject.featureName, f);
                 }

@@ -1,5 +1,6 @@
 package com.mygdx.game.systems;
 
+import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
@@ -54,21 +55,27 @@ public class StatusSystem extends IteratingSystem {
 
                     if (1 == comp.dieClock) {
                         // really die
-                        if (comp.isEntityRemoveable){
-                            entity.add(new DeleteMeComponent());
+                        if (comp.isEntityRemoveable) { // can be removed ...
+
+                            Component deleteMe = entity.getComponent(DeleteMeComponent.class);
+
+                            if (null != deleteMe) {
+                                entity.getComponent(DeleteMeComponent.class).deleteMe = true;
+                            }
                         }
                     }
-
-                    ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
-                    messWithColor(instance);
 //tmp ....
-                    //                instance.transform.setTranslation(0, 8, -7);
-                    instance.transform.trn(0, 0, 0.075f); // only moves visual model, not the body!
+                    if (comp.name.equals("Platform1")) {
+                        ModelInstance instance = entity.getComponent(ModelComponent.class).modelInst;
+                        messWithColor(instance);
+                        //                instance.transform.setTranslation(0, 8, -7);
+                        instance.transform.trn(0, 0, 0.075f); // only moves visual model, not the body!
 
-                    BulletComponent bc = entity.getComponent(BulletComponent.class);
+                        BulletComponent bc = entity.getComponent(BulletComponent.class);
 
-                    if (null != bc) {
-                        bc.body.setWorldTransform(instance.transform);
+                        if (null != bc) {
+                            bc.body.setWorldTransform(instance.transform);
+                        }
                     }
                 }
             }

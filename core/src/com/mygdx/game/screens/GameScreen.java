@@ -604,7 +604,9 @@ So we have to pause it explicitly as it is not governed by ECS
 
         for (Entity e : purgeEntities){
             if (null != e){
-                engine.removeEntity(e);
+                if (e.getComponent(DeleteMeComponent.class).deleteMe) {
+                    engine.removeEntity(e);
+                }
             }
         }
     }
