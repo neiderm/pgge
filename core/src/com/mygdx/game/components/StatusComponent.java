@@ -26,10 +26,16 @@ public class StatusComponent implements Component {
     public IStatusUpdater statusUpdater;
 
 
-    public StatusComponent() {
+    private StatusComponent() {
 
         this("no-name");
-        isEntityRemoveable = false;
+        isEntityRemoveable = false; // tmp workaround for player
+    }
+
+    public StatusComponent(int lifeClockSecs, int dieClockSecs) {
+        this();
+        this.lifeClock = lifeClockSecs * FPS;
+        this.dieClock = dieClockSecs * FPS;
     }
 
     public StatusComponent(String name) {

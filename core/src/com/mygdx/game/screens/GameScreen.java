@@ -98,14 +98,8 @@ class GameScreen extends ScreenAvecAssets {
     private Entity pickedPlayer;
 
     private static final int ALL_HIT_COUNT = 3;
-    private static final int ONE_SECOND = 1;
     private static final int ROUND_COMPLETE_FADEOUT_TIME = 3;
     private static final int ROUND_CONTINUE_WAIT_TIME = 10;
-    private static final int INITIAL_GAME_TIME = 30 + ROUND_CONTINUE_WAIT_TIME;
-
-    private int gameOverCountDown;
-    private boolean textShow = true;
-    private String gameOverMessageString = "none";
 
 //    private void setHitCount(int ct){
 //        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
@@ -129,7 +123,6 @@ class GameScreen extends ScreenAvecAssets {
             font.getData().setScale(fontGetDensity);
 
 //        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
-        gameOverCountDown =  INITIAL_GAME_TIME;
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
@@ -235,7 +228,7 @@ class GameScreen extends ScreenAvecAssets {
         engine.addEntity(cameraEntity);
 
 // plug in the picked player
-        final StatusComponent sc = new StatusComponent();
+        final StatusComponent sc = new StatusComponent(15, 5);
         pickedPlayer.add(sc);
 
         /*
@@ -253,14 +246,11 @@ class GameScreen extends ScreenAvecAssets {
 
             private void onScreenTransition(){
 
-                textShow = false;
                 sillyFontFx(new Color(0, 0, 1, 1f));
                 Timer.schedule(gameOverTask, ROUND_CONTINUE_WAIT_TIME);
 
                 // start fadeout 2 seconds prior to Continue Wait Time up
                 Timer.schedule(fadeoutTask, ROUND_CONTINUE_WAIT_TIME - 2.0f, 0.1f);
-
-                gameOverCountDown = ROUND_CONTINUE_WAIT_TIME; // for displaying the timer countdound ...
 
                 GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
             }
@@ -274,11 +264,8 @@ class GameScreen extends ScreenAvecAssets {
                     v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
 
                     if (v.dst2(origin) > boundsDst2) {
-                        gameOverMessageString = "Elvis is Dead! Continue?";
-                        onScreenTransition();
-                    } else if (gameOverCountDown <= ROUND_CONTINUE_WAIT_TIME) {
-                        gameOverMessageString = "10 ... 9 .. 8 ....";
-                        onScreenTransition();
+//                        onScreenTransition();
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE);
                     }
                 }
             }
@@ -325,8 +312,8 @@ class GameScreen extends ScreenAvecAssets {
         @Override
         public void run (){
             if ( ! GameWorld.getInstance().getIsPaused() ) {
-                gameOverCountDown -= ONE_SECOND; // fps for now
-                textShow = !textShow;
+//                gameOverCountDown -= ONE_SECOND; // fps for now
+//                textShow = !textShow;
             }
         }
     };
@@ -347,10 +334,10 @@ class GameScreen extends ScreenAvecAssets {
         private void onScreenTransition(){
 
             sillyFontFx(new Color(0, 1, 0, 1f));
-            gameOverCountDown = ROUND_COMPLETE_FADEOUT_TIME; // short delay before Next Screen
+//            gameOverCountDown = ROUND_COMPLETE_FADEOUT_TIME; // short delay before Next Screen
             Timer.schedule(roundCompleteTask, ROUND_COMPLETE_FADEOUT_TIME);
             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-            gameOverMessageString = "Congratulations!";
+//            gameOverMessageString = "Congratulations!";
         }
 
         // placeholder for "picked" action (fadeout, explode, etc.)
@@ -376,7 +363,7 @@ class GameScreen extends ScreenAvecAssets {
                     onScreenTransition();
                 } else
                     if (ct /* pickedPlayer.getComponent(StatusComponent.class).hitCountj */ < ALL_HIT_COUNT) {
-                    gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
+//                      gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
                 }
             }
         }
@@ -547,21 +534,27 @@ So we have to pause it explicitly as it is not governed by ECS
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
             // String.format calls new Formatter() which we dont want!
+        int countDown = pickedPlayer.getComponent(StatusComponent.class).lifeClock / 60; // FPS // gameOverCountDown
+
         if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState()) {
 
-            s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
+            s = String.format(Locale.ENGLISH, "%s (%d)", "Dead! Continue?", countDown);
             font.draw(batch, s, 10, 0 + font.getLineHeight());
 
         } else {
 
             if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()){
-                s = String.format(Locale.ENGLISH, "%s (%d)", gameOverMessageString, gameOverCountDown);
+                s = String.format(Locale.ENGLISH, "%s (%d)", "Good job!", countDown);
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
-            else  if (textShow
-                    || GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+            else  if (
+                     GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
 
-                s = String.format(Locale.ENGLISH, "%2d", gameOverCountDown - ROUND_CONTINUE_WAIT_TIME);
+                s = String.format(Locale.ENGLISH, "%2d", countDown);
+
+                if (countDown <= ROUND_CONTINUE_WAIT_TIME) {
+                    s = String.format(Locale.ENGLISH, "<%2d>", countDown /* - ROUND_CONTINUE_WAIT_TIME */);
+                }
                 font.draw(batch, s, 10, 0 + font.getLineHeight());
             }
 
