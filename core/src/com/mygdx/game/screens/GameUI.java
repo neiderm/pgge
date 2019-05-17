@@ -289,10 +289,10 @@ public class GameUI extends InGameMenu {
         super.act(delta);
 
         update(GameWorld.getInstance().getIsPaused()
-                || GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState());
+                || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState());
 
 // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_CONTINUE == GameWorld.getInstance().getRoundActiveState())
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState())
         {
             if (null != picButton) {
                 picButton.setVisible(true);
