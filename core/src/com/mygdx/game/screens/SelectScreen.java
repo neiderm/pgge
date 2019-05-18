@@ -44,7 +44,6 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
-import com.mygdx.game.util.PrimitivesBuilder;
 
 
 /*
@@ -54,7 +53,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
  * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
  */
-class SelectScreen extends ScreenAvecAssets {
+class SelectScreen extends TimedGameScreen {
 
     private static final int N_SELECTIONS = 3;
 

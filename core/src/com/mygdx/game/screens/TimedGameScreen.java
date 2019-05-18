@@ -5,7 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.mygdx.game.SceneLoader;
 
 
-abstract class ScreenAvecAssets /* TimedGameScreen */ implements Screen {
+abstract class TimedGameScreen implements Screen {
 
     static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
 
@@ -14,7 +14,7 @@ abstract class ScreenAvecAssets /* TimedGameScreen */ implements Screen {
     // private // tmp
     SceneLoader sceneLoader;
 
-    ScreenAvecAssets(){
+    TimedGameScreen(){
 
         this.sceneLoader = new SceneLoader();
     }

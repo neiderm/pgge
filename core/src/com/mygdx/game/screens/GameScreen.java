@@ -75,7 +75,7 @@ import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
 /**
  * Created by neiderm on 12/18/17.
  */
-class GameScreen extends /* TimedGameScreen */ ScreenAvecAssets {
+class GameScreen extends TimedGameScreen {
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)

@@ -48,7 +48,7 @@ public class LoadingScreen implements Screen {
     private ScreenTypes screenType = LEVEL;
     private InputMapper mapper;
 
-    private ScreenAvecAssets newScreen;
+    private Screen newScreen;
 
     private SceneLoader sceneLoader;
 
