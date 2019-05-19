@@ -112,43 +112,31 @@ class SelectScreen extends TimedGameScreen {
         cam.up.set(0, 1, 0);
         cam.update();
 
-// build the platform manually (not from data file) for simplicity of retrieving entity
-
-        // to be "primitive" cylinder, cube whatever
-        // stored in SceneData in a new group called "features"
-        // we will retrieve platformo entity from SceneData.getFeature(0) ... i.e. SceneData.features[0]
-        // SceneData.features[0] can contain whatever classes of features and within class of feature, various capabiliities (think gatt!)
-        // GameObject go = scenedata.getGroup("Features");
-        // Feature ff = go.getFeature("liftPlatform");
-// String args = ff.getArgs(); // args can be regular old command line style args! (keyword/value pairs ... could expand to e.g. LUA script
-        // "standard" "command line" arguments parser/ regex, etc?
-//        platform = PrimitivesBuilder.load( PrimitivesBuilder.getModel(), "boxTex", null, new Vector3(4, platformHt, 4), 0, null);
-//        engine.addEntity(platform);
-
         sceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
 
-GameFeature f = sceneLoader.getFeature("player");
-if (null != f){
-       platform = f.entity;
-}
+        GameFeature f = sceneLoader.getFeature("player");
+        if (null != f) {
+            platform = f.entity;
+        }
 
         stage = new Stage();
         stage.addListener(new InputListener() {
-                              @Override
-                              public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                                  Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
 // work around troubles with dectecting touch Down vs touch Down+swipe
-                                  if (y < GameWorld.VIRTUAL_HEIGHT / 4)
-                                      mapper.setInputState(InputMapper.InputState.INP_SELECT);
+                if (y < GameWorld.VIRTUAL_HEIGHT / 4)
+                    mapper.setInputState(InputMapper.InputState.INP_SELECT);
 
-                                  return true; // must return true in order for touch up, dragged to work!
-                              }
-                              @Override
-                              public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                                  touchPadDx = 0;
-                              }
-                          });
+                return true; // must return true in order for touch up, dragged to work!
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                touchPadDx = 0;
+            }
+        });
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -159,25 +147,10 @@ if (null != f){
         // ok so you can add a label to the stage
         Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
         stage.addActor(label);
-
         Gdx.input.setInputProcessor(stage);
 
-
-        idxCurSel = 2;
-
-        // make sure to initialize in case user does not rotate the selector platform
-        GameWorld.getInstance().setPlayerObjectName(
-                characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
-
-// initialize platform rotation setpoint (further updates will be relative to this i.e. plus/minus the platform increment degrees)
         degreesSetp = 90 - idxCurSel * PLATFRM_INC_DEGREES;
-// optional: advance immediately to the setpoint
-        if (false) {
-            degreesInst = degreesSetp;
-            updateTanks(idxCurSel * PLATFRM_INC_DEGREES);
-        }
     }
-
 
     /*
      * dPad X axis + touch-swipe (left/right)
@@ -266,7 +239,7 @@ if (null != f){
 
             position.x = (float) Math.cos(rads);
             position.y = 0.5f // tmp
-                              + platformHt / 2; // arbitrary amount above platform
+                    + platformHt / 2; // arbitrary amount above platform
             position.z = (float) Math.sin(rads);
 
             Entity e = characters.get(n);
@@ -302,7 +275,7 @@ if (null != f){
 
 //    private int previousIncrement;
 
-    private int checkedUpDown(int step, int checkedIndex){
+    private int checkedUpDown(int step, int checkedIndex) {
 
         int selectedIndex = checkedIndex;
 
@@ -320,9 +293,7 @@ if (null != f){
         return selectedIndex;
     }
 
-    private Screen newLoadingScreen(String path){
-
-        GameWorld.getInstance().setSceneData(path);
+    private Screen newLoadingScreen(String path) {
 
         // show loading bar on this screen? omit LoadingScreen? allowing the
         // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
@@ -330,15 +301,13 @@ if (null != f){
 // Next screen i.e. Loading screen, knows it needs to pass certain data (againi, i.e. player name)
 // So the screen may actually own and instance the scene data, not the sceene loader.
         // screen pass sceneData to scene loader as parameter.
-        Screen screen = new LoadingScreen();
 
-// get player referernce
-        GameWorld.getInstance().setPlayerObjectName(characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
+        GameWorld.getInstance().setSceneData(path,
+                characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
 
-        // set player reference in new screens game data
-
-        return screen;
+        return new LoadingScreen();
     }
+
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
      * "Note that using a StringBuilder is highly recommended against string concatenation in your
@@ -370,7 +339,7 @@ if (null != f){
 
         // lower previous (raised current selection in updateTanks() )
         characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
-                    down.set(0, -0.5f, 0));
+                down.set(0, -0.5f, 0));
 
         InputMapper.InputState inputState = mapper.getInputState();
 

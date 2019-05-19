@@ -110,6 +110,7 @@ public final class GameWorld implements Disposable {
     private boolean isPaused = false;
 
     public boolean getIsPaused() {
+
         return isPaused;
     }
 
@@ -150,6 +151,12 @@ public final class GameWorld implements Disposable {
 
 
     private SceneData sceneData;
+
+    public void setSceneData(String path, String playerObjectName) {
+
+        setPlayerObjectName(playerObjectName);
+        sceneData = SceneData.loadData(path);
+    }
 
     public void setSceneData(String path) {
         sceneData = SceneData.loadData(path);
