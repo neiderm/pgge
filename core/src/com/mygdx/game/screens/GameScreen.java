@@ -126,8 +126,6 @@ class GameScreen extends TimedGameScreen {
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
-//        GameWorld.getInstance().setIsPaused(true);
-
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
         // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
@@ -187,7 +185,6 @@ class GameScreen extends TimedGameScreen {
             PickRayComponent pc = e.getComponent(PickRayComponent.class);
             if (null != pc && null != pc.objectName && pc.objectName.equals(objectName)) {
 //            if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
-
                 pickedPlayer = e;
                 pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
                 pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
@@ -350,6 +347,7 @@ So we have to pause it explicitly as it is not governed by ECS
 // don't update controls during Continue State
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
                             GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState() ) {
+
                         vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
@@ -363,10 +361,15 @@ So we have to pause it explicitly as it is not governed by ECS
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         }
                     }
+
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-                        paused = true;
+
+                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != GameWorld.getInstance().getRoundActiveState()){
+                            paused = true;
+                        }
                     }
-                } else { // paused
+                }
+                else { // paused
 
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
@@ -561,7 +564,8 @@ So we have to pause it explicitly as it is not governed by ECS
      */
     private void checkForScreenTransition() {
 
-        if (screenTimer > 0){
+        if ( !GameWorld.getInstance().getIsPaused() // have to do this here for now
+                && screenTimer > 0) {
             screenTimer -= 1;
         }
 
