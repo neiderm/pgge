@@ -332,10 +332,9 @@ class GameScreen extends TimedGameScreen {
             @Override
             public void act (float delta) {
 
-                mapper.latchInputState();
-
                 boolean paused = GameWorld.getInstance().getIsPaused();
                 int checkedBox = 0; // button default at top selection
+                mapper.latchInputState();
 
                 if (!paused) {
                     /*
@@ -351,7 +350,6 @@ So we have to pause it explicitly as it is not governed by ECS
                         vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
-
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                         gameEventSignal.dispatch(
@@ -361,7 +359,6 @@ So we have to pause it explicitly as it is not governed by ECS
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         }
                     }
-
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != GameWorld.getInstance().getRoundActiveState()){
@@ -370,17 +367,17 @@ So we have to pause it explicitly as it is not governed by ECS
                     }
                 }
                 else { // paused
-
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                     }
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
+                        paused = false;
+
                         switch (getCheckedIndex()) {
                             default:
                             case 0: // resume
-                                paused = false;
                                 break;
                             case 1: // restart
                                 GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
@@ -389,11 +386,9 @@ So we have to pause it explicitly as it is not governed by ECS
                                 GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                                 break;
                             case 3: // camera
-                                paused = false;
                                 cameraSwitch();
                                 break;
                             case 4: // dbg drwr
-                                paused = false;
                                 BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
                                 // has to reinitialize bullet world to set the flag
                                 GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
@@ -405,7 +400,15 @@ So we have to pause it explicitly as it is not governed by ECS
                 }
                 setCheckedBox(checkedBox);
                 GameWorld.getInstance().setIsPaused(paused);
+///*
+        stringBuilder.setLength(0);
+        stringBuilder.append(screenTimer / 60); // FPS
+        timerLabel.setText(stringBuilder);
 
+                stringBuilder.setLength(0);
+                stringBuilder.append(incHitCount(0) ).append(" / 3"); // FPS
+                itemsLabel.setText(stringBuilder);
+//*/
                 super.act(delta);
             }};
     }

@@ -54,10 +54,10 @@ public class GameUI extends InGameMenu {
     private Texture tpBackgnd;
     private Texture tpKnob;
 
-    private final int gsBTNwidth =  Gdx.graphics.getHeight() * 3 / 8;
-    private final int gsBTNheight =  Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNwidth = Gdx.graphics.getHeight() * 3 / 8;
+    private final int gsBTNheight = Gdx.graphics.getHeight() * 3 / 8;
     // placement relative to absolute center of screen ... i guess
-    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth /2;
+    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth / 2;
     private final int gsBTNy = Gdx.graphics.getHeight() / 2;
 
     private Vector2 v2 = new Vector2();
@@ -82,13 +82,16 @@ public class GameUI extends InGameMenu {
 
                     Touchpad t = (Touchpad) actor;
                     axes[0] = t.getKnobPercentX();
-                    axes[1] = t.getKnobPercentY() * ( -1 );     // negated
+                    axes[1] = t.getKnobPercentY() * (-1);     // negated
                     mapper.setAxis(-1, axes);
-                }});
+                }
+            });
 
             setupOnscreenControls(mapper);
         }
+
         setupInGameMenu();
+        setupPlayerInfo();
     }
 
 /*    @Override
@@ -157,8 +160,8 @@ public class GameUI extends InGameMenu {
 
         // fudge scaling to make UI controls visible on my HTC One M8
         if (scale > 1) {
-            tpRadius = (int)(tpRadius * scale / 2f);
-            knobRadius = (int)(knobRadius * scale / 2);
+            tpRadius = (int) (tpRadius * scale / 2f);
+            knobRadius = (int) (knobRadius * scale / 2);
         }
 
         //Create a touchpad skin
@@ -209,7 +212,6 @@ public class GameUI extends InGameMenu {
         background.dispose();
     }
 
-
     private void setupInGameMenu() {
 
         addButton("Resume");
@@ -220,7 +222,7 @@ public class GameUI extends InGameMenu {
         addNextButton();
     }
 
-    private void setupOnscreenControls(final InputMapper mapper){
+    private void setupOnscreenControls(final InputMapper mapper) {
 
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap;
@@ -231,14 +233,15 @@ public class GameUI extends InGameMenu {
         gsTexture = new Texture(pixmap);
 
         picButton = addImageButton(gsTexture, gsBTNx, gsBTNy,
-                new InputListener(){
+                new InputListener() {
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
                         Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
                         mapper.setPointer(toScrnCoord.x, toScrnCoord.y);
                         return false;
-                    }});
+                    }
+                });
         pixmap.dispose();
 
         pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
@@ -252,7 +255,8 @@ public class GameUI extends InGameMenu {
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         mapper.setInputState(InputMapper.InputState.INP_B2);
                         return false;
-                    }});
+                    }
+                });
         pixmap.dispose();
     }
 
@@ -264,27 +268,24 @@ public class GameUI extends InGameMenu {
         addActor(newButton);
         newButton.setPosition(posX, posY);
         newButton.addListener(listener); // ignored return value
-
         return newButton;
     }
 
-
-    private void update(boolean menuActive){
+    private void update(boolean menuActive) {
 
         if (null != touchpad) {
-            touchpad.setVisible( ! menuActive );
+            touchpad.setVisible(!menuActive);
         }
         if (null != xButton) {
-            xButton.setVisible( ! menuActive );
+            xButton.setVisible(!menuActive);
         }
-
-            if (null != picButton) {
-                picButton.setVisible(!menuActive);
-            }
+        if (null != picButton) {
+            picButton.setVisible(!menuActive);
+        }
     }
 
     @Override
-    public void act (float delta) {
+    public void act(float delta) {
 
         super.act(delta);
 
@@ -292,8 +293,8 @@ public class GameUI extends InGameMenu {
                 || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState());
 
 // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState())
-        {
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+
             if (null != picButton) {
                 picButton.setVisible(true);
             }
@@ -301,7 +302,7 @@ public class GameUI extends InGameMenu {
     }
 
     @Override
-    public void dispose () {
+    public void dispose() {
 
         super.dispose();
 

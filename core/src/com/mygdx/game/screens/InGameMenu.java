@@ -51,6 +51,7 @@ class InGameMenu extends Stage {
 
     InputMapper mapper = new InputMapper();
     private Table onscreenMenuTbl = new Table();
+    private Table playerInfoTbl = new Table();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
@@ -61,8 +62,9 @@ class InGameMenu extends Stage {
     private  Skin uiSkin;
     private BitmapFont font;
 
+    InGameMenu(String skinName){} // TODO
 
-    InGameMenu(String skinName, String menUname) {
+    InGameMenu(String skinName, String menuName) {
 
         super();
 
@@ -79,27 +81,47 @@ class InGameMenu extends Stage {
         }
         else{
             uiSkin = setSkin();
-
-            if (null != menUname){
-                Label onScreenMenuLabel = new Label(menUname, new Label.LabelStyle(font, Color.WHITE));
-                onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
-            }
         }
+
+        if (null != menuName){
+            Label onScreenMenuLabel = new Label(menuName, new Label.LabelStyle(font, Color.WHITE));
+            onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
+        }
+
+        onscreenMenuTbl.setFillParent(true);
+        onscreenMenuTbl.setDebug(true);
+        onscreenMenuTbl.setVisible(true);
+        addActor(onscreenMenuTbl);
 
         bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
 
-        onscreenMenuTbl.setFillParent(true);
-        onscreenMenuTbl.setDebug(true);
-
-        onscreenMenuTbl.setVisible(true);
-        addActor(onscreenMenuTbl);
-
         // hack ...state for "non-game" screen should be "paused" since we use it as a visibility flag!
         GameWorld.getInstance().setIsPaused(true);
     }
 
+
+    Label scoreLabel;
+    Label itemsLabel;
+    Label timerLabel;
+
+    void setupPlayerInfo(){
+
+        scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
+        playerInfoTbl.add(scoreLabel).fillX().uniformX();
+
+        itemsLabel = new Label("0/3", new Label.LabelStyle(font, Color.WHITE));
+        playerInfoTbl.add(itemsLabel).fillX().uniformX();
+
+        timerLabel = new Label("0:15", new Label.LabelStyle(font, Color.WHITE));
+        playerInfoTbl.add(timerLabel).fillX().uniformX();
+
+        playerInfoTbl.setFillParent(true);
+        playerInfoTbl.setDebug(true);
+        playerInfoTbl.setVisible(true);
+        addActor(playerInfoTbl);
+    }
 
     void addNextButton(){
 
@@ -167,15 +189,15 @@ class InGameMenu extends Stage {
         addButton(new TextButton(name, uiSkin, styleName));
     }
 
-    void addButton(String name) {
-        addButton(new TextButton(name, uiSkin));
+    void addButton(String text) {
+
+        addButton(new TextButton(text, uiSkin));
     }
 
     private void addButton(TextButton button) {
 
         buttonNames.add(button.getText().toString());
         bg.add(button);
-
         count += 1;
 
         onscreenMenuTbl.row();
@@ -231,7 +253,14 @@ class InGameMenu extends Stage {
     @Override
     public void act(float delta){
 
-        onscreenMenuTbl.setVisible(GameWorld.getInstance().getIsPaused());
+// one or the other
+        if (GameWorld.getInstance().getIsPaused()){
+            playerInfoTbl.setVisible(false);
+            onscreenMenuTbl.setVisible(true);
+        } else {
+            onscreenMenuTbl.setVisible(false);
+            playerInfoTbl.setVisible(true);
+        }
 
         super.act(delta);
     }
