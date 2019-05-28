@@ -400,17 +400,30 @@ So we have to pause it explicitly as it is not governed by ECS
                 }
                 setCheckedBox(checkedBox);
                 GameWorld.getInstance().setIsPaused(paused);
-///*
-        stringBuilder.setLength(0);
-        stringBuilder.append(screenTimer / 60); // FPS
-        timerLabel.setText(stringBuilder);
+
+                updateUI();
+                super.act(delta);
+            }
+
+            private void updateUI(){
+
+                stringBuilder.setLength(0);
+                stringBuilder.append("0001");
+                scoreLabel.setText(stringBuilder);
+
+                stringBuilder.setLength(0);
+                stringBuilder.append(screenTimer / 60); // FPS
+                timerLabel.setText(stringBuilder);
 
                 stringBuilder.setLength(0);
                 stringBuilder.append(incHitCount(0) ).append(" / 3"); // FPS
                 itemsLabel.setText(stringBuilder);
-//*/
-                super.act(delta);
-            }};
+
+                stringBuilder.setLength(0);
+                stringBuilder.append("Continue? ").append(screenTimer / 60); // FPS
+                mesgLabel.setText(stringBuilder);
+            }
+        };
     }
 
     /*

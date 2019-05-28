@@ -105,20 +105,29 @@ class InGameMenu extends Stage {
     Label scoreLabel;
     Label itemsLabel;
     Label timerLabel;
+    Label mesgLabel;
 
     void setupPlayerInfo(){
 
         scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(scoreLabel).fillX().uniformX();
+        playerInfoTbl.add(scoreLabel);
 
         itemsLabel = new Label("0/3", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(itemsLabel).fillX().uniformX();
+        playerInfoTbl.add(itemsLabel);
 
         timerLabel = new Label("0:15", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(timerLabel).fillX().uniformX();
+        playerInfoTbl.add(timerLabel).padRight(1);
+
+        playerInfoTbl.row().expand();
+
+        mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(font, Color.WHITE));
+        playerInfoTbl.add(mesgLabel).colspan(3);
+
+        playerInfoTbl.row();
+        playerInfoTbl.add(new Label("bottom left", new Label.LabelStyle(font, Color.WHITE)));
 
         playerInfoTbl.setFillParent(true);
-        playerInfoTbl.setDebug(true);
+//        playerInfoTbl.setDebug(true);
         playerInfoTbl.setVisible(true);
         addActor(playerInfoTbl);
     }
