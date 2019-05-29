@@ -101,11 +101,22 @@ class InGameMenu extends Stage {
         GameWorld.getInstance().setIsPaused(true);
     }
 
+    public void setLabelColor(Label label, Color c){
+        label.setStyle(new Label.LabelStyle(font, c));
+    }
 
     Label scoreLabel;
     Label itemsLabel;
     Label timerLabel;
     Label mesgLabel;
+
+    public void setVisibleUI(boolean state){
+
+        mesgLabel.setVisible(state);
+        itemsLabel.setVisible(state);
+        timerLabel.setVisible(state);
+        scoreLabel.setVisible(state);
+    }
 
     void setupPlayerInfo(){
 
@@ -122,9 +133,6 @@ class InGameMenu extends Stage {
 
         mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(font, Color.WHITE));
         playerInfoTbl.add(mesgLabel).colspan(3);
-
-        playerInfoTbl.row();
-        playerInfoTbl.add(new Label("bottom left", new Label.LabelStyle(font, Color.WHITE)));
 
         playerInfoTbl.setFillParent(true);
 //        playerInfoTbl.setDebug(true);

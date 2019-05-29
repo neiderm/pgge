@@ -247,6 +247,8 @@ class GameScreen extends TimedGameScreen {
                 if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()
                         && !GameWorld.getInstance().getIsPaused()) {
 
+                    e.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
+
                     v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
 
                     if (v.dst2(origin) > boundsDst2) {
@@ -262,12 +264,12 @@ class GameScreen extends TimedGameScreen {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-    private void sillyFontFx(Color cc){
-        font.setColor(cc);
-        float scaleX = font.getScaleX();
-        float scaleY = font.getScaleY();
-        font.getData().setScale(scaleY  * 1.5f);
-    }
+//    private void sillyFontFx(Color cc){
+//        font.setColor(cc);
+//        float scaleX = font.getScaleX();
+//        float scaleY = font.getScaleY();
+//        font.getData().setScale(scaleY  * 1.5f);
+//    }
 
     /*
     game event object for signalling to pickray system
@@ -275,22 +277,17 @@ class GameScreen extends TimedGameScreen {
     private final GameEvent gameEvent = new GameEvent() {
 
         private void onScreenTransition(){
-
-            sillyFontFx(new Color(0, 1, 0, 1f));
 // short delay before change Screen
             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-            screenTimer = 3 * 60;
+            screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
         }
 
         // placeholder for "picked" action (fadeout, explode, etc.)
         void onPicked(Entity e){
-
             // entity.lifeTimeRemain = 0;   .... to make it fade!
-
             ModelInstanceEx.setMaterialColor(
                     e.getComponent(ModelComponent.class).modelInst, Color.RED);
         }
-
         @Override
         public void callback(Entity picked, EventType eventType) {
 
@@ -405,23 +402,60 @@ So we have to pause it explicitly as it is not governed by ECS
                 super.act(delta);
             }
 
+            private void updateTimer(int screenTimerSecs){
+
+                int minutes = screenTimerSecs / 60;
+                int seconds = screenTimerSecs % 60;
+
+                stringBuilder.setLength(0);
+                stringBuilder.append(String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
+
+                if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
+                    setLabelColor(timerLabel, Color.RED);
+                }
+
+                timerLabel.setText(stringBuilder);
+            }
+
             private void updateUI(){
 
-                stringBuilder.setLength(0);
-                stringBuilder.append("0001");
-                scoreLabel.setText(stringBuilder);
+                int screenTimerSecs = screenTimer / 60; // FPS
+                setVisibleUI(true);
+                mesgLabel.setVisible(false);
 
-                stringBuilder.setLength(0);
-                stringBuilder.append(screenTimer / 60); // FPS
-                timerLabel.setText(stringBuilder);
+                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
 
-                stringBuilder.setLength(0);
-                stringBuilder.append(incHitCount(0) ).append(" / 3"); // FPS
-                itemsLabel.setText(stringBuilder);
+                    updateTimer(screenTimerSecs);
 
-                stringBuilder.setLength(0);
-                stringBuilder.append("Continue? ").append(screenTimer / 60); // FPS
-                mesgLabel.setText(stringBuilder);
+                    int timer = pickedPlayer.getComponent(StatusComponent.class).dieClock / 60; // FPS
+                    stringBuilder.setLength(0);
+                    stringBuilder.append("Continue? ").append(timer);
+
+                    mesgLabel.setText(stringBuilder);
+                    mesgLabel.setVisible(true);
+
+                } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
+
+                    setLabelColor(itemsLabel, Color.GREEN);
+                    stringBuilder.setLength(0);
+                    stringBuilder.append("EXIT");
+                    itemsLabel.setText(stringBuilder);
+
+                    // still show the screen timere
+                    stringBuilder.setLength(0);
+                    stringBuilder.append(screenTimerSecs); // tmp ... mm:ss
+                    timerLabel.setText(stringBuilder);
+
+                } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+
+                    updateTimer(screenTimerSecs);
+                    stringBuilder.setLength(0);
+                    stringBuilder.append(incHitCount(0) ).append(" / 3");
+                    itemsLabel.setText(stringBuilder);
+                }
+                else { // nothing to see here
+                    setVisibleUI(false);
+                }
             }
         };
     }
@@ -472,8 +506,6 @@ So we have to pause it explicitly as it is not governed by ECS
      */
     @Override
     public void render(float delta) {
-
-        String s;
         // game box viewport
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -489,6 +521,7 @@ So we have to pause it explicitly as it is not governed by ECS
         engine.update(delta);
         BulletWorld.getInstance().update(delta);
 
+// if this is actually useful and not just test code it should be put somewhere else
         Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
         transform.getRotation(rotation);
@@ -497,55 +530,14 @@ So we have to pause it explicitly as it is not governed by ECS
 
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-// TODO: the UI to be blitted into a separate bitmap (not inside the UI draw! )
-        // String.format calls new Formatter() which we dont want!
-        int screenTimerSecs = screenTimer / 60; // FPS
-
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-// don't care about screen timer seconds anymore (possible that screen timer expires before 10 seconds continue time)
-//            s = String.format(Locale.ENGLISH, "%2d", screenTimerSecs);
-//            font.draw(batch, s, 10, 0 + font.getLineHeight());
-
-            // center of screen ....
-            int dieClock = pickedPlayer.getComponent(StatusComponent.class).dieClock / 60; // FPS
-            s = String.format(Locale.ENGLISH, "%s (%d)", "Continue? ", dieClock);
-            font.draw(batch, s, 10, GameWorld.VIRTUAL_HEIGHT / 2.0f + font.getLineHeight());
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
-
-            s = String.format(Locale.ENGLISH, "%s", "EXIT");
-            font.draw(batch, s, 10, GameWorld.VIRTUAL_HEIGHT - font.getLineHeight());
-
-            // still show the screen timere
-            s = String.format(Locale.ENGLISH, "%2d", screenTimerSecs);
-            font.draw(batch, s, 10, 0 + font.getLineHeight());
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
-
-            s = String.format(Locale.ENGLISH, "%2d", screenTimerSecs);
-
-            if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
-                s = String.format(Locale.ENGLISH, "<%2d>", screenTimerSecs);
-            }
-            font.draw(batch, s, 10, 0 + font.getLineHeight());
-
-            s = String.format(Locale.ENGLISH, "(%d)", incHitCount(0) /* pickedPlayer.getComponent(StatusComponent.class).hitCount */);
-            font.draw(batch, s, (GameWorld.VIRTUAL_WIDTH / 4.0f) * 3, GameWorld.VIRTUAL_HEIGHT - font.getLineHeight());
-        }
+        String s = String.format(Locale.ENGLISH, "%s", "*");
+        font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
-/*
-        float visibleCount = renderSystem.visibleCount;
-        float renderableCount = renderSystem.renderableCount;
-        //s = String.format("fps=%d vis.cnt=%d rndrbl.cnt=%d", Gdx.graphics.getFramesPerSecond(), renderSystem.visibleCount, renderSystem.renderableCount);
-        stringBuilder.setLength(0);
-        stringBuilder.append(" FPS: ").append(Gdx.graphics.getFramesPerSecond());
-        stringBuilder.append(" Visible: ").append(visibleCount);
-        stringBuilder.append(" / ").append(renderableCount);
-            fpsLabel.setText(stringBuilder);
-*/
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
+// TODO: figure out how to do this in the UI
         if (GameWorld.getInstance().getIsPaused()
                 || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()
                 || GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == GameWorld.getInstance().getRoundActiveState()
@@ -625,7 +617,7 @@ So we have to pause it explicitly as it is not governed by ECS
                 screenInit();
                 break;
 
-            case ROUND_COMPLETE_NEXT:
+            case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
                 GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
                 break;
 
