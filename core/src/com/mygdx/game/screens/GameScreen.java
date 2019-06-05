@@ -87,7 +87,6 @@ class GameScreen extends TimedGameScreen {
     private OrthographicCamera guiCam;
     private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private final Color hudOverlayColor = new Color(1, 0, 0, 0.2f);
     private GameUI playerUI;
     private InputMultiplexer multiplexer;
     private StringBuilder stringBuilder = new StringBuilder();
@@ -342,33 +341,34 @@ So we have to pause it explicitly as it is not governed by ECS
                     GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
 // don't update controls during Continue State
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
-                            GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState() ) {
+                            GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
 
                         vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
+
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                         gameEventSignal.dispatch(
                                 gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
 
-                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         }
                     }
-                    if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+                    else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
-                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != GameWorld.getInstance().getRoundActiveState()){
+                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != state) {
                             paused = true;
                         }
                     }
                 }
-                else { // paused
+                else { // paused ... check for round active state?
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                     }
-                    if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+                    else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                         paused = false;
 
@@ -422,8 +422,9 @@ So we have to pause it explicitly as it is not governed by ECS
                 int screenTimerSecs = screenTimer / 60; // FPS
                 setVisibleUI(true);
                 mesgLabel.setVisible(false);
+                GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
-                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
 
                     updateTimer(screenTimerSecs);
 
@@ -434,7 +435,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     mesgLabel.setText(stringBuilder);
                     mesgLabel.setVisible(true);
 
-                } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
+                } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
 
                     setLabelColor(itemsLabel, Color.GREEN);
                     stringBuilder.setLength(0);
@@ -446,14 +447,13 @@ So we have to pause it explicitly as it is not governed by ECS
                     stringBuilder.append(screenTimerSecs); // tmp ... mm:ss
                     timerLabel.setText(stringBuilder);
 
-                } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+                } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
                     updateTimer(screenTimerSecs);
                     stringBuilder.setLength(0);
                     stringBuilder.append(incHitCount(0) ).append(" / 3");
                     itemsLabel.setText(stringBuilder);
-                }
-                else { // nothing to see here
+                } else { // nothing to see here
                     setVisibleUI(false);
                 }
             }
@@ -536,19 +536,12 @@ So we have to pause it explicitly as it is not governed by ECS
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-// TODO: figure out how to do this in the UI
-        if (GameWorld.getInstance().getIsPaused()
-                || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()
-                || GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == GameWorld.getInstance().getRoundActiveState()
-        ) {
-            // example of using ShapeRender to draw directly to screen
-            //        shapeRenderer.setProjectionMatrix ????
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(hudOverlayColor);
-            shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-            shapeRenderer.end();
-        }
+        // example of using ShapeRender to draw directly to screen
+        //        shapeRenderer.setProjectionMatrix ????
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+//            shapeRenderer.setColor(color);
+//            shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+        shapeRenderer.end();
 
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
@@ -578,7 +571,6 @@ So we have to pause it explicitly as it is not governed by ECS
         }
 
         switch (GameWorld.getInstance().getRoundActiveState()) {
-
             default:
             case ROUND_ACTIVE:
                 if (0 == screenTimer){
@@ -591,10 +583,7 @@ So we have to pause it explicitly as it is not governed by ECS
                 break;
 
             case ROUND_OVER_TIMEOUT:
-                if (pickedPlayer.getComponent(StatusComponent.class).dieClock > 0) {
-                    fadeScreen();
-                }
-                else {
+                if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                 }
                 break;
@@ -627,17 +616,6 @@ So we have to pause it explicitly as it is not governed by ECS
         }
     }
 
-    private void fadeScreen(){
-
-        if (hudOverlayColor.r > 0.1f )
-            hudOverlayColor.r -= .1;
-        if (hudOverlayColor.g > 0.1f )
-            hudOverlayColor.g -= .1;
-        if (hudOverlayColor.b > 0.1f )
-            hudOverlayColor.b -= .1;
-        if (hudOverlayColor.a < 1 )
-            hudOverlayColor.a += 0.1f;
-    }
 
     @Override
     public void show() {

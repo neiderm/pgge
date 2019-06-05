@@ -18,6 +18,7 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -63,11 +64,17 @@ public class GameUI extends InGameMenu {
     private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
 
+    private Color hudOverlayColor;
+
 
     GameUI(final InputMapper mapper) {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
+
+        // start with White, alpha==0 and fade to Black with alpha=1
+        hudOverlayColor = new Color(1, 1, 1, 0);
+//        stage.setOverlayColor(hudOverlayColor);
 
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
@@ -91,7 +98,7 @@ public class GameUI extends InGameMenu {
         }
 
         setupInGameMenu();
-        setupPlayerInfo();
+//        setupPlayerInfo();
     }
 
 /*    @Override
@@ -284,19 +291,54 @@ public class GameUI extends InGameMenu {
         }
     }
 
+    private void fadeScreen(){
+
+        float step = -0.05f;
+        float alphaStep = -step;
+
+        if (hudOverlayColor.r > 0.1f )
+            hudOverlayColor.r += step;
+
+        if (hudOverlayColor.g > 0.1f )
+            hudOverlayColor.g += step;
+
+        if (hudOverlayColor.b > 0.1f )
+            hudOverlayColor.b += step;
+
+        if (hudOverlayColor.a < 1 )
+            hudOverlayColor.a += alphaStep;
+
+        setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
+    }
+
     @Override
     public void act(float delta) {
 
         super.act(delta);
 
+        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
+
         update(GameWorld.getInstance().getIsPaused()
-                || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState());
+                || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras);
 
-// hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
+            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
             if (null != picButton) {
                 picButton.setVisible(true);
+            }
+
+            setOverlayColor(1, 0, 0, 0.5f); // red overlay
+
+        } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
+
+            fadeScreen();
+        }
+        else if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras){
+//            overlayImage.getColor().a = 0;
+            setOverlayColor(0, 0, 0, 0);
+
+            if (GameWorld.getInstance().getIsPaused()) {
+                setOverlayColor(0, 0, 1, 0.5f);
             }
         }
     }

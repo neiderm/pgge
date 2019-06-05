@@ -25,7 +25,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -52,6 +54,7 @@ class InGameMenu extends Stage {
     InputMapper mapper = new InputMapper();
     private Table onscreenMenuTbl = new Table();
     private Table playerInfoTbl = new Table();
+    private Table overlayTbl = new Table();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
@@ -59,14 +62,22 @@ class InGameMenu extends Stage {
     private int count;
 // @dispsables
     private Texture buttonTexture;
+    private Texture overlayTexture;
+    private Image overlayImage;
+
     private  Skin uiSkin;
     private BitmapFont font;
 
-    InGameMenu(String skinName){} // TODO
+
+//    InGameMenu(String skinName){} // TODO
 
     InGameMenu(String skinName, String menuName) {
 
         super();
+
+        // make suure to have a font to work with!
+        font = new BitmapFont(
+                Gdx.files.internal("data/font.fnt"), Gdx.files.internal("data/font.png"), false);
 
         if (null != skinName) {
 
@@ -93,6 +104,35 @@ class InGameMenu extends Stage {
         onscreenMenuTbl.setVisible(true);
         addActor(onscreenMenuTbl);
 
+        setupPlayerInfo();
+
+        // transparent overlay layer
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap pixmap =
+                new Pixmap(Gdx.graphics.getWidth(),Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
+        pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
+
+        overlayTexture = new Texture(pixmap);
+        overlayImage = new Image(overlayTexture);
+        overlayImage.setPosition(0,0);
+        pixmap.dispose();
+
+        overlayTbl.setFillParent(true);
+        overlayTbl.add(overlayImage);
+//        overlayTbl.setDebug(true);
+        overlayTbl.setVisible(true);
+        overlayTbl.setTouchable(Touchable.disabled);
+        addActor(overlayTbl);
+        setOverlayColor(0, 0, 0, 0);
+/*
+        Stack stack = new Stack();
+        addActor(stack);
+        stack.setSize(Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
+        stack.add(onscreenMenuTbl);
+        stack.add(playerInfoTbl);
+        stack.add(overlayTbl);
+*/
         bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
@@ -101,8 +141,14 @@ class InGameMenu extends Stage {
         GameWorld.getInstance().setIsPaused(true);
     }
 
-    public void setLabelColor(Label label, Color c){
+    void setLabelColor(Label label, Color c){
         label.setStyle(new Label.LabelStyle(font, c));
+    }
+
+    void setOverlayColor(float r, float g, float b, float a){
+        if (null != overlayImage) {
+            overlayImage.setColor(r, g, b, a);
+        }
     }
 
     Label scoreLabel;
@@ -110,15 +156,14 @@ class InGameMenu extends Stage {
     Label timerLabel;
     Label mesgLabel;
 
-    public void setVisibleUI(boolean state){
-
+    void setVisibleUI(boolean state){
         mesgLabel.setVisible(state);
         itemsLabel.setVisible(state);
         timerLabel.setVisible(state);
         scoreLabel.setVisible(state);
     }
 
-    void setupPlayerInfo(){
+    private void setupPlayerInfo(){
 
         scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
         playerInfoTbl.add(scoreLabel);
@@ -167,10 +212,10 @@ class InGameMenu extends Stage {
     }
 
     private Skin setSkin(){
-
+/*
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
-
+*/
         //create a Labels showing the score and some credits
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
@@ -284,6 +329,9 @@ class InGameMenu extends Stage {
 
     @Override
     public void dispose(){
+
+        if (null != overlayTexture)
+            overlayTexture.dispose();
 
         if (null != font)
             font.dispose();
