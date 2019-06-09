@@ -181,17 +181,20 @@ class GameScreen extends TimedGameScreen {
 
         for (Entity e : characters) {
 
-            PickRayComponent pc = e.getComponent(PickRayComponent.class);
-            if (null != pc && null != pc.objectName && pc.objectName.equals(objectName)) {
-//            if (e.getComponent(PickRayComponent.class).objectName.equals(objectName)) {
+            CharacterComponent pc  = e.getComponent(CharacterComponent.class);
+
+            if (null != pc.objectName && pc.objectName.equals(objectName)) {
                 pickedPlayer = e;
                 pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
-                pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables
+
+                pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables ....
+
+                break;
             }
         }
 
         for (Entity e : characters) {
-//            if (e != pickedPlayer)  /// removed comp, so the immuatble array no longer contain picked player entity ...
+            if (e != pickedPlayer)  { /// removed comp, so the immuatble array no longer contain picked player entity ...
 
             btRigidBody chbody = e.getComponent(BulletComponent.class).body;
             TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass); /* should be a property of the tank? */
@@ -201,7 +204,13 @@ class GameScreen extends TimedGameScreen {
             cc.setSteerable(
                     new SteeringTankController(
                             tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
+                    }
         }
+
+//        CharacterComponent cc = new CharacterComponent(objectName, true);
+        CharacterComponent cc = new CharacterComponent(objectName);
+        pickedPlayer.add(cc);
+
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -320,7 +329,7 @@ class GameScreen extends TimedGameScreen {
     private void setupplayerUI(final Entity pickedPlayer){
 
 // setup the vehicle model so it can be referenced in the mapper
-        final SimpleVehicleModel vehicleModel = new TankController(
+        final SimpleVehicleModel modelController = new TankController(
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
@@ -343,7 +352,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
                             GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
 
-                        vehicleModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                        modelController.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
 

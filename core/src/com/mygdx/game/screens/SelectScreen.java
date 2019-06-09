@@ -38,8 +38,8 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
@@ -113,7 +113,7 @@ class SelectScreen extends TimedGameScreen {
         cam.update();
 
         sceneLoader.buildScene(engine);
-        characters = engine.getEntitiesFor(Family.all(PickRayComponent.class).get());
+        characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         GameFeature f = sceneLoader.getFeature("player");
         if (null != f) {
@@ -303,8 +303,7 @@ class SelectScreen extends TimedGameScreen {
         // screen pass sceneData to scene loader as parameter.
 
         GameWorld.getInstance().setSceneData(path,
-                characters.get(idxCurSel).getComponent(PickRayComponent.class).objectName); // whatever
-
+                characters.get(idxCurSel).getComponent(CharacterComponent.class).objectName); // whatever
         return new LoadingScreen();
     }
 

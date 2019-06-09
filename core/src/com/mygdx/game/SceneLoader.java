@@ -384,12 +384,13 @@ public class SceneLoader implements Disposable {
             }
         }
 
-        if (gameObject.isSteerable) {
-            e.add(new CharacterComponent());
+//        if (gameObject.isSteerable) {
+        if (gameObject.isCharacter) {
+            e.add(new CharacterComponent(gameObject.objectName));
         }
 
         if (gameObject.isPickable) {
-            e.add(new PickRayComponent(gameObject.objectName)); // set the object name ... yeh pretty hacky
+            e.add(new PickRayComponent()); // set the object name ... yeh pretty hacky
         }
 
         return e;
