@@ -14,15 +14,38 @@ import com.mygdx.game.controllers.SteeringEntity;
 public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
+    public boolean isPlayer;
+    public String objectName;
 
-    public CharacterComponent() { // mt
-    }
+//    public CharacterComponent() { // mt
+/////*
+//        setSteerable(new SteeringEntity(){
+//            // steeringBehavior left null so it doesn't do anything in the update()
 ///*
+//                         public void update(float deltaTime) {
+//                             float t = deltaTime;
+//                         }
+//  */
+//        });
+////*/
+//    }
+
+    public CharacterComponent(String objectName){
+
+        this(objectName, false);
+    }
+
+    public CharacterComponent(String objectName, boolean isPlayer){
+
+        this.isPlayer = isPlayer;
+        this.objectName = new String(objectName);
+    }
+
     public CharacterComponent(SteeringEntity steeringEntity) {
 
         setSteerable(steeringEntity);
     }
-//*/
+
     public void setSteerable (SteeringEntity steeringEntity) {
 
         this.steerable = steeringEntity;
