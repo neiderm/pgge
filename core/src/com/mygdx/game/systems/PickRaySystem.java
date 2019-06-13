@@ -38,25 +38,27 @@ public class PickRaySystem extends IteratingSystem {
         for (GameEvent event : eventQueue.getEvents()) {
 
             switch (event.type) {
-                case RAY_PICK:
+                case EVT_HIT_DETECT:
                     handleEvent(event);
                     break;
-                case RAY_DETECT:
+                case EVT_SEE_OBJECT:
                     handleEvent(event);
                     break;
                 default:
                     break;
             }
         }
-   }
+    }
 
     private void handleEvent(GameEvent event) {
 
         Entity picked = applyPickRay((Ray) event.object);
 
-//        if (null != picked)
+        if (null != picked)
         {
             event.callback(picked, event.type);
+
+            // notification to picked?
         }
     }
 
@@ -78,15 +80,21 @@ public class PickRaySystem extends IteratingSystem {
         for (Entity e : getEntities()) {
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            mc.modelInst.transform.getTranslation(position).add(mc.center);
 
-            // gets the distance of the center of object to the ray, for more accuracy
-            float dist2 = intersect(ray, position, mc.boundingRadius, null);
-            if (dist2>=0)  dist2 = ray.origin.dst2(position);//ray.origin to object distance works ok
+            if (null != mc) {
 
-            if ((dist2 < distance || distance < 0f) && dist2 >= 0) {
-                picked = e;
-                distance = dist2;
+                mc.modelInst.transform.getTranslation(position).add(mc.center);
+
+                // gets the distance of the center of object to the ray, for more accuracy
+                float dist2 = intersect(ray, position, mc.boundingRadius, null);
+
+                if (dist2 >= 0)
+                    dist2 = ray.origin.dst2(position);//ray.origin to object distance works ok
+
+                if ((dist2 < distance || distance < 0f) && dist2 >= 0) {
+                    picked = e;
+                    distance = dist2;
+                }
             }
         }
         return picked;
