@@ -69,13 +69,13 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Locale;
 
-import static com.mygdx.game.util.GameEvent.EventType.RAY_DETECT;
-import static com.mygdx.game.util.GameEvent.EventType.RAY_PICK;
+import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
+import static com.mygdx.game.util.GameEvent.EventType.EVT_HIT_DETECT;
 
 /**
  * Created by neiderm on 12/18/17.
  */
-class GameScreen extends TimedGameScreen {
+public class GameScreen extends TimedGameScreen {
 
     private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
@@ -83,9 +83,9 @@ class GameScreen extends TimedGameScreen {
     private CameraMan cameraMan;
     private PerspectiveCamera cam;
     private CameraInputController camController; // FirstPersonCameraController camController;
-    private BitmapFont font;
-    private OrthographicCamera guiCam;
-    private SpriteBatch batch = new SpriteBatch();
+//    private BitmapFont font;
+//    private OrthographicCamera guiCam;
+//    private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private GameUI playerUI;
     private InputMultiplexer multiplexer;
@@ -108,6 +108,8 @@ class GameScreen extends TimedGameScreen {
     }
 
     private void screenInit(){
+
+        batch  = new SpriteBatch();
 
         screenTimer = DEFAULT_SCREEN_TIME;
 
@@ -207,9 +209,8 @@ class GameScreen extends TimedGameScreen {
                     }
         }
 
-//        CharacterComponent cc = new CharacterComponent(objectName, true);
-        CharacterComponent cc = new CharacterComponent(objectName);
-        pickedPlayer.add(cc);
+
+        pickedPlayer.add(new CharacterComponent(objectName, true));
 
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
@@ -282,7 +283,7 @@ class GameScreen extends TimedGameScreen {
     /*
     game event object for signalling to pickray system
     */
-    private final GameEvent gameEvent = new GameEvent() {
+    private final GameEvent hitDetectEvent = new GameEvent() {
 
         private void onScreenTransition(){
 // short delay before change Screen
@@ -296,10 +297,11 @@ class GameScreen extends TimedGameScreen {
             ModelInstanceEx.setMaterialColor(
                     e.getComponent(ModelComponent.class).modelInst, Color.RED);
         }
+
         @Override
         public void callback(Entity picked, EventType eventType) {
 
-            if (RAY_PICK == eventType && null != picked) {
+            if (EVT_HIT_DETECT == eventType && null != picked) {
 
                 onPicked(picked);
 
@@ -308,8 +310,7 @@ class GameScreen extends TimedGameScreen {
 
                 if (ALL_HIT_COUNT == ct /* pickedPlayer.getComponent(StatusComponent.class).hitCount */) {
                     onScreenTransition();
-                } else
-                    if (ct /* pickedPlayer.getComponent(StatusComponent.class).hitCountj */ < ALL_HIT_COUNT) {
+                } else if (ct /* pickedPlayer.getComponent(StatusComponent.class).hitCountj */ < ALL_HIT_COUNT) {
 //                      gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
                 }
             }
@@ -357,27 +358,30 @@ So we have to pause it explicitly as it is not governed by ECS
                     }
 
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
+/*
                         gameEventSignal.dispatch(
                                 gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
+*/
+                        Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                        transform.getTranslation(position);
+                        transform.getRotation(rotation);
+                        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                        gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
 
                         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         }
-                    }
-                    else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+                    } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != state) {
                             paused = true;
                         }
                     }
-                }
-                else { // paused ... check for round active state?
+                } else { // paused ... check for round active state?
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                    }
-                    else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+                    } else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
 
                         paused = false;
 
@@ -465,6 +469,12 @@ So we have to pause it explicitly as it is not governed by ECS
                 } else { // nothing to see here
                     setVisibleUI(false);
                 }
+
+                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                transform.getTranslation(position);
+                transform.getRotation(rotation);
+                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
             }
         };
     }
@@ -472,7 +482,7 @@ So we have to pause it explicitly as it is not governed by ECS
     /*
      * this is kind of a hack to test some ray casting
      */
-    private GameEvent nearestObjectToPlayerEvent = new GameEvent() {
+    private GameEvent seeObjectEvent = new GameEvent() {
 
         Vector3 tmpV = new Vector3();
         Vector3 posV = new Vector3();
@@ -490,7 +500,8 @@ So we have to pause it explicitly as it is not governed by ECS
         @Override
         public void callback(Entity picked, GameEvent.EventType eventType) {
 
-            if (RAY_DETECT == eventType && null != picked) {
+            if (EVT_SEE_OBJECT == eventType && null != picked) {
+
                 RenderSystem.debugGraphics.add(lineInstance.lineTo(
                         pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
@@ -506,6 +517,7 @@ So we have to pause it explicitly as it is not governed by ECS
     private GfxUtil camDbgLineInstance = new GfxUtil();
     private Matrix4 chaserTransform = new Matrix4();
     private SteeringEntity chaserSteerable = new SteeringEntity();
+    private Color color = new Color(Color.CYAN);
 
     //private String s = new String(); // doesn't help ... String.format calls new Formatter()!
     /*
@@ -522,34 +534,42 @@ So we have to pause it explicitly as it is not governed by ECS
 
         // put in any debug graphics to the render pipeline
         chaserSteerable.update(delta);
+
         RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
                 pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(position),
                 chaserTransform.getTranslation(tmpV), Color.PURPLE));
 
         camController.update(); // this can probaly be pause as well
+
         engine.update(delta);
+
         BulletWorld.getInstance().update(delta);
 
-// if this is actually useful and not just test code it should be put somewhere else
+/* can be put somewhere else
         Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         transform.getTranslation(position);
         transform.getRotation(rotation);
         lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
         gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-
+*/
+/*
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
         String s = String.format(Locale.ENGLISH, "%s", "*");
         font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
+*/
+debugPrint("**", color, 0, 0 );
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         // example of using ShapeRender to draw directly to screen
         //        shapeRenderer.setProjectionMatrix ????
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-//            shapeRenderer.setColor(color);
-//            shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+/*
+            shapeRenderer.setColor(color);
+            shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+*/
         shapeRenderer.end();
 
         playerUI.act(Gdx.graphics.getDeltaTime());
@@ -567,6 +587,25 @@ So we have to pause it explicitly as it is not governed by ECS
                 }
             }
         }
+    }
+
+
+    static private SpriteBatch batch = new SpriteBatch();
+    static private BitmapFont font;
+    static private OrthographicCamera guiCam;
+
+    /*
+     * debug only (betch is ended each call)
+     */
+    public static void debugPrint(String string, Color color, int row, int col){
+
+        int y = (int) ((float) row * font.getLineHeight() + font.getLineHeight());
+        int x = (int) ((float) col * font.getLineHeight());
+        batch.setProjectionMatrix(guiCam.combined);
+        batch.begin();
+        font.setColor(color);
+        font.draw(batch, string, x, y);
+        batch.end();
     }
 
     /*
