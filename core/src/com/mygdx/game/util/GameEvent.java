@@ -9,8 +9,8 @@ import com.badlogic.ashley.core.Entity;
 public class GameEvent implements Comparable<GameEvent> {
 
     public enum EventType {
-        RAY_DETECT,
-        RAY_PICK
+        EVT_SEE_OBJECT,
+        EVT_HIT_DETECT
     }
 
     public EventType type;
