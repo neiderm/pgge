@@ -187,29 +187,12 @@ public class GameScreen extends TimedGameScreen {
 
             if (null != pc.objectName && pc.objectName.equals(objectName)) {
                 pickedPlayer = e;
-                pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
-
-                pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables ....
-
                 break;
             }
         }
 
-        for (Entity e : characters) {
-            if (e != pickedPlayer)  { /// removed comp, so the immuatble array no longer contain picked player entity ...
-
-            btRigidBody chbody = e.getComponent(BulletComponent.class).body;
-            TankController tc = new TankController(chbody, e.getComponent(BulletComponent.class).mass); /* should be a property of the tank? */
-
-            CharacterComponent cc = e.getComponent(CharacterComponent.class);
-
-            cc.setSteerable(
-                    new SteeringTankController(
-                            tc, chbody, new SteeringBulletEntity(pickedPlayer.getComponent(BulletComponent.class).body)));
-                    }
-        }
-
-
+        pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
+        pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables ....
         pickedPlayer.add(new CharacterComponent(objectName, true));
 
 
