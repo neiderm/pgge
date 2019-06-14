@@ -67,7 +67,7 @@ public class GameUI extends InGameMenu {
     private Color hudOverlayColor;
 
 
-    GameUI(final InputMapper mapper) {
+    GameUI() {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
@@ -79,7 +79,6 @@ public class GameUI extends InGameMenu {
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
 
-        this.mapper = mapper;
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
 

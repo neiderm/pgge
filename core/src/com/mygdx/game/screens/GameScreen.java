@@ -334,7 +334,7 @@ public class GameScreen extends TimedGameScreen {
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        playerUI = new GameUI(new InputMapper()){
+        playerUI = new GameUI(){
             @Override
             public void act (float delta) {
 
