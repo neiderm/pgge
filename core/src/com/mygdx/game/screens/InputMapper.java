@@ -100,6 +100,8 @@ UD Axis2    Axis0
 
 class InputMapper /* stageWithController extends stage ? */ {
 
+    private final int MAX_BUTTONS = 10;
+
     public enum InputState {
         INP_NONE,
         INP_SELECT,
@@ -110,7 +112,7 @@ class InputMapper /* stageWithController extends stage ? */ {
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
     private float[] axes = new float[4];
-    private boolean[] buttons = new boolean[10 + 1];
+    private boolean[] buttons = new boolean[MAX_BUTTONS + 1];
 
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
@@ -125,6 +127,9 @@ class InputMapper /* stageWithController extends stage ? */ {
 
         initController();
         connectedCtrl = getConnectedCtrl(0);
+
+        // bah ... debounce this (bounce from key on previous screen)
+        checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
 
@@ -345,11 +350,16 @@ class InputMapper /* stageWithController extends stage ? */ {
     }
 
 
-    private boolean getControlButton(int button) {
+    private boolean getControlButton(int buttonIndex) {
 
         boolean rv = false;
         if (null != connectedCtrl) {
-            rv = buttons[button];
+
+            if (buttonIndex <= MAX_BUTTONS) {
+                rv = buttons[buttonIndex];
+            } else {
+                Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
+            }
         }
         return rv;
     }
@@ -477,17 +487,25 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                if (buttonIndex > 10){
-                    Gdx.app.log("InputMapper", "buttonIndex > 10 (" + buttonIndex + ")" );
+                if (buttonIndex <= MAX_BUTTONS) {
+                    buttons[buttonIndex] = true;
+                } else {
+                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
                 }
-                buttons[buttonIndex] = true;
+
                 return false;
             }
 
             @Override
             public boolean buttonUp(Controller controller, int buttonIndex) {
+
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
-                buttons[buttonIndex] = false;
+
+                if (buttonIndex <= MAX_BUTTONS) {
+                    buttons[buttonIndex] = false;
+                } else {
+                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
+                }
                 return false;
             }
 
