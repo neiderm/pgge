@@ -59,11 +59,12 @@ public class ModelInstanceEx extends ModelInstance {
 
         Array<Color> colors = new Array<Color>();
         colors.add(Color.WHITE);
-        colors.add(Color.BLUE);
         colors.add(Color.RED);
-        colors.add(Color.GREEN);
+        colors.add(Color.ORANGE);
         colors.add(Color.YELLOW);
-        colors.add(Color.PURPLE);
+        colors.add(Color.GREEN);
+        colors.add(Color.BLUE);
+        colors.add(Color.VIOLET);
 
         // hmmm, w/ alt. pick test, now getting null somtimes?
 //        if (null == modelInst) {
