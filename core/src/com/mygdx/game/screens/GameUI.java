@@ -40,6 +40,10 @@ import com.mygdx.game.GameWorld;
 
 public class GameUI extends InGameMenu {
 
+    private static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
+
+    int screenTimer = DEFAULT_SCREEN_TIME;
+
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
@@ -97,7 +101,6 @@ public class GameUI extends InGameMenu {
         }
 
         setupInGameMenu();
-//        setupPlayerInfo();
     }
 
 /*    @Override

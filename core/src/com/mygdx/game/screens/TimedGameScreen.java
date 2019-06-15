@@ -7,9 +7,8 @@ import com.mygdx.game.SceneLoader;
 
 abstract class TimedGameScreen implements Screen {
 
-    static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
-
-    int screenTimer = DEFAULT_SCREEN_TIME;
+//    static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
+//    int screenTimer = DEFAULT_SCREEN_TIME;
 
     // private // tmp
     SceneLoader sceneLoader;

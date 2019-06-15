@@ -106,13 +106,9 @@ public class GameScreen extends TimedGameScreen {
 
     private void screenInit(){
 
-        batch  = new SpriteBatch();
-
-        screenTimer = DEFAULT_SCREEN_TIME;
-
+        batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
-
 //        font.setColor(1, 1, 1, 0.5f);
 
         float fontGetDensity = Gdx.graphics.getDensity();
@@ -229,23 +225,20 @@ public class GameScreen extends TimedGameScreen {
             // the reference point for determining an object has exitted the level
             float boundsDst2 = bounds.dst2(origin);
             Vector3 v = new Vector3();
+            Ray lookRay = new Ray();
 
             @Override
             public void update(Entity e) {
 
                 super.update(e);
 /*
-                        gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
+                        gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
 */
-///*
-                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-                transform.getTranslation(position);
-                transform.getRotation(rotation);
-                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-//*/
+                Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+                lookRay.set(transform.getTranslation(position),
+                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
+
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-// frivolous I know
                 gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
 
                 if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()
@@ -263,72 +256,33 @@ public class GameScreen extends TimedGameScreen {
         };
 
         // setup the vehicle model so it can be referenced in the mapper
-        final SimpleVehicleModel modelController = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+        final SimpleVehicleModel controlledModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-        setupplayerUI(modelController);
+//        setupplayerUI(modelController);
+        playerUI = new GameUI(){
 
-        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
-        Gdx.input.setInputProcessor(multiplexer);
-    }
+            private void onSelectEvent(){
 
-//    private void sillyFontFx(Color cc){
-//        font.setColor(cc);
-//        float scaleX = font.getScaleX();
-//        float scaleY = font.getScaleY();
-//        font.getData().setScale(scaleY  * 1.5f);
-//    }
+                Entity picked = hitDetectEvent.getEntity();
 
-    /*
-    game event object for signalling to pickray system
-    */
-    private final GameEvent hitDetectEvent = new GameEvent() {
-
-        @Override
-        public void handle(Entity picked, EventType eventType) {
-
-            super.setEntity(picked);
-
-            if (EVT_HIT_DETECT == eventType ) {
-//                picked.onSelect();  // I know you're lookin at me ...
-            }
-        }
-    };
-
-    private void cameraSwitch(){
-        if (cameraMan.nextOpMode())
-            multiplexer.addProcessor(camController);
-        else
-            multiplexer.removeProcessor(camController);
-    }
-
-    private void onSelectEvent(){
-
-        Entity picked = hitDetectEvent.getEntity();
-
-        if (null != picked){
+                if (null != picked){
 //            picked.onSelect();  ???
-            ModelInstanceEx.setMaterialColor(
-                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                    ModelInstanceEx.setMaterialColor(
+                            picked.getComponent(ModelComponent.class).modelInst, Color.RED);
 
-            if (incHitCount(1) >= ALL_HIT_COUNT) {
+                    if (incHitCount(1) >= ALL_HIT_COUNT) {
 
-                if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT != GameWorld.getInstance().getRoundActiveState()) {
+                        if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT != GameWorld.getInstance().getRoundActiveState()) {
 
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
+//                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+                        }
+                    }
                 }
             }
-        }
-    }
 
-    /*
-     * override stage:act() and handle controls
-     */
-    private void setupplayerUI(final SimpleVehicleModel controller ){
-
-        playerUI = new GameUI(){
             @Override
             public void act (float delta) {
 
@@ -347,7 +301,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
                             GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
 
-                        controller.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
 
@@ -364,7 +318,8 @@ So we have to pause it explicitly as it is not governed by ECS
                             paused = true;
                         }
                     }
-                } else { // paused ... check for round active state?
+                } else {
+                    // paused ... check for round active state?
                     if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
                         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
@@ -400,6 +355,7 @@ So we have to pause it explicitly as it is not governed by ECS
                 GameWorld.getInstance().setIsPaused(paused);
 
                 updateUI();
+                checkForScreenTransition();
                 super.act(delta);
             }
 
@@ -460,8 +416,98 @@ So we have to pause it explicitly as it is not governed by ECS
                     setVisibleUI(false);                    // nothing to see here
                 }
             }
+
+            /*
+             * collect all the screen transition state management here
+             */
+            private void checkForScreenTransition() {
+
+                if ( !GameWorld.getInstance().getIsPaused() // have to do this here for now
+                        && screenTimer > 0) {
+                    screenTimer -= 1;
+                }
+
+                switch (GameWorld.getInstance().getRoundActiveState()) {
+                    default:
+                    case ROUND_ACTIVE:
+                        if (0 == screenTimer){
+                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                        }
+                        else if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
+                        }
+                        break;
+
+                    case ROUND_OVER_TIMEOUT:
+                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                        }
+                        break;
+
+                    case ROUND_COMPLETE_WAIT:
+                        if (screenTimer <= 0){
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
+                        }
+                        break;
+
+                    case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
+                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
+                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                        }
+                        break;
+
+                    case ROUND_OVER_RESTART:
+                        screenTeardown();
+                        screenInit();
+                        break;
+
+                    case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
+                        GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
+                        break;
+
+                    case ROUND_OVER_QUIT:
+                        GameWorld.getInstance().showScreen(new SplashScreen());
+                        break;
+                }
+            }
         };
+
+        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
+        Gdx.input.setInputProcessor(multiplexer);
     }
+
+//    private void sillyFontFx(Color cc){
+//        font.setColor(cc);
+//        float scaleX = font.getScaleX();
+//        float scaleY = font.getScaleY();
+//        font.getData().setScale(scaleY  * 1.5f);
+//    }
+
+    /*
+    game event object for signalling to pickray system
+    */
+    private final GameEvent hitDetectEvent = new GameEvent() {
+
+        @Override
+        public void handle(Entity picked, EventType eventType) {
+
+            super.setEntity(picked);
+
+            if (EVT_HIT_DETECT == eventType ) {
+//                picked.onSelect();  // I know you're lookin at me ...
+            }
+        }
+    };
+
+    private void cameraSwitch(){
+        if (cameraMan.nextOpMode())
+            multiplexer.addProcessor(camController);
+        else
+            multiplexer.removeProcessor(camController);
+    }
+
 
     /*
      * this is kind of a hack to test some ray casting
@@ -497,7 +543,6 @@ So we have to pause it explicitly as it is not governed by ECS
     private Vector3 position = new Vector3();
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
-    private Ray lookRay = new Ray();
     private GfxUtil camDbgLineInstance = new GfxUtil();
     private Matrix4 chaserTransform = new Matrix4();
     private SteeringEntity chaserSteerable = new SteeringEntity();
@@ -552,11 +597,6 @@ debugPrint("**", color, 0, 0 );
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
-        /* "Falling off platform" ... let a "sensor" or some suitable means to detect "fallen off platform" at which point, set gameOver.
-          This way user can't pause during falling sequence. Once fallen past certain point, then allow screen switch.
-         */
-        checkForScreenTransition();
-
         for (Entity e : engine.getEntitiesFor(Family.all(DeleteMeComponent.class).get())) {
             if (null != e) {
                 if (e.getComponent(DeleteMeComponent.class).deleteMe) {
@@ -585,61 +625,6 @@ debugPrint("**", color, 0, 0 );
         batch.end();
     }
 
-    /*
-     * collect all the screen transition state management here
-     */
-    private void checkForScreenTransition() {
-
-        if ( !GameWorld.getInstance().getIsPaused() // have to do this here for now
-                && screenTimer > 0) {
-            screenTimer -= 1;
-        }
-
-        switch (GameWorld.getInstance().getRoundActiveState()) {
-            default:
-            case ROUND_ACTIVE:
-                if (0 == screenTimer){
-                    pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
-                }
-                else if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
-                }
-                break;
-
-            case ROUND_OVER_TIMEOUT:
-                if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                }
-                break;
-
-            case ROUND_COMPLETE_WAIT:
-                if (screenTimer <= 0){
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
-                }
-                break;
-
-            case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
-                if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
-                    pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
-                }
-                break;
-
-            case ROUND_OVER_RESTART:
-                screenTeardown();
-                screenInit();
-                break;
-
-            case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
-                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
-                break;
-
-            case ROUND_OVER_QUIT:
-                GameWorld.getInstance().showScreen(new SplashScreen());
-                break;
-        }
-    }
 
 
     @Override
