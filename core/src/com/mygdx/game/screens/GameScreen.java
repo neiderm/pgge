@@ -38,7 +38,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -50,9 +49,7 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
-import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringEntity;
-import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.systems.BulletSystem;
@@ -65,7 +62,6 @@ import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
-
 
 import java.util.Locale;
 
@@ -103,6 +99,7 @@ public class GameScreen extends TimedGameScreen {
 //    }
 
     private int incHitCount(int ct) {
+
         pickedPlayer.getComponent(StatusComponent.class).hitCount += ct;
         return pickedPlayer.getComponent(StatusComponent.class).hitCount;
     }
@@ -236,6 +233,21 @@ public class GameScreen extends TimedGameScreen {
             @Override
             public void update(Entity e) {
 
+                super.update(e);
+/*
+                        gameEventSignal.dispatch(
+                                gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
+*/
+///*
+                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                transform.getTranslation(position);
+                transform.getRotation(rotation);
+                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
+//*/
+                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+// frivolous I know
+                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+
                 if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()
                         && !GameWorld.getInstance().getIsPaused()) {
 
@@ -250,7 +262,12 @@ public class GameScreen extends TimedGameScreen {
             }
         };
 
-        setupplayerUI(pickedPlayer);
+        // setup the vehicle model so it can be referenced in the mapper
+        final SimpleVehicleModel modelController = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+                pickedPlayer.getComponent(BulletComponent.class).body,
+                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+        setupplayerUI(modelController);
 
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
@@ -268,34 +285,13 @@ public class GameScreen extends TimedGameScreen {
     */
     private final GameEvent hitDetectEvent = new GameEvent() {
 
-        private void onScreenTransition(){
-// short delay before change Screen
-            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-            screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
-        }
-
-        // placeholder for "picked" action (fadeout, explode, etc.)
-        void onPicked(Entity e){
-            // entity.lifeTimeRemain = 0;   .... to make it fade!
-            ModelInstanceEx.setMaterialColor(
-                    e.getComponent(ModelComponent.class).modelInst, Color.RED);
-        }
-
         @Override
-        public void callback(Entity picked, EventType eventType) {
+        public void handle(Entity picked, EventType eventType) {
 
-            if (EVT_HIT_DETECT == eventType && null != picked) {
+            super.setEntity(picked);
 
-                onPicked(picked);
-
-//pickedPlayer.getComponent(StatusComponent.class).hitCount += 1;
-                int ct = incHitCount(1);
-
-                if (ALL_HIT_COUNT == ct /* pickedPlayer.getComponent(StatusComponent.class).hitCount */) {
-                    onScreenTransition();
-                } else if (ct /* pickedPlayer.getComponent(StatusComponent.class).hitCountj */ < ALL_HIT_COUNT) {
-//                      gameOverCountDown += ROUND_CONTINUE_WAIT_TIME; // each successfull hit buys time back on the clock!
-                }
+            if (EVT_HIT_DETECT == eventType ) {
+//                picked.onSelect();  // I know you're lookin at me ...
             }
         }
     };
@@ -307,15 +303,30 @@ public class GameScreen extends TimedGameScreen {
             multiplexer.removeProcessor(camController);
     }
 
+    private void onSelectEvent(){
+
+        Entity picked = hitDetectEvent.getEntity();
+
+        if (null != picked){
+//            picked.onSelect();  ???
+            ModelInstanceEx.setMaterialColor(
+                    picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+
+            if (incHitCount(1) >= ALL_HIT_COUNT) {
+
+                if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT != GameWorld.getInstance().getRoundActiveState()) {
+
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
+                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+                }
+            }
+        }
+    }
+
     /*
      * override stage:act() and handle controls
      */
-    private void setupplayerUI(final Entity pickedPlayer){
-
-// setup the vehicle model so it can be referenced in the mapper
-        final SimpleVehicleModel modelController = new TankController(
-                pickedPlayer.getComponent(BulletComponent.class).body,
-                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+    private void setupplayerUI(final SimpleVehicleModel controller ){
 
         playerUI = new GameUI(){
             @Override
@@ -336,27 +347,20 @@ So we have to pause it explicitly as it is not governed by ECS
                     if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
                             GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
 
-                        modelController.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                        controller.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                     }
 
                     if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-/*
-                        gameEventSignal.dispatch(
-                                gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
-*/
-                        Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-                        transform.getTranslation(position);
-                        transform.getRotation(rotation);
-                        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                        gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+
+                        onSelectEvent();
 
                         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         }
                     } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
 
-                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE != state) {
+                        if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ) {
                             paused = true;
                         }
                     }
@@ -391,6 +395,7 @@ So we have to pause it explicitly as it is not governed by ECS
                     }
                     checkedBox = checkedUpDown(mapper.getDpad(null).getY());
                 }
+
                 setCheckedBox(checkedBox);
                 GameWorld.getInstance().setIsPaused(paused);
 
@@ -416,6 +421,7 @@ So we have to pause it explicitly as it is not governed by ECS
             private void updateUI(){
 
                 int screenTimerSecs = screenTimer / 60; // FPS
+
                 setVisibleUI(true);
                 mesgLabel.setVisible(false);
                 GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
@@ -449,15 +455,10 @@ So we have to pause it explicitly as it is not governed by ECS
                     stringBuilder.setLength(0);
                     stringBuilder.append(incHitCount(0) ).append(" / 3");
                     itemsLabel.setText(stringBuilder);
-                } else { // nothing to see here
-                    setVisibleUI(false);
                 }
-
-                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-                transform.getTranslation(position);
-                transform.getRotation(rotation);
-                lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+                else {
+                    setVisibleUI(false);                    // nothing to see here
+                }
             }
         };
     }
@@ -481,7 +482,7 @@ So we have to pause it explicitly as it is not governed by ECS
 @picked: simpler type (not Entity) eg. Vector3 .... ?
          */
         @Override
-        public void callback(Entity picked, GameEvent.EventType eventType) {
+        public void handle(Entity picked, GameEvent.EventType eventType) {
 
             if (EVT_SEE_OBJECT == eventType && null != picked) {
 
@@ -528,13 +529,6 @@ So we have to pause it explicitly as it is not governed by ECS
 
         BulletWorld.getInstance().update(delta);
 
-/* can be put somewhere else
-        Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
-        transform.getTranslation(position);
-        transform.getRotation(rotation);
-        lookRay.set(position, ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation));
-        gameEventSignal.dispatch(nearestObjectToPlayerEvent.set(RAY_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-*/
 /*
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();

@@ -13,28 +13,52 @@ public class GameEvent implements Comparable<GameEvent> {
         EVT_HIT_DETECT
     }
 
-    public EventType type;
-    public Entity entity;
-    public Object object;
-    public int id;
+    private Entity entity;
+
+    private EventType eventType;
+    private Object object;
+//    private int id;
 
 
     public GameEvent set(EventType t, Object o, int id) {
 
-        this.id = id;
-        this.type = t;
+//        this.id = id;
+        this.eventType = t;
         this.object = o;
         return this;
     }
 
+    public Entity getEntity(){
+
+        return entity;
+    }
+
+    public void setEntity(Entity e){
+
+        this.entity = e;
+    }
+
+    public EventType getEventType(){
+
+        return eventType;
+    }
+
+    public Object getObject() {
+
+        return this.object;
+    }
 
     /*
      * optional: client can override this for custom fucntionality
+     * for now:
+     *   eventEntity: optional - to inform the event owner if the event involved another entity
+     *   eventType:  idk
      */
-    public void callback(Entity picked, EventType eventType) {
-        //empty
-    }
+    public void handle(Entity eventEntity, EventType eventType) {
 
+//        this.entity = eventEntity;
+//        this.eventType = eventType;
+    }
 
     /* @return  a negative integer, zero, or a positive integer as this object
      *          is less than, equal to, or greater than the specified object.
@@ -42,9 +66,9 @@ public class GameEvent implements Comparable<GameEvent> {
     @Override
     public int compareTo(GameEvent o) {
 
-        if (o.type.ordinal() < this.type.ordinal()) {
+        if (o.eventType.ordinal() < this.eventType.ordinal()) {
             return -1;
-        } else if (o.type.ordinal() > this.type.ordinal()) {
+        } else if (o.eventType.ordinal() > this.eventType.ordinal()) {
             return 1;
         }
         return 0;

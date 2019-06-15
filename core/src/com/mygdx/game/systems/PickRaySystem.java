@@ -37,7 +37,8 @@ public class PickRaySystem extends IteratingSystem {
 // first we have to find out who's listening for notificaitons
         for (GameEvent event : eventQueue.getEvents()) {
 
-            switch (event.type) {
+            switch (event.getEventType()) {
+
                 case EVT_HIT_DETECT:
                     handleEvent(event);
                     break;
@@ -52,13 +53,16 @@ public class PickRaySystem extends IteratingSystem {
 
     private void handleEvent(GameEvent event) {
 
-        Entity picked = applyPickRay((Ray) event.object);
+        /*
+         * likely to let this be in the Character event handler
+         */
+        Entity picked = applyPickRay((Ray) event.getObject());
 
-        if (null != picked)
+//        if (null != picked) ... let this always be a response!
         {
-            event.callback(picked, event.type);
+            event.handle(picked, event.getEventType());
 
-            // notification to picked?
+            // notification to picked? ... no it may be done in the overridden event.handle()er tho .
         }
     }
 
