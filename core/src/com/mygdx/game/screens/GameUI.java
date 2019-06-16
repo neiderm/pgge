@@ -32,6 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 
 import java.util.Locale;
@@ -47,7 +48,7 @@ public class GameUI extends InGameMenu {
     int screenTimer = DEFAULT_SCREEN_TIME;
 
     int continueScreenTimeUp;
-
+    boolean controllerInputsActive = false;
 
     private StringBuilder stringBuilder = new StringBuilder();
     private static final int TIME_LIMIT_WARN_SECS = 10;
@@ -109,6 +110,15 @@ public class GameUI extends InGameMenu {
         }
 
         setupInGameMenu();
+    }
+
+    /*
+     * To go in the interface
+     */
+    public void onSelectEvent() { // mt
+    }
+
+    public void onCameraSwitch(){ // mt
     }
 
 /*    @Override
@@ -406,15 +416,89 @@ public class GameUI extends InGameMenu {
         return hitCount;
     }
 
+    public void updateOfMapper(){
+        boolean paused = GameWorld.getInstance().getIsPaused();
+        int checkedBox = 0; // button default at top selection
+        mapper.latchInputState();
+
+//                boolean
+        controllerInputsActive = false;
+
+        if (!paused) {
+                    /*
+                    AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
+the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
+So we have to pause it explicitly as it is not governed by ECS
+  */
+            GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
+// don't update controls during Continue State
+            if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
+                    GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
+
+                controllerInputsActive = true;
+            }
+
+            if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+
+                onSelectEvent();
+
+                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                }
+            } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+
+                if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ) {
+                    paused = true;
+                }
+            }
+        } else {
+            // paused ... check for round active state?
+            if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+
+                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+            } else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+
+                paused = false;
+
+                switch (getCheckedIndex()) {
+                    default:
+                    case 0: // resume
+                        break;
+                    case 1: // restart
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                        break;
+                    case 2: // quit
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                        break;
+                    case 3: // camera
+                        onCameraSwitch();  // to put in GameUI interface and override
+                        break;
+                    case 4: // dbg drwr
+                        BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
+                        // has to reinitialize bullet world to set the flag
+                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                        break;
+                }
+                Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
+            }
+            checkedBox = checkedUpDown(mapper.getDpad(null).getY());
+        }
+
+        setCheckedBox(checkedBox);
+        GameWorld.getInstance().setIsPaused(paused);
+    }
+
+
 
     @Override
     public void act(float delta) {
 
         super.act(delta);
 
-        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
         updateUI();
+
+        updateOfMapper();
     }
 
     @Override

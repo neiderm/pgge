@@ -245,14 +245,18 @@ public class GameScreen extends TimedGameScreen {
             }
         };
 
-        // setup the vehicle model so it can be referenced in the mapper
-        final SimpleVehicleModel controlledModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
-                pickedPlayer.getComponent(BulletComponent.class).body,
-                pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
+        /*
+         * here is where all the controller and model stuff comes together
+         */
         playerUI = new GameUI() {
 
-            private void onSelectEvent() {
+            // setup the vehicle model so it can be referenced in the mapper
+            final SimpleVehicleModel controlledModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+                    pickedPlayer.getComponent(BulletComponent.class).body,
+                    pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
+
+            @Override
+            public void onSelectEvent() {
 
                 Entity picked = hitDetectEvent.getEntity();
 
@@ -264,82 +268,30 @@ public class GameScreen extends TimedGameScreen {
             }
 
             @Override
+            public void onCameraSwitch(){
+
+                if (cameraMan.nextOpMode())
+                    multiplexer.addProcessor(camController);
+                else
+                    multiplexer.removeProcessor(camController);
+            }
+
+            @Override
             public void act (float delta) {
 
-                boolean paused = GameWorld.getInstance().getIsPaused();
-                int checkedBox = 0; // button default at top selection
-                mapper.latchInputState();
-
-                if (!paused) {
-                    /*
-                    AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
-the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
-So we have to pause it explicitly as it is not governed by ECS
-  */
-                    GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
-// don't update controls during Continue State
-                    if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
-                            GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
-
-                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
-                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
-                    }
-
-                    if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
-                        onSelectEvent();
-
-                        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                        }
-                    } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-
-                        if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ) {
-                            paused = true;
-                        }
-                    }
-                } else {
-                    // paused ... check for round active state?
-                    if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-
-                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                    } else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
-                        paused = false;
-
-                        switch (getCheckedIndex()) {
-                            default:
-                            case 0: // resume
-                                break;
-                            case 1: // restart
-                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                                break;
-                            case 2: // quit
-                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                                break;
-                            case 3: // camera
-                                cameraSwitch();
-                                break;
-                            case 4: // dbg drwr
-                                BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
-                                // has to reinitialize bullet world to set the flag
-                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                                break;
-                        }
-                        Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
-                    }
-                    checkedBox = checkedUpDown(mapper.getDpad(null).getY());
-                }
-
-                setCheckedBox(checkedBox);
-                GameWorld.getInstance().setIsPaused(paused);
+                super.act(delta);
 
                 checkForScreenTransition();
-                super.act(delta);
+
+                if (controllerInputsActive){
+                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                }
             }
 
             /*
              * collect all the screen transition state management here
+             * GameWorld ShowScreen() limited to reference in here!
              */
             private void checkForScreenTransition() {
 
@@ -428,14 +380,6 @@ So we have to pause it explicitly as it is not governed by ECS
             }
         }
     };
-
-    private void cameraSwitch(){
-        if (cameraMan.nextOpMode())
-            multiplexer.addProcessor(camController);
-        else
-            multiplexer.removeProcessor(camController);
-    }
-
 
     /*
      * this is kind of a hack to test some ray casting
