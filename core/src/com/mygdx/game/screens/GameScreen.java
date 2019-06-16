@@ -60,13 +60,12 @@ import com.mygdx.game.systems.StatusSystem;
 import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.IStatusUpdater;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
-import java.util.Locale;
-
-import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
 import static com.mygdx.game.util.GameEvent.EventType.EVT_HIT_DETECT;
+import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -89,9 +88,6 @@ public class GameScreen extends TimedGameScreen {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
-
-    private static final int ALL_HIT_COUNT = 3;
-    private static final int TIME_LIMIT_WARN_SECS = 10;
 
 
     private void screenInit(){
@@ -151,11 +147,6 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
 
-        onPlayerPicked();
-    }
-
-    // this is kind of an arbitrary
-    private void onPlayerPicked() {
 
         sceneLoader.buildScene(engine);
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
@@ -207,7 +198,16 @@ public class GameScreen extends TimedGameScreen {
          * this goofball thing exists because of dependency between game model and UI i.e. player
          * dead or whatever in the world model must signal back to UI to pause/restart whatever
          */
-        sc.statusUpdater = new BulletEntityStatusUpdate() {
+        sc.statusUpdater = initStatusUpdater();
+
+        playerUI = initPlayerUI();
+        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
+        Gdx.input.setInputProcessor(multiplexer);
+    }
+
+    private IStatusUpdater initStatusUpdater(){
+
+        return new BulletEntityStatusUpdate() {
 
             Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
             Vector3 bounds = new Vector3(20, 20, 20);
@@ -231,24 +231,25 @@ public class GameScreen extends TimedGameScreen {
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
                 gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
 
-                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()
-                        && !GameWorld.getInstance().getIsPaused()) {
+                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
 
                     e.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
 
                     v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
 
                     if (v.dst2(origin) > boundsDst2) {
-                       e.getComponent(StatusComponent.class).lifeClock = 0;
+                        e.getComponent(StatusComponent.class).lifeClock = 0;
                     }
                 }
             }
         };
+    }
 
+    private GameUI initPlayerUI(){
         /*
          * here is where all the controller and model stuff comes together
          */
-        playerUI = new GameUI() {
+        return new GameUI() {
 
             // setup the vehicle model so it can be referenced in the mapper
             final SimpleVehicleModel controlledModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
@@ -281,60 +282,14 @@ public class GameScreen extends TimedGameScreen {
 
                 super.act(delta);
 
-                checkForScreenTransition();
-
-                if (controllerInputsActive){
-                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
-                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
-                }
-            }
-
-            /*
-             * collect all the screen transition state management here
-             * GameWorld ShowScreen() limited to reference in here!
-             */
-            private void checkForScreenTransition() {
-
+                // handle a (hopefully) small subset of control actions specific to the model or whatever
                 switch (GameWorld.getInstance().getRoundActiveState()) {
-                    default:
+
                     case ROUND_ACTIVE:
+                        if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
 
-                        if (getHitCount() >= ALL_HIT_COUNT) {
-
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-                            screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
-                        }
-                        else if (0 == screenTimer){
-//                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
-                            screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
-                        }
-                        else if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
-
-                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
-                                continueScreenTimeUp =  screenTimer - (10 * 60); // fps
-                        }
-                        break;
-
-                    case ROUND_OVER_TIMEOUT:
-//                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
-                        if (screenTimer <= 0) {
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                        }
-                        break;
-
-                    case ROUND_COMPLETE_WAIT:
-                        if (screenTimer <= 0){
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
-                        }
-                        break;
-
-                    case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
-//                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
-                        if (screenTimer <= continueScreenTimeUp) {
-//                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
-                            screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
+                            continueScreenTimeUp =  screenTimer - (10 * 60); // fps
                         }
                         break;
 
@@ -343,21 +298,17 @@ public class GameScreen extends TimedGameScreen {
                         screenInit();
                         break;
 
-                    case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
-                        GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
+                    default:
                         break;
+                }
 
-                    case ROUND_OVER_QUIT:
-                        GameWorld.getInstance().showScreen(new SplashScreen());
-                        break;
+                if (controllerInputsActive){
+                    controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                 }
             }
         };
-
-        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
-        Gdx.input.setInputProcessor(multiplexer);
     }
-
 //    private void sillyFontFx(Color cc){
 //        font.setColor(cc);
 //        float scaleX = font.getScaleX();
@@ -479,9 +430,9 @@ debugPrint("**", color, 0, 0 );
     }
 
 
-    static private SpriteBatch batch = new SpriteBatch();
-    static private BitmapFont font;
-    static private OrthographicCamera guiCam;
+    private static SpriteBatch batch = new SpriteBatch();
+    private static BitmapFont font;
+    private static OrthographicCamera guiCam;
 
     /*
      * debug only (betch is ended each call)
@@ -496,7 +447,6 @@ debugPrint("**", color, 0, 0 );
         font.draw(batch, string, x, y);
         batch.end();
     }
-
 
 
     @Override

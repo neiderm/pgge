@@ -43,16 +43,17 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
+    private static final int ALL_HIT_COUNT = 3;
     private static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
 
     int screenTimer = DEFAULT_SCREEN_TIME;
 
     int continueScreenTimeUp;
     boolean controllerInputsActive = false;
+    private int hitCount;
 
     private StringBuilder stringBuilder = new StringBuilder();
     private static final int TIME_LIMIT_WARN_SECS = 10;
-
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
@@ -323,68 +324,6 @@ public class GameUI extends InGameMenu {
         timerLabel.setText(stringBuilder);
     }
 
-
-    private void updateUI(){
-
-        setVisibleUI(true);
-        mesgLabel.setVisible(false);
-        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
-
-        updateTimerLbl();
-
-        boolean oscActive = false; // on screen control inactive by default
-
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
-//                    int timer = pickedPlayer.getComponent(StatusComponent.class).dieClock / 60; // FPS
-            int timer = (screenTimer - continueScreenTimeUp) / 60; // FPS
-            stringBuilder.setLength(0);
-            mesgLabel.setText(stringBuilder.append("Continue? ").append(timer));
-            mesgLabel.setVisible(true);
-
-            setOverlayColor(1, 0, 0, 0.5f); // red overlay
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
-
-            setLabelColor(itemsLabel, Color.GREEN);
-            stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append("EXIT"));
-            oscActive = true;
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
-
-            stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3"));
-
-//            overlayImage.getColor().a = 0;
-            setOverlayColor(0, 0, 0, 0);
-
-            if (GameWorld.getInstance().getIsPaused()) {
-                setOverlayColor(0, 0, 1, 0.5f);
-
-            } else {
-                oscActive = true;
-            }
-        }
-        else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
-
-            fadeScreen();
-        }
-        else {
-            setVisibleUI(false);                    // nothing to see here
-        }
-
-        if (null != touchpad) {
-            touchpad.setVisible(oscActive);
-        }
-        if (null != xButton) {
-            xButton.setVisible(oscActive);
-        }
-        if (null != picButton) {
-            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-            picButton.setVisible(oscActive);
-        }
-    }
-
     private void fadeScreen(){
 
         float step = -0.05f;
@@ -405,33 +344,27 @@ public class GameUI extends InGameMenu {
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
-    private int hitCount;
-
     int incHitCount(int ct) {
         hitCount += ct;
         return hitCount;
     }
 
-    int getHitCount(){
+    private int getHitCount(){
         return hitCount;
     }
 
-    public void updateOfMapper(){
+    private void updateGetInputs(){
+
         boolean paused = GameWorld.getInstance().getIsPaused();
         int checkedBox = 0; // button default at top selection
         mapper.latchInputState();
 
-//                boolean
         controllerInputsActive = false;
 
         if (!paused) {
-                    /*
-                    AIs and Player act thru same interface to rig model (updateControols()) but the AIs are run by
-the ECS via the CharacgterSystem, whereas the Player update directly here with controller inputs.
-So we have to pause it explicitly as it is not governed by ECS
-  */
+
             GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
-// don't update controls during Continue State
+
             if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
                     GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
 
@@ -479,7 +412,6 @@ So we have to pause it explicitly as it is not governed by ECS
                         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                         break;
                 }
-                Gdx.app.log("GameUI", "  getCheckedIndex() == " + getCheckedIndex());
             }
             checkedBox = checkedUpDown(mapper.getDpad(null).getY());
         }
@@ -488,6 +420,115 @@ So we have to pause it explicitly as it is not governed by ECS
         GameWorld.getInstance().setIsPaused(paused);
     }
 
+    /*
+     * collect all the screen transition state management here
+     * GameWorld ShowScreen() limited to reference in here!
+     */
+    private void updateScreenTransition() {
+
+        switch (GameWorld.getInstance().getRoundActiveState()) {
+
+            default:
+            case ROUND_ACTIVE:
+                if (getHitCount() >= ALL_HIT_COUNT) {
+
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
+                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+                }
+                else if (0 == screenTimer){
+                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                }
+                break;
+
+            case ROUND_OVER_TIMEOUT:
+                if (screenTimer <= 0) {
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                }
+                break;
+
+            case ROUND_COMPLETE_WAIT:
+                if (screenTimer <= 0){
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
+                }
+                break;
+
+            case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
+                if (screenTimer <= continueScreenTimeUp) {
+                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                }
+                break;
+
+            case ROUND_OVER_RESTART:
+                break;
+
+            case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
+                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
+                break;
+
+            case ROUND_OVER_QUIT:
+                GameWorld.getInstance().showScreen(new SplashScreen());
+                break;
+        }
+    }
+
+    private void updateUI(){
+
+        setVisibleUI(true);
+        mesgLabel.setVisible(false);
+        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
+
+        updateTimerLbl();
+
+        boolean oscActive = false; // on screen control inactive by default
+
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
+
+            stringBuilder.setLength(0);
+            mesgLabel.setText(stringBuilder.append("Continue? ").append( (screenTimer - continueScreenTimeUp) / 60 )); // FPS
+            mesgLabel.setVisible(true);
+            setOverlayColor(1, 0, 0, 0.5f); // red overlay
+
+        } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
+
+            setLabelColor(itemsLabel, Color.GREEN);
+            stringBuilder.setLength(0);
+            itemsLabel.setText(stringBuilder.append("EXIT"));
+            oscActive = true;
+
+        } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
+
+            stringBuilder.setLength(0);
+            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3"));
+//            overlayImage.getColor().a = 0;
+            setOverlayColor(0, 0, 0, 0);
+
+            if (GameWorld.getInstance().getIsPaused()) {
+                setOverlayColor(0, 0, 1, 0.5f);
+            } else {
+                oscActive = true;
+            }
+        }
+        else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
+
+            fadeScreen();
+        }
+        else {
+            setVisibleUI(false);                    // nothing to see here
+        }
+
+        if (null != touchpad) {
+            touchpad.setVisible(oscActive);
+        }
+        if (null != xButton) {
+            xButton.setVisible(oscActive);
+        }
+        if (null != picButton) {
+            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
+            picButton.setVisible(oscActive);
+        }
+    }
 
 
     @Override
@@ -495,10 +536,9 @@ So we have to pause it explicitly as it is not governed by ECS
 
         super.act(delta);
 
-
+        updateGetInputs();
+        updateScreenTransition();
         updateUI();
-
-        updateOfMapper();
     }
 
     @Override
