@@ -34,6 +34,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.GameWorld;
 
+import java.util.Locale;
+
 /**
  * Created by neiderm on 5/17/2018.
  */
@@ -43,6 +45,13 @@ public class GameUI extends InGameMenu {
     private static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
 
     int screenTimer = DEFAULT_SCREEN_TIME;
+
+    int continueScreenTimeUp;
+
+
+    private StringBuilder stringBuilder = new StringBuilder();
+    private static final int TIME_LIMIT_WARN_SECS = 10;
+
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
@@ -82,7 +91,6 @@ public class GameUI extends InGameMenu {
 
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
-
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
 
@@ -280,16 +288,90 @@ public class GameUI extends InGameMenu {
         return newButton;
     }
 
-    private void update(boolean menuActive) {
+    private void updateTimerLbl() {
+
+        int minutes = 0;
+        int seconds = 0;
+
+        if ( !GameWorld.getInstance().getIsPaused() ) {
+            screenTimer -= 1;
+        }
+
+        int screenTimerSecs = screenTimer / 60; // FPS
+
+        if (screenTimerSecs > 0){
+            minutes = screenTimerSecs / 60;
+            seconds = screenTimerSecs % 60;
+        }
+        stringBuilder.setLength(0);
+        stringBuilder.append(String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
+
+        if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
+            setLabelColor(timerLabel, Color.RED);
+        }
+
+        timerLabel.setText(stringBuilder);
+    }
+
+
+    private void updateUI(){
+
+        setVisibleUI(true);
+        mesgLabel.setVisible(false);
+        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
+
+        updateTimerLbl();
+
+        boolean oscActive = false; // on screen control inactive by default
+
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
+//                    int timer = pickedPlayer.getComponent(StatusComponent.class).dieClock / 60; // FPS
+            int timer = (screenTimer - continueScreenTimeUp) / 60; // FPS
+            stringBuilder.setLength(0);
+            mesgLabel.setText(stringBuilder.append("Continue? ").append(timer));
+            mesgLabel.setVisible(true);
+
+            setOverlayColor(1, 0, 0, 0.5f); // red overlay
+
+        } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
+
+            setLabelColor(itemsLabel, Color.GREEN);
+            stringBuilder.setLength(0);
+            itemsLabel.setText(stringBuilder.append("EXIT"));
+            oscActive = true;
+
+        } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
+
+            stringBuilder.setLength(0);
+            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3"));
+
+//            overlayImage.getColor().a = 0;
+            setOverlayColor(0, 0, 0, 0);
+
+            if (GameWorld.getInstance().getIsPaused()) {
+                setOverlayColor(0, 0, 1, 0.5f);
+
+            } else {
+                oscActive = true;
+            }
+        }
+        else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
+
+            fadeScreen();
+        }
+        else {
+            setVisibleUI(false);                    // nothing to see here
+        }
 
         if (null != touchpad) {
-            touchpad.setVisible(!menuActive);
+            touchpad.setVisible(oscActive);
         }
         if (null != xButton) {
-            xButton.setVisible(!menuActive);
+            xButton.setVisible(oscActive);
         }
         if (null != picButton) {
-            picButton.setVisible(!menuActive);
+            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
+            picButton.setVisible(oscActive);
         }
     }
 
@@ -313,6 +395,18 @@ public class GameUI extends InGameMenu {
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
+    private int hitCount;
+
+    int incHitCount(int ct) {
+        hitCount += ct;
+        return hitCount;
+    }
+
+    int getHitCount(){
+        return hitCount;
+    }
+
+
     @Override
     public void act(float delta) {
 
@@ -320,29 +414,7 @@ public class GameUI extends InGameMenu {
 
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
-        update(GameWorld.getInstance().getIsPaused()
-                || GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras);
-
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
-            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-            if (null != picButton) {
-                picButton.setVisible(true);
-            }
-
-            setOverlayColor(1, 0, 0, 0.5f); // red overlay
-
-        } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
-
-            fadeScreen();
-        }
-        else if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras){
-//            overlayImage.getColor().a = 0;
-            setOverlayColor(0, 0, 0, 0);
-
-            if (GameWorld.getInstance().getIsPaused()) {
-                setOverlayColor(0, 0, 1, 0.5f);
-            }
-        }
+        updateUI();
     }
 
     @Override

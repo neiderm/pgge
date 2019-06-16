@@ -85,7 +85,6 @@ public class GameScreen extends TimedGameScreen {
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private GameUI playerUI;
     private InputMultiplexer multiplexer;
-    private StringBuilder stringBuilder = new StringBuilder();
     private Signal<GameEvent> gameEventSignal = new Signal<GameEvent>();
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
@@ -94,15 +93,6 @@ public class GameScreen extends TimedGameScreen {
     private static final int ALL_HIT_COUNT = 3;
     private static final int TIME_LIMIT_WARN_SECS = 10;
 
-//    private void setHitCount(int ct){
-//        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
-//    }
-
-    private int incHitCount(int ct) {
-
-        pickedPlayer.getComponent(StatusComponent.class).hitCount += ct;
-        return pickedPlayer.getComponent(StatusComponent.class).hitCount;
-    }
 
     private void screenInit(){
 
@@ -260,26 +250,16 @@ public class GameScreen extends TimedGameScreen {
                 pickedPlayer.getComponent(BulletComponent.class).body,
                 pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-//        setupplayerUI(modelController);
-        playerUI = new GameUI(){
+        playerUI = new GameUI() {
 
-            private void onSelectEvent(){
+            private void onSelectEvent() {
 
                 Entity picked = hitDetectEvent.getEntity();
 
-                if (null != picked){
+                if (null != picked) {
 //            picked.onSelect();  ???
-                    ModelInstanceEx.setMaterialColor(
-                            picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-
-                    if (incHitCount(1) >= ALL_HIT_COUNT) {
-
-                        if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT != GameWorld.getInstance().getRoundActiveState()) {
-
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-//                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
-                        }
-                    }
+                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+                    incHitCount(1);
                 }
             }
 
@@ -354,67 +334,8 @@ So we have to pause it explicitly as it is not governed by ECS
                 setCheckedBox(checkedBox);
                 GameWorld.getInstance().setIsPaused(paused);
 
-                updateUI();
                 checkForScreenTransition();
                 super.act(delta);
-            }
-
-            private void updateTimer(int screenTimerSecs){
-
-                int minutes = screenTimerSecs / 60;
-                int seconds = screenTimerSecs % 60;
-
-                stringBuilder.setLength(0);
-                stringBuilder.append(String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
-
-                if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
-                    setLabelColor(timerLabel, Color.RED);
-                }
-
-                timerLabel.setText(stringBuilder);
-            }
-
-            private void updateUI(){
-
-                int screenTimerSecs = screenTimer / 60; // FPS
-
-                setVisibleUI(true);
-                mesgLabel.setVisible(false);
-                GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
-
-                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
-
-                    updateTimer(screenTimerSecs);
-
-                    int timer = pickedPlayer.getComponent(StatusComponent.class).dieClock / 60; // FPS
-                    stringBuilder.setLength(0);
-                    stringBuilder.append("Continue? ").append(timer);
-
-                    mesgLabel.setText(stringBuilder);
-                    mesgLabel.setVisible(true);
-
-                } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
-
-                    setLabelColor(itemsLabel, Color.GREEN);
-                    stringBuilder.setLength(0);
-                    stringBuilder.append("EXIT");
-                    itemsLabel.setText(stringBuilder);
-
-                    // still show the screen timere
-                    stringBuilder.setLength(0);
-                    stringBuilder.append(screenTimerSecs); // tmp ... mm:ss
-                    timerLabel.setText(stringBuilder);
-
-                } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
-
-                    updateTimer(screenTimerSecs);
-                    stringBuilder.setLength(0);
-                    stringBuilder.append(incHitCount(0) ).append(" / 3");
-                    itemsLabel.setText(stringBuilder);
-                }
-                else {
-                    setVisibleUI(false);                    // nothing to see here
-                }
             }
 
             /*
@@ -422,25 +343,30 @@ So we have to pause it explicitly as it is not governed by ECS
              */
             private void checkForScreenTransition() {
 
-                if ( !GameWorld.getInstance().getIsPaused() // have to do this here for now
-                        && screenTimer > 0) {
-                    screenTimer -= 1;
-                }
-
                 switch (GameWorld.getInstance().getRoundActiveState()) {
                     default:
                     case ROUND_ACTIVE:
-                        if (0 == screenTimer){
-                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+
+                        if (getHitCount() >= ALL_HIT_COUNT) {
+
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
+                            screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+                        }
+                        else if (0 == screenTimer){
+//                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+                            screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                         }
                         else if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
+
+                                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
+                                continueScreenTimeUp =  screenTimer - (10 * 60); // fps
                         }
                         break;
 
                     case ROUND_OVER_TIMEOUT:
-                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
+//                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
+                        if (screenTimer <= 0) {
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                         }
                         break;
@@ -452,8 +378,10 @@ So we have to pause it explicitly as it is not governed by ECS
                         break;
 
                     case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
-                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
-                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+//                        if (pickedPlayer.getComponent(StatusComponent.class).dieClock <= 0) {
+                        if (screenTimer <= continueScreenTimeUp) {
+//                            pickedPlayer.getComponent(StatusComponent.class).dieClock = 2 * 60; // FPS // 2 seconds fadout screen transition
+                            screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                         }
                         break;
