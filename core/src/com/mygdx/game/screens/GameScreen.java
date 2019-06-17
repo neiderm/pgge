@@ -153,7 +153,6 @@ public class GameScreen extends TimedGameScreen {
 
         // name of picked player rig as read from model is stashed in PickRayComp as a hack ;)
         String objectName = GameWorld.getInstance().getPlayerObjectName();
-        pickedPlayer = null; // bad w3e have to depend on this crap for now
 
         for (Entity e : characters) {
 
@@ -258,6 +257,8 @@ public class GameScreen extends TimedGameScreen {
 
             @Override
             public void onSelectEvent() {
+
+                super.onSelectEvent();
 
                 Entity picked = hitDetectEvent.getEntity();
 

@@ -52,9 +52,8 @@ import com.mygdx.game.GameWorld;
 class InGameMenu extends Stage {
 
     InputMapper mapper = new InputMapper();
-    private Table onscreenMenuTbl = new Table();
-    private Table playerInfoTbl = new Table();
-    private Table overlayTbl = new Table();
+    Table onscreenMenuTbl = new Table();
+    Table playerInfoTbl = new Table();
 
     private int previousIncrement;
     private Array<String> buttonNames = new Array<String>();
@@ -118,6 +117,7 @@ class InGameMenu extends Stage {
         overlayImage.setPosition(0,0);
         pixmap.dispose();
 
+        Table overlayTbl = new Table();
         overlayTbl.setFillParent(true);
         overlayTbl.add(overlayImage);
 //        overlayTbl.setDebug(true);
@@ -155,14 +155,14 @@ class InGameMenu extends Stage {
     Label itemsLabel;
     Label timerLabel;
     Label mesgLabel;
-
+/*
     void setVisibleUI(boolean state){
         mesgLabel.setVisible(state);
         itemsLabel.setVisible(state);
         timerLabel.setVisible(state);
         scoreLabel.setVisible(state);
     }
-
+*/
     private void setupPlayerInfo(){
 
         scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
@@ -178,10 +178,11 @@ class InGameMenu extends Stage {
 
         mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(font, Color.WHITE));
         playerInfoTbl.add(mesgLabel).colspan(3);
+        mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
 
         playerInfoTbl.setFillParent(true);
 //        playerInfoTbl.setDebug(true);
-        playerInfoTbl.setVisible(true);
+        playerInfoTbl.setVisible(false);
         addActor(playerInfoTbl);
     }
 
@@ -312,20 +313,9 @@ class InGameMenu extends Stage {
         return selectedIndex;
     }
 
-    @Override
-    public void act(float delta){
-
-// one or the other
-        if (GameWorld.getInstance().getIsPaused()){
-            playerInfoTbl.setVisible(false);
-            onscreenMenuTbl.setVisible(true);
-        } else {
-            onscreenMenuTbl.setVisible(false);
-            playerInfoTbl.setVisible(true);
-        }
-
-        super.act(delta);
-    }
+//    @Override
+//    public void act(float delta){
+//    }
 
     @Override
     public void dispose(){

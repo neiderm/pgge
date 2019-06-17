@@ -113,12 +113,6 @@ public class GameUI extends InGameMenu {
         setupInGameMenu();
     }
 
-    /*
-     * To go in the interface
-     */
-    public void onSelectEvent() { // mt
-    }
-
     public void onCameraSwitch(){ // mt
     }
 
@@ -248,6 +242,8 @@ public class GameUI extends InGameMenu {
         addButton("Camera");
         addButton("Debug Draw");
         addNextButton();
+
+        onscreenMenuTbl.setVisible(false); // default not visible (Paused menu)
     }
 
     private void setupOnscreenControls(final InputMapper mapper) {
@@ -345,7 +341,10 @@ public class GameUI extends InGameMenu {
     }
 
     int incHitCount(int ct) {
-        hitCount += ct;
+
+        if ( ! GameWorld.getInstance().getIsPaused()) {
+            hitCount += ct;
+        }
         return hitCount;
     }
 
@@ -353,71 +352,71 @@ public class GameUI extends InGameMenu {
         return hitCount;
     }
 
-    private void updateGetInputs(){
 
-        boolean paused = GameWorld.getInstance().getIsPaused();
+/*
+ * todo: wrapper for setRoundActiveState() so that new screen only called from one place
+ */
+    public void onSelectEvent() {
+
+        if (GameWorld.getInstance().getIsPaused()) {
+
+            GameWorld.getInstance().setIsPaused(false);
+
+            switch (getCheckedIndex()) {
+                default:
+                case 0: // resume
+                    break;
+                case 1: // restart
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                    break;
+                case 2: // quit
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                    break;
+                case 3: // camera
+                    onCameraSwitch();  // to put in GameUI interface and override
+                    break;
+                case 4: // dbg drwr
+                    BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
+                    // has to reinitialize bullet world to set the flag
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                    break;
+            }
+        } else if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+
+            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+        }
+    }
+
+    /* can be overridden */
+    public void onEscEvent() {
+
+        if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+
+            if (!GameWorld.getInstance().getIsPaused()) {
+                GameWorld.getInstance().setIsPaused(true);
+            } else {
+                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+            }
+        }
+    }
+
+    private void updateGetInputs() {
+
         int checkedBox = 0; // button default at top selection
+
         mapper.latchInputState();
 
-        controllerInputsActive = false;
+        if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+            onSelectEvent();
+        } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+            onEscEvent();
+        }
 
-        if (!paused) {
-
-            GameWorld.GAME_STATE_T state = GameWorld.getInstance().getRoundActiveState();
-
-            if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ||
-                    GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == state) {
-
-                controllerInputsActive = true;
-            }
-
-            if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
-                onSelectEvent();
-
-                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == state) {
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                }
-            } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-
-                if ( GameWorld.GAME_STATE_T.ROUND_ACTIVE == state ) {
-                    paused = true;
-                }
-            }
-        } else {
-            // paused ... check for round active state?
-            if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
-
-                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-            } else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-
-                paused = false;
-
-                switch (getCheckedIndex()) {
-                    default:
-                    case 0: // resume
-                        break;
-                    case 1: // restart
-                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                        break;
-                    case 2: // quit
-                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
-                        break;
-                    case 3: // camera
-                        onCameraSwitch();  // to put in GameUI interface and override
-                        break;
-                    case 4: // dbg drwr
-                        BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
-                        // has to reinitialize bullet world to set the flag
-                        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                        break;
-                }
-            }
+        if (GameWorld.getInstance().getIsPaused()) {
             checkedBox = checkedUpDown(mapper.getDpad(null).getY());
         }
 
         setCheckedBox(checkedBox);
-        GameWorld.getInstance().setIsPaused(paused);
     }
 
     /*
@@ -475,13 +474,18 @@ public class GameUI extends InGameMenu {
 
     private void updateUI(){
 
-        setVisibleUI(true);
+//        setVisibleUI(false);
+        playerInfoTbl.setVisible(false);
+        onscreenMenuTbl.setVisible(false);
+
         mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
         updateTimerLbl();
 
         boolean oscActive = false; // on screen control inactive by default
+        controllerInputsActive = false;
+        boolean osdActive = false;
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
 
@@ -490,12 +494,17 @@ public class GameUI extends InGameMenu {
             mesgLabel.setVisible(true);
             setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
+            osdActive = true;
+
         } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
 
             setLabelColor(itemsLabel, Color.GREEN);
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append("EXIT"));
             oscActive = true;
+            controllerInputsActive = true;
+
+            osdActive = true;
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
@@ -505,17 +514,24 @@ public class GameUI extends InGameMenu {
             setOverlayColor(0, 0, 0, 0);
 
             if (GameWorld.getInstance().getIsPaused()) {
+
                 setOverlayColor(0, 0, 1, 0.5f);
+                onscreenMenuTbl.setVisible(true);
+
             } else {
+                osdActive = true;
                 oscActive = true;
+                controllerInputsActive = true;
             }
         }
         else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
             fadeScreen();
         }
-        else {
-            setVisibleUI(false);                    // nothing to see here
+
+        if (osdActive){
+//             setVisibleUI(osdActive);                    // nothing to see here
+            playerInfoTbl.setVisible(osdActive);
         }
 
         if (null != touchpad) {
