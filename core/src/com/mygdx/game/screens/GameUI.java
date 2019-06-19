@@ -94,23 +94,19 @@ public class GameUI extends InGameMenu {
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
 
-        if (GameWorld.getInstance().getIsTouchScreen()) {
-
-            addChangeListener(new ChangeListener() {
-                @Override
-                public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
-                    Touchpad t = (Touchpad) actor;
-                    axes[0] = t.getKnobPercentX();
-                    axes[1] = t.getKnobPercentY() * (-1);     // negated
-                    mapper.setAxis(-1, axes);
-                }
-            });
-
-            setupOnscreenControls(mapper);
-        }
-
+        setupOnscreenControls(mapper);
         setupInGameMenu();
+
+        addTouchPad(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+
+                Touchpad t = (Touchpad) actor;
+                axes[0] = t.getKnobPercentX();
+                axes[1] = t.getKnobPercentY() * (-1);     // negated
+                mapper.setAxis(-1, axes);
+            }
+        });
     }
 
     public void onCameraSwitch(){ // mt
@@ -170,7 +166,7 @@ public class GameUI extends InGameMenu {
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
      */
-    private void addChangeListener(ChangeListener touchPadChangeListener) {
+    private void addTouchPad(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
 
@@ -472,20 +468,32 @@ public class GameUI extends InGameMenu {
         }
     }
 
+
+    private void showOSC(boolean show){
+// todo: put on screen controls in a table layout
+        if  ( ! GameWorld.getInstance().getIsTouchScreen()){
+            show = false;
+        }
+
+        touchpad.setVisible(show);
+        xButton.setVisible(show);
+        picButton.setVisible(show);
+    }
+
+    private void showPauseMenu(boolean show){
+// about 80% of the time, these are opposite to each other (menu goes up, on-screen-display down).
+        onscreenMenuTbl.setVisible(show);
+        playerInfoTbl.setVisible(!show);
+    }
+
     private void updateUI(){
 
-//        setVisibleUI(false);
-        playerInfoTbl.setVisible(false);
-        onscreenMenuTbl.setVisible(false);
-
+        showOSC(false);
+        showPauseMenu(false);
         mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
-
-        updateTimerLbl();
-
-        boolean oscActive = false; // on screen control inactive by default
         controllerInputsActive = false;
-        boolean osdActive = false;
+        updateTimerLbl();
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
 
@@ -494,17 +502,16 @@ public class GameUI extends InGameMenu {
             mesgLabel.setVisible(true);
             setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
-            osdActive = true;
+            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
+            picButton.setVisible(true);
 
         } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
 
             setLabelColor(itemsLabel, Color.GREEN);
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append("EXIT"));
-            oscActive = true;
             controllerInputsActive = true;
-
-            osdActive = true;
+            showOSC(true);
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
@@ -516,36 +523,21 @@ public class GameUI extends InGameMenu {
             if (GameWorld.getInstance().getIsPaused()) {
 
                 setOverlayColor(0, 0, 1, 0.5f);
-                onscreenMenuTbl.setVisible(true);
+                showPauseMenu(true);
 
             } else {
-                osdActive = true;
-                oscActive = true;
                 controllerInputsActive = true;
-            }
-        }
-        else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
+                if  (GameWorld.getInstance().getIsTouchScreen())
+                    showOSC(true);
+            }
+        } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
+
+            playerInfoTbl.setVisible(false);
+            // onscreenMenuTbl.setVisible(false);
             fadeScreen();
         }
-
-        if (osdActive){
-//             setVisibleUI(osdActive);                    // nothing to see here
-            playerInfoTbl.setVisible(osdActive);
-        }
-
-        if (null != touchpad) {
-            touchpad.setVisible(oscActive);
-        }
-        if (null != xButton) {
-            xButton.setVisible(oscActive);
-        }
-        if (null != picButton) {
-            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-            picButton.setVisible(oscActive);
-        }
     }
-
 
     @Override
     public void act(float delta) {
