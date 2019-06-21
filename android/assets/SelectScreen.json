@@ -6,7 +6,7 @@
 	"characters": {
 		"gameObjects": [
 			{
-				"objectName": "offroadcar",
+				"objectName": "truck",
 				"isPickable": true,
 				"isShadowed": true
 			},
@@ -48,8 +48,8 @@
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
-	"offroadcar": {
-		"fileName": "tanks/offroadcar.g3db"
+	"truck": {
+		"fileName": "tanks/ram.g3db"
 	}
 }
 }

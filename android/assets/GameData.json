@@ -2,8 +2,8 @@
 "features": {
 	"player": {},
 	"Platform1": {
-		"lifeTimeSecs": 5,
-		"dieTimeSecs": 5
+		"lifeTimeSecs": 2,
+		"dieTimeSecs": 3
 	}
 },
 "modelGroups": {
@@ -35,7 +35,7 @@
 						}
 					}
 				],
-				"objectName": "offroadcar",
+				"objectName": "truck",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
@@ -476,8 +476,8 @@
 	"landscape": {
 		"fileName": "data/landscape.g3db"
 	},
-	"offroadcar": {
-		"fileName": "tanks/offroadcar.g3db"
+	"truck": {
+		"fileName": "tanks/ram.g3db"
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"

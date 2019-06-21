@@ -12,7 +12,7 @@
 						}
 					}
 				],
-				"objectName": "offroadcar",
+				"objectName": "truck",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true,
@@ -92,6 +92,7 @@
 			{
 				"objectName": "Plane*",
 				"meshShape": "triangleMeshShape",
+				"isKinematic": true,
 				"isShadowed": true
 			},
 			{
@@ -212,8 +213,8 @@
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
-	"offroadcar": {
-		"fileName": "tanks/offroadcar.g3db"
+	"truck": {
+		"fileName": "tanks/ram.g3db"
 	},
 	"scene": {
 		"fileName": "data/vr_zone.g3db"
