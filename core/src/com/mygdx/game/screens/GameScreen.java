@@ -52,6 +52,7 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -262,10 +263,26 @@ public class GameScreen extends TimedGameScreen {
 
                 Entity picked = hitDetectEvent.getEntity();
 
-                if (null != picked) {
-//            picked.onSelect();  ???
+                if (null != picked) { //            picked.onSelect();  ???
+
                     ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
                     incHitCount(1);
+
+                    ModelComponent mc = picked.getComponent(ModelComponent.class);
+                    Vector3 translation = new Vector3();
+                    translation = mc.modelInst.transform.getTranslation(translation);
+                    translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
+
+                    GameObject gameObject = new GameObject();
+                    gameObject.mass = 1f;
+                    gameObject.isShadowed = true;
+                    gameObject.scale = new Vector3(1, 1, 1);
+                    gameObject.objectName = new String("*");
+                    gameObject.meshShape = new String("convexHullShape");
+
+                    sceneLoader.buildNodes(engine, mc.model, gameObject, translation);
+
+                    picked.add(new DeleteMeComponent(true));
                 }
             }
 
@@ -288,7 +305,6 @@ public class GameScreen extends TimedGameScreen {
 
                     case ROUND_ACTIVE:
                         if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
-
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp =  screenTimer - (10 * 60); // fps
                         }
@@ -328,7 +344,9 @@ public class GameScreen extends TimedGameScreen {
             super.setEntity(picked);
 
             if (EVT_HIT_DETECT == eventType ) {
-//                picked.onSelect();  // I know you're lookin at me ...
+
+// if (null != picked){
+// }
             }
         }
     };
@@ -355,6 +373,8 @@ public class GameScreen extends TimedGameScreen {
         public void handle(Entity picked, GameEvent.EventType eventType) {
 
             if (EVT_SEE_OBJECT == eventType && null != picked) {
+
+                //  picked.onSelect();  // I know you're lookin at me ...
 
                 RenderSystem.debugGraphics.add(lineInstance.lineTo(
                         pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
