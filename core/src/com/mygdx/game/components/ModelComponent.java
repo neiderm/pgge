@@ -1,22 +1,24 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 
 /**
- * Created by mango on 12/21/17.
+ * Created by neiderm on 12/21/17.
  */
 
 public class ModelComponent implements Component {
 
+    public Model model; // reference to model for dynamically reloading/reconfiguring meshes
     public ModelInstance modelInst;
-    public float boundingRadius = 0;
+    public float boundingRadius;
     public boolean isShadowed = true;
     public Vector3 center = new Vector3();
 
-    public int id = 0;
+    public int id;
     private static int instcnt = 0;
 
 

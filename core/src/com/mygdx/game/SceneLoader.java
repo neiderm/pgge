@@ -41,6 +41,7 @@ import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -57,7 +58,6 @@ public class SceneLoader implements Disposable {
     private static boolean useTestObjects = true;
     private AssetManager assets;
 
-//    private static final float DEFAULT_TANK_MASS = 5.1f; // idkf
 
     public SceneLoader(){
 
@@ -118,7 +118,7 @@ public class SceneLoader implements Disposable {
             }
         }
 
-                SceneData.saveData(gameData);
+        SceneData.saveData(gameData);
     }
 
     public AssetManager getAssets() {
@@ -187,7 +187,8 @@ public class SceneLoader implements Disposable {
     private void checkIfFeature(GameObject gameObject, Entity e){
 
         if (null != gameObject.featureName){
-            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key 
+
+            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key
 
             if (null != f) {
 //                if (gameObject.objectName.equals(f.objectName))
@@ -222,7 +223,7 @@ public class SceneLoader implements Disposable {
 
         for (String key : gameData.modelGroups.keySet()) {
 
-            Gdx.app.log("SceneLoader", "key = " + key);
+            Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
             ModelGroup mg = gameData.modelGroups.get(key);
             ModelInfo mi = gameData.modelInfo.get(mg.modelName); // mg can't be null ;)
@@ -245,16 +246,17 @@ public class SceneLoader implements Disposable {
                 if (mg.isCharacter){
                     gameObject.isCharacter = mg.isCharacter;
                 }
-
                 if (null == gameObject.scale) {
                     gameObject.scale = new Vector3(1, 1, 1);
                 }
 
+                Model model;
+
                 if (null == groupModel){
 
-                    Model model;
                     String rootNodeId;
                     btCollisionShape shape = null;
+                    ModelInstance instance = null;
 
                     // look for model Info name matching object name
                     ModelInfo mdlInfo = gameData.modelInfo.get(gameObject.objectName);
@@ -265,67 +267,87 @@ public class SceneLoader implements Disposable {
                         rootNodeId = model.nodes.get(0).id;
 
                         if (gameObject.mass > 0 && !gameObject.isKinematic) {
-//                shape = MeshHelper.createConvexHullShape(model.meshes.get(0));
-                            shape = PrimitivesBuilder.getShape( /* gameObject.meshShape, */ model.meshes.get(0));
-                        }                     // else ... non bullet entity (e.g cars in select screen)
-                    } else {
 
+                            shape = PrimitivesBuilder.getShape(model.meshes.get(0));
+                        }                     // else ... non bullet entity (e.g cars in select screen)
+
+                        if (model.nodes.size > 1) { // multi-node model
+                            // "demodularize" model - combine modelParts into single Node for generating the physics shape
+                            Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
+                            rootNodeId = "node1";
+                            instance = ModelInstanceEx.getModelInstance( newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
+                            shape = PrimitivesBuilder.getShape(newModel.meshes.get(0)); //TODO we would only use this for generating the sHAPE (modelComps to be multi-model-instance)
+                        }
+                        else {
+                            instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
+                        }
+                    } else {
                         model = PrimitivesBuilder.getModel();
                         rootNodeId = gameObject.objectName;
 
                         if (gameObject.isKinematic || gameObject.mass > 0) { // note does not use the gamObject.meshSHape name
 
                             shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
-//                    gameObject.meshShape = "primitive"; // maybe
                         }
+                        instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
                     }
-
-                    ModelInstance instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
-                    buildGameObject(engine, gameObject, instance, shape);
+                    buildGameObject(model, engine, gameObject, instance, shape);
                 }
                 else
                 {
-                    // the purpose of binding a model to a group is for iterating all model nodes to support Node name globbing
-                    /*
-                     * searching the group model for the given gameObject.objectName* ...
-                     * may not be super efficient and  ... increasing number of model nodes ???
-                     * However walking the model is needed for globbed object name, not
-                     * seeing a more efficient way right now.
-                     */
                     /* load all nodes from model that match /objectName.*/
-                    for (Node node : groupModel.nodes) {
-
-                        String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
-
-                        if (node.id.contains(unGlobbedObjectName)) {
-                            // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
-                            ModelInstance instance = ModelInstanceEx.getModelInstance(groupModel, node.id, gameObject.scale);
-                            btCollisionShape shape = null;
-
-                            // TODO find another way to get shape - depends on the instance which is bass-ackwards
-                            // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
-                            if (null != gameObject.meshShape) {
-                                BoundingBox boundingBox = new BoundingBox();
-                                Vector3 dimensions = new Vector3();
-                                instance.calculateBoundingBox(boundingBox);
-
-                                shape = PrimitivesBuilder.getShape(
-                                        gameObject.meshShape, boundingBox.getDimensions(dimensions), node); // instance.getNode(node.id),
-                            }
-        /*
-        scale is in parent object (not instances) because object should be able to share same bullet shape!
-        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
-         */
-                            buildGameObject(engine, gameObject, instance, shape);
-                        } // else  ... bail out if matched an un-globbed name ?
-                    }
+                    buildNodes(engine, groupModel, gameObject, null) ;
                 }
             }
         }
     }
 
-    // gameObject.build() ?
-    private void buildGameObject(Engine engine, GameObject gameObject, ModelInstance instance, btCollisionShape shape) {
+    /*
+     * searching the group model for the given gameObject.objectName* ...
+     * may not be super efficient and  ... increasing number of model nodes ???
+     * However walking the model is needed for globbed object name, not
+     * seeing a more efficient way right now.
+     */
+    public void buildNodes(Engine engine, Model model, GameObject gameObject, Vector3 translation) {
+
+        /* load all nodes from model that match /objectName.*/
+        for (Node node : model.nodes) {
+
+            String unGlobbedObjectName = gameObject.objectName.replaceAll("\\*$", "");
+
+            if (node.id.contains(unGlobbedObjectName)) {
+
+                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
+                ModelInstance instance = ModelInstanceEx.getModelInstance(model, node.id, gameObject.scale);
+
+                if (null != translation) {
+                    instance.transform.setTranslation(0, 0, 0); // set trans only (absolute)
+                    instance.transform.trn(translation);   // set trans only (offset)
+                }
+
+                btCollisionShape shape = null;
+
+                // TODO find another way to get shape - depends on the instance which is bass-ackwards
+                // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
+                if (null != gameObject.meshShape) {
+                    BoundingBox boundingBox = new BoundingBox();
+                    Vector3 dimensions = new Vector3();
+                    instance.calculateBoundingBox(boundingBox);
+
+                    shape = PrimitivesBuilder.getShape(
+                            gameObject.meshShape, boundingBox.getDimensions(dimensions), node); // instance.getNode(node.id),
+                }
+        /*
+        scale is in parent object (not instances) because object should be able to share same bullet shape!
+        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
+         */
+                buildGameObject(model, engine, gameObject, instance, shape);
+            } // else  ... bail out if matched an un-globbed name ?
+        }
+    }
+
+    // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
+    private void buildGameObject(Model model, Engine engine, GameObject gameObject, ModelInstance instance, btCollisionShape shape) {
 
         InstanceData id;
         int n = 0;
@@ -340,6 +362,9 @@ public class SceneLoader implements Disposable {
 
             Entity e = buildObjectInstance(instance.copy(), gameObject, shape, id);
             engine.addEntity(e);
+
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            mc.model = model;  // bah
 
             checkIfFeature(gameObject, e); // this is not really supported on a per-instance basis
 

@@ -212,13 +212,17 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return saveShapeRef(shape);
     }
 
-    private static btCollisionShape getShape(Node node) {
+    public static btCollisionShape getShape(Node node) {
 
         btCollisionShape shape = null;
 
         if (null != node) {
-            shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
+            if (node.parts.size > 0) {
+                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
 //            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+            }
+            else
+                Gdx.app.log("pbuilder", "node.parts.size <= 0");
         }
         return shape;
     }

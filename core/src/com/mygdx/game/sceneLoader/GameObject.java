@@ -21,12 +21,12 @@ import com.badlogic.gdx.utils.Array;
 
 public class GameObject {
 
-    GameObject() {
+    public GameObject() {
     }
 
-    public GameObject(String objectName, String meshShape) {
+    public GameObject(String objectName, String shapeName) {
         this.objectName = objectName;
-        this.meshShape = meshShape;
+        this.meshShape = shapeName;
         this.isShadowed = true;
 //        this.isKinematic = true;
         this.isPickable = false;

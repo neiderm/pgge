@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
@@ -44,9 +45,11 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
+
         Mesh mesh = new Mesh(true, maxVertices, maxIndices,
                 new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
                 new VertexAttribute(VertexAttributes.Usage.ColorUnpacked, 4, "a_color"));
+
         mesh.setVertices(new float[(4 + 3) * nVertices]);
 
         short[] indices = new short[nVertices];
@@ -70,6 +73,8 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+
+    Builder.createXYZCoordinates() ??
      */
     public ModelInstance line(Vector3 from, Vector3 b, Color c) {
 
@@ -98,10 +103,10 @@ public class GfxUtil  /*extends ModelInstance*/ {
     }
 
 
-    public static void getVertex(float[] array, int index, int stride, Vector3 point, Color c){
+    private static void getVertex(float[] array, int index, int stride, Vector3 point, Color c){
 
         int offset = index * stride;
-        point.x = array[offset + 0];
+        point.x = array[offset];
         point.y = array[offset + 1];
         point.z = array[offset + 2];
         c.set(array[offset + 3], array[offset + 4], array[offset + 5], array[offset + 6]);
@@ -110,7 +115,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
     private static void setVertex(float[] array, int index, int stride, Vector3 point, Color c){
 
         int offset = index * stride;
-        array[offset + 0] = point.x;
+        array[offset    ] = point.x;
         array[offset + 1] = point.y;
         array[offset + 2] = point.z;
         array[offset + 3] = c.r;
@@ -126,5 +131,43 @@ public class GfxUtil  /*extends ModelInstance*/ {
         IntBuffer buffer = BufferUtils.newIntBuffer(16);
         Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buffer);
         return buffer.get(0);
+    }
+
+    public static Model modelFromNodes(Model model){
+
+        // "demodularize" model - combine modelParts into single Node for generating the physics shape
+        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+
+        MeshBuilder meshBuilder = new MeshBuilder();
+
+        VertexAttributes attributes = model.meshParts.get(0).mesh.getVertexAttributes();
+
+        meshBuilder.begin(
+//                                    VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates,
+                model.meshParts.get(0).mesh.getVertexAttributes(),
+                GL20.GL_TRIANGLES );
+
+        for (Node node : model.nodes) {
+
+            if (node.parts.size > 0) {
+                MeshPart meshPart = node.parts.get(0).meshPart;
+// hmmmm ... apply node transformation
+                meshBuilder.setVertexTransform(node.localTransform);
+                // copy and transform the meshPart into the xformedMesh  and add the mesh to the MeshBuilder
+//                                meshBuilder.addMesh(xformedMesh);
+                meshBuilder.addMesh(meshPart);
+            }
+            else
+                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size );
+        }
+
+        Mesh mesh = meshBuilder.end();
+
+        // all nodes we're combining would have the same material ... I guesss
+        modelBuilder.part("node1", mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
+
+        return modelBuilder.end(); // TODO // model reference for unloading!!!
     }
 }
