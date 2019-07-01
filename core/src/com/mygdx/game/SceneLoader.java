@@ -309,6 +309,10 @@ public class SceneLoader implements Disposable {
      * seeing a more efficient way right now.
      */
     public void buildNodes(Engine engine, Model model, GameObject gameObject, Vector3 translation) {
+        buildNodes(engine, model, gameObject, null, false) ;
+    }
+
+    public void buildNodes(Engine engine, Model model, GameObject gameObject, Vector3 translation, boolean useLocalTranslation) {
 
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
@@ -323,6 +327,10 @@ public class SceneLoader implements Disposable {
                 if (null != translation) {
                     instance.transform.setTranslation(0, 0, 0); // set trans only (absolute)
                     instance.transform.trn(translation);   // set trans only (offset)
+                }
+
+                if (useLocalTranslation){
+                    instance.transform.trn(node.localTransform.getTranslation(new Vector3()));
                 }
 
                 btCollisionShape shape = null;

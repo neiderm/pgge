@@ -280,7 +280,8 @@ public class GameScreen extends TimedGameScreen {
                     gameObject.objectName = new String("*");
                     gameObject.meshShape = new String("convexHullShape");
 
-                    sceneLoader.buildNodes(engine, mc.model, gameObject, translation);
+                    sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
+                    // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
                     picked.add(new DeleteMeComponent(true));
                 }
@@ -451,14 +452,14 @@ debugPrint("**", color, 0, 0 );
     }
 
 
-    private static SpriteBatch batch = new SpriteBatch();
-    private static BitmapFont font;
-    private static OrthographicCamera guiCam;
+    private  SpriteBatch batch = new SpriteBatch();
+    private  BitmapFont font;
+    private  OrthographicCamera guiCam;
 
     /*
      * debug only (betch is ended each call)
      */
-    public static void debugPrint(String string, Color color, int row, int col){
+    public  void debugPrint(String string, Color color, int row, int col){
 
         int y = (int) ((float) row * font.getLineHeight() + font.getLineHeight());
         int x = (int) ((float) col * font.getLineHeight());
