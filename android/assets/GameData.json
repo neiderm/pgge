@@ -467,6 +467,9 @@
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
 	},
+	"truck": {
+		"fileName": "tanks/ram.g3db"
+	},
 	"ship": {
 		"fileName": "tanks/ship.g3db"
 	},
@@ -475,9 +478,6 @@
 	},
 	"landscape": {
 		"fileName": "data/landscape.g3db"
-	},
-	"truck": {
-		"fileName": "tanks/ram.g3db"
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"

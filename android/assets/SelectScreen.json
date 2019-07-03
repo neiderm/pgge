@@ -42,14 +42,14 @@
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
 	},
+	"truck": {
+		"fileName": "tanks/ram.g3db"
+	},
 	"ship": {
 		"fileName": "tanks/ship.g3db"
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"truck": {
-		"fileName": "tanks/ram.g3db"
 	}
 }
 }

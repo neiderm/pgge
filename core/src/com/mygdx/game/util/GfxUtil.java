@@ -141,22 +141,14 @@ public class GfxUtil  /*extends ModelInstance*/ {
         modelBuilder.begin();
 
         MeshBuilder meshBuilder = new MeshBuilder();
-
-        VertexAttributes attributes = model.meshParts.get(0).mesh.getVertexAttributes();
-
-        meshBuilder.begin(
-//                                    VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates,
-                model.meshParts.get(0).mesh.getVertexAttributes(),
-                GL20.GL_TRIANGLES );
+        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
 
         for (Node node : model.nodes) {
 
             if (node.parts.size > 0) {
+
                 MeshPart meshPart = node.parts.get(0).meshPart;
-// hmmmm ... apply node transformation
-                meshBuilder.setVertexTransform(node.localTransform);
-                // copy and transform the meshPart into the xformedMesh  and add the mesh to the MeshBuilder
-//                                meshBuilder.addMesh(xformedMesh);
+                meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
                 meshBuilder.addMesh(meshPart);
             }
             else

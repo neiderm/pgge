@@ -43,7 +43,6 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
 
 
 /*
@@ -116,6 +115,7 @@ class SelectScreen extends TimedGameScreen {
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         GameFeature f = sceneLoader.getFeature("player");
+
         if (null != f) {
             platform = f.entity;
         }
@@ -264,16 +264,7 @@ class SelectScreen extends TimedGameScreen {
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
         transform.setTranslation(new Vector3(originCoordinate));
         transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
-
-        // debug graphic
-        transform = characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform;
-        RenderSystem.debugGraphics.add(gfxLine.line(transform.getTranslation(tmpV),
-                ModelInstanceEx.rotateRad(down.set(0, 1, 0), tmpM.getRotation(rotation)),
-                Color.RED));
     }
-
-
-//    private int previousIncrement;
 
     private int checkedUpDown(int step, int checkedIndex) {
 

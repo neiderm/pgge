@@ -13,7 +13,7 @@ import java.nio.FloatBuffer;
  * Created by neiderm on 3/24/18.
  */
 
-public class MeshHelper /* extends btConvexHullShape */ {
+class MeshHelper /* extends btConvexHullShape */ {
 
     private MeshHelper() {
     }
@@ -38,7 +38,7 @@ public class MeshHelper /* extends btConvexHullShape */ {
     }
 
 
-    public static btConvexHullShape createConvexHullShape(Mesh mesh) {
+    static btConvexHullShape createConvexHullShape(Mesh mesh) {
 
         return createConvexHullShapeOptimize(
                 mesh.getVerticesBuffer(), mesh.getNumVertices(), mesh.getVertexSize(), true);
@@ -47,7 +47,7 @@ public class MeshHelper /* extends btConvexHullShape */ {
     /*
       http://badlogicgames.com/forum/viewtopic.php?t=24875&p=99976
      */
-    public static btConvexHullShape createConvexHullShape(MeshPart meshPart) { // Node node
+    static btConvexHullShape createConvexHullShape(MeshPart meshPart) { // Node node
 
 //         MeshPart meshPart = node.parts.get(0).meshPart;
 

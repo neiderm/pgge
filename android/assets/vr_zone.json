@@ -1,4 +1,7 @@
 {
+"features": {
+	"exit": {}
+},
 "modelGroups": {
 	"characters": {
 		"gameObjects": [
@@ -208,6 +211,7 @@
 					}
 				],
 				"objectName": "Exit",
+				"featureName": "exit",
 				"meshShape": "triangleMeshShape",
 				"isKinematic": true
 			}
@@ -221,14 +225,14 @@
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
 	},
+	"truck": {
+		"fileName": "tanks/ram.g3db"
+	},
 	"ship": {
 		"fileName": "tanks/ship.g3db"
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"truck": {
-		"fileName": "tanks/ram.g3db"
 	},
 	"scene": {
 		"fileName": "data/vr_zone.g3db"

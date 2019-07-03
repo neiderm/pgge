@@ -52,6 +52,7 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -103,8 +104,6 @@ public class GameScreen extends TimedGameScreen {
         if (fontGetDensity > 1)
             font.getData().setScale(fontGetDensity);
 
-//        pickedPlayer.getComponent(StatusComponent.class).hitCount = 0;
-
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
         // been using same light setup as ever
@@ -138,7 +137,6 @@ public class GameScreen extends TimedGameScreen {
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
 
-
         engine = new Engine();
         renderSystem = new RenderSystem(shadowLight, environment, cam);
         bulletSystem = new BulletSystem();
@@ -147,7 +145,6 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
-
 
         sceneLoader.buildScene(engine);
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
@@ -168,7 +165,6 @@ public class GameScreen extends TimedGameScreen {
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
         pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables ....
         pickedPlayer.add(new CharacterComponent(objectName, true));
-
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -194,6 +190,17 @@ public class GameScreen extends TimedGameScreen {
         final StatusComponent sc = new StatusComponent(15, 10);
         pickedPlayer.add(sc);
 
+
+        GameFeature exitF = sceneLoader.getFeature("exit");
+
+        if (null != exitF) {
+
+            StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
+
+            // create a "statusUpdater()"
+//            StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
+        }
+
         /*
          * this goofball thing exists because of dependency between game model and UI i.e. player
          * dead or whatever in the world model must signal back to UI to pause/restart whatever
@@ -216,6 +223,7 @@ public class GameScreen extends TimedGameScreen {
             float boundsDst2 = bounds.dst2(origin);
             Vector3 v = new Vector3();
             Ray lookRay = new Ray();
+            private Vector3 tmpV3 = new Vector3();
 
             @Override
             public void update(Entity e) {
@@ -225,7 +233,7 @@ public class GameScreen extends TimedGameScreen {
                         gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
 */
                 Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-                lookRay.set(transform.getTranslation(position),
+                lookRay.set(transform.getTranslation(tmpV3),
                         ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
 
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
@@ -385,7 +393,7 @@ public class GameScreen extends TimedGameScreen {
     };
 
     private Vector3 tmpV = new Vector3();
-    private Vector3 position = new Vector3();
+    private Vector3 tmpPos = new Vector3();
     private Quaternion rotation = new Quaternion();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private GfxUtil camDbgLineInstance = new GfxUtil();
@@ -410,7 +418,7 @@ public class GameScreen extends TimedGameScreen {
         chaserSteerable.update(delta);
 
         RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
-                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(position),
+                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpPos),
                 chaserTransform.getTranslation(tmpV), Color.PURPLE));
 
         camController.update(); // this can probaly be pause as well
