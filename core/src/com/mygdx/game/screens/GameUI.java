@@ -388,7 +388,8 @@ public class GameUI extends InGameMenu {
     /* can be overridden */
     private void onEscEvent() {
 
-        if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+        if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
+                GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
 
             if (!GameWorld.getInstance().getIsPaused()) {
                 GameWorld.getInstance().setIsPaused(true);
@@ -526,7 +527,8 @@ public class GameUI extends InGameMenu {
             itemsLabel.setText(stringBuilder.append("EXIT"));
             controllerInputsActive = true;
             showOSC(true);
-            setPaused();
+            setOverlayColor(0, 0, 0, 0);
+            setPaused(); //
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
