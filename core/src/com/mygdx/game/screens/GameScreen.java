@@ -54,6 +54,7 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sensors.VectorSensor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -190,20 +191,26 @@ public class GameScreen extends TimedGameScreen {
         final StatusComponent sc = new StatusComponent(15, 10);
         pickedPlayer.add(sc);
 
-
         GameFeature exitF = sceneLoader.getFeature("exit");
 
         if (null != exitF) {
 
             StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
+            exitStatusComp.statusUpdater = new VectorSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
 
-            // create a "statusUpdater()"
-//            StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
+                @Override
+                public void update(Entity sensor) {
+                    super.update(sensor);
+
+                    if (getIsTriggered()) {
+                        playerUI.canExit = true;
+                    }
+                }
+            };
         }
 
         /*
-         * this goofball thing exists because of dependency between game model and UI i.e. player
-         * dead or whatever in the world model must signal back to UI to pause/restart whatever
+         * setup status sensor for player out of world  bounds (falling into the abyss(
          */
         sc.statusUpdater = initStatusUpdater();
 
@@ -227,8 +234,7 @@ public class GameScreen extends TimedGameScreen {
 
             @Override
             public void update(Entity e) {
-
-                super.update(e);
+//                super.update(e);
 /*
                         gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
 */
@@ -352,7 +358,7 @@ public class GameScreen extends TimedGameScreen {
 
             super.setEntity(picked);
 
-            if (EVT_HIT_DETECT == eventType ) {
+            if (EVT_HIT_DETECT == eventType) {
 
 // if (null != picked){
 // }
@@ -368,6 +374,7 @@ public class GameScreen extends TimedGameScreen {
         Vector3 tmpV = new Vector3();
         Vector3 posV = new Vector3();
         GfxUtil lineInstance = new GfxUtil();
+
         /*
         we have no way to invoke a callback to the picked component.
         Pickable component required to implment some kind of interface to provide a

@@ -43,8 +43,10 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
-    private static final int ALL_HIT_COUNT = 3;
-    private static final int DEFAULT_SCREEN_TIME = 15 * 60 ; // FPS
+    public boolean  canExit; // wtfe
+
+    private static final int ALL_HIT_COUNT = 2;
+    private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
     int screenTimer = DEFAULT_SCREEN_TIME;
 
@@ -384,7 +386,7 @@ public class GameUI extends InGameMenu {
     }
 
     /* can be overridden */
-    public void onEscEvent() {
+    private void onEscEvent() {
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
 
@@ -426,9 +428,8 @@ public class GameUI extends InGameMenu {
             default:
             case ROUND_ACTIVE:
                 if (getHitCount() >= ALL_HIT_COUNT) {
-
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
+//                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 }
                 else if (0 == screenTimer){
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
@@ -443,7 +444,8 @@ public class GameUI extends InGameMenu {
                 break;
 
             case ROUND_COMPLETE_WAIT:
-                if (screenTimer <= 0){
+//                if (screenTimer <= 0){
+                if (canExit) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
                 }
                 break;
@@ -486,6 +488,18 @@ public class GameUI extends InGameMenu {
         playerInfoTbl.setVisible(!show);
     }
 
+    private void setPaused() {
+
+        if (GameWorld.getInstance().getIsPaused()) {
+            setOverlayColor(0, 0, 1, 0.5f);
+            showPauseMenu(true);
+        } else {
+            controllerInputsActive = true;
+            if (GameWorld.getInstance().getIsTouchScreen())
+                showOSC(true);
+        }
+    }
+
     private void updateUI(){
 
         showOSC(false);
@@ -512,25 +526,16 @@ public class GameUI extends InGameMenu {
             itemsLabel.setText(stringBuilder.append("EXIT"));
             controllerInputsActive = true;
             showOSC(true);
+            setPaused();
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3"));
+            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3")); // ALL_HIT_COUNT!
 //            overlayImage.getColor().a = 0;
             setOverlayColor(0, 0, 0, 0);
+            setPaused();
 
-            if (GameWorld.getInstance().getIsPaused()) {
-
-                setOverlayColor(0, 0, 1, 0.5f);
-                showPauseMenu(true);
-
-            } else {
-                controllerInputsActive = true;
-
-                if  (GameWorld.getInstance().getIsTouchScreen())
-                    showOSC(true);
-            }
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
             playerInfoTbl.setVisible(false);
