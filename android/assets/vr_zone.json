@@ -104,6 +104,10 @@
 			{
 				"objectName": "Cube*",
 				"isShadowed": true
+			},
+			{
+				"objectName": "Exit",
+				"featureName": "exit"
 			}
 		]
 	},
@@ -210,10 +214,7 @@
 						}
 					}
 				],
-				"objectName": "Exit",
-				"featureName": "exit",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true
+				"objectName": "Exit"
 			}
 		]
 	}

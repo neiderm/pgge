@@ -54,6 +54,7 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sensors.OmniSensor;
 import com.mygdx.game.sensors.VectorSensor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -196,7 +197,19 @@ public class GameScreen extends TimedGameScreen {
         if (null != exitF) {
 
             StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
-            exitStatusComp.statusUpdater = new VectorSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
+//            exitStatusComp.statusUpdater = new VectorSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
+//
+//                @Override
+//                public void update(Entity sensor) {
+//                    super.update(sensor);
+//
+//                    if (getIsTriggered()) {
+//                        playerUI.canExit = true;
+//                    }
+//                }
+//            };
+
+            exitStatusComp.statusUpdater = new OmniSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
 
                 @Override
                 public void update(Entity sensor) {

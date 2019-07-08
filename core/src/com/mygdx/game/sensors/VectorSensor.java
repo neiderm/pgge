@@ -22,10 +22,10 @@ public class VectorSensor extends SensorIntrf {
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
-    private Entity target;
-    protected boolean isTriggered;
+    Entity target;
+    boolean isTriggered;
 
-//    public VectorSensor(){/*mt*/}
+    public VectorSensor(){/*mt*/}
 
     public VectorSensor(Entity target){
         this.target = target;
@@ -41,11 +41,11 @@ public class VectorSensor extends SensorIntrf {
         Matrix4 plyrTransform = target.getComponent(ModelComponent.class).modelInst.transform;
         playerPos = plyrTransform.getTranslation(playerPos);
 
-        Matrix4 SensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
-        myPos = SensTransform.getTranslation(myPos);
+        Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
+        myPos = sensTransform.getTranslation(myPos);
 
-        lookRay.set(SensTransform.getTranslation(myPos),
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), SensTransform.getRotation(rotation)));
+        lookRay.set(sensTransform.getTranslation(myPos),
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
         myPos.add(lookRay.direction);
         myPos.sub(playerPos);
