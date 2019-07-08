@@ -517,7 +517,7 @@ public class GameUI extends InGameMenu {
             setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
             // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
-            picButton.setVisible(true);
+            picButton.setVisible(GameWorld.getInstance().getIsTouchScreen());
 
         } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
 
