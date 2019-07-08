@@ -258,7 +258,8 @@ public class GameScreen extends TimedGameScreen {
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
                 gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
 
-                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState()) {
+                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
+                    GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState() ){
 
                     e.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
 
@@ -332,6 +333,7 @@ public class GameScreen extends TimedGameScreen {
                 switch (GameWorld.getInstance().getRoundActiveState()) {
 
                     case ROUND_ACTIVE:
+                    case ROUND_COMPLETE_WAIT:
                         if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp =  screenTimer - (10 * 60); // fps
