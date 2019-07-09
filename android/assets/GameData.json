@@ -1,5 +1,6 @@
 {
 "features": {
+	"oobSensor": {},
 	"player": {},
 	"Platform1": {
 		"lifeTimeSecs": 2,
@@ -7,6 +8,19 @@
 	}
 },
 "modelGroups": {
+	"dummy": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {}
+					}
+				],
+				"objectName": "OOB",
+				"featureName": "oobSensor"
+			}
+		]
+	},
 	"characters": {
 		"gameObjects": [
 			{

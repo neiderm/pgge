@@ -222,6 +222,30 @@ public class GameScreen extends TimedGameScreen {
             };
         }
 
+
+        GameFeature oobSensor = sceneLoader.getFeature("oobSensor");
+
+        if (null != oobSensor) {
+            /*
+             * setup status sensor for player out of world  bounds (falling into the abyss(
+             */
+            StatusComponent oobSensComp = oobSensor.entity.getComponent(StatusComponent.class);
+            oobSensComp.statusUpdater = new OmniSensor(pickedPlayer , new Vector3(20, 20, 20), true) {
+
+                @Override
+                public void update(Entity sensor) {
+                    super.update(sensor);
+
+                    pickedPlayer.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
+
+                    if (getIsTriggered()) {
+                        pickedPlayer.getComponent(StatusComponent.class).lifeClock = 0;
+                    }
+                }
+            };
+        }
+
+
         /*
          * setup status sensor for player out of world  bounds (falling into the abyss(
          */
@@ -239,9 +263,6 @@ public class GameScreen extends TimedGameScreen {
             Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
             Vector3 bounds = new Vector3(20, 20, 20);
 
-            // the reference point for determining an object has exitted the level
-            float boundsDst2 = bounds.dst2(origin);
-            Vector3 v = new Vector3();
             Ray lookRay = new Ray();
             private Vector3 tmpV3 = new Vector3();
 
@@ -257,18 +278,6 @@ public class GameScreen extends TimedGameScreen {
 
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
                 gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-
-                if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
-                    GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState() ){
-
-                    e.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
-
-                    v = e.getComponent(ModelComponent.class).modelInst.transform.getTranslation(v);
-
-                    if (v.dst2(origin) > boundsDst2) {
-                        e.getComponent(StatusComponent.class).lifeClock = 0;
-                    }
-                }
             }
         };
     }
@@ -334,7 +343,9 @@ public class GameScreen extends TimedGameScreen {
 
                     case ROUND_ACTIVE:
                     case ROUND_COMPLETE_WAIT:
-                        if (0 == pickedPlayer.getComponent(StatusComponent.class).lifeClock){
+                        int lc = pickedPlayer.getComponent(StatusComponent.class).lifeClock;
+
+                        if (0 == lc){
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp =  screenTimer - (10 * 60); // fps
                         }

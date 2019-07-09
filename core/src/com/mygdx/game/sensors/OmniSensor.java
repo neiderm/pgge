@@ -20,13 +20,13 @@ public class OmniSensor extends VectorSensor {
     private Matrix4 tgtTransform;
     private boolean inverted = false;
 
-    public OmniSensor(Entity target, Vector3 omniRadius, boolean inverted) {
+    protected OmniSensor(Entity target, Vector3 omniRadius, boolean inverted) {
         this(target);
         this.inverted = true;
         this.omniRadius.set(omniRadius);
     }
 
-    public OmniSensor(Entity target) {
+    protected OmniSensor(Entity target) {
 
         this.target = target;
         tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;

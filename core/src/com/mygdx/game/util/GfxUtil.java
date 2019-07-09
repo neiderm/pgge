@@ -37,7 +37,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
-    private static Model makeModelMesh(int nVertices, String meshPartID) {
+    public static Model makeModelMesh(int nVertices, String meshPartID) {
 
         Model model;
         int maxVertices = nVertices;

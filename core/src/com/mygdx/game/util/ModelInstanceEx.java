@@ -14,6 +14,9 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 
+import static com.mygdx.game.util.GfxUtil.makeModelMesh;
+
+
 public class ModelInstanceEx extends ModelInstance {
 
     public ModelInstanceEx() {
@@ -131,6 +134,11 @@ mat.remove(BlendingAttribute.Type);
     public static ModelInstance getModelInstance(Model model, String node, Vector3 scale) {
 
         ModelInstance instance = getModelInstance(model, node);
+
+        if (null == instance){ // TODO: cleaner way to deal with objects like this
+            Model mdl = makeModelMesh(2, "line");
+            instance = new ModelInstance(mdl);
+        }
 
         // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
         if (null != scale) {
