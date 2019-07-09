@@ -8,7 +8,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 
 /**
- * Created by utf1247 on 12/21/2017.
+ * Created by neiderm on 12/21/2017.
  */
 
 public class BulletComponent implements Component {
@@ -33,35 +33,30 @@ public class BulletComponent implements Component {
         }
     }
 
-    private final MotionState motionstate;
     public final btCollisionShape shape;
     public final btRigidBody body;
-
     public float mass;
-
-    public final int id;
-    private static int cnt = 0;
-
+//    private final int id;
+//    private static int cnt = 0;
 
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 
-        Vector3 tmp = new Vector3();
-
-        this.id = cnt++;
+//        this.id = cnt++;
         this.shape = shape;
         this.mass = mass;
 
-        if (mass == 0) {
-            tmp = Vector3.Zero.cpy(); // GN: beware of modifying Zero!
-            this.motionstate = null;
-        } else {
-            this.shape.calculateLocalInertia(mass, tmp);
-            this.motionstate = new MotionState(transform);
+        Vector3 localInertia = new Vector3();
+        MotionState motionstate = null;
+
+        if (mass != 0) {
+            this.shape.calculateLocalInertia(mass, localInertia);
+            motionstate = new MotionState(transform);
         }
 
         btRigidBody.btRigidBodyConstructionInfo bodyInfo =
-                new btRigidBody.btRigidBodyConstructionInfo(mass, this.motionstate, this.shape, tmp);
+                new btRigidBody.btRigidBodyConstructionInfo(mass, motionstate, this.shape, localInertia);
+
         this.body = new btRigidBody(bodyInfo);
 //float crap = this.body.getFriction(); 0.5 default
         this.body.setFriction(0.8f); // doesn't make a difference for static/kinematic objects?
