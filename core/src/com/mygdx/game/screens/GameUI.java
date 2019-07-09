@@ -43,12 +43,12 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
-    public boolean  canExit; // wtfe
+    boolean canExit; // wtfe
 
     private static final int ALL_HIT_COUNT = 2;
     private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
-    int screenTimer = DEFAULT_SCREEN_TIME;
+    private int screenTimer = DEFAULT_SCREEN_TIME;
 
     int continueScreenTimeUp;
     boolean controllerInputsActive = false;
@@ -109,6 +109,10 @@ public class GameUI extends InGameMenu {
                 mapper.setAxis(-1, axes);
             }
         });
+    }
+
+    int getScreenTimer(){
+        return screenTimer;
     }
 
     public void onCameraSwitch(){ // mt

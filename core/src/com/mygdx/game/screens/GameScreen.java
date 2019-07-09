@@ -80,7 +80,6 @@ public class GameScreen extends TimedGameScreen {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
-    private PerspectiveCamera cam;
     private CameraInputController camController; // FirstPersonCameraController camController;
 //    private BitmapFont font;
 //    private OrthographicCamera guiCam;
@@ -116,7 +115,7 @@ public class GameScreen extends TimedGameScreen {
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 //        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
 
-        cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+        PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 //        cam.position.set(3f, 7f, 10f);
 //        cam.lookAt(0, 4, 0);
         cam.near = 1f;
@@ -188,9 +187,16 @@ public class GameScreen extends TimedGameScreen {
 */
         engine.addEntity(cameraEntity);
 
+
+        playerUI = initPlayerUI();
+
 // plug in the picked player
-        final StatusComponent sc = new StatusComponent(15, 10);
+        final StatusComponent sc = new StatusComponent(playerUI.getScreenTimer(), 10);
         pickedPlayer.add(sc);
+        /*
+         * setup status sensor for player out of world  bounds (falling into the abyss(
+         */
+        sc.statusUpdater = initStatusUpdater();
 
         GameFeature exitF = sceneLoader.getFeature("exit");
 
@@ -208,9 +214,7 @@ public class GameScreen extends TimedGameScreen {
 //                    }
 //                }
 //            };
-
             exitStatusComp.statusUpdater = new OmniSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
-
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
@@ -236,8 +240,6 @@ public class GameScreen extends TimedGameScreen {
                 public void update(Entity sensor) {
                     super.update(sensor);
 
-                    pickedPlayer.getComponent(StatusComponent.class).lifeClock = 2; // tmp ... for now jiust make sure it doesn't 0 out
-
                     if (getIsTriggered()) {
                         pickedPlayer.getComponent(StatusComponent.class).lifeClock = 0;
                     }
@@ -245,13 +247,6 @@ public class GameScreen extends TimedGameScreen {
             };
         }
 
-
-        /*
-         * setup status sensor for player out of world  bounds (falling into the abyss(
-         */
-        sc.statusUpdater = initStatusUpdater();
-
-        playerUI = initPlayerUI();
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -259,9 +254,6 @@ public class GameScreen extends TimedGameScreen {
     private IStatusUpdater initStatusUpdater(){
 
         return new BulletEntityStatusUpdate() {
-
-            Vector3 origin = new Vector3(0, 0, 0); // the reference point for determining an object has exitted the level
-            Vector3 bounds = new Vector3(20, 20, 20);
 
             Ray lookRay = new Ray();
             private Vector3 tmpV3 = new Vector3();
@@ -314,8 +306,8 @@ public class GameScreen extends TimedGameScreen {
                     gameObject.mass = 1f;
                     gameObject.isShadowed = true;
                     gameObject.scale = new Vector3(1, 1, 1);
-                    gameObject.objectName = new String("*");
-                    gameObject.meshShape = new String("convexHullShape");
+                    gameObject.objectName = "*";
+                    gameObject.meshShape = "convexHullShape";
 
                     sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
                     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
@@ -347,7 +339,7 @@ public class GameScreen extends TimedGameScreen {
 
                         if (0 == lc){
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
-                            continueScreenTimeUp =  screenTimer - (10 * 60); // fps
+                            continueScreenTimeUp = getScreenTimer() - (10 * 60); // fps
                         }
                         break;
 
@@ -385,7 +377,6 @@ public class GameScreen extends TimedGameScreen {
             super.setEntity(picked);
 
             if (EVT_HIT_DETECT == eventType) {
-
 // if (null != picked){
 // }
             }
