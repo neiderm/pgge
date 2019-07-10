@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -35,15 +34,12 @@ public class StatusSystem extends IteratingSystem {
 
 //        if (null != comp) 
             {
-                if (null != comp.statusUpdater) {
-                    comp.statusUpdater.update(entity);
+                if (null != comp.feature) {
+                    comp.feature.update(entity);
                 }
             }
 
             if (comp.lifeClock > 0) {
-
-                if (1 == comp.lifeClock)
-                    Gdx.app.log("Status", "comp.lifeClock == " + comp.lifeClock);
 
                 comp.lifeClock -= 1;
             }
