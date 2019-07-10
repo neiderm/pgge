@@ -1,4 +1,4 @@
-package com.mygdx.game.sensors;
+package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Matrix4;
@@ -10,12 +10,11 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by neiderm on 7/5/2018.
- *
- * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
- * (Basically this is eimplemetnation for an Exit sensor)
+ * <p>
+ * sensor for close proximity in one direction to a target
  */
 
-public class VectorSensor extends SensorIntrf {
+public class VectorSensor extends SensorAdaptor {
 
     private Vector3 myPos = new Vector3();
     private Vector3 playerPos = new Vector3();
@@ -25,13 +24,13 @@ public class VectorSensor extends SensorIntrf {
     Entity target;
     boolean isTriggered;
 
-    public VectorSensor(){/*mt*/}
+    public VectorSensor() {/*mt*/}
 
-    public VectorSensor(Entity target){
+    public VectorSensor(Entity target) {
         this.target = target;
     }
 
-    protected boolean getIsTriggered(){
+    protected boolean getIsTriggered() {
         return isTriggered;
     }
 
@@ -50,8 +49,8 @@ public class VectorSensor extends SensorIntrf {
         myPos.add(lookRay.direction);
         myPos.sub(playerPos);
 
-            if (Math.abs(myPos.x) < 1.0f && Math.abs(myPos.z) < 1.0f){
-                isTriggered = true;
+        if (Math.abs(myPos.x) < 1.0f && Math.abs(myPos.z) < 1.0f) {
+            isTriggered = true;
         }
     }
 }

@@ -37,7 +37,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -52,19 +51,17 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.CharacterStatus;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sensors.OmniSensor;
-import com.mygdx.game.sensors.VectorSensor;
+import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
-import com.mygdx.game.util.BulletEntityStatusUpdate;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.IStatusUpdater;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -187,34 +184,43 @@ public class GameScreen extends TimedGameScreen {
 */
         engine.addEntity(cameraEntity);
 
-
         playerUI = initPlayerUI();
 
-// plug in the picked player
-        final StatusComponent sc = new StatusComponent(playerUI.getScreenTimer(), 10);
+
+        StatusComponent sc = new StatusComponent(playerUI.getScreenTimer(), 10);
+
+        sc.feature = new CharacterStatus() {
+            @Override
+            public void update(Entity e) {
+
+                super.update(e);
+//                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
+                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, getLookRay(), 0)); // maybe pass transform and invoke lookRay there
+                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, getLookRay(), 0)); // maybe pass transform and invoke lookRay there
+            }
+        };
+
         pickedPlayer.add(sc);
-        /*
-         * setup status sensor for player out of world  bounds (falling into the abyss(
-         */
-        sc.statusUpdater = initStatusUpdater();
 
-        GameFeature exitF = sceneLoader.getFeature("exit");
+        makeExitSensor("exit", pickedPlayer);
+        makeOOBSensor("oobSensor", pickedPlayer);
 
-        if (null != exitF) {
+        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
+        Gdx.input.setInputProcessor(multiplexer);
+    }
 
-            StatusComponent exitStatusComp = exitF.entity.getComponent(StatusComponent.class);
-//            exitStatusComp.statusUpdater = new VectorSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
-//
-//                @Override
-//                public void update(Entity sensor) {
-//                    super.update(sensor);
-//
-//                    if (getIsTriggered()) {
-//                        playerUI.canExit = true;
-//                    }
-//                }
-//            };
-            exitStatusComp.statusUpdater = new OmniSensor(pickedPlayer /* sceneLoader.getFeature("player").entity */) {
+    /*
+     * exitSensor
+     */
+    private void makeExitSensor(String featureName, final Entity entity){
+
+        GameFeature feature = sceneLoader.getFeature(featureName);
+
+        if (null != feature) {
+
+            StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
+
+            comp.feature = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
@@ -225,53 +231,30 @@ public class GameScreen extends TimedGameScreen {
                 }
             };
         }
+    }
 
+    /*
+     * out-of-bounds sensor
+     */
+    private void makeOOBSensor(String featureName, final Entity entity){
 
-        GameFeature oobSensor = sceneLoader.getFeature("oobSensor");
+        GameFeature feature = sceneLoader.getFeature(featureName);
 
-        if (null != oobSensor) {
-            /*
-             * setup status sensor for player out of world  bounds (falling into the abyss(
-             */
-            StatusComponent oobSensComp = oobSensor.entity.getComponent(StatusComponent.class);
-            oobSensComp.statusUpdater = new OmniSensor(pickedPlayer , new Vector3(20, 20, 20), true) {
+        if (null != feature) {
 
+            StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
+
+            comp.feature = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
 
                     if (getIsTriggered()) {
-                        pickedPlayer.getComponent(StatusComponent.class).lifeClock = 0;
+                        entity.getComponent(StatusComponent.class).lifeClock = 0;
                     }
                 }
             };
         }
-
-        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
-        Gdx.input.setInputProcessor(multiplexer);
-    }
-
-    private IStatusUpdater initStatusUpdater(){
-
-        return new BulletEntityStatusUpdate() {
-
-            Ray lookRay = new Ray();
-            private Vector3 tmpV3 = new Vector3();
-
-            @Override
-            public void update(Entity e) {
-//                super.update(e);
-/*
-                        gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0));
-*/
-                Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
-                lookRay.set(transform.getTranslation(tmpV3),
-                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
-
-                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-            }
-        };
     }
 
     private GameUI initPlayerUI(){
@@ -418,8 +401,6 @@ public class GameScreen extends TimedGameScreen {
 
     private Vector3 tmpV = new Vector3();
     private Vector3 tmpPos = new Vector3();
-    private Quaternion rotation = new Quaternion();
-    private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private GfxUtil camDbgLineInstance = new GfxUtil();
     private Matrix4 chaserTransform = new Matrix4();
     private SteeringEntity chaserSteerable = new SteeringEntity();
@@ -491,7 +472,7 @@ debugPrint("**", color, 0, 0 );
     /*
      * debug only (betch is ended each call)
      */
-    public  void debugPrint(String string, Color color, int row, int col){
+    private void debugPrint(String string, Color color, int row, int col){
 
         int y = (int) ((float) row * font.getLineHeight() + font.getLineHeight());
         int x = (int) ((float) col * font.getLineHeight());

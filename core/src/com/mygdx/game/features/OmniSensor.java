@@ -1,4 +1,4 @@
-package com.mygdx.game.sensors;
+package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Matrix4;
@@ -15,7 +15,7 @@ public class OmniSensor extends VectorSensor {
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
-    private Vector3 omniRadius = new Vector3(1.5f, 1.5f, 1.5f);
+    private Vector3 omniRadius = new Vector3(1.5f, 1.5f, 1.5f); // bah hardcoded!
     private Vector3 tgtPosition = new Vector3();
     private Matrix4 tgtTransform;
     private boolean inverted = false;

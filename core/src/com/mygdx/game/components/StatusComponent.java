@@ -1,7 +1,7 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
-import com.mygdx.game.util.IStatusUpdater;
+import com.mygdx.game.features.FeatureIntrf;
 
 /**
  * Created by neiderm on 7/5/2018.
@@ -9,7 +9,7 @@ import com.mygdx.game.util.IStatusUpdater;
 
 public class StatusComponent implements Component {
 
-    public String name;
+    public String name; // tmp??????
 
     private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 999 * FPS;
@@ -21,7 +21,7 @@ public class StatusComponent implements Component {
     // hackme: all should be removeable EXCEPT player
     public boolean isEntityRemoveable = true;
 
-    public IStatusUpdater statusUpdater;
+    public FeatureIntrf feature;
 
 
     private StatusComponent() {
