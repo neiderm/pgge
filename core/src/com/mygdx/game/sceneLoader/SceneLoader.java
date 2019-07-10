@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mygdx.game;
+package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -29,18 +29,14 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
-import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.ModelInfo;
-import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.features.FeatureIntrf;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -184,31 +180,100 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private void checkIfFeature(GameObject gameObject, Entity e){
+    private void checkIfFeature(GameObject gameObject, Entity e) {
 
-        if (null != gameObject.featureName){
+        if (null != gameObject.featureName) {
 
-            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key
+//            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key
+            GameFeature f = getFeature(gameObject.featureName);
+
+            StatusComponent sc = new StatusComponent(gameObject.featureName);
+            e.add(sc);
+
+            e.add(new DeleteMeComponent());
+
 
             if (null != f) {
 //                if (gameObject.objectName.equals(f.objectName))
                 {
-                    StatusComponent sc = new StatusComponent(gameObject.featureName);
+// for now, statusComponent.isDRemoveable default is true and featureIntrf entity gets a DeleteMe comp by default
 
-// for now, statusComponent.isDRemoveable default is true and feature entity gets a DeleteMe comp by default
-                    e.add(new DeleteMeComponent());
+                    f.entity = e;
 
                     if (f.dieTimeSecs > 0)
                         sc.dieClock = f.dieTimeSecs * 60; // TODO: global FPS
 
                     if (f.lifeTimeSecs > 0)
-                            sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
+                        sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
 
-                    e.add(sc);
-                    f.entity = e;
                     gameData.features.put(gameObject.featureName, f);
+
+
+                    if (gameObject.featureName.contains("Platform")) {
+                        makePlatform(gameObject.featureName, e);
+                    }
                 }
             }
+        }
+    }
+
+    private void makePlatform(String featureName, Entity entity) {
+
+        GameFeature feature = getFeature(featureName);
+
+        if (null != feature) {
+
+// tmp use these as increments for now ....
+//            featureIntrf.lifeTimeSecs = +1;
+//            featureIntrf.dieTimeSecs = -1;
+
+//            final int lifeTimeSecs = feature.lifeTimeSecs;
+//            int dieTimeSecs = feature.dieTimeSecs;
+
+
+            StatusComponent comp = entity.getComponent(StatusComponent.class);
+
+            comp.featureIntrf = new FeatureIntrf() {
+
+                static final int travelDuration = 5 * 60;
+                float travelInc = 0.075f;
+                int travelTimer = travelDuration;
+
+                @Override
+                public void update(Entity featureEnt) {
+
+                    //               super.update(featureIntrf);
+
+                    StatusComponent sc = featureEnt.getComponent(StatusComponent.class);
+                    sc.dieClock = 999; // i don't wanna die
+
+                    if (sc.lifeClock > 0) { // tmp
+
+                    } else {
+
+                        if (travelTimer > 0) {
+                            travelTimer -= 1;
+                        } else {
+                            travelInc *= -1; // reverse reverse
+                            travelInc = 0; // tmp
+                            travelTimer = travelDuration;
+                        }
+
+                        ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
+
+//                    messWithColor(instance);
+
+                        instance.transform.trn(0, 0, travelInc); // only moves visual model, not the body!
+
+                        BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
+
+                        if (null != bc) {
+                            bc.body.setWorldTransform(instance.transform);
+                        }
+                    }
+                }
+            }
+            ;
         }
     }
 
@@ -256,7 +321,7 @@ public class SceneLoader implements Disposable {
 
                     String rootNodeId;
                     btCollisionShape shape = null;
-                    ModelInstance instance = null;
+                    ModelInstance instance;
 
                     // look for model Info name matching object name
                     ModelInfo mdlInfo = gameData.modelInfo.get(gameObject.objectName);
@@ -296,7 +361,7 @@ public class SceneLoader implements Disposable {
                 else
                 {
                     /* load all nodes from model that match /objectName.*/
-                    buildNodes(engine, groupModel, gameObject, null) ;
+                    buildNodes(engine, groupModel, gameObject) ;
                 }
             }
         }
@@ -308,7 +373,7 @@ public class SceneLoader implements Disposable {
      * However walking the model is needed for globbed object name, not
      * seeing a more efficient way right now.
      */
-    public void buildNodes(Engine engine, Model model, GameObject gameObject, Vector3 translation) {
+    private void buildNodes(Engine engine, Model model, GameObject gameObject) {
         buildNodes(engine, model, gameObject, null, false) ;
     }
 

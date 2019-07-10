@@ -21,7 +21,7 @@ public class StatusComponent implements Component {
     // hackme: all should be removeable EXCEPT player
     public boolean isEntityRemoveable = true;
 
-    public FeatureIntrf feature;
+    public FeatureIntrf featureIntrf;
 
 
     private StatusComponent() {

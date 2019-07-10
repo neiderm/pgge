@@ -25,7 +25,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.SceneLoader;
+import com.mygdx.game.sceneLoader.SceneLoader;
 
 import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 

@@ -35,7 +35,6 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
@@ -52,9 +51,9 @@ import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.CharacterStatus;
+import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -189,7 +188,7 @@ public class GameScreen extends TimedGameScreen {
 
         StatusComponent sc = new StatusComponent(playerUI.getScreenTimer(), 10);
 
-        sc.feature = new CharacterStatus() {
+        sc.featureIntrf = new CharacterStatus() {
             @Override
             public void update(Entity e) {
 
@@ -220,7 +219,7 @@ public class GameScreen extends TimedGameScreen {
 
             StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
 
-            comp.feature = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
+            comp.featureIntrf = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
@@ -244,7 +243,7 @@ public class GameScreen extends TimedGameScreen {
 
             StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
 
-            comp.feature = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
+            comp.featureIntrf = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);

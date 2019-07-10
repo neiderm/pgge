@@ -2,7 +2,7 @@ package com.mygdx.game.screens;
 
 
 import com.badlogic.gdx.Screen;
-import com.mygdx.game.SceneLoader;
+import com.mygdx.game.sceneLoader.SceneLoader;
 
 
 abstract class TimedGameScreen implements Screen {
