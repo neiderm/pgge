@@ -11,7 +11,7 @@ import com.mygdx.game.components.ModelComponent;
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
 
-public class OmniSensor extends VectorSensor {
+public class OmniSensor extends SensorAdaptor {
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();

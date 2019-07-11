@@ -21,17 +21,11 @@ public class VectorSensor extends SensorAdaptor {
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
-    Entity target;
-    boolean isTriggered;
 
     public VectorSensor() {/*mt*/}
 
     public VectorSensor(Entity target) {
         this.target = target;
-    }
-
-    protected boolean getIsTriggered() {
-        return isTriggered;
     }
 
     @Override
