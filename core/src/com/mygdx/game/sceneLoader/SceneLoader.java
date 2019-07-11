@@ -219,51 +219,61 @@ public class SceneLoader implements Disposable {
 
     private void makePlatform(String featureName, Entity entity) {
 
-        GameFeature feature = getFeature(featureName);
-
-        if (null != feature) {
-
-// tmp use these as increments for now ....
-//            featureIntrf.lifeTimeSecs = +1;
-//            featureIntrf.dieTimeSecs = -1;
-
-//            final int lifeTimeSecs = feature.lifeTimeSecs;
-//            int dieTimeSecs = feature.dieTimeSecs;
-
+        if (null != getFeature(featureName)) {
 
             StatusComponent comp = entity.getComponent(StatusComponent.class);
 
             comp.featureIntrf = new FeatureIntrf() {
 
-                static final int travelDuration = 5 * 60;
-                float travelInc = 0.075f;
-                int travelTimer = travelDuration;
+                static final float Z_MIN = -5f;
+                static final float Z_MAX = 15.0f;
+
+                static final float TRAVEL_STEP = 0.075f;
+
+                static final int STOP_TIME = 3 * 60; // FPS
+                int stopTimer = STOP_TIME;
+
+                static final float STEP_RAMP_INC = 0.005f;
+                float increment = STEP_RAMP_INC;
+
+                int travelDirection = 1;
+                Vector3 tmpV = new Vector3();
 
                 @Override
                 public void update(Entity featureEnt) {
-
                     //               super.update(featureIntrf);
 
                     StatusComponent sc = featureEnt.getComponent(StatusComponent.class);
                     sc.dieClock = 999; // i don't wanna die
 
-                    if (sc.lifeClock > 0) { // tmp
+                    ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
 
-                    } else {
+                    if (stopTimer-- <= 0) {
 
-                        if (travelTimer > 0) {
-                            travelTimer -= 1;
-                        } else {
-                            travelInc *= -1; // reverse reverse
-                            travelInc = 0; // tmp
-                            travelTimer = travelDuration;
+                        if (increment < TRAVEL_STEP)
+                            increment += STEP_RAMP_INC;
+
+                        float finalIncremnt  = increment * travelDirection;
+
+                        instance.transform.trn(0, 0, finalIncremnt); // only moves visual model, not the body!
+
+                        tmpV = instance.transform.getTranslation(tmpV);
+                        float newZ = tmpV.z;
+
+                        if (newZ >= Z_MAX || newZ <= Z_MIN) {
+                            travelDirection *= -1;
+                            stopTimer = STOP_TIME;
+                            increment = STEP_RAMP_INC;
+
+                            // snap in the destination coordinate in case of overshooot
+                            if (newZ > Z_MAX)
+                                tmpV.z = Z_MAX;
+
+                            if (newZ < Z_MIN)
+                                tmpV.z = Z_MIN;
+
+                            instance.transform.setTranslation(tmpV);
                         }
-
-                        ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
-
-//                    messWithColor(instance);
-
-                        instance.transform.trn(0, 0, travelInc); // only moves visual model, not the body!
 
                         BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
 
@@ -272,8 +282,7 @@ public class SceneLoader implements Disposable {
                         }
                     }
                 }
-            }
-            ;
+            };
         }
     }
 
