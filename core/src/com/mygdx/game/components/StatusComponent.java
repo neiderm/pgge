@@ -9,13 +9,14 @@ import com.mygdx.game.features.FeatureIntrf;
 
 public class StatusComponent implements Component {
 
-    public String name; // tmp??????
+//    public String name; // tmp??????
 
     private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 999 * FPS;
     private static final int DIECLOCKDEFAULT = 10 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
+
     public int dieClock = DIECLOCKDEFAULT;
 
     // hackme: all should be removeable EXCEPT player
@@ -24,7 +25,7 @@ public class StatusComponent implements Component {
     public FeatureIntrf featureIntrf;
 
 
-    private StatusComponent() {
+    public StatusComponent() {
 
         this("no-name");
         isEntityRemoveable = false; // tmp workaround for player
@@ -38,6 +39,6 @@ public class StatusComponent implements Component {
 
     public StatusComponent(String name) {
 
-        this.name = name;
+//        this.name = name;
     }
 }

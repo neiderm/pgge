@@ -22,6 +22,6 @@ public class GameFeature {
 
 //    public String objectName;
     public Entity entity;
-    public int lifeTimeSecs;
-    public int dieTimeSecs;
+//    public int lifeTimeSecs;
+//    public int dieTimeSecs;
 }

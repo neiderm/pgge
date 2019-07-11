@@ -33,10 +33,10 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.DeleteMeComponent;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.features.FeatureIntrf;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -183,31 +183,20 @@ public class SceneLoader implements Disposable {
     private void checkIfFeature(GameObject gameObject, Entity e) {
 
         if (null != gameObject.featureName) {
-
 //            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key
             GameFeature f = getFeature(gameObject.featureName);
-
-            StatusComponent sc = new StatusComponent(gameObject.featureName);
-            e.add(sc);
-
-            e.add(new DeleteMeComponent());
-
 
             if (null != f) {
 //                if (gameObject.objectName.equals(f.objectName))
                 {
-// for now, statusComponent.isDRemoveable default is true and featureIntrf entity gets a DeleteMe comp by default
+// isEntityRemoveable = false; // tmp workaround for player
+// for now, statusComponent.isDRemoveable default is true and entity gets a DeleteMe comp by default
 
                     f.entity = e;
-
-                    if (f.dieTimeSecs > 0)
-                        sc.dieClock = f.dieTimeSecs * 60; // TODO: global FPS
-
-                    if (f.lifeTimeSecs > 0)
-                        sc.lifeClock = f.lifeTimeSecs * 60; // TODO: global FPS
+                    e.add(new FeatureComponent());
+                    e.add(new DeleteMeComponent());
 
                     gameData.features.put(gameObject.featureName, f);
-
 
                     if (gameObject.featureName.contains("Platform")) {
                         makePlatform(gameObject.featureName, e);
@@ -219,71 +208,66 @@ public class SceneLoader implements Disposable {
 
     private void makePlatform(String featureName, Entity entity) {
 
-        if (null != getFeature(featureName)) {
+        entity.add(new FeatureComponent(
 
-            StatusComponent comp = entity.getComponent(StatusComponent.class);
+                new FeatureAdaptor() {
 
-            comp.featureIntrf = new FeatureIntrf() {
+                    static final float Z_MIN = -5f;
+                    static final float Z_MAX = 15.0f;
 
-                static final float Z_MIN = -5f;
-                static final float Z_MAX = 15.0f;
+                    static final float TRAVEL_STEP = 0.075f;
 
-                static final float TRAVEL_STEP = 0.075f;
+                    static final int STOP_TIME = 3 * 60; // FPS
+                    int stopTimer = STOP_TIME;
 
-                static final int STOP_TIME = 3 * 60; // FPS
-                int stopTimer = STOP_TIME;
+                    static final float STEP_RAMP_INC = 0.005f;
+                    float increment = STEP_RAMP_INC;
 
-                static final float STEP_RAMP_INC = 0.005f;
-                float increment = STEP_RAMP_INC;
+                    int travelDirection = 1;
+                    Vector3 tmpV = new Vector3();
 
-                int travelDirection = 1;
-                Vector3 tmpV = new Vector3();
+                    @Override
+                    public void update(Entity featureEnt) {
+                        //               super.update(featureIntrf);
 
-                @Override
-                public void update(Entity featureEnt) {
-                    //               super.update(featureIntrf);
+                        ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
 
-                    StatusComponent sc = featureEnt.getComponent(StatusComponent.class);
-                    sc.dieClock = 999; // i don't wanna die
+                        if (stopTimer-- <= 0) {
 
-                    ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
+                            if (increment < TRAVEL_STEP)
+                                increment += STEP_RAMP_INC;
 
-                    if (stopTimer-- <= 0) {
+                            float finalIncremnt = increment * travelDirection;
 
-                        if (increment < TRAVEL_STEP)
-                            increment += STEP_RAMP_INC;
+                            instance.transform.trn(0, 0, finalIncremnt); // only moves visual model, not the body!
 
-                        float finalIncremnt  = increment * travelDirection;
+                            tmpV = instance.transform.getTranslation(tmpV);
+                            float newZ = tmpV.z;
 
-                        instance.transform.trn(0, 0, finalIncremnt); // only moves visual model, not the body!
+                            if (newZ >= Z_MAX || newZ <= Z_MIN) {
+                                travelDirection *= -1;
+                                stopTimer = STOP_TIME;
+                                increment = STEP_RAMP_INC;
 
-                        tmpV = instance.transform.getTranslation(tmpV);
-                        float newZ = tmpV.z;
+                                // snap in the destination coordinate in case of overshooot
+                                if (newZ > Z_MAX)
+                                    tmpV.z = Z_MAX;
 
-                        if (newZ >= Z_MAX || newZ <= Z_MIN) {
-                            travelDirection *= -1;
-                            stopTimer = STOP_TIME;
-                            increment = STEP_RAMP_INC;
+                                if (newZ < Z_MIN)
+                                    tmpV.z = Z_MIN;
 
-                            // snap in the destination coordinate in case of overshooot
-                            if (newZ > Z_MAX)
-                                tmpV.z = Z_MAX;
+                                instance.transform.setTranslation(tmpV);
+                            }
 
-                            if (newZ < Z_MIN)
-                                tmpV.z = Z_MIN;
+                            BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
 
-                            instance.transform.setTranslation(tmpV);
-                        }
-
-                        BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
-
-                        if (null != bc) {
-                            bc.body.setWorldTransform(instance.transform);
+                            if (null != bc) {
+                                bc.body.setWorldTransform(instance.transform);
+                            }
                         }
                     }
                 }
-            };
-        }
+        ));
     }
 
     public GameFeature getFeature(String featureName){

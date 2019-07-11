@@ -43,6 +43,7 @@ import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.DeleteMeComponent;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -56,6 +57,7 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
+import com.mygdx.game.systems.FeatureSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.systems.StatusSystem;
@@ -142,6 +144,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
+        engine.addSystem(new FeatureSystem());
 
         sceneLoader.buildScene(engine);
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
@@ -217,9 +220,9 @@ public class GameScreen extends TimedGameScreen {
 
         if (null != feature) {
 
-            StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
+            FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
 
-            comp.featureIntrf = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
+            comp.featureAdpt = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
@@ -241,9 +244,9 @@ public class GameScreen extends TimedGameScreen {
 
         if (null != feature) {
 
-            StatusComponent comp = feature.entity.getComponent(StatusComponent.class);
+            FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
 
-            comp.featureIntrf = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
+            comp.featureAdpt = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);
@@ -294,7 +297,7 @@ public class GameScreen extends TimedGameScreen {
                     sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
                     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
-                    picked.add(new DeleteMeComponent(true));
+                    picked.add(new DeleteMeComponent(true)); // use statusComp to set lifeclock 0
                 }
             }
 
