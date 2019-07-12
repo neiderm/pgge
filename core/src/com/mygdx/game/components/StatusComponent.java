@@ -1,7 +1,6 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
-import com.mygdx.game.features.FeatureIntrf;
 
 /**
  * Created by neiderm on 7/5/2018.
@@ -21,8 +20,6 @@ public class StatusComponent implements Component {
 
     // hackme: all should be removeable EXCEPT player
     public boolean isEntityRemoveable = true;
-
-    public FeatureIntrf featureIntrf;
 
 
     public StatusComponent() {

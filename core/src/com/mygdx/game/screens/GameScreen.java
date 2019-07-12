@@ -35,7 +35,9 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -51,7 +53,6 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
-import com.mygdx.game.features.CharacterStatus;
 import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
@@ -189,20 +190,7 @@ public class GameScreen extends TimedGameScreen {
         playerUI = initPlayerUI();
 
 
-        StatusComponent sc = new StatusComponent(playerUI.getScreenTimer(), 10);
-
-        sc.featureIntrf = new CharacterStatus() {
-            @Override
-            public void update(Entity e) {
-
-                super.update(e);
-//                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
-                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, getLookRay(), 0)); // maybe pass transform and invoke lookRay there
-                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, getLookRay(), 0)); // maybe pass transform and invoke lookRay there
-            }
-        };
-
-        pickedPlayer.add(sc);
+        pickedPlayer.add(new StatusComponent(playerUI.getScreenTimer(), 10));
 
         makeExitSensor("exit", pickedPlayer);
         makeOOBSensor("oobSensor", pickedPlayer);
@@ -341,6 +329,26 @@ public class GameScreen extends TimedGameScreen {
                     controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                             (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                 }
+
+                updateRays();
+            }
+
+            Ray lookRay = new Ray();
+            Vector3 tmpV3 = new Vector3();
+            Quaternion rotation = new Quaternion();
+            Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
+
+            void updateRays(){
+
+                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+
+                lookRay.set(transform.getTranslation(tmpV3),
+                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
+
+                //                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
+                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+
             }
         };
     }
