@@ -1,6 +1,6 @@
 {
 "features": {
-	"exit": {}
+	"ExitSensor": {}
 },
 "modelGroups": {
 	"characters": {
@@ -107,7 +107,7 @@
 			},
 			{
 				"objectName": "Exit",
-				"featureName": "exit"
+				"featureName": "ExitSensor"
 			}
 		]
 	},

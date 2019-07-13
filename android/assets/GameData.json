@@ -1,11 +1,7 @@
 {
 "features": {
-	"oobSensor": {},
-	"player": {},
-	"Platform1": {
-		"lifeTimeSecs": 2,
-		"dieTimeSecs": 3
-	}
+	"OobSensor": {},
+	"Platform1": {}
 },
 "modelGroups": {
 	"dummy": {
@@ -17,7 +13,7 @@
 					}
 				],
 				"objectName": "OOB",
-				"featureName": "oobSensor"
+				"featureName": "OobSensor"
 			}
 		]
 	},

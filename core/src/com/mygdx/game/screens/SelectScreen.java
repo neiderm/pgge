@@ -114,7 +114,7 @@ class SelectScreen extends TimedGameScreen {
         sceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
-        GameFeature f = sceneLoader.getFeature("player");
+        GameFeature f = sceneLoader.getFeature("Platform");
 
         if (null != f) {
             platform = f.entity;

@@ -192,8 +192,8 @@ public class GameScreen extends TimedGameScreen {
 
         pickedPlayer.add(new StatusComponent(playerUI.getScreenTimer(), 10));
 
-        makeExitSensor("exit", pickedPlayer);
-        makeOOBSensor("oobSensor", pickedPlayer);
+        makeExitSensor("ExitSensor", pickedPlayer);
+        makeOOBSensor("OobSensor", pickedPlayer);
 
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
@@ -210,7 +210,7 @@ public class GameScreen extends TimedGameScreen {
 
             FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
 
-            comp.featureAdpt = new OmniSensor(entity /* sceneLoader.getFeature("player").entity */) {
+            comp.featureAdpt = new OmniSensor(entity /* sceneLoader.getFeature("Player").entity ???? */) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);

@@ -1,6 +1,6 @@
 {
 "features": {
-	"player": {}
+	"Platform": {}
 },
 "modelGroups": {
 	"characters": {
@@ -27,7 +27,7 @@
 		"gameObjects": [
 			{
 				"objectName": "boxTex",
-				"featureName": "player",
+				"featureName": "Platform",
 				"scale": {
 					"x": 4,
 					"y": 0.2,
