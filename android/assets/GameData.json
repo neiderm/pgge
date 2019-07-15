@@ -1,7 +1,16 @@
 {
 "features": {
 	"OobSensor": {},
-	"Platform1": {}
+	"Platform1": {
+		"featureAdaptor": {
+			"class": "com.mygdx.game.features.MovingPlatform",
+			"vT": {
+				"x": 0,
+				"y": 0,
+				"z": 20
+			}
+		}
+	}
 },
 "modelGroups": {
 	"dummy": {

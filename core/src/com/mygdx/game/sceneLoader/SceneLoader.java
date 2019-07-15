@@ -23,6 +23,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -37,6 +38,8 @@ import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.features.FeatureAdaptor;
+import com.mygdx.game.features.MovingPlatform;
+import com.mygdx.game.features.SensorAdaptor;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -59,6 +62,9 @@ public class SceneLoader implements Disposable {
 
 //        gameData = new SceneData();
 /*
+Get rid of this? .. originally, to seed the first gaem data file .. no longer current or useful.
+Once the creation of those objects from JSON was understodd and done conrrectly , there was never
+again a need to creat3e these directly in code
         ModelGroup tanksGroup = new ModelGroup("tanks");
         tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
         tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
@@ -113,8 +119,9 @@ public class SceneLoader implements Disposable {
                 assets.load(gameData.modelInfo.get(key).fileName, Model.class);
             }
         }
-
-        SceneData.saveData(gameData);
+///*
+//        SceneData.saveData(gameData); // write it out as read for comparison to tthe Scene Data loaded from JSON (I like to keep the same order as the JSON formatter writes it )
+//*/
     }
 
     public AssetManager getAssets() {
@@ -180,94 +187,59 @@ public class SceneLoader implements Disposable {
     }
 
 
-    private void checkIfFeature(GameObject gameObject, Entity e) {
+    private void checkIfFeature(GameObject go, Matrix4 transform, Entity e) {
 
-        if (null != gameObject.featureName) {
-//            GameFeature f = gameData.features.get(gameObject.featureName); // obviously gameObject.featureName is used as the key
-            GameFeature f = getFeature(gameObject.featureName);
+        new MovingPlatform(); // dummy so it is not un-seen by intelliJ ;)
 
-            if (null != f) {
-//                if (gameObject.objectName.equals(f.objectName))
-                {
-// isEntityRemoveable = false; // tmp workaround for player
-// for now, statusComponent.isDRemoveable default is true and entity gets a DeleteMe comp by default
+        GameFeature gf = getFeature(go.featureName);  // obviously gameObject.featureName is used as the key
 
-                    f.entity = e;
-                    e.add(new FeatureComponent());
-                    e.add(new DeleteMeComponent());
+        if (null != gf) {
 
-                    gameData.features.put(gameObject.featureName, f);
+            gf.entity = e;
+// is deleteable
+            e.add(new DeleteMeComponent());
 
-                    if (gameObject.featureName.contains("Platform")) {
-                        makePlatform(gameObject.featureName, e);
+            FeatureAdaptor fa = gf.featureAdaptor;
+
+            if (null != fa) {
+
+                Class c = fa.getClass();
+                Gdx.app.log("asdf", "asdf " + c.toString());
+
+                FeatureAdaptor adaptor = null;
+
+                try {
+                    // The JSON read creates a new instance when sceneData is built, but we want to create a new
+                    // instance each time to be sure all data is initialized
+                    adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
+
+                    if (null != adaptor) {
+
+                        Vector3 tmpV = new Vector3();
+
+                        // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
+                        // get the "characteristiics" for this type from the JSON
+                        adaptor.vR.set(fa.vR);
+                        adaptor.vS.set(fa.vS);
+                        adaptor.vT.set(fa.vT);
+
+                        // get location or whatever from object instance data
+                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
+                        adaptor.vS0.set(transform.getScale(tmpV));
+                        adaptor.vT0.set(transform.getTranslation(tmpV));
+
+                        e.add(new FeatureComponent(adaptor));
                     }
+                } catch (Exception ex) {
+
+                    //System.out.println("we're doomed");
+                    ex.printStackTrace();
                 }
+            } else {
+                // I can't pass anything to my featureAdaptor constructor (newinstance()) but that FA needs reference to the gameObject that instaced it so park that in the feature comp.
+                e.add(new FeatureComponent()); // new FeatureComponent(gameObject);
             }
         }
-    }
-
-    private void makePlatform(String featureName, Entity entity) {
-
-        entity.add(new FeatureComponent(
-
-                new FeatureAdaptor() {
-
-                    static final float Z_MIN = -5f;
-                    static final float Z_MAX = 15.0f;
-
-                    static final float TRAVEL_STEP = 0.075f;
-
-                    static final int STOP_TIME = 3 * 60; // FPS
-                    int stopTimer = STOP_TIME;
-
-                    static final float STEP_RAMP_INC = 0.005f;
-                    float increment = STEP_RAMP_INC;
-
-                    int travelDirection = 1;
-                    Vector3 tmpV = new Vector3();
-
-                    @Override
-                    public void update(Entity featureEnt) {
-                        //               super.update(featureIntrf);
-
-                        ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
-
-                        if (stopTimer-- <= 0) {
-
-                            if (increment < TRAVEL_STEP)
-                                increment += STEP_RAMP_INC;
-
-                            float finalIncremnt = increment * travelDirection;
-
-                            instance.transform.trn(0, 0, finalIncremnt); // only moves visual model, not the body!
-
-                            tmpV = instance.transform.getTranslation(tmpV);
-                            float newZ = tmpV.z;
-
-                            if (newZ >= Z_MAX || newZ <= Z_MIN) {
-                                travelDirection *= -1;
-                                stopTimer = STOP_TIME;
-                                increment = STEP_RAMP_INC;
-
-                                // snap in the destination coordinate in case of overshooot
-                                if (newZ > Z_MAX)
-                                    tmpV.z = Z_MAX;
-
-                                if (newZ < Z_MIN)
-                                    tmpV.z = Z_MIN;
-
-                                instance.transform.setTranslation(tmpV);
-                            }
-
-                            BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
-
-                            if (null != bc) {
-                                bc.body.setWorldTransform(instance.transform);
-                            }
-                        }
-                    }
-                }
-        ));
     }
 
     public GameFeature getFeature(String featureName){
@@ -432,7 +404,7 @@ public class SceneLoader implements Disposable {
             ModelComponent mc = e.getComponent(ModelComponent.class);
             mc.model = model;  // bah
 
-            checkIfFeature(gameObject, e); // this is not really supported on a per-instance basis
+            checkIfFeature(gameObject, mc.modelInst.transform, e); // needs the origin location ... might as well send in the entire instance transform
 
         } while (null != id && n < gameObject.instanceData.size);
     }
@@ -497,6 +469,15 @@ public class SceneLoader implements Disposable {
 // new test file writer
         SceneData cpGameData = new SceneData();
 
+        for (String key : gameData.features.keySet()) {
+
+            GameFeature gf = new GameFeature(/*key*/);
+            gf.featureAdaptor = new SensorAdaptor();
+            gf.featureAdaptor.vR = new Vector3(1, 2, 3);
+
+            cpGameData.features.put(key, gf);
+        }
+
         for (String key : gameData.modelGroups.keySet()) {
 
             ModelGroup mg = new ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
@@ -514,6 +495,8 @@ public class SceneLoader implements Disposable {
 
             cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
         }
-//        saveData(cpGameData);
+        /*
+        saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
+        */
     }
 }
