@@ -1,11 +1,9 @@
 package com.mygdx.game.systems;
 
-import com.badlogic.ashley.core.Component;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.StatusComponent;
 
 /**
@@ -42,11 +40,7 @@ public class StatusSystem extends IteratingSystem {
                             // really die
                             if (comp.isEntityRemoveable) { // can be removed ...
 
-                                Component deleteMe = entity.getComponent(DeleteMeComponent.class);
-
-                                if (null != deleteMe) {
-                                    entity.getComponent(DeleteMeComponent.class).deleteMe = true;
-                                }
+                                comp.deleteMe = true;
                             }
                         }
                     }

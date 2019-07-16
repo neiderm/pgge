@@ -44,7 +44,6 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -285,7 +284,7 @@ public class GameScreen extends TimedGameScreen {
                     sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
                     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
-                    picked.add(new DeleteMeComponent(true)); // use statusComp to set lifeclock 0
+                    picked.add(new StatusComponent(true));
                 }
             }
 
@@ -466,9 +465,10 @@ debugPrint("**", color, 0, 0 );
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
-        for (Entity e : engine.getEntitiesFor(Family.all(DeleteMeComponent.class).get())) {
-            if (null != e) {
-                if (e.getComponent(DeleteMeComponent.class).deleteMe) {
+          for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
+//            if (null != e)
+            {
+                if (e.getComponent(StatusComponent.class).deleteMe) {
                     engine.removeEntity(e);
                 }
             }

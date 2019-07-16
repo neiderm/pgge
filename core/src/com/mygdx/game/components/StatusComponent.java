@@ -15,27 +15,24 @@ public class StatusComponent implements Component {
     private static final int DIECLOCKDEFAULT = 10 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
-
     public int dieClock = DIECLOCKDEFAULT;
 
     // hackme: all should be removeable EXCEPT player
     public boolean isEntityRemoveable = true;
-
+    public boolean deleteMe;
 
     public StatusComponent() {
 
-        this("no-name");
         isEntityRemoveable = false; // tmp workaround for player
+    }
+
+    public StatusComponent(boolean deleteMe){
+        this.deleteMe = deleteMe;
     }
 
     public StatusComponent(int lifeClockSecs, int dieClockSecs) {
         this();
         this.lifeClock = lifeClockSecs * FPS;
         this.dieClock = dieClockSecs * FPS;
-    }
-
-    public StatusComponent(String name) {
-
-//        this.name = name;
     }
 }

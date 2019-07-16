@@ -33,7 +33,6 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.DeleteMeComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
@@ -209,8 +208,6 @@ again a need to creat3e these directly in code
         if (null != gf) {
 
             gf.entity = e;
-// is deleteable
-            e.add(new DeleteMeComponent());
 
             FeatureAdaptor fa = gf.featureAdaptor;
 
