@@ -31,7 +31,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object parameter (extends Stage implements Screen ???? )
  *  http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
  *
- *  intented as singletonKeep, keep this thin
+ *  intented as singleton, keep this thin.
  */
 
 public final class GameWorld implements Disposable {
@@ -139,23 +139,11 @@ public final class GameWorld implements Disposable {
     }
 
 
-    private String playerObjectName;
-
-    public void setPlayerObjectName(String playerObjectName){
-        this.playerObjectName = playerObjectName;
-    }
-
-    public String getPlayerObjectName(){
-        return playerObjectName;
-    }
-
-
     private SceneData sceneData;
 
     public void setSceneData(String path, String playerObjectName) {
 
-        setPlayerObjectName(playerObjectName);
-        sceneData = SceneData.loadData(path);
+        sceneData = SceneData.loadData(path, playerObjectName);
     }
 
     public void setSceneData(String path) {

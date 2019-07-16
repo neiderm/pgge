@@ -22,13 +22,20 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class SceneData {
 
-    public HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
-    public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
-    public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
+    public Map<String, GameFeature> features = new HashMap<String, GameFeature>();
+    public Map<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
+    public Map<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
+    private static String playerObjectName;
+
+
+    public static String getPlayerObjectName(){
+        return playerObjectName;
+    }
 
     public static void saveData(SceneData data) {
         Json json = new Json();
@@ -39,6 +46,13 @@ public class SceneData {
             fileHandle.writeString(json.prettyPrint(data), false);
             //System.out.println(json.prettyPrint(gameData));
         }
+    }
+
+
+    public static SceneData loadData(String path,  String playerObjectName){
+
+        SceneData.playerObjectName = playerObjectName;
+        return loadData(path);
     }
 
     public static SceneData loadData(String path) {

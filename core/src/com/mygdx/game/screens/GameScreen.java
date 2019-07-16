@@ -150,8 +150,8 @@ public class GameScreen extends TimedGameScreen {
         sceneLoader.buildScene(engine);
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
-        // name of picked player rig as read from model is stashed in PickRayComp as a hack ;)
-        String objectName = GameWorld.getInstance().getPlayerObjectName();
+        GameFeature pf = sceneLoader.getFeature("Player"); // make tag a defined string
+        String objectName = pf.featureName;
 
         for (Entity e : characters) {
 

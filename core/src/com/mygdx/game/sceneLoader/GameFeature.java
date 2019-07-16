@@ -21,8 +21,16 @@ import com.mygdx.game.features.FeatureAdaptor;
 
 public class GameFeature {
 
-//    public String objectName;
+    public String featureName;
     public Entity entity;
 
     FeatureAdaptor featureAdaptor;
+
+    public GameFeature(){
+    }
+
+    public GameFeature(String featureName){
+
+        this.featureName = featureName;
+    }
 }

@@ -53,7 +53,6 @@ import java.util.Random;
 
 public class SceneLoader implements Disposable {
 
-    private SceneData gameData;
     private static boolean useTestObjects = true;
     private AssetManager assets;
 
@@ -103,7 +102,7 @@ again a need to creat3e these directly in code
 
 //        initializeGameData();
 
-        this.gameData = GameWorld.getInstance().getSceneData();//        gameData = SceneData.loadData(path);
+        SceneData sd = GameWorld.getInstance().getSceneData();
 
         assets = new AssetManager();
 /*
@@ -114,9 +113,9 @@ again a need to creat3e these directly in code
         assets.load("data/scene.g3dj", Model.class);
 */
 //        int i = gameData.modelInfo.values().size();
-        for (String key : gameData.modelInfo.keySet()) {
-            if (null != gameData.modelInfo.get(key).fileName) {
-                assets.load(gameData.modelInfo.get(key).fileName, Model.class);
+        for (String key : sd.modelInfo.keySet()) {
+            if (null != sd.modelInfo.get(key).fileName) {
+                assets.load(sd.modelInfo.get(key).fileName, Model.class);
             }
         }
 ///*
@@ -145,14 +144,28 @@ again a need to creat3e these directly in code
     }*/
 
 
+  /*
+   * build up the scene chunk after the background asset loading process is finished
+   */
     public void doneLoading() {
 
-        for (String key : gameData.modelInfo.keySet()) {
-            if (null != gameData.modelInfo.get(key).fileName) {
-                gameData.modelInfo.get(key).model = assets.get(gameData.modelInfo.get(key).fileName, Model.class);
+        SceneData sd = GameWorld.getInstance().getSceneData();
+
+        /* get references to the loaded models */
+        for (String key : sd.modelInfo.keySet()) {
+            if (null != sd.modelInfo.get(key).fileName) {
+                sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Model.class);
             }
         }
-//        gameData.modelInfo.get("primitives").model = PrimitivesBuilder.primitivesModel; // maybe we don't need it
+
+        /* next step is for the client SCreen to build up the scene chunk */
+
+        String pn = SceneData.getPlayerObjectName();
+
+        if (null != pn){
+            GameFeature gf = new GameFeature(pn);
+            sd.features.put("Player", gf);
+        }
     }
 
     private static void createTestObjects(Engine engine) {
@@ -189,7 +202,7 @@ again a need to creat3e these directly in code
 
     private void checkIfFeature(GameObject go, Matrix4 transform, Entity e) {
 
-        new MovingPlatform(); // dummy so it is not un-seen by intelliJ ;)
+        new MovingPlatform(); // dummy so it is not seen as unreferenced by intelliJ ;)
 
         GameFeature gf = getFeature(go.featureName);  // obviously gameObject.featureName is used as the key
 
@@ -244,19 +257,22 @@ again a need to creat3e these directly in code
 
     public GameFeature getFeature(String featureName){
 
-        return gameData.features.get(featureName);
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        return sd.features.get(featureName);
     }
 
     public void buildScene(Engine engine) {
 
         createTestObjects(engine);
 
-        for (String key : gameData.modelGroups.keySet()) {
+        SceneData sd = GameWorld.getInstance().getSceneData();
+
+        for (String key : sd.modelGroups.keySet()) {
 
             Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
-            ModelGroup mg = gameData.modelGroups.get(key);
-            ModelInfo mi = gameData.modelInfo.get(mg.modelName); // mg can't be null ;)
+            ModelGroup mg = sd.modelGroups.get(key);
+            ModelInfo mi = sd.modelInfo.get(mg.modelName); // mg can't be null ;)
             Model groupModel = null;
 
             if (null != mi) {
@@ -289,7 +305,7 @@ again a need to creat3e these directly in code
                     ModelInstance instance;
 
                     // look for model Info name matching object name
-                    ModelInfo mdlInfo = gameData.modelInfo.get(gameObject.objectName);
+                    ModelInfo mdlInfo = sd.modelInfo.get(gameObject.objectName);
 
                     if (null != mdlInfo) {
 
@@ -468,8 +484,9 @@ again a need to creat3e these directly in code
 
 // new test file writer
         SceneData cpGameData = new SceneData();
+        SceneData sd = GameWorld.getInstance().getSceneData();
 
-        for (String key : gameData.features.keySet()) {
+        for (String key : sd.features.keySet()) {
 
             GameFeature gf = new GameFeature(/*key*/);
             gf.featureAdaptor = new SensorAdaptor();
@@ -478,11 +495,11 @@ again a need to creat3e these directly in code
             cpGameData.features.put(key, gf);
         }
 
-        for (String key : gameData.modelGroups.keySet()) {
+        for (String key : sd.modelGroups.keySet()) {
 
-            ModelGroup mg = new ModelGroup(key /* gameData.modelGroups.get(key).groupName */);
+            ModelGroup mg = new ModelGroup(key /* sd.modelGroups.get(key).groupName */);
 
-            for (GameObject o : gameData.modelGroups.get(key).gameObjects) {
+            for (GameObject o : sd.modelGroups.get(key).gameObjects) {
 
                 GameObject cpObject = new GameObject(o.objectName, o.meshShape);
 
@@ -493,7 +510,7 @@ again a need to creat3e these directly in code
                 mg.gameObjects.add(cpObject);
             }
 
-            cpGameData.modelGroups.put(key /* gameData.modelGroups.get(key).groupName */, mg);
+            cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
         }
         /*
         saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
