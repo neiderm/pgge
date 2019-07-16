@@ -26,9 +26,10 @@ import java.util.Map;
 
 public class SceneData {
 
-    public Map<String, GameFeature> features = new HashMap<String, GameFeature>();
-    public Map<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
-    public Map<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
+    // ignore Lint warning about using type Map ?
+    public HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
+    public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
+    public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
     private static String playerObjectName;
 
