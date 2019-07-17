@@ -15,7 +15,6 @@ public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
     public boolean isPlayer;
-    public String objectName;
 
 //    public CharacterComponent() { // mt
 /////*
@@ -30,15 +29,12 @@ public class CharacterComponent implements Component {
 ////*/
 //    }
 
-    public CharacterComponent(String objectName){
-
-        this(objectName, false);
+    public CharacterComponent(){ // mt
     }
 
-    public CharacterComponent(String objectName, boolean isPlayer){
+    public CharacterComponent(boolean isPlayer){
 
         this.isPlayer = isPlayer;
-        this.objectName = new String(objectName);
     }
 
     public CharacterComponent(SteeringEntity steeringEntity) {

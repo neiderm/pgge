@@ -31,7 +31,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -41,8 +40,10 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.util.GfxUtil;
 
 
 /*
@@ -59,7 +60,6 @@ class SelectScreen extends TimedGameScreen {
     private InputMapper mapper = new InputMapper();
     private Engine engine = new Engine();
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private Environment environment;
     private DirectionalShadowLight shadowLight;
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
     private BitmapFont font;
@@ -84,7 +84,7 @@ class SelectScreen extends TimedGameScreen {
     @Override
     public void show() {
 
-        environment = new Environment();
+        Environment environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 
@@ -185,10 +185,6 @@ class SelectScreen extends TimedGameScreen {
     }
 
     // tmp for the pick marker
-    private GfxUtil gfxLine = new GfxUtil();
-    private Vector3 tmpV = new Vector3();
-    private Matrix4 tmpM = new Matrix4();
-    private Quaternion rotation = new Quaternion();
     private Vector3 down = new Vector3();
     private float degreesInst; // instantaneous commanded rotation of platform
     private float degreesSetp; // demanded rotation of platform
@@ -293,8 +289,12 @@ class SelectScreen extends TimedGameScreen {
 // So the screen may actually own and instance the scene data, not the sceene loader.
         // screen pass sceneData to scene loader as parameter.
 
-        GameWorld.getInstance().setSceneData(path,
-                characters.get(idxCurSel).getComponent(CharacterComponent.class).objectName); // whatever
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        ModelGroup mg = sd.modelGroups.get("characters");
+        GameObject go = mg.gameObjects.get(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
+
+        GameWorld.getInstance().setSceneData(path, go.objectName);
+
         return new LoadingScreen();
     }
 

@@ -20,7 +20,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
-import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
@@ -46,7 +45,6 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
@@ -124,7 +122,7 @@ public class GameScreen extends TimedGameScreen {
 //        camController = new FirstPersonCameraController(cam);
 
         // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
-        BulletWorld.getInstance().initialize(cam);              // TODO: screen inheritcs from e.g. "ScreenWithBulletWorld"
+        BulletWorld.getInstance().initialize(cam);              //  screen could inherit from e.g. "ScreenWithBulletWorld" ???
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -147,24 +145,9 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new FeatureSystem());
 
         sceneLoader.buildScene(engine);
-        ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         GameFeature pf = sceneLoader.getFeature("Player"); // make tag a defined string
-        String objectName = pf.featureName;
-
-        for (Entity e : characters) {
-
-            CharacterComponent pc  = e.getComponent(CharacterComponent.class);
-
-            if (null != pc.objectName && pc.objectName.equals(objectName)) {
-                pickedPlayer = e;
-                break;
-            }
-        }
-
-        pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
-        pickedPlayer.remove(CharacterComponent.class); // only needed it for selecting the steerables ....
-        pickedPlayer.add(new CharacterComponent(objectName, true));
+        pickedPlayer = pf.entity;
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -209,7 +192,7 @@ public class GameScreen extends TimedGameScreen {
 
             FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
 
-            comp.featureAdpt = new OmniSensor(entity /* sceneLoader.getFeature("Player").entity ???? */) {
+            comp.featureAdpt = new OmniSensor(entity) {
                 @Override
                 public void update(Entity sensor) {
                     super.update(sensor);

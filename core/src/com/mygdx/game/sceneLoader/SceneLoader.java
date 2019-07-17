@@ -250,6 +250,18 @@ again a need to creat3e these directly in code
                 e.add(new FeatureComponent()); // new FeatureComponent(gameObject);
             }
         }
+
+// this is just stuck here ... check each game object name matches the name of the picked player objecgt
+        GameFeature playerFeature = getFeature("Player");
+        if (null != playerFeature) {
+//                if (null != gf.featureName)
+            {
+                if (go.objectName.equals(playerFeature.featureName)) {
+                    playerFeature.entity = e;
+                    e.getComponent(CharacterComponent.class).isPlayer = true;
+                }
+            }
+        }
     }
 
     public GameFeature getFeature(String featureName){
@@ -462,11 +474,11 @@ again a need to creat3e these directly in code
 
 //        if (gameObject.isSteerable) {
         if (gameObject.isCharacter) {
-            e.add(new CharacterComponent(gameObject.objectName));
+            e.add(new CharacterComponent());
         }
 
         if (gameObject.isPickable) {
-            e.add(new PickRayComponent()); // set the object name ... yeh pretty hacky
+            e.add(new PickRayComponent());
         }
 
         return e;
