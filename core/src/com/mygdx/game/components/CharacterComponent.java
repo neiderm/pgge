@@ -16,25 +16,7 @@ public class CharacterComponent implements Component {
     public SteeringEntity steerable;
     public boolean isPlayer;
 
-//    public CharacterComponent() { // mt
-/////*
-//        setSteerable(new SteeringEntity(){
-//            // steeringBehavior left null so it doesn't do anything in the update()
-///*
-//                         public void update(float deltaTime) {
-//                             float t = deltaTime;
-//                         }
-//  */
-//        });
-////*/
-//    }
-
-    public CharacterComponent(){ // mt
-    }
-
-    public CharacterComponent(boolean isPlayer){
-
-        this.isPlayer = isPlayer;
+    public CharacterComponent(){ /* mt */
     }
 
     public CharacterComponent(SteeringEntity steeringEntity) {

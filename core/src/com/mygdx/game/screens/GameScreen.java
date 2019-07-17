@@ -45,6 +45,7 @@ import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
@@ -148,6 +149,8 @@ public class GameScreen extends TimedGameScreen {
 
         GameFeature pf = sceneLoader.getFeature("Player"); // make tag a defined string
         pickedPlayer = pf.entity;
+
+        pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
