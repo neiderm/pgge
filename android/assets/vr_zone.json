@@ -1,6 +1,10 @@
 {
 "features": {
-	"ExitSensor": {}
+	"ExitSensor": {
+		"featureAdaptor": {
+			"inverted": false
+		}
+	}
 },
 "modelGroups": {
 	"characters": {
@@ -203,18 +207,6 @@
 				"mass": 0.1,
 				"meshShape": "btBoxShape",
 				"isShadowed": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 2.7,
-							"y": 6.1,
-							"z": 3.1
-						}
-					}
-				],
-				"objectName": "Exit"
 			}
 		]
 	}

@@ -57,16 +57,18 @@ public class MovingPlatform extends FeatureAdaptor {
         //               super.update(featureIntrf);
         ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
 
-        // sum of pointA and our offset vector which is by convention in vT
-        vA.set(vT0);
-        vB.set(vA);
-        vB.add(vT);
-
-        // see about dat
-        float Z_MIN = vA.z;
-        float Z_MAX = vB.z;
 
         if (stopTimer-- <= 0) {
+
+            // sum of pointA and our offset vector which is by convention in vT
+            vA.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
+            vB.set(vA);
+            vB.add(vT);
+
+            // see about dat
+            float Z_MIN = vA.z;
+            float Z_MAX = vB.z;
+
 
             if (increment < TRAVEL_STEP) {
                 increment += STEP_RAMP_INC;

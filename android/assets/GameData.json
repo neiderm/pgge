@@ -1,6 +1,15 @@
 {
 "features": {
-	"OobSensor": {},
+	"OobSensor": {
+		"vSnfi": {
+			"x": 20,
+			"y": 20,
+			"z": 20
+		},
+		"featureAdaptor": {
+			"class": "com.mygdx.game.features.OmniSensor"
+		}
+	},
 	"Platform1": {
 		"featureAdaptor": {
 			"class": "com.mygdx.game.features.MovingPlatform",
@@ -18,7 +27,11 @@
 			{
 				"instanceData": [
 					{
-						"translation": {}
+						"translation": {
+							"x": 0.1,
+							"y": 0.1,
+							"z": 0.1
+						}
 					}
 				],
 				"objectName": "OOB",

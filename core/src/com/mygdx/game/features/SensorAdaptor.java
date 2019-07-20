@@ -8,7 +8,6 @@ import com.badlogic.ashley.core.Entity;
 
 public class SensorAdaptor extends FeatureAdaptor {
 
-    Entity target;
     boolean isTriggered;
 
     protected boolean getIsTriggered() {

@@ -38,12 +38,14 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.MovingPlatform;
-import com.mygdx.game.features.SensorAdaptor;
+import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
+
+import static com.mygdx.game.sceneLoader.SceneData.saveData;
 
 
 /**
@@ -204,23 +206,29 @@ again a need to creat3e these directly in code
         new MovingPlatform(); // dummy so it is not seen as unreferenced by intelliJ ;)
 
         GameFeature gf = getFeature(go.featureName);  // obviously gameObject.featureName is used as the key
+        FeatureAdaptor adaptor;
 
         if (null != gf) {
 
-            gf.entity = e;
+            gf.setEntity(e); ///   bah assigning one entity to a Game Feature
+
 
             FeatureAdaptor fa = gf.featureAdaptor;
 
             if (null != fa) {
 
                 Class c = fa.getClass();
-                Gdx.app.log("asdf", "asdf " + c.toString());
-
-                FeatureAdaptor adaptor = null;
+                String tmpClassName = c.toString();
+                if (tmpClassName.contains("Feature")){
+                        Gdx.app.log("asdf", tmpClassName); // tmp
+}
 
                 try {
                     // The JSON read creates a new instance when sceneData is built, but we want to create a new
                     // instance each time to be sure all data is initialized
+                    // this is only being used for type information ... it is instanced in SceneeData but the idea
+                    // is for each game Object (Entity) to have it's own feature adatpr instance
+
                     adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
 
                     if (null != adaptor) {
@@ -229,13 +237,15 @@ again a need to creat3e these directly in code
 
                         // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
                         // get the "characteristiics" for this type from the JSON
-                        adaptor.vR.set(fa.vR);
-                        adaptor.vS.set(fa.vS);
+//                        adaptor.vR.set(fa.vR);
+//                        adaptor.vS.set(fa.vS);
                         adaptor.vT.set(fa.vT);
-
+//adaptor.vT = fa.vT.cpy();
                         // get location or whatever from object instance data
-                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
-                        adaptor.vS0.set(transform.getScale(tmpV));
+//                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
+//                        adaptor.vS0.set(transform.getScale(tmpV));
+
+                        // grab the starting Origin (translation) of the entity from the instance data
                         adaptor.vT0.set(transform.getTranslation(tmpV));
 
                         e.add(new FeatureComponent(adaptor));
@@ -257,7 +267,7 @@ again a need to creat3e these directly in code
 //                if (null != gf.featureName)
             {
                 if (go.objectName.equals(playerFeature.featureName)) {
-                    playerFeature.entity = e;
+                    playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
                     e.getComponent(CharacterComponent.class).isPlayer = true;
                 }
             }
@@ -269,6 +279,51 @@ again a need to creat3e these directly in code
         SceneData sd = GameWorld.getInstance().getSceneData();
         return sd.features.get(featureName);
     }
+
+//    Entity getPlayer() {
+//        GameFeature playerFeature = getFeature("Player");
+//        return playerFeature.entity;
+//    }
+
+    /*
+     * out-of-bounds sensor
+     */
+    private void makeOOBSensor() {
+
+        GameFeature playerFeature = getFeature("Player");
+        final Entity playerEntity = playerFeature.getEntity();
+
+//        if (null != playerFeature)
+        {
+            GameFeature sensorFeature = getFeature("OobSensor");
+
+            if (null != sensorFeature) {
+
+                Vector3 size = new Vector3((sensorFeature.vSnfi));
+
+//ModelComponent mc = sensorFeature.entity.getComponent(ModelComponent.class);
+//Matrix4 transform = mc.modelInst.transform;
+//size.set(transform.getTranslation(size));
+
+// GameFeature is not to be tie to just one entity!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                FeatureComponent comp = sensorFeature.getEntity().getComponent(FeatureComponent.class);
+
+//                comp.featureAdpt = new OmniSensor(playerEntity, size, true);
+comp.featureAdpt.setTarget(playerEntity, size, true);
+                //{
+    //                @Override
+  //                  public void update(Entity sensor) {
+//                        super.update(sensor);
+//
+//                        if (getIsTriggered()) {
+//                            playerEntity.getComponent(StatusComponent.class).lifeClock = 0;
+//                        }
+  //                  }
+                //} ;
+            }
+        }
+    }
+
 
     public void buildScene(Engine engine) {
 
@@ -295,6 +350,10 @@ again a need to creat3e these directly in code
 
             for (GameObject gameObject : mg.gameObjects) {
 
+if (gameObject.objectName.contains("Exit")){
+    Gdx.app.log("asdf", "asdf");
+}
+
                 if (mg.isKinematic){
                     gameObject.isKinematic = mg.isKinematic;
                 }
@@ -306,7 +365,7 @@ again a need to creat3e these directly in code
                 }
 
                 Model model;
-
+// if (null != groupModel){
                 if (null == groupModel){
 
                     String rootNodeId;
@@ -355,6 +414,12 @@ again a need to creat3e these directly in code
                 }
             }
         }
+
+        GameFeature playerFeature = getFeature("Player");
+
+        if (null != playerFeature) {
+                makeOOBSensor();
+        }
     }
 
     /*
@@ -377,15 +442,15 @@ again a need to creat3e these directly in code
             if (node.id.contains(unGlobbedObjectName)) {
 
                 // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
-                ModelInstance instance = ModelInstanceEx.getModelInstance(model, node.id, gameObject.scale);
+                ModelInstance mi = ModelInstanceEx.getModelInstance(model, node.id, gameObject.scale);
 
                 if (null != translation) {
-                    instance.transform.setTranslation(0, 0, 0); // set trans only (absolute)
-                    instance.transform.trn(translation);   // set trans only (offset)
+                    mi.transform.setTranslation(0, 0, 0); // set trans only (absolute)
+                    mi.transform.trn(translation);   // set trans only (offset)
                 }
 
                 if (useLocalTranslation){
-                    instance.transform.trn(node.localTransform.getTranslation(new Vector3()));
+                    mi.transform.trn(node.localTransform.getTranslation(new Vector3()));
                 }
 
                 btCollisionShape shape = null;
@@ -395,7 +460,7 @@ again a need to creat3e these directly in code
                 if (null != gameObject.meshShape) {
                     BoundingBox boundingBox = new BoundingBox();
                     Vector3 dimensions = new Vector3();
-                    instance.calculateBoundingBox(boundingBox);
+                    mi.calculateBoundingBox(boundingBox);
 
                     shape = PrimitivesBuilder.getShape(
                             gameObject.meshShape, boundingBox.getDimensions(dimensions), node); // instance.getNode(node.id),
@@ -404,26 +469,29 @@ again a need to creat3e these directly in code
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
-                buildGameObject(model, engine, gameObject, instance, shape);
+                buildGameObject(model, engine, gameObject, mi, shape);
             } // else  ... bail out if matched an un-globbed name ?
         }
     }
 
     // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
-    private void buildGameObject(Model model, Engine engine, GameObject gameObject, ModelInstance instance, btCollisionShape shape) {
+    private void buildGameObject(Model model, Engine engine, GameObject gameObject, ModelInstance modelInst, btCollisionShape shape) {
 
         InstanceData id;
         int n = 0;
 
         do { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
-            id = null;
+//            id = null;
 
             if (gameObject.instanceData.size > 0) {
 
                 id = gameObject.instanceData.get(n++);
             }
+            else{
+                id = new InstanceData( /* blah blah whateger */ ); // this snhouldl eventually simpllify thigns
+            }
 
-            Entity e = buildObjectInstance(instance.copy(), gameObject, shape, id);
+            Entity e = buildObjectInstance(modelInst.copy(), gameObject, shape, id);
             engine.addEntity(e);
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -498,8 +566,8 @@ again a need to creat3e these directly in code
         for (String key : sd.features.keySet()) {
 
             GameFeature gf = new GameFeature(/*key*/);
-            gf.featureAdaptor = new SensorAdaptor();
-            gf.featureAdaptor.vR = new Vector3(1, 2, 3);
+            gf.featureAdaptor = new OmniSensor();
+//            gf.featureAdaptor.vR = new Vector3(1, 2, 3);
 
             cpGameData.features.put(key, gf);
         }
@@ -521,8 +589,8 @@ again a need to creat3e these directly in code
 
             cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
         }
-        /*
+//        /*
         saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
-        */
+//        */
     }
 }

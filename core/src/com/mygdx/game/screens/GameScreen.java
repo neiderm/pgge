@@ -148,8 +148,7 @@ public class GameScreen extends TimedGameScreen {
         sceneLoader.buildScene(engine);
 
         GameFeature pf = sceneLoader.getFeature("Player"); // make tag a defined string
-        pickedPlayer = pf.entity;
-
+        pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
@@ -174,11 +173,10 @@ public class GameScreen extends TimedGameScreen {
 
         playerUI = initPlayerUI();
 
-
         pickedPlayer.add(new StatusComponent(playerUI.getScreenTimer(), 10));
 
         makeExitSensor("ExitSensor", pickedPlayer);
-        makeOOBSensor("OobSensor", pickedPlayer);
+//        makeOOBSensor("OobSensor", pickedPlayer);
 
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
@@ -193,8 +191,10 @@ public class GameScreen extends TimedGameScreen {
 
         if (null != feature) {
 
-            FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
+            FeatureComponent comp = feature.getEntity().getComponent(FeatureComponent.class);
 
+            Vector3 tmp = new Vector3( comp.featureAdpt.vT0 ); // tmp
+// tossing away the FA built from JSON .... how to default handle getIsTriggered() ... not Override?
             comp.featureAdpt = new OmniSensor(entity) {
                 @Override
                 public void update(Entity sensor) {
@@ -205,32 +205,11 @@ public class GameScreen extends TimedGameScreen {
                     }
                 }
             };
+
+            comp.featureAdpt.vT0.set(tmp); // tmp
         }
     }
 
-    /*
-     * out-of-bounds sensor
-     */
-    private void makeOOBSensor(String featureName, final Entity entity){
-
-        GameFeature feature = sceneLoader.getFeature(featureName);
-
-        if (null != feature) {
-
-            FeatureComponent comp = feature.entity.getComponent(FeatureComponent.class);
-
-            comp.featureAdpt = new OmniSensor(entity , new Vector3(20, 20, 20), true) {
-                @Override
-                public void update(Entity sensor) {
-                    super.update(sensor);
-
-                    if (getIsTriggered()) {
-                        entity.getComponent(StatusComponent.class).lifeClock = 0;
-                    }
-                }
-            };
-        }
-    }
 
     private GameUI initPlayerUI(){
         /*

@@ -117,7 +117,7 @@ class SelectScreen extends TimedGameScreen {
         GameFeature f = sceneLoader.getFeature("Platform");
 
         if (null != f) {
-            platform = f.entity;
+            platform = f.getEntity();
         }
 
         stage = new Stage();

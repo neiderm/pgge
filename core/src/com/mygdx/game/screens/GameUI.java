@@ -43,10 +43,10 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
-    boolean canExit; // wtfe
+    boolean canExit; // exit sensor is tripped
 
     private static final int ALL_HIT_COUNT = 2;
-    private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
+    private static final int DEFAULT_SCREEN_TIME = 25 * 60 ; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
@@ -449,8 +449,12 @@ public class GameUI extends InGameMenu {
                 break;
 
             case ROUND_COMPLETE_WAIT:
-//                if (screenTimer <= 0){
-                if (canExit) {
+        if (screenTimer <= 0){
+                screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+        }
+
+                if (canExit) { // exit sensor is tripped
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
                 }
                 break;

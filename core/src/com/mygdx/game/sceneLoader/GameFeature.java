@@ -17,14 +17,21 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.features.FeatureAdaptor;
 
 public class GameFeature {
 
     public String featureName;
-    public Entity entity;
+    private Entity entity;
 
+
+    // this is only being used for type information ... it is instanced in SceneeData but the idea
+    // is for each game Object (Entity) to have it's own feature adatpr instance
     FeatureAdaptor featureAdaptor;
+
+    public Vector3 vSnfi;
+
 
     public GameFeature(){
     }
@@ -32,5 +39,12 @@ public class GameFeature {
     public GameFeature(String featureName){
 
         this.featureName = featureName;
+    }
+
+    public void setEntity(Entity entity){
+        this.entity = entity;
+    }
+    public Entity getEntity(){
+        return this.entity;
     }
 }
