@@ -7,17 +7,14 @@
 		"gameObjects": [
 			{
 				"objectName": "truck",
-				"isPickable": true,
 				"isShadowed": true
 			},
 			{
 				"objectName": "militaryvan",
-				"isPickable": true,
 				"isShadowed": true
 			},
 			{
 				"objectName": "tank",
-				"isPickable": true,
 				"isShadowed": true
 			}
 		],
