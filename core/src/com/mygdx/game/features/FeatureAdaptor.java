@@ -20,12 +20,13 @@ import com.badlogic.gdx.math.Vector3;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
-    Entity target;
-    boolean inverted;
+    protected Entity target;
+
+    public boolean inverted;
 
         // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
 //    public Vector3 vR = new Vector3();
-//    public Vector3 vS = new Vector3();
+    public Vector3 vS = new Vector3();
     public Vector3 vT = new Vector3();
 
     // origins or other gameObject.instance specific data - position, scale etc.
@@ -37,9 +38,19 @@ public class FeatureAdaptor implements FeatureIntrf {
      * for sensors and similar - need a means to assign parameters outside of no-argument constructor (loading classes from JSON)
      * sub-classes may override this and use params at their discrection. 
      */
-    public void setTarget(Entity target, Vector3 v3, boolean flag){
-        this.target = target;
+    public void setTarget(Entity target, Vector3 v3, boolean flag){ /* mt */
+//        setTarget(target);
+//        this.inverted = flag;
     }
+
+//    private void setTarget(Entity target){
+//        this.target = target;
+//    }
+//
+//    // have to poll the exit sensor
+//    public boolean _getIsTriggered() {
+//        return false;
+//    }
 
     @Override
     public void update(Entity e) { // mt

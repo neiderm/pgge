@@ -1,10 +1,6 @@
 {
 "features": {
-	"ExitSensor": {
-		"featureAdaptor": {
-			"inverted": false
-		}
-	}
+	"ExitSensor": {}
 },
 "modelGroups": {
 	"characters": {

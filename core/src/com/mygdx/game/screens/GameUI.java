@@ -436,7 +436,7 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
 //                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 }
-                else if (0 == screenTimer){
+                else if (screenTimer <= 0){
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
@@ -449,10 +449,10 @@ public class GameUI extends InGameMenu {
                 break;
 
             case ROUND_COMPLETE_WAIT:
-        if (screenTimer <= 0){
-                screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
-                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
-        }
+                if (screenTimer <= 0) {
+                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
+                }
 
                 if (canExit) { // exit sensor is tripped
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);

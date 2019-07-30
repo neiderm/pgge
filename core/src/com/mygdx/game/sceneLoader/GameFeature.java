@@ -18,25 +18,18 @@ package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.features.FeatureAdaptor;
 
 public class GameFeature {
 
-    public String featureName;
+    String featureName;
+    public Vector3 v3data;
     private Entity entity;
 
 
-    // this is only being used for type information ... it is instanced in SceneeData but the idea
-    // is for each game Object (Entity) to have it's own feature adatpr instance
-    FeatureAdaptor featureAdaptor;
-
-    public Vector3 vSnfi;
-
-
-    public GameFeature(){
+    GameFeature(){
     }
 
-    public GameFeature(String featureName){
+    GameFeature(String featureName){
 
         this.featureName = featureName;
     }

@@ -16,9 +16,10 @@ public class OmniSensor extends SensorAdaptor {
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
-    private Vector3 omniRadius = new Vector3();
     private Vector3 tgtPosition = new Vector3();
-    private Matrix4 tgtTransform;
+
+    public Vector3 omniRadius = new Vector3();
+    public Matrix4 tgtTransform;
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
 
@@ -38,15 +39,34 @@ public class OmniSensor extends SensorAdaptor {
         setTarget(target, DEFAULT_RADIUS, false);
     }
 
+    /*
+     * sets the given T0 vector as origin location (e.g. if object location loaded from model
+     */
+    public OmniSensor(Entity target, Vector3 vT0) {
+
+        this(target);
+        this.vT0.set(vT0); // sensor origin
+    }
+
     @Override
     public void setTarget(Entity target, Vector3 radius, boolean inverted){
 
         this.target = target;
+        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+//        setTarget(target);
+
         this.inverted = inverted;
         this.omniRadius.set(radius);
-
-        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
     }
+
+//    @Override
+//    public void setTarget(Entity target){
+//
+//        this.target = target;
+//        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+//
+//        this.omniRadius.set(vS);
+//    }
 
     @Override
     public void update(Entity sensor) {
@@ -54,12 +74,10 @@ public class OmniSensor extends SensorAdaptor {
 
         // grab the starting Origin (translation) of the entity from the instance data
         sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
-// .... not working because the vr_zone exit sensor is tied to model geometry so it's in there, just not in instancd data ;)
-
-//        sensorOrigin = sensor.getComponent(ModelComponent.class).modelInst.transform.getTranslation(sensorOrigin);
 
         bounds.set(sensorOrigin);
         bounds.add(omniRadius);
+
         float boundsDst2 = bounds.dst2(sensorOrigin);
         tgtPosition = tgtTransform.getTranslation(tgtPosition);
 
@@ -74,7 +92,7 @@ public class OmniSensor extends SensorAdaptor {
         }
 
         if (getIsTriggered()) {
-            target.getComponent(StatusComponent.class).lifeClock = 0;
+          // whatever ... target.getComponent(StatusComponent.class).lifeClock = 0;
         }
     }
 }

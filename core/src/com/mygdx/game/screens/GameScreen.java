@@ -51,7 +51,9 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.OmniSensor;
+import com.mygdx.game.features.SensorAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.systems.BulletSystem;
@@ -175,39 +177,44 @@ public class GameScreen extends TimedGameScreen {
 
         pickedPlayer.add(new StatusComponent(playerUI.getScreenTimer(), 10));
 
-        makeExitSensor("ExitSensor", pickedPlayer);
-//        makeOOBSensor("OobSensor", pickedPlayer);
+        makeExitSensor(pickedPlayer);
 
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
 
     /*
-     * exitSensor
+     * exitSensor - return the adapter so it can be polled
      */
-    private void makeExitSensor(String featureName, final Entity entity){
+    private //FeatureAdaptor
+            void makeExitSensor(Entity player) {
 
-        GameFeature feature = sceneLoader.getFeature(featureName);
+        FeatureAdaptor ftrAdptr = null;
+        GameFeature sensorFeature = sceneLoader.getFeature("ExitSensor");
 
-        if (null != feature) {
+        if (null != sensorFeature) {
 
-            FeatureComponent comp = feature.getEntity().getComponent(FeatureComponent.class);
+            /* bah get rid of entity feature adaptor auto loaded from json */
+            if (null != sensorFeature.getEntity()){
+                engine.removeEntity(sensorFeature.getEntity());
+            }
 
-            Vector3 tmp = new Vector3( comp.featureAdpt.vT0 ); // tmp
-// tossing away the FA built from JSON .... how to default handle getIsTriggered() ... not Override?
-            comp.featureAdpt = new OmniSensor(entity) {
+            /* re create exit sensor using the location data (v3data) loaded from the model (stashed in Feature )*/
+            ftrAdptr = new OmniSensor(player, sensorFeature.v3data /* sets sensor origin */){
                 @Override
-                public void update(Entity sensor) {
-                    super.update(sensor);
+                public boolean getIsTriggered(){
 
-                    if (getIsTriggered()) {
+                    if (isTriggered){
                         playerUI.canExit = true;
                     }
+                    return isTriggered;
                 }
             };
-
-            comp.featureAdpt.vT0.set(tmp); // tmp
+            Entity sensorEntity = new Entity();
+            sensorEntity.add(new FeatureComponent(ftrAdptr));
+            engine.addEntity(sensorEntity);
         }
+//        return ftrAdptr;
     }
 
 
@@ -296,7 +303,18 @@ public class GameScreen extends TimedGameScreen {
                 }
 
                 updateRays();
+
+// BAH ... avoided overloading the exit sensor but have to poll it
+//                if (null != exitSensor){
+//                    if (exitSensor.getIsTriggered()) {
+//                        canExit = true;
+//                    }
+//                }
             }
+
+            // make our own exit sensor in order to poll it :(
+//            SensorAdaptor exitSensor = (OmniSensor)makeExitSensor(pickedPlayer); // bah have to create the exit sensor manually and make its reference available for polling
+
 
             Ray lookRay = new Ray();
             Vector3 tmpV3 = new Vector3();

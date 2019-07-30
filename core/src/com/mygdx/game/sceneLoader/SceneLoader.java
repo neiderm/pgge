@@ -23,7 +23,6 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -36,6 +35,7 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.MovingPlatform;
 import com.mygdx.game.features.OmniSensor;
@@ -44,8 +44,6 @@ import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
-
-import static com.mygdx.game.sceneLoader.SceneData.saveData;
 
 
 /**
@@ -120,7 +118,7 @@ again a need to creat3e these directly in code
             }
         }
 ///*
-//        SceneData.saveData(gameData); // write it out as read for comparison to tthe Scene Data loaded from JSON (I like to keep the same order as the JSON formatter writes it )
+        SceneData.saveData(sd); // write it out as read for comparison to tthe Scene Data loaded from JSON (I like to keep the same order as the JSON formatter writes it )
 //*/
     }
 
@@ -201,77 +199,49 @@ again a need to creat3e these directly in code
     }
 
 
-    private void checkIfFeature(GameObject go, Matrix4 transform, Entity e) {
+    private FeatureAdaptor makeFeatureAdaptr(Vector3 position, FeatureAdaptor fa) {
 
         new MovingPlatform(); // dummy so it is not seen as unreferenced by intelliJ ;)
+        FeatureAdaptor adaptor = null;
 
-        GameFeature gf = getFeature(go.featureName);  // obviously gameObject.featureName is used as the key
-        FeatureAdaptor adaptor;
+        if (null != fa) {
 
-        if (null != gf) {
+            Class c = fa.getClass();
 
-            gf.setEntity(e); ///   bah assigning one entity to a Game Feature
+            if (c.toString().contains("Feature")) {
+                Gdx.app.log("asdf", c.toString()); // tmp
+            }
 
+            try {
+                // The JSON read creates a new instance when sceneData is built, but we want to create a new
+                // instance each time to be sure all data is initialized
+                // this is only being used for type information ... it is instanced in SceneeData but the idea
+                // is for each game Object (Entity) to have it's own feature adatpr instance
+                adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
 
-            FeatureAdaptor fa = gf.featureAdaptor;
-
-            if (null != fa) {
-
-                Class c = fa.getClass();
-                String tmpClassName = c.toString();
-                if (tmpClassName.contains("Feature")){
-                        Gdx.app.log("asdf", tmpClassName); // tmp
-}
-
-                try {
-                    // The JSON read creates a new instance when sceneData is built, but we want to create a new
-                    // instance each time to be sure all data is initialized
-                    // this is only being used for type information ... it is instanced in SceneeData but the idea
-                    // is for each game Object (Entity) to have it's own feature adatpr instance
-
-                    adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
-
-                    if (null != adaptor) {
-
-                        Vector3 tmpV = new Vector3();
-
-                        // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
-                        // get the "characteristiics" for this type from the JSON
+                if (null != adaptor) {
+                    // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
+                    // get the "characteristiics" for this type from the JSON
 //                        adaptor.vR.set(fa.vR);
-//                        adaptor.vS.set(fa.vS);
-                        adaptor.vT.set(fa.vT);
-//adaptor.vT = fa.vT.cpy();
-                        // get location or whatever from object instance data
+                    adaptor.vS.set(fa.vS);
+                    adaptor.vT.set(fa.vT);
+
+                    adaptor.inverted = fa.inverted; // I suppose
+
+                    // get location or whatever from object instance data
 //                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
 //                        adaptor.vS0.set(transform.getScale(tmpV));
 
-                        // grab the starting Origin (translation) of the entity from the instance data
-                        adaptor.vT0.set(transform.getTranslation(tmpV));
-
-                        e.add(new FeatureComponent(adaptor));
-                    }
-                } catch (Exception ex) {
-
-                    //System.out.println("we're doomed");
-                    ex.printStackTrace();
+                    // grab the starting Origin (translation) of the entity from the instance data
+                    adaptor.vT0.set(position);
                 }
-            } else {
-                // I can't pass anything to my featureAdaptor constructor (newinstance()) but that FA needs reference to the gameObject that instaced it so park that in the feature comp.
-                e.add(new FeatureComponent()); // new FeatureComponent(gameObject);
+            } catch (Exception ex) {
+                //System.out.println("we're doomed");
+                ex.printStackTrace();
             }
         }
 
-// this is just stuck here ... check each game object name matches the name of the picked player objecgt
-        GameFeature playerFeature = getFeature("Player");
-        if (null != playerFeature) {
-//                if (null != gf.featureName)
-            {
-                if (go.objectName.equals(playerFeature.featureName)) {
-                    playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-                    e.getComponent(CharacterComponent.class).isPlayer = true;
-                }
-            }
-        }
+        return adaptor;
     }
 
     public GameFeature getFeature(String featureName){
@@ -288,39 +258,29 @@ again a need to creat3e these directly in code
     /*
      * out-of-bounds sensor
      */
-    private void makeOOBSensor() {
+    private void makeOOBSensor(Engine engine, GameFeature playerFeature) {
 
-        GameFeature playerFeature = getFeature("Player");
-        final Entity playerEntity = playerFeature.getEntity();
+        GameFeature sensorFeature = getFeature("OobSensor");
 
-//        if (null != playerFeature)
-        {
-            GameFeature sensorFeature = getFeature("OobSensor");
+        if (null != sensorFeature) {
 
-            if (null != sensorFeature) {
+            Entity sensorEntity = new Entity();
 
-                Vector3 size = new Vector3((sensorFeature.vSnfi));
+            sensorEntity.add(new FeatureComponent(
 
-//ModelComponent mc = sensorFeature.entity.getComponent(ModelComponent.class);
-//Matrix4 transform = mc.modelInst.transform;
-//size.set(transform.getTranslation(size));
+                    new OmniSensor(
+                            playerFeature.getEntity(), new Vector3(sensorFeature.v3data), true) {
+                        @Override
+                        public boolean getIsTriggered(){
 
-// GameFeature is not to be tie to just one entity!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                FeatureComponent comp = sensorFeature.getEntity().getComponent(FeatureComponent.class);
+                            if (isTriggered){
+                                target.getComponent(StatusComponent.class).lifeClock = 0;
+                            }
+                            return isTriggered;
+                        }
+                    }));
 
-//                comp.featureAdpt = new OmniSensor(playerEntity, size, true);
-comp.featureAdpt.setTarget(playerEntity, size, true);
-                //{
-    //                @Override
-  //                  public void update(Entity sensor) {
-//                        super.update(sensor);
-//
-//                        if (getIsTriggered()) {
-//                            playerEntity.getComponent(StatusComponent.class).lifeClock = 0;
-//                        }
-  //                  }
-                //} ;
-            }
+            engine.addEntity(sensorEntity);
         }
     }
 
@@ -415,10 +375,23 @@ if (gameObject.objectName.contains("Exit")){
             }
         }
 
+        /*
+         * any other one-time setups after all file data object loaded ...
+         * FeatureAdaptors may need special sauce as they can only be new'd with the default constrcution
+         */
         GameFeature playerFeature = getFeature("Player");
 
+        // Select all entities from Engine with FeatureComp, set target to player
+//        ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
+//        for (Entity fe : feats){
+//            FeatureAdaptor fa = fe.getComponent(FeatureComponent.class).featureAdpt;
+//            if (null !=  fa){ // have to set default ... default target is player ...
+//                fa.setTarget(playerFeature.getEntity());
+//            }
+//        }
+
         if (null != playerFeature) {
-                makeOOBSensor();
+            makeOOBSensor(engine, playerFeature);
         }
     }
 
@@ -475,20 +448,16 @@ if (gameObject.objectName.contains("Exit")){
     }
 
     // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
-    private void buildGameObject(Model model, Engine engine, GameObject gameObject, ModelInstance modelInst, btCollisionShape shape) {
+    private void buildGameObject(
+            Model model, Engine engine, GameObject gameObject, ModelInstance modelInst, btCollisionShape shape) {
 
-        InstanceData id;
+        InstanceData id = new InstanceData();
         int n = 0;
 
         do { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
-//            id = null;
 
             if (gameObject.instanceData.size > 0) {
-
                 id = gameObject.instanceData.get(n++);
-            }
-            else{
-                id = new InstanceData( /* blah blah whateger */ ); // this snhouldl eventually simpllify thigns
             }
 
             Entity e = buildObjectInstance(modelInst.copy(), gameObject, shape, id);
@@ -497,7 +466,37 @@ if (gameObject.objectName.contains("Exit")){
             ModelComponent mc = e.getComponent(ModelComponent.class);
             mc.model = model;  // bah
 
-            checkIfFeature(gameObject, mc.modelInst.transform, e); // needs the origin location ... might as well send in the entire instance transform
+            Vector3 position = new Vector3();
+            position = mc.modelInst.transform.getTranslation(position);
+
+            FeatureAdaptor adaptor = makeFeatureAdaptr(position, id.adaptr); // needs the origin location ... might as well send in the entire instance transform
+
+            e.add(new FeatureComponent(adaptor));
+
+
+            GameFeature gf = getFeature(gameObject.featureName);  // obviously gameObject.featureName is used as the key
+
+            if (null != gf) {
+                // stash data in the gameFeature ... this is pretty sketchy as gameFeatures are singular whereas there is possibly multiple GgameObjects/instances that could reference a single GameFeature
+                gf.setEntity(e); ///   bah assigning one entity to a Game Feature
+
+                if (null == gf.v3data) {
+                    gf.v3data = new Vector3(position); // object position from model transform
+                }
+            }
+
+            // this is just stuck here ... check each game object name matches the name of the picked player objecgt
+            GameFeature playerFeature = getFeature("Player");
+
+            if (null != playerFeature) {
+//                if (null != gf.featureName)
+                {
+                    if (gameObject.objectName.equals(playerFeature.featureName)) {
+                        playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
+                        e.getComponent(CharacterComponent.class).isPlayer = true;
+                    }
+                }
+            }
 
         } while (null != id && n < gameObject.instanceData.size);
     }
@@ -566,7 +565,7 @@ if (gameObject.objectName.contains("Exit")){
         for (String key : sd.features.keySet()) {
 
             GameFeature gf = new GameFeature(/*key*/);
-            gf.featureAdaptor = new OmniSensor();
+//            gf.featureAdaptor = new OmniSensor();
 //            gf.featureAdaptor.vR = new Vector3(1, 2, 3);
 
             cpGameData.features.put(key, gf);
@@ -580,17 +579,18 @@ if (gameObject.objectName.contains("Exit")){
 
                 GameObject cpObject = new GameObject(o.objectName, o.meshShape);
 
-                for (InstanceData i : o.instanceData) {
+                InstanceData i = new InstanceData();
+                i.adaptr = new MovingPlatform();
+                i.adaptr.vT = new Vector3(0.4f, 0.5f, 0.6f);
+                cpObject.instanceData.add(i);
 
-                    cpObject.instanceData.add(i);
-                }
                 mg.gameObjects.add(cpObject);
             }
 
             cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
         }
-//        /*
+      /*
         saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
-//        */
+      */
     }
 }
