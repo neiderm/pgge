@@ -234,6 +234,7 @@
 				"instanceData": [
 					{
 						"translation": {
+							"x": 0,
 							"y": 10,
 							"z": -5
 						},
@@ -245,7 +246,9 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.MovingPlatform",
 							"vT": {
-								"z": 20
+								"x": 0,
+								"y": 15,
+								"z": 0
 							}
 						}
 					}
@@ -278,7 +281,9 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.MovingPlatform",
 							"vT": {
-								"z": 15
+								"x": 20,
+								"y": 10,
+								"z": -5
 							}
 						}
 					}
