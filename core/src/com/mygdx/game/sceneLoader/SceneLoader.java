@@ -469,19 +469,24 @@ if (gameObject.objectName.contains("Exit")){
             Vector3 position = new Vector3();
             position = mc.modelInst.transform.getTranslation(position);
 
-            FeatureAdaptor adaptor = makeFeatureAdaptr(position, id.adaptr); // needs the origin location ... might as well send in the entire instance transform
-
-            e.add(new FeatureComponent(adaptor));
-
+            FeatureAdaptor adaptor = null;
+            if (null != id.adaptr) {
+                adaptor = makeFeatureAdaptr(position, id.adaptr); // needs the origin location ... might as well send in the entire instance transform
+            }
 
             GameFeature gf = getFeature(gameObject.featureName);  // obviously gameObject.featureName is used as the key
 
-            if (null != gf) {
-                // stash data in the gameFeature ... this is pretty sketchy as gameFeatures are singular whereas there is possibly multiple GgameObjects/instances that could reference a single GameFeature
-                gf.setEntity(e); ///   bah assigning one entity to a Game Feature
+            if (null != gf || null != adaptor) {
 
-                if (null == gf.v3data) {
-                    gf.v3data = new Vector3(position); // object position from model transform
+                e.add(new FeatureComponent(adaptor));
+
+                if (null != gf) {
+                    // stash data in the gameFeature ... this is pretty sketchy as gameFeatures are singular whereas there is possibly multiple GgameObjects/instances that could reference a single GameFeature
+                    gf.setEntity(e); ///   bah assigning one entity to a Game Feature
+
+                    if (null == gf.v3data) {
+                        gf.v3data = new Vector3(position); // object position from model transform
+                    }
                 }
             }
 
