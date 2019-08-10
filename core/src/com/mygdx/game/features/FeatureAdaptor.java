@@ -20,7 +20,7 @@ import com.badlogic.gdx.math.Vector3;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
-    protected Entity target;
+    Entity target;
 
     public boolean inverted;
 
@@ -34,23 +34,10 @@ public class FeatureAdaptor implements FeatureIntrf {
 //    public Vector3 vS0 = new Vector3();
     public Vector3 vT0 = new Vector3();     // starting Origin (translation) of the entity from the instance data
 
-    /* 
-     * for sensors and similar - need a means to assign parameters outside of no-argument constructor (loading classes from JSON)
-     * sub-classes may override this and use params at their discrection. 
-     */
-    public void setTarget(Entity target, Vector3 v3, boolean flag){ /* mt */
-//        setTarget(target);
-//        this.inverted = flag;
-    }
 
-//    private void setTarget(Entity target){
-//        this.target = target;
-//    }
-//
-//    // have to poll the exit sensor
-//    public boolean _getIsTriggered() {
-//        return false;
-//    }
+    @Override
+    public void init(Object asdf){ // mt
+    }
 
     @Override
     public void update(Entity e) { // mt

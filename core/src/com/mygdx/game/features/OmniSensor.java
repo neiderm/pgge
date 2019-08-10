@@ -7,66 +7,64 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 
 /**
- * Created by neiderm on 7/5/2018.
+ * Created by neiderm on 7/5/2019.
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
 
-public class OmniSensor extends SensorAdaptor {
+public class OmniSensor extends FeatureAdaptor {
+
+    protected boolean isTriggered;
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
 
-    public Vector3 omniRadius = new Vector3();
-    public Matrix4 tgtTransform;
+    private Vector3 omniRadius = new Vector3();
+    private Matrix4 tgtTransform;
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
 
-    public OmniSensor (){/*mt*/
+
+    public OmniSensor(){/* no-arg constructor */
+
+        omniRadius.set(DEFAULT_RADIUS); // maybe .. idfk
     }
 
-    /* Pass in the tgt xform .. not the Entity!
-      * getComponent(ModelComponent.class).modelInst.transform
-     */
-    public OmniSensor(Entity target, Vector3 omniRadius, boolean inverted) {
+    // Pass in the tgt xform .. not the Entity?
 
-        setTarget(target, omniRadius, inverted);
-    }
+    private OmniSensor(Entity target) {
 
-    protected OmniSensor(Entity target) {
-
-        setTarget(target, DEFAULT_RADIUS, false);
+         setTarget(target, DEFAULT_RADIUS);
     }
 
     /*
      * sets the given T0 vector as origin location (e.g. if object location loaded from model
      */
-    public OmniSensor(Entity target, Vector3 vT0) {
+    protected OmniSensor(Entity target, Vector3 origin) {
 
         this(target);
-        this.vT0.set(vT0); // sensor origin
+        this.vT0.set(origin); // sensor origin
     }
 
     @Override
-    public void setTarget(Entity target, Vector3 radius, boolean inverted){
+    public void init(Object target){
+
+        setTarget((Entity)target, vS /* radius */, vT /* origin */);
+    }
+
+    private void setTarget(Entity target, Vector3 radius){
 
         this.target = target;
-        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
-//        setTarget(target);
-
-        this.inverted = inverted;
+        this.tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
         this.omniRadius.set(radius);
     }
 
-//    @Override
-//    public void setTarget(Entity target){
-//
-//        this.target = target;
-//        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
-//
-//        this.omniRadius.set(vS);
-//    }
+    private void setTarget(Entity target, Vector3 radius, Vector3 origin){
+
+        setTarget(target, radius);
+        this.sensorOrigin.set(origin);
+    }
 
     @Override
     public void update(Entity sensor) {
@@ -79,7 +77,9 @@ public class OmniSensor extends SensorAdaptor {
         bounds.add(omniRadius);
 
         float boundsDst2 = bounds.dst2(sensorOrigin);
-        tgtPosition = tgtTransform.getTranslation(tgtPosition);
+
+        if (null != tgtTransform)
+            tgtPosition = tgtTransform.getTranslation(tgtPosition);
 
         if (inverted) {
             if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
@@ -94,5 +94,13 @@ public class OmniSensor extends SensorAdaptor {
         if (getIsTriggered()) {
           // whatever ... target.getComponent(StatusComponent.class).lifeClock = 0;
         }
+    }
+
+    public boolean getIsTriggered(){
+
+        if (isTriggered){
+            target.getComponent(StatusComponent.class).lifeClock = 0;
+        }
+        return isTriggered;
     }
 }

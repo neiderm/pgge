@@ -35,10 +35,8 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
-import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.MovingPlatform;
-import com.mygdx.game.features.OmniSensor;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -199,14 +197,14 @@ again a need to creat3e these directly in code
     }
 
 
-    private FeatureAdaptor makeFeatureAdaptr(Vector3 position, FeatureAdaptor fa) {
+    private FeatureAdaptor makeFeatureAdaptr(Vector3 position, FeatureAdaptor fa0, Entity target) {
 
         new MovingPlatform(); // dummy so it is not seen as unreferenced by intelliJ ;)
         FeatureAdaptor adaptor = null;
 
-        if (null != fa) {
+        if (null != fa0) {
 
-            Class c = fa.getClass();
+            Class c = fa0.getClass();
 
             if (c.toString().contains("Feature")) {
                 Gdx.app.log("asdf", c.toString()); // tmp
@@ -223,10 +221,10 @@ again a need to creat3e these directly in code
                     // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
                     // get the "characteristiics" for this type from the JSON
 //                        adaptor.vR.set(fa.vR);
-                    adaptor.vS.set(fa.vS);
-                    adaptor.vT.set(fa.vT);
+                    adaptor.vS.set(fa0.vS);
+                    adaptor.vT.set(fa0.vT);
 
-                    adaptor.inverted = fa.inverted; // I suppose
+                    adaptor.inverted = fa0.inverted; // I suppose
 
                     // get location or whatever from object instance data
 //                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
@@ -234,6 +232,8 @@ again a need to creat3e these directly in code
 
                     // grab the starting Origin (translation) of the entity from the instance data
                     adaptor.vT0.set(position);
+
+                    adaptor.init(target);
                 }
             } catch (Exception ex) {
                 //System.out.println("we're doomed");
@@ -255,144 +255,125 @@ again a need to creat3e these directly in code
 //        return playerFeature.entity;
 //    }
 
-    /*
-     * out-of-bounds sensor
-     */
-    private void makeOOBSensor(Engine engine, GameFeature playerFeature) {
+    private void buildModelGroup(Engine engine, String key){
 
-        GameFeature sensorFeature = getFeature("OobSensor");
+        Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
-        if (null != sensorFeature) {
+        SceneData sd = GameWorld.getInstance().getSceneData();
 
-            Entity sensorEntity = new Entity();
+        ModelGroup mg = sd.modelGroups.get(key);
+        if (null == mg) {
+            return; // bah
+        }
 
-            sensorEntity.add(new FeatureComponent(
+        ModelInfo mi = sd.modelInfo.get(mg.modelName); // mg can't be null ;)
+        Model groupModel = null;
 
-                    new OmniSensor(
-                            playerFeature.getEntity(), new Vector3(sensorFeature.v3data), true) {
-                        @Override
-                        public boolean getIsTriggered(){
+        if (null != mi) {
 
-                            if (isTriggered){
-                                target.getComponent(StatusComponent.class).lifeClock = 0;
-                            }
-                            return isTriggered;
-                        }
-                    }));
+            groupModel = mi.model; // should maybe check model valid ;)
 
-            engine.addEntity(sensorEntity);
+        } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
+
+            return; // bah
+        }
+
+        for (GameObject gameObject : mg.gameObjects) {
+
+            if (mg.isKinematic){
+                gameObject.isKinematic = mg.isKinematic;
+            }
+            if (mg.isCharacter){
+                gameObject.isCharacter = mg.isCharacter;
+            }
+            if (null == gameObject.scale) {
+                gameObject.scale = new Vector3(1, 1, 1);
+            }
+
+            Model model;
+
+            if (null == groupModel){
+
+                String rootNodeId;
+                btCollisionShape shape = null;
+                ModelInstance instance;
+
+                // look for model Info name matching object name
+                ModelInfo mdlInfo = sd.modelInfo.get(gameObject.objectName);
+
+                if (null != mdlInfo) {
+
+                    model = mdlInfo.model;
+                    rootNodeId = model.nodes.get(0).id;
+
+                    if (gameObject.mass > 0 && !gameObject.isKinematic) {
+
+                        shape = PrimitivesBuilder.getShape(model.meshes.get(0));
+                    }                     // else ... non bullet entity (e.g cars in select screen)
+
+                    if (model.nodes.size > 1) { // multi-node model
+                        // "demodularize" model - combine modelParts into single Node for generating the physics shape
+                        Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
+                        rootNodeId = "node1";
+                        instance = ModelInstanceEx.getModelInstance( newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
+                        shape = PrimitivesBuilder.getShape(newModel.meshes.get(0)); //TODO we would only use this for generating the sHAPE (modelComps to be multi-model-instance)
+                    }
+                    else {
+                        instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
+                    }
+                } else {
+                    model = PrimitivesBuilder.getModel();
+                    rootNodeId = gameObject.objectName;
+
+                    if (gameObject.isKinematic || gameObject.mass > 0) { // note does not use the gamObject.meshSHape name
+
+                        shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
+                    }
+                    instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
+                }
+                buildGameObject(model, engine, gameObject, instance, shape);
+            }
+            else
+            {
+                /* load all nodes from model that match /objectName.*/
+                buildNodes(engine, groupModel, gameObject) ;
+            }
         }
     }
 
-
     public void buildScene(Engine engine) {
 
-        createTestObjects(engine);
+        createTestObjects(engine); // tmp
+
+        // if there is a Characters group, try to get a Player
+        buildModelGroup(engine, "characters");
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
         for (String key : sd.modelGroups.keySet()) {
 
-            Gdx.app.log("SceneLoader", "modelGroup = " + key);
-
-            ModelGroup mg = sd.modelGroups.get(key);
-            ModelInfo mi = sd.modelInfo.get(mg.modelName); // mg can't be null ;)
-            Model groupModel = null;
-
-            if (null != mi) {
-
-                groupModel = mi.model; // should maybe check model valid ;)
-
-            } else if (null == mg.modelName && 0 == mg.gameObjects.size) {
-// whatever
+            if (key.equals("characters")){
                 continue;
             }
-
-            for (GameObject gameObject : mg.gameObjects) {
-
-if (gameObject.objectName.contains("Exit")){
-    Gdx.app.log("asdf", "asdf");
-}
-
-                if (mg.isKinematic){
-                    gameObject.isKinematic = mg.isKinematic;
-                }
-                if (mg.isCharacter){
-                    gameObject.isCharacter = mg.isCharacter;
-                }
-                if (null == gameObject.scale) {
-                    gameObject.scale = new Vector3(1, 1, 1);
-                }
-
-                Model model;
-// if (null != groupModel){
-                if (null == groupModel){
-
-                    String rootNodeId;
-                    btCollisionShape shape = null;
-                    ModelInstance instance;
-
-                    // look for model Info name matching object name
-                    ModelInfo mdlInfo = sd.modelInfo.get(gameObject.objectName);
-
-                    if (null != mdlInfo) {
-
-                        model = mdlInfo.model;
-                        rootNodeId = model.nodes.get(0).id;
-
-                        if (gameObject.mass > 0 && !gameObject.isKinematic) {
-
-                            shape = PrimitivesBuilder.getShape(model.meshes.get(0));
-                        }                     // else ... non bullet entity (e.g cars in select screen)
-
-                        if (model.nodes.size > 1) { // multi-node model
-                            // "demodularize" model - combine modelParts into single Node for generating the physics shape
-                            Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
-                            rootNodeId = "node1";
-                            instance = ModelInstanceEx.getModelInstance( newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
-                            shape = PrimitivesBuilder.getShape(newModel.meshes.get(0)); //TODO we would only use this for generating the sHAPE (modelComps to be multi-model-instance)
-                        }
-                        else {
-                            instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
-                        }
-                    } else {
-                        model = PrimitivesBuilder.getModel();
-                        rootNodeId = gameObject.objectName;
-
-                        if (gameObject.isKinematic || gameObject.mass > 0) { // note does not use the gamObject.meshSHape name
-
-                            shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
-                        }
-                        instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
-                    }
-                    buildGameObject(model, engine, gameObject, instance, shape);
-                }
-                else
-                {
-                    /* load all nodes from model that match /objectName.*/
-                    buildNodes(engine, groupModel, gameObject) ;
-                }
-            }
+            buildModelGroup(engine, key);
         }
 
-        /*
-         * any other one-time setups after all file data object loaded ...
-         * FeatureAdaptors may need special sauce as they can only be new'd with the default constrcution
-         */
-        GameFeature playerFeature = getFeature("Player");
-
-        // Select all entities from Engine with FeatureComp, set target to player
+//        GameFeature playerFeature = getFeature("Player");
+//
+//        // any other one-time setups after all file data object loaded ...
+//        // Select all entities from Engine with FeatureComp, set target to player
 //        ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
+//
 //        for (Entity fe : feats){
 //            FeatureAdaptor fa = fe.getComponent(FeatureComponent.class).featureAdpt;
-//            if (null !=  fa){ // have to set default ... default target is player ...
-//                fa.setTarget(playerFeature.getEntity());
+//
+//            if (null != fa){ // have to set default ... default target is player ...
+//                // only set the target if it is not already set
+//                if (null == fa.getTarget() && null != playerFeature) {
+//                    fa.setTarget(playerFeature.getEntity());
+//                }
 //            }
 //        }
-
-        if (null != playerFeature) {
-            makeOOBSensor(engine, playerFeature);
-        }
     }
 
     /*
@@ -454,6 +435,16 @@ if (gameObject.objectName.contains("Exit")){
         InstanceData id = new InstanceData();
         int n = 0;
 
+        String playerFeatureName = null;
+        Entity playerFeatureEntity = null;
+
+        GameFeature playerFeature = getFeature("Player"); // assumes already loaded Characters group ;)
+
+        if (null != playerFeature) {
+            playerFeatureName = playerFeature.featureName;
+            playerFeatureEntity = playerFeature.getEntity();
+        }
+
         do { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
 
             if (gameObject.instanceData.size > 0) {
@@ -471,10 +462,10 @@ if (gameObject.objectName.contains("Exit")){
 
             FeatureAdaptor adaptor = null;
             if (null != id.adaptr) {
-                adaptor = makeFeatureAdaptr(position, id.adaptr); // needs the origin location ... might as well send in the entire instance transform
+                adaptor = makeFeatureAdaptr(position, id.adaptr, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
             }
 
-            GameFeature gf = getFeature(gameObject.featureName);  // obviously gameObject.featureName is used as the key
+            GameFeature gf = getFeature(gameObject.featureName);  // obviously gameObject.feature Name is used as the key
 
             if (null != gf || null != adaptor) {
 
@@ -490,16 +481,10 @@ if (gameObject.objectName.contains("Exit")){
                 }
             }
 
-            // this is just stuck here ... check each game object name matches the name of the picked player objecgt
-            GameFeature playerFeature = getFeature("Player");
-
-            if (null != playerFeature) {
-//                if (null != gf.featureName)
-                {
-                    if (gameObject.objectName.equals(playerFeature.featureName)) {
-                        playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-                        e.getComponent(CharacterComponent.class).isPlayer = true;
-                    }
+            if (null != playerFeatureName) {
+                if (gameObject.objectName.equals(playerFeatureName)) {
+                    playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
+                    e.getComponent(CharacterComponent.class).isPlayer = true;
                 }
             }
 
