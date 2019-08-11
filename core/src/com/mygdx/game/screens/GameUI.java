@@ -43,10 +43,10 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
-    boolean canExit; // exit sensor is tripped
+    public boolean canExit; // exit sensor is tripped
 
     private static final int ALL_HIT_COUNT = 2;
-    private static final int DEFAULT_SCREEN_TIME = 25 * 60 ; // FPS
+    private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;
 

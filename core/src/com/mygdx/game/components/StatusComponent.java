@@ -1,14 +1,16 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.mygdx.game.screens.GameUI;
 
 /**
  * Created by neiderm on 7/5/2018.
  */
 
-public class StatusComponent implements Component {
+public class StatusComponent /* "UIComponent" ? */ implements Component {
 
-//    public String name; // tmp??????
+    public GameUI UI; // UI is realized as instance of Stage ... tmp need to use GameUI until figure out the interface
 
     private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 999 * FPS;
@@ -30,8 +32,9 @@ public class StatusComponent implements Component {
         this.deleteMe = deleteMe;
     }
 
-    public StatusComponent(int lifeClockSecs, int dieClockSecs) {
+    public StatusComponent(Stage UI, int lifeClockSecs, int dieClockSecs) {
         this();
+        this.UI = (GameUI)UI; // tmp need to use GameUI until
         this.lifeClock = lifeClockSecs * FPS;
         this.dieClock = dieClockSecs * FPS;
     }
