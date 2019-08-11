@@ -106,6 +106,18 @@
 				"isShadowed": true
 			},
 			{
+				"instanceData": [
+					{
+						"adaptr": {
+							"class": "com.mygdx.game.features.ExitSensor",
+							"vS": {
+								"x": 1.5,
+								"y": 1.5,
+								"z": 1.5
+							}
+						}
+					}
+				],
 				"objectName": "Exit",
 				"featureName": "ExitSensor"
 			}
@@ -113,6 +125,41 @@
 	},
 	"primitivesMisc": {
 		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 5,
+							"y": 10,
+							"z": 15
+						},
+						"color": {
+							"r": 1,
+							"b": 0,
+							"g": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.KillSensor",
+							"vS": {
+								"x": 1.5,
+								"y": 1.5,
+								"z": 1.5
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "Mine1",
+				"scale": {
+					"x": 0.5,
+					"y": 0.5,
+					"z": 0.5
+				},
+				"mass": 5.1,
+				"meshShape": "btBoxShape",
+				"isShadowed": true
+			},
 			{
 				"instanceData": [
 					{
