@@ -29,6 +29,7 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
@@ -206,7 +207,7 @@ again a need to creat3e these directly in code
 
             Class c = fa0.getClass();
 
-            if (c.toString().contains("Feature")) {
+            if (c.toString().contains("KillSensor")) {
                 Gdx.app.log("asdf", c.toString()); // tmp
             }
 
@@ -463,6 +464,20 @@ again a need to creat3e these directly in code
             FeatureAdaptor adaptor = null;
             if (null != id.adaptr) {
                 adaptor = makeFeatureAdaptr(position, id.adaptr, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
+
+                // for now, assign Entity ref to bullet body userValue (only for feature entity right now)
+                BulletComponent bc  = e.getComponent(BulletComponent.class);
+
+                if (null != bc){
+                    btCollisionObject body = bc.body;
+                    if (null != body){
+                        // body.setUserValue((int)e);
+                        // todo ... need to build a map associating these entities with an int index
+                        int next = BulletWorld.getInstance().userToEntityLUT.size;
+                        body.setUserValue(next);
+                        BulletWorld.getInstance().userToEntityLUT.add(e); // what if e (body) removed?
+                    }
+                }
             }
 
             GameFeature gf = getFeature(gameObject.featureName);  // obviously gameObject.feature Name is used as the key

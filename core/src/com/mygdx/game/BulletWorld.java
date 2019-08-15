@@ -22,6 +22,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
+import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
@@ -34,14 +35,17 @@ import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver;
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
+// ref:
+//   https://github.com/xoppa/blog/blob/master/tutorials/src/com/xoppa/blog/libgdx/g3d/bullet/dynamics/
 
 public class BulletWorld implements Disposable {
 
     private static BulletWorld instance = null;
 
-    public static  boolean USE_DDBUG_DRAW = false;
+    public static boolean USE_DDBUG_DRAW = false;
     private DebugDrawer debugDrawer;
     private btCollisionConfiguration collisionConfiguration;
     private btCollisionDispatcher dispatcher;
@@ -50,11 +54,27 @@ public class BulletWorld implements Disposable {
     private btDynamicsWorld collisionWorld;
     private Camera camera; // for debug drawing
 
-//    /*
-        private BulletWorld() {
-    //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
+    public Array<Object> userToEntityLUT;
+
+
+    class MyContactListener extends ContactListener {
+        @Override
+        public boolean onContactAdded (int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+            if (userValue0 != 0) {
+//                ((ColorAttribute) instances.get(userValue0).materials.get(0).get(ColorAttribute.Diffuse)).color.set(Color.WHITE);
+            }
+
+            if (userValue1 != 0) {
+//                ((ColorAttribute) instances.get(userValue1).materials.get(0).get(ColorAttribute.Diffuse)).color.set(Color.WHITE);
+            }
+            return true;
+        }
     }
-//    */
+
+    private BulletWorld() {
+        //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
+    }
+
     public static BulletWorld getInstance() {
 
         if (null == instance) {
@@ -66,9 +86,11 @@ public class BulletWorld implements Disposable {
 
     public void initialize(Camera camera) {
 
-        if (null != collisionWorld){
+        if (null != collisionWorld) {
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
         }
+
+        userToEntityLUT = new Array<Object>();
 
         rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);
 
@@ -112,8 +134,8 @@ public class BulletWorld implements Disposable {
 
     public void update(float deltaTime) {
 
-            // I let it pause itself, lets the gamescreen render() slightly less cluttery
-        if ( ! GameWorld.getInstance().getIsPaused()) {
+        // I let it pause itself, lets the gamescreen render() slightly less cluttery
+        if (!GameWorld.getInstance().getIsPaused()) {
 
             collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
         }
