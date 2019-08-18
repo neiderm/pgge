@@ -5,6 +5,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
+import com.badlogic.gdx.Gdx;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
 
@@ -45,6 +46,7 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
             // assert null != bc
             // assert null != bc.shape
             // assert null != bc.body
+            bc.motionstate.dispose();
             bc.shape.dispose();
             bc.body.dispose();
         }
@@ -62,11 +64,15 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
     @Override
     public void entityRemoved(Entity entity) {
 
-        BulletComponent bc = entity.getComponent(BulletComponent.class);
+        BulletComponent bc = entity.getComponent(BulletComponent.class); // always null ~?!?
 
         // assert null != bc
         // assert null != bc.body
+
+/*
         BulletWorld.getInstance().removeBody(bc.body);
         bc.body.dispose();
+*/
+Gdx.app.log("BulletSystem", "entityRemoved()");
     }
 }
