@@ -46,7 +46,9 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
             // assert null != bc
             // assert null != bc.shape
             // assert null != bc.body
-            bc.motionstate.dispose();
+            if (null != bc.motionstate) {
+                bc.motionstate.dispose();
+            }
             bc.shape.dispose();
             bc.body.dispose();
         }
