@@ -18,6 +18,10 @@ package com.mygdx.game.sceneLoader;
 
 import com.badlogic.gdx.utils.Array;
 
+/*
+ * some kind of hacked-up Game Object container
+ */
+
 public class ModelGroup {
 
     ModelGroup() {
@@ -38,4 +42,35 @@ public class ModelGroup {
 
     public boolean isKinematic;
     public boolean isCharacter;
+
+
+    /*
+     * iterate all GameObjects in this instance and build them
+     *
+     */
+    public void build(boolean deleteObjects){
+
+        build();
+
+        if (deleteObjects){
+
+            gameObjects.clear();
+        }
+    }
+
+    /*
+     * For now let be simple case of spawning in game objects
+     * (eventually it ideally to commonize w/ sceneLoader but that is a ways off ...
+     */
+    public void build(){
+
+        for (GameObject obj : gameObjects){
+
+
+            /* could end up "gameObject.build()" ?? */
+
+//            buildObjectInstance(
+//             ModelInstance instance, GameObject gameObject, btCollisionShape shape, InstanceData id) {
+        }
+    }
 }

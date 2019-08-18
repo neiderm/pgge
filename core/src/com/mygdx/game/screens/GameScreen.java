@@ -88,7 +88,9 @@ public class GameScreen extends TimedGameScreen {
     private Entity pickedPlayer;
 
 
-    private void screenInit(){
+    private void init(){
+
+        GameWorld.getInstance().init();   //      new ModelGroup("spawners")
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -211,6 +213,7 @@ public class GameScreen extends TimedGameScreen {
                     gameObject.objectName = "*";
                     gameObject.meshShape = "convexHullShape";
 
+                    // possibly this should be thru a ModelGroup ???
                     sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
                     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
@@ -248,7 +251,7 @@ public class GameScreen extends TimedGameScreen {
 
                     case ROUND_OVER_RESTART:
                         screenTeardown();
-                        screenInit();
+                        init();
                         break;
 
                     default:
@@ -395,6 +398,7 @@ debugPrint("**", color, 0, 0 );
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
+        // update entities queued for deletion
           for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
 //            if (null != e)
             {
@@ -403,6 +407,9 @@ debugPrint("**", color, 0, 0 );
                 }
             }
         }
+
+        // update entities queued for spawning
+        GameWorld.getInstance().spawn();
     }
 
 
@@ -428,7 +435,7 @@ debugPrint("**", color, 0, 0 );
     @Override
     public void show() {
 
-        screenInit();
+        init();
     }
 
     @Override
