@@ -9,6 +9,6 @@ import com.badlogic.ashley.core.Entity;
 public interface FeatureIntrf {
 
     void update(Entity e);
-
+    void onCollision(Entity me);
     void init(Object asdf);
 }

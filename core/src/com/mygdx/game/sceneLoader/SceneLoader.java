@@ -474,7 +474,8 @@ again a need to creat3e these directly in code
                         // body.setUserValue((int)e);
                         // todo ... need to build a map associating these entities with an int index
                         int next = BulletWorld.getInstance().userToEntityLUT.size;
-                        body.setUserValue(next);
+                        body.setUserValue(next + 1);   /// + 1 u
+                        body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
                         BulletWorld.getInstance().userToEntityLUT.add(e); // what if e (body) removed?
                     }
                 }

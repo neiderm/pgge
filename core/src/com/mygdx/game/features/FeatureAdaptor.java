@@ -42,4 +42,8 @@ public class FeatureAdaptor implements FeatureIntrf {
     @Override
     public void update(Entity e) { // mt
     }
+
+    @Override
+    public void onCollision(Entity e) { // mt
+    }
 }

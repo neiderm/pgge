@@ -16,6 +16,7 @@
 
 package com.mygdx.game;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
@@ -37,6 +38,8 @@ import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSol
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.components.FeatureComponent;
+import com.mygdx.game.features.FeatureAdaptor;
 
 // ref:
 //   https://github.com/xoppa/blog/blob/master/tutorials/src/com/xoppa/blog/libgdx/g3d/bullet/dynamics/
@@ -55,17 +58,35 @@ public class BulletWorld implements Disposable {
     private Camera camera; // for debug drawing
 
     public Array<Object> userToEntityLUT;
-
+    private MyContactListener mcl;
 
     class MyContactListener extends ContactListener {
         @Override
         public boolean onContactAdded (int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+
+            Entity ee;
             if (userValue0 != 0) {
-//                ((ColorAttribute) instances.get(userValue0).materials.get(0).get(ColorAttribute.Diffuse)).color.set(Color.WHITE);
+                int index = userValue0 -1;
+                ee = (Entity)userToEntityLUT.get(index);
+                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+                if (null != comp){
+                    FeatureAdaptor fa = comp.featureAdpt;
+                    if (null != fa){
+                        fa.onCollision(ee);
+                    }
+                }
             }
 
             if (userValue1 != 0) {
-//                ((ColorAttribute) instances.get(userValue1).materials.get(0).get(ColorAttribute.Diffuse)).color.set(Color.WHITE);
+                int index = userValue1 -1;
+                ee = (Entity)userToEntityLUT.get(index);
+                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+                if (null != comp){
+                    FeatureAdaptor fa = comp.featureAdpt;
+                    if (null != fa){
+                        fa.onCollision(ee);
+                    }
+                }
             }
             return true;
         }
@@ -101,6 +122,7 @@ public class BulletWorld implements Disposable {
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(new Vector3(0, -9.81f, 0));
+        mcl = new MyContactListener();
 
         debugDrawer = new DebugDrawer();
         debugDrawer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
