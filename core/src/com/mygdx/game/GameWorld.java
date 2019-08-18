@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
@@ -156,26 +157,24 @@ public final class GameWorld implements Disposable {
         return sceneData;
     }
 
+    public GameFeature getFeature(String featureName){
 
+        return sceneData.features.get(featureName);
+    }
 
-    private ModelGroup spawnMgroup;
 
     public void addSpawner(GameObject object){
 
-        spawnMgroup.gameObjects.add(object);
+        ModelGroup mg = sceneData.modelGroups.get("spawners");
+
+        if (null == mg){
+            mg = new ModelGroup("spawners");
+            sceneData.modelGroups.put("spawners", mg);
+        }
+
+        mg.gameObjects.add(object);
     }
 
-    public void spawn(){
-
-        spawnMgroup.build(true);
-    }
-
-    /*
-     * @each new GameScreen ... not sure how to ensure this gets called ????
-     */
-    public void init(){
-        spawnMgroup = new ModelGroup("spawners");
-    }
 
     /* I don't think we see a dispose event on Android */
 @Override

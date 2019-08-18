@@ -52,6 +52,7 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
@@ -89,8 +90,6 @@ public class GameScreen extends TimedGameScreen {
 
 
     private void init(){
-
-        GameWorld.getInstance().init();   //      new ModelGroup("spawners")
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -147,7 +146,7 @@ public class GameScreen extends TimedGameScreen {
 
         sceneLoader.buildScene(engine);
 
-        GameFeature pf = sceneLoader.getFeature("Player"); // make tag a defined string
+        GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
         pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
 
@@ -213,8 +212,7 @@ public class GameScreen extends TimedGameScreen {
                     gameObject.objectName = "*";
                     gameObject.meshShape = "convexHullShape";
 
-                    // possibly this should be thru a ModelGroup ???
-                    sceneLoader.buildNodes(engine, mc.model, gameObject, translation, true);
+                    gameObject.buildNodes(engine, mc.model, translation, true);
                     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
                     picked.add(new StatusComponent(true));
@@ -409,7 +407,11 @@ debugPrint("**", color, 0, 0 );
         }
 
         // update entities queued for spawning
-        GameWorld.getInstance().spawn();
+        ModelGroup mg = GameWorld.getInstance().getSceneData().modelGroups.get("spawners");  ///////// tooooodooo    putter    bah
+
+        if (null != mg) {
+            mg.build(engine, true);
+        }
     }
 
 
