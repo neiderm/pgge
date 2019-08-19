@@ -22,6 +22,7 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     // hackme: all should be removeable EXCEPT player
     public boolean isEntityRemoveable = true;
     public boolean deleteMe;
+    public int deleteFlag;
 
     public StatusComponent() {
 

@@ -396,14 +396,32 @@ debugPrint("**", color, 0, 0 );
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
-        // update entities queued for deletion
-          for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
+        // update entities queued for deletion (seems like this needs to be done outside of engine/simulation step)
+        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
 //            if (null != e)
-            {
-                if (e.getComponent(StatusComponent.class).deleteMe) {
+                StatusComponent sc = e.getComponent(StatusComponent.class);
+
+                if (2 == sc.deleteFlag) {
+                    BulletComponent bc = e.getComponent(BulletComponent.class);
+
+                    if (null != bc) {
+                        if (null != bc.motionstate) {
+                            bc.motionstate.dispose();
+                        }
+
+                        BulletWorld.getInstance().removeBody(bc.body);
+
+                        bc.shape.dispose();
+                        bc.body.dispose();
+
+                        e.remove(BulletComponent.class);
+                    }
+
+                    sc.deleteFlag = 0;
+
+                } else if (sc.deleteMe) {
                     engine.removeEntity(e);
                 }
-            }
         }
 
         // update entities queued for spawning

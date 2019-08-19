@@ -52,14 +52,15 @@ public class KillSensor extends OmniSensor {
                 Matrix4 tmpM4 = mc.modelInst.transform;
                 translation = tmpM4.getTranslation(translation);
 
-
                 gameObject.getInstanceData().add(new InstanceData(translation));
 
-
-                GameWorld.getInstance().addSpawner(gameObject);         ///    toooodllly dooodddd    object is added "kinematic" ???
+//                GameWorld.getInstance().addSpawner(gameObject);         ///    toooodllly dooodddd    object is added "kinematic" ???
 
                 // delete the old one
-                sensor.add(new StatusComponent(true));
+//                StatusComponent sc = new StatusComponent(true);
+                StatusComponent sc = new StatusComponent();
+                sc.deleteFlag = 2;
+                sensor.add(sc);
             }
 
             preContactCount = contactCount;
