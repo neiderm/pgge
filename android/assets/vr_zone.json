@@ -140,7 +140,7 @@
 							"a": 0.9
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.KillSensor",
+							"class": "com.mygdx.game.features.KillThing",
 							"vS": {
 								"x": 1.5,
 								"y": 1.5,

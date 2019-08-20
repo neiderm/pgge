@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 
 /**
  * Created by neiderm on 7/5/2019.
@@ -12,16 +11,14 @@ import com.mygdx.game.components.StatusComponent;
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
 
-public class OmniSensor extends FeatureAdaptor {
-
-    protected boolean isTriggered;
+public class OmniSensor extends SensorAdaptor {
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
 
     private Vector3 omniRadius = new Vector3();
-    private Matrix4 tgtTransform;
+//    private Matrix4 tgtTransform;
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
 
@@ -79,7 +76,7 @@ public class OmniSensor extends FeatureAdaptor {
         ModelComponent mc = sensor.getComponent(ModelComponent.class);
         Matrix4 transform = mc.modelInst.transform;
         vvv = transform.getTranslation(vvv);
-sensorOrigin.set(vvv);
+        sensorOrigin.set(vvv);
 
 
         bounds.set(sensorOrigin);
@@ -87,7 +84,7 @@ sensorOrigin.set(vvv);
 
         float boundsDst2 = bounds.dst2(sensorOrigin);
 
-        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+        Matrix4 tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
 
         if (null != tgtTransform)
             tgtPosition = tgtTransform.getTranslation(tgtPosition);
@@ -101,17 +98,5 @@ sensorOrigin.set(vvv);
                 isTriggered = true;
             }
         }
-
-        if (getIsTriggered()) {
-          // whatever ... target.getComponent(StatusComponent.class).lifeClock = 0;
-        }
-    }
-
-    public boolean getIsTriggered(){
-
-        if (isTriggered){
-            target.getComponent(StatusComponent.class).lifeClock = 0;
-        }
-        return isTriggered;
     }
 }

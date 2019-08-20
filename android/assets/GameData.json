@@ -238,7 +238,7 @@
 							"a": 0.8
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.OmniSensor",
+							"class": "com.mygdx.game.features.KillSensor",
 							"vS": {
 								"x": 10,
 								"y": 0,
@@ -249,7 +249,7 @@
 					}
 				],
 				"objectName": "sphere",
-				"featureName": "OOOOBBBBB",
+				"featureName": "OutOfBounds",
 				"scale": {
 					"x": 20,
 					"y": 20,
