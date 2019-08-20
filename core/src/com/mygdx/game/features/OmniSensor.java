@@ -56,7 +56,6 @@ public class OmniSensor extends FeatureAdaptor {
     private void setTarget(Entity target, Vector3 radius){
 
         this.target = target;
-        this.tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
         this.omniRadius.set(radius);
     }
 
@@ -66,17 +65,29 @@ public class OmniSensor extends FeatureAdaptor {
         this.sensorOrigin.set(origin);
     }
 
+    private Vector3 vvv = new Vector3();
+
     @Override
     public void update(Entity sensor) {
         //                super.update(e);
 
         // grab the starting Origin (translation) of the entity from the instance data
+// hmmmm ...  it could have been spawned "up there" and now falling to the floor ... so vT0 as handed by GameObject constructor is not the origin we're looking for!
         sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
+
+
+        ModelComponent mc = sensor.getComponent(ModelComponent.class);
+        Matrix4 transform = mc.modelInst.transform;
+        vvv = transform.getTranslation(vvv);
+sensorOrigin.set(vvv);
+
 
         bounds.set(sensorOrigin);
         bounds.add(omniRadius);
 
         float boundsDst2 = bounds.dst2(sensorOrigin);
+
+        tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
 
         if (null != tgtTransform)
             tgtPosition = tgtTransform.getTranslation(tgtPosition);
