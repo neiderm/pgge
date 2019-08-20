@@ -1,13 +1,17 @@
 package com.mygdx.game.features;
 
+import com.badlogic.ashley.core.Entity;
 import com.mygdx.game.components.StatusComponent;
 
 public class ExitSensor extends OmniSensor {
 
     @Override
-    public boolean getIsTriggered(){
+    public void update(Entity sensor) {
+
+        super.update(sensor);
 
         if (isTriggered){
+
             StatusComponent sc = target.getComponent(StatusComponent.class);
 
             if (null != sc){
@@ -15,6 +19,5 @@ public class ExitSensor extends OmniSensor {
                 sc.UI.canExit = true;
             }
         }
-        return isTriggered;
     }
 }
