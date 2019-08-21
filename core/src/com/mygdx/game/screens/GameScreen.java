@@ -41,6 +41,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -51,7 +52,6 @@ import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -200,22 +200,7 @@ public class GameScreen extends TimedGameScreen {
                     ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
                     incHitCount(1);
 
-                    ModelComponent mc = picked.getComponent(ModelComponent.class);
-                    Vector3 translation = new Vector3();
-                    translation = mc.modelInst.transform.getTranslation(translation);
-                    translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
-
-                    GameObject gameObject = new GameObject();
-                    gameObject.mass = 1f;
-                    gameObject.isShadowed = true;
-                    gameObject.scale = new Vector3(1, 1, 1);
-                    gameObject.objectName = "*";
-                    gameObject.meshShape = "convexHullShape";
-
-                    gameObject.buildNodes(engine, mc.model, translation, true);
-                    // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
-
-                    picked.add(new StatusComponent(true));
+                    CompCommon.explode(engine, picked);
                 }
             }
 
@@ -241,6 +226,9 @@ public class GameScreen extends TimedGameScreen {
                         int lc = pickedPlayer.getComponent(StatusComponent.class).lifeClock;
 
                         if (0 == lc){
+
+                            CompCommon.explode(engine, pickedPlayer);   //   don't really want it here
+
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             int continueTime = pickedPlayer.getComponent(StatusComponent.class).dieClock;
                             continueScreenTimeUp = getScreenTimer() - continueTime; // fps
@@ -397,32 +385,7 @@ debugPrint("**", color, 0, 0 );
         playerUI.draw();
 
         // update entities queued for deletion (seems like this needs to be done outside of engine/simulation step)
-        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
-//            if (null != e)
-                StatusComponent sc = e.getComponent(StatusComponent.class);
-
-                if (2 == sc.deleteFlag) {
-                    BulletComponent bc = e.getComponent(BulletComponent.class);
-
-                    if (null != bc) {
-                        if (null != bc.motionstate) {
-                            bc.motionstate.dispose();
-                        }
-
-                        BulletWorld.getInstance().removeBody(bc.body);
-
-                        bc.shape.dispose();
-                        bc.body.dispose();
-
-                        e.remove(BulletComponent.class);
-                    }
-
-                    sc.deleteFlag = 0;
-
-                } else if (sc.deleteMe) {
-                    engine.removeEntity(e);
-                }
-        }
+        cleaner();
 
         // update entities queued for spawning
         ModelGroup mg = GameWorld.getInstance().getSceneData().modelGroups.get("spawners");  ///////// tooooodooo    putter    bah
@@ -432,6 +395,35 @@ debugPrint("**", color, 0, 0 );
         }
     }
 
+    private void cleaner(){
+        // update entities queued for deletion (seems like this needs to be done outside of engine/simulation step)
+        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
+//            if (null != e)
+            StatusComponent sc = e.getComponent(StatusComponent.class);
+
+            if (2 == sc.deleteFlag) {
+                BulletComponent bc = e.getComponent(BulletComponent.class);
+
+                if (null != bc) {
+                    if (null != bc.motionstate) {
+                        bc.motionstate.dispose();
+                    }
+
+                    BulletWorld.getInstance().removeBody(bc.body);
+
+                    bc.shape.dispose();
+                    bc.body.dispose();
+
+                    e.remove(BulletComponent.class);
+                }
+
+                sc.deleteFlag = 0;
+
+            } else if (sc.deleteMe) {
+                engine.removeEntity(e);
+            }
+        }
+    }
 
     private  SpriteBatch batch = new SpriteBatch();
     private  BitmapFont font;
