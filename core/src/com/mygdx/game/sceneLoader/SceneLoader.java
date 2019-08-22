@@ -17,6 +17,9 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -24,6 +27,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.components.FeatureComponent;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.MovingPlatform;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -204,8 +209,21 @@ again a need to creat3e these directly in code
 
         createTestObjects(engine); // tmp
 
+//        GameFeature playerFeature = GameWorld.getInstance(). getFeature("Player"); // assumes already loaded Characters group ;)
+//        String playerObjectName = null; // idfk
+//        if (null != playerFeature) {
+//            playerObjectName = playerFeature.featureName;
+////            playerFeatureEntity = playerFeature.getEntity();
+//            // mg.build(engine, playerObjectName );
+//        }
+//        // mg.build(engine, "^playerFeatureName" ); // builds group EXCEPT for "^objectName" (^ inverts sense of match?)
+//
+//// mg.build(engine, "thing1", "thing2", "^thing3");         // perhaps? ...
+
+
         // if there is a Characters group, try to get a Player
-        buildModelGroup(engine, "characters");
+// no longer should need "isCharacter"
+        buildModelGroup(engine, "characters");   // buildModelGroup(engine, "characters", "^" + playerObjectname); // pass object name var args to mg.build() ?
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
@@ -218,22 +236,27 @@ again a need to creat3e these directly in code
             buildModelGroup(engine, key);
         }
 
-//        GameFeature playerFeature = getFeature("Player");
-//
+/*
+ TODO: why did I crash when timer running out (collis. w/ badlogic killThing)
+ */
+
 //        // any other one-time setups after all file data object loaded ...
 //        // Select all entities from Engine with FeatureComp, set target to player
-//        ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
-//
-//        for (Entity fe : feats){
-//            FeatureAdaptor fa = fe.getComponent(FeatureComponent.class).featureAdpt;
-//
-//            if (null != fa){ // have to set default ... default target is player ...
-//                // only set the target if it is not already set
-//                if (null == fa.getTarget() && null != playerFeature) {
-//                    fa.setTarget(playerFeature.getEntity());
-//                }
-//            }
-//        }
+        ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
+
+        for (Entity fe : feats){
+            FeatureAdaptor fa = fe.getComponent(FeatureComponent.class).featureAdpt;
+
+            if (null != fa){ // have to set default ... default target is player ...
+
+                // only set the target if it is not already set ????
+                GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+
+                if (null != playerFeature) {
+                    fa.init(playerFeature.getEntity());
+                }
+            }
+        }
     }
 
     /*
