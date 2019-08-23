@@ -17,7 +17,7 @@ public class OmniSensor extends SensorAdaptor {
     private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
 
-    private Vector3 omniRadius = new Vector3();
+    protected Vector3 omniRadius = new Vector3();
 //    private Matrix4 tgtTransform;
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
