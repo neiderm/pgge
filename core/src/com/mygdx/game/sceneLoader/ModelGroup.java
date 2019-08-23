@@ -69,6 +69,24 @@ public class ModelGroup {
         }
     }
 
+    public void addGameObject(GameObject object){
+        gameObjects.add(object);
+    }
+
+    public GameObject getGameObject(int index){
+        return gameObjects.get(index);
+    }
+
+    public GameObject getGameObject(String name){
+
+        GameObject found = null;
+
+        for (GameObject gameObject : gameObjects) {
+        if    (gameObject.objectName.equals(name))
+            found = gameObject;
+        }
+        return found;
+    }
 
     void build(Engine engine){
 
@@ -86,7 +104,7 @@ public class ModelGroup {
         }
 
 
-        for (GameObject gameObject : this.gameObjects) {
+        for (GameObject gameObject : gameObjects) {
 
             if (this.isKinematic){
                 gameObject.isKinematic = this.isKinematic;

@@ -291,7 +291,7 @@ class SelectScreen extends TimedGameScreen {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get("characters");
-        GameObject go = mg.gameObjects.get(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
+        GameObject go = mg.getGameObject(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
 
         GameWorld.getInstance().setSceneData(path, go.objectName);
 
