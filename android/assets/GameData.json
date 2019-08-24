@@ -235,10 +235,10 @@
 							"r": 1,
 							"b": 0,
 							"g": 1,
-							"a": 0.8
+							"a": 0.4
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.KillSensor",
+							"class": "com.mygdx.game.features.OOBSensor",
 							"vS": {
 								"x": 10,
 								"y": 0,

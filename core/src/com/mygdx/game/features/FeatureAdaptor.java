@@ -16,15 +16,12 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
-    Entity target;
-
-    public boolean inverted;
-
-        // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
+    // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
 //    public Vector3 vR = new Vector3();
     public Vector3 vS = new Vector3();
     public Vector3 vT = new Vector3();
@@ -36,7 +33,7 @@ public class FeatureAdaptor implements FeatureIntrf {
 
 
     @Override
-    public void init(Object asdf){ // mt
+    public void init(Object asdf) { // mt
     }
 
     @Override
@@ -45,5 +42,50 @@ public class FeatureAdaptor implements FeatureIntrf {
 
     @Override
     public void onCollision(Entity e) { // mt
+    }
+
+    /*
+     * returns a new instance of featureAdapter
+     * The JSON read creates a new instance when sceneData is built, but we want to create a new instance
+     * each time to be sure all data is initialized this is only being used for type information ... it
+     * is instanced in SceneeData but the idea is for each game Object (Entity) to have it's own feature
+     * adatpr instance
+     */
+    public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity target) {
+
+        FeatureAdaptor adaptor = null;
+
+        Class c = getClass();
+
+        if (c.toString().contains("KillSensor")) {
+            Gdx.app.log("asdf", c.toString()); // tmp
+        }
+
+        try {
+
+            adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
+
+            if (null != adaptor) {
+                // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
+                // get the "characteristiics" for this type from the JSON
+//                        adaptor.vR.set(fa.vR);
+                adaptor.vS.set(vS);
+                adaptor.vT.set(vT);
+
+                // get location or whatever from object instance data
+//                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
+//                        adaptor.vS0.set(transform.getScale(tmpV));
+
+                // grab the starting Origin (translation) of the entity from the instance data
+                adaptor.vT0.set(position);
+
+                adaptor.init(target);
+            }
+        } catch (Exception ex) {
+            //System.out.println("we're doomed");
+            ex.printStackTrace();
+        }
+
+        return adaptor;
     }
 }

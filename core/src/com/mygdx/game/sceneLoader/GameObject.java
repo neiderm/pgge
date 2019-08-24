@@ -18,7 +18,6 @@ package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
@@ -36,7 +35,6 @@ import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.features.MovingPlatform;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -75,53 +73,6 @@ private String featureName; // if Entity is to be part of a feature
     public Array<InstanceData> getInstanceData(){
 
         return instanceData;
-    }
-
-    private FeatureAdaptor makeFeatureAdaptr(Vector3 position, FeatureAdaptor fa0, Entity target) {
-
-        new MovingPlatform(); // dummy so it is not seen as unreferenced by intelliJ ;)
-        FeatureAdaptor adaptor = null;
-
-        if (null != fa0) {
-
-            Class c = fa0.getClass();
-
-            if (c.toString().contains("KillSensor")) {
-                Gdx.app.log("asdf", c.toString()); // tmp
-            }
-
-            try {
-                // The JSON read creates a new instance when sceneData is built, but we want to create a new
-                // instance each time to be sure all data is initialized
-                // this is only being used for type information ... it is instanced in SceneeData but the idea
-                // is for each game Object (Entity) to have it's own feature adatpr instance
-                adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
-
-                if (null != adaptor) {
-                    // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
-                    // get the "characteristiics" for this type from the JSON
-//                        adaptor.vR.set(fa.vR);
-                    adaptor.vS.set(fa0.vS);
-                    adaptor.vT.set(fa0.vT);
-
-                    adaptor.inverted = fa0.inverted; // I suppose
-
-                    // get location or whatever from object instance data
-//                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
-//                        adaptor.vS0.set(transform.getScale(tmpV));
-
-                    // grab the starting Origin (translation) of the entity from the instance data
-                    adaptor.vT0.set(position);
-
-                    adaptor.init(target);
-                }
-            } catch (Exception ex) {
-                //System.out.println("we're doomed");
-                ex.printStackTrace();
-            }
-        }
-
-        return adaptor;
     }
 
 
@@ -180,7 +131,7 @@ private String featureName; // if Entity is to be part of a feature
     }
 
     // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
-    public void buildGameObject(
+    void buildGameObject(
             Model model, Engine engine, ModelInstance modelInst, btCollisionShape shape) {
 
         InstanceData id = new InstanceData();
@@ -212,8 +163,10 @@ private String featureName; // if Entity is to be part of a feature
             position = mc.modelInst.transform.getTranslation(position);
 
             FeatureAdaptor adaptor = null;
+
             if (null != id.adaptr) {
-                adaptor = makeFeatureAdaptr(position, id.adaptr, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
+
+                adaptor = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
 
                 // for now, assign Entity ref to bullet body userValue (only for feature entity right now)
                 BulletComponent bc  = e.getComponent(BulletComponent.class);
@@ -221,8 +174,7 @@ private String featureName; // if Entity is to be part of a feature
                 if (null != bc){
                     btCollisionObject body = bc.body;
                     if (null != body){
-                        // body.setUserValue((int)e);
-                        // todo ... need to build a map associating these entities with an int index
+                        // build a map associating these entities with an int index
                         int next = BulletWorld.getInstance().userToEntityLUT.size;
                         body.setUserValue(next + 1);   /// + 1 u
                         body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
@@ -247,18 +199,16 @@ private String featureName; // if Entity is to be part of a feature
                 }
             }
 
-            if (null != playerFeatureName) {
-                if (objectName.equals(playerFeatureName)) {
+            if (null != playerFeatureName && objectName.equals(playerFeatureName)) {
                     playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
                     e.getComponent(CharacterComponent.class).isPlayer = true;
-                }
             }
 
         } while (null != id && n < instanceData.size);
     }
 
     /* could end up "gameObject.build()" ?? */
-    Entity buildObjectInstance(
+    private Entity buildObjectInstance(
             ModelInstance instance, btCollisionShape shape, InstanceData id) {
 
         Entity e = new Entity();
