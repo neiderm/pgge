@@ -172,7 +172,7 @@ public final class GameWorld implements Disposable {
             sceneData.modelGroups.put("spawners", mg);
         }
 
-        mg.gameObjects.add(object);
+        mg.addGameObject(object);
     }
 
 

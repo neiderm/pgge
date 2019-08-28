@@ -1,6 +1,4 @@
 {
-"features": {
-},
 "modelGroups": {
 	"characters": {
 		"gameObjects": [
@@ -88,7 +86,6 @@
 		"isCharacter": true
 	},
 	"primitiveStatics": {
-		"modelName": "",
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -126,10 +123,10 @@
 				"isShadowed": true
 			}
 		],
+		"modelName": "",
 		"isKinematic": true
 	},
 	"objects": {
-		"modelName": "objects",
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -179,10 +176,10 @@
 				"meshShape": "btBoxShape",
 				"isShadowed": true
 			}
-		]
+		],
+		"modelName": "objects"
 	},
 	"sceneObjects": {
-		"modelName": "scene",
 		"gameObjects": [
 			{
 				"objectName": "Crate*",
@@ -219,7 +216,8 @@
 				"isKinematic": true,
 				"isShadowed": true
 			}
-		]
+		],
+		"modelName": "scene"
 	},
 	"Features": {
 		"gameObjects": [
@@ -233,18 +231,14 @@
 						},
 						"color": {
 							"r": 1,
-							"b": 0,
 							"g": 1,
 							"a": 0.4
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.OOBSensor",
 							"vS": {
-								"x": 10,
-								"y": 0,
-								"z": 0
-							},
-							"inverted": true
+								"x": 10
+							}
 						}
 					}
 				],
@@ -260,7 +254,6 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 0,
 							"y": 10,
 							"z": -5
 						},
@@ -272,9 +265,7 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.MovingPlatform",
 							"vT": {
-								"x": 0,
-								"y": 15,
-								"z": 0
+								"y": 15
 							}
 						}
 					}
@@ -483,7 +474,6 @@
 		]
 	},
 	"misc": {
-		"modelName": "landscape",
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -502,7 +492,8 @@
 				"isKinematic": true,
 				"isShadowed": true
 			}
-		]
+		],
+		"modelName": "landscape"
 	}
 },
 "modelInfo": {

@@ -1,7 +1,4 @@
 {
-"features": {
-	"ExitSensor": {}
-},
 "modelGroups": {
 	"characters": {
 		"gameObjects": [
@@ -73,8 +70,6 @@
 						},
 						"color": {
 							"r": 1,
-							"b": 0,
-							"g": 0,
 							"a": 1
 						},
 						"adaptr": {
@@ -99,7 +94,6 @@
 		"isCharacter": true
 	},
 	"sceneStaticObjects": {
-		"modelName": "scene",
 		"gameObjects": [
 			{
 				"objectName": "Plane*",
@@ -130,7 +124,8 @@
 				"objectName": "Exit",
 				"featureName": "IsNotRetrievedDoesntNEedFtrName"
 			}
-		]
+		],
+		"modelName": "scene"
 	},
 	"primitivesMisc": {
 		"gameObjects": [
@@ -144,7 +139,6 @@
 						},
 						"color": {
 							"r": 1,
-							"b": 0,
 							"g": 1,
 							"a": 0.9
 						},
@@ -165,7 +159,7 @@
 					"y": 0.5,
 					"z": 0.5
 				},
-				"mass": 5.1,
+				"mass": 2.1,
 				"meshShape": "btBoxShape",
 				"isShadowed": true
 			},
@@ -178,8 +172,6 @@
 							"z": 15
 						},
 						"color": {
-							"r": 0,
-							"b": 0,
 							"g": 1,
 							"a": 0.9
 						},
@@ -248,7 +240,6 @@
 		]
 	},
 	"objects": {
-		"modelName": "objects",
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -272,7 +263,8 @@
 				"meshShape": "btBoxShape",
 				"isShadowed": true
 			}
-		]
+		],
+		"modelName": "objects"
 	}
 },
 "modelInfo": {

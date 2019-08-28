@@ -201,6 +201,9 @@ public class GameScreen extends TimedGameScreen {
                     incHitCount(1);
 
                     CompCommon.explode(engine, picked);
+
+                    // mark dead entity for deletion
+                    picked.add(new StatusComponent(true));
                 }
             }
 
@@ -228,6 +231,7 @@ public class GameScreen extends TimedGameScreen {
                         if (0 == lc){
 
                             CompCommon.explode(engine, pickedPlayer);   //   don't really want it here
+                            pickedPlayer.add(new StatusComponent(true));
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             int continueTime = pickedPlayer.getComponent(StatusComponent.class).dieClock;
@@ -395,33 +399,45 @@ debugPrint("**", color, 0, 0 );
         }
     }
 
-    private void cleaner(){
-        // update entities queued for deletion (seems like this needs to be done outside of engine/simulation step)
+    private void cleaner() {
+        // update entities queued for deletion (needs to be done outside of engine/simulation step)
         for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
 //            if (null != e)
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
-            if (2 == sc.deleteFlag) {
-                BulletComponent bc = e.getComponent(BulletComponent.class);
+            //  check for entities to be removed first ... there would bw no point in separate comps deleteion
+            if (sc.deleteMe) {
 
-                if (null != bc) {
-                    if (null != bc.motionstate) {
-                        bc.motionstate.dispose();
-                    }
+                Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
+                engine.removeEntity(e); // if we don't remove the Bullet Comp, it can be handled by BulletSystem:entityRemoved()
 
-                    BulletWorld.getInstance().removeBody(bc.body);
+            } else {
+//                if (sc.deleteFlag > 0) {
+                switch (sc.deleteFlag) {
+                    case 0:
+                        break;
+                    default:
+                    case 2:
+//                    if (2 == sc.deleteFlag) {
+                        BulletComponent bc = e.getComponent(BulletComponent.class);
 
-                    bc.shape.dispose();
-                    bc.body.dispose();
+                        if (null != bc) {
+                            Gdx.app.log("GameScreen", "cleanr: remove BC.");
+                            // hmmmm .... triggers BulletSystem.entityRemoved() .... then why is  BC sometimes null /??? ??/
+                            e.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
 
-                    e.remove(BulletComponent.class);
+                            if (null != bc.motionstate) {
+                                bc.motionstate.dispose();
+                            }
+                            BulletWorld.getInstance().removeBody(bc.body);
+                            bc.shape.dispose();
+                            bc.body.dispose();
+                            bc.body = null; // idfk ... is this useful?
+                        }
                 }
-
-                sc.deleteFlag = 0;
-
-            } else if (sc.deleteMe) {
-                engine.removeEntity(e);
             }
+
+            sc.deleteFlag = 0;
         }
     }
 

@@ -20,6 +20,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 
 /**
  * copied from
@@ -235,7 +236,15 @@ public class SteeringBulletEntity extends SteeringEntity {
     */
     @Override
     public Vector3 getPosition() {
-        body.getMotionState().getWorldTransform(tmpMatrix4);
+
+        btMotionState ms = body.getMotionState();
+
+        if (null != ms) { // careful ... body reference may not be null, but the linked entity may have been destroyed
+            body.getMotionState().getWorldTransform(tmpMatrix4);
+        } else {
+            return new Vector3(); // idfk - target entity has probly been removed ... "arrive SB" has no provision to protect against null pointer
+        }
+
         return tmpMatrix4.getTranslation(tmpVector3);
     }
 

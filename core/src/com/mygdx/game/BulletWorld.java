@@ -38,6 +38,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSol
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 
@@ -61,34 +62,89 @@ public class BulletWorld implements Disposable {
     private MyContactListener mcl;
 
     class MyContactListener extends ContactListener {
+
         @Override
-        public boolean onContactAdded (int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
+        public void onContactEnded(int userValue0, int userValue1) {
 
             Entity ee;
-            if (userValue0 != 0) {
-                int index = userValue0 -1;
-                ee = (Entity)userToEntityLUT.get(index);
-                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
-                if (null != comp){
-                    FeatureAdaptor fa = comp.featureAdpt;
-                    if (null != fa){
-                        fa.onCollision(ee);
-                    }
-                }
-            }
+            int lutSize = userToEntityLUT.size;
 
-            if (userValue1 != 0) {
-                int index = userValue1 -1;
-                ee = (Entity)userToEntityLUT.get(index);
-                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
-                if (null != comp){
-                    FeatureAdaptor fa = comp.featureAdpt;
-                    if (null != fa){
-                        fa.onCollision(ee);
+            if (userValue0 > 0) {
+
+                if (userValue0 < lutSize) { // I noticed some crazy big (negative int?) values on Android device
+
+                    ee = (Entity) userToEntityLUT.get(userValue0);
+
+                    if (null != ee) {
+
+                        BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
+
+                        if (null != bc){
+
+                            FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+
+                            if (null != comp) {
+                                FeatureAdaptor fa = comp.featureAdpt;
+
+                                if (null != fa) {
+                                    fa.onCollision(ee, 0);
+                                }
+                            }
+                        } else{
+                            Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
+                        }
+                    }
+                }
+
+                if (userValue1 > 0) {
+
+                    if (userValue1 < lutSize) { // TODO: noticed some crazy big (negative int?) values on Android device and results in crash :(
+
+                        ee = (Entity) userToEntityLUT.get(userValue1);
+
+                        if (null != ee) {
+
+                            BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
+
+                            if (null != bc){
+//                                Gdx.app.log("onContactEnded", "sumting funkee hya 111u");
+                                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+
+                                if (null != comp) {
+                                    FeatureAdaptor fa = comp.featureAdpt;
+
+                                    if (null != fa) {
+                                        fa.onCollision(ee, 1);
+                                    }
+                                }
+                            }else{
+                                Gdx.app.log("onContactEnded", "no Bullet Comp (1)");
+                            }
+                        }
                     }
                 }
             }
-            return true;
+        }
+        private void onCollision(int id, int userValue){
+
+            Entity ee;
+            int lutSize = userToEntityLUT.size;
+
+            if (userValue < lutSize) { // TODO: noticed some crazy big (negative int?) values on Android device and results in crash :(
+
+                ee = (Entity) userToEntityLUT.get(userValue);
+                if (null != ee) {
+                    FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+
+                    if (null != comp) {
+                        FeatureAdaptor fa = comp.featureAdpt;
+
+                        if (null != fa) {
+                            fa.onCollision(ee, id);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -112,13 +168,14 @@ public class BulletWorld implements Disposable {
         }
 
         userToEntityLUT = new Array<Object>();
+        userToEntityLUT.add(null); // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
 
         rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);
 
         // Create the bullet world
         collisionConfiguration = new btDefaultCollisionConfiguration();
         dispatcher = new btCollisionDispatcher(collisionConfiguration);
-        broadphase = new btDbvtBroadphase();
+        broadphase = new btDbvtBroadphase(); //  new btAxisSweep3 ?
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(new Vector3(0, -9.81f, 0));

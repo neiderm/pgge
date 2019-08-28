@@ -176,7 +176,7 @@ private String featureName; // if Entity is to be part of a feature
                     if (null != body){
                         // build a map associating these entities with an int index
                         int next = BulletWorld.getInstance().userToEntityLUT.size;
-                        body.setUserValue(next + 1);   /// + 1 u
+                        body.setUserValue(next);
                         body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
                         BulletWorld.getInstance().userToEntityLUT.add(e); // what if e (body) removed?
                     }
