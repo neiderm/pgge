@@ -132,11 +132,6 @@ public class ModelGroup {
                     model = mdlInfo.model;
                     rootNodeId = model.nodes.get(0).id;
 
-                    if (gameObject.mass > 0 && !gameObject.isKinematic) {
-
-                        shape = PrimitivesBuilder.getShape(model.meshes.get(0));
-                    }                     // else ... non bullet entity (e.g cars in select screen)
-
                     if (model.nodes.size > 1) { // multi-node model
                         // "demodularize" model - combine modelParts into single Node for generating the physics shape
                         Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
@@ -146,24 +141,21 @@ public class ModelGroup {
                     }
                     else {
                         instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
+                        shape = PrimitivesBuilder.getShape(model.meshes.get(0));
                     }
                 } else {
                     model = PrimitivesBuilder.getModel();
                     rootNodeId = gameObject.objectName;
-
-                    if (gameObject.isKinematic || gameObject.mass > 0) { // note does not use the gamObject.meshSHape name
-
-                        shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
-                    }
+                    // note does not use the gamObject.meshSHape name
+                    shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
                     instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
                 }
-
-                gameObject.buildGameObject(model, engine,  instance, shape);
+                gameObject.buildGameObject(model, engine, instance, shape);
             }
             else
             {
                 /* load all nodes from model that match /objectName.*/
-                gameObject.buildNodes(engine, groupModel) ;
+                gameObject.buildNodes(engine, groupModel);
             }
         }
     }

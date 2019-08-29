@@ -132,7 +132,7 @@ private String featureName; // if Entity is to be part of a feature
 
     // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
     void buildGameObject(
-            Model model, Engine engine, ModelInstance modelInst, btCollisionShape shape) {
+            Model model, Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
         InstanceData id = new InstanceData();
         int n = 0;
@@ -151,6 +151,12 @@ private String featureName; // if Entity is to be part of a feature
 
             if (instanceData.size > 0) {
                 id = instanceData.get(n++);
+            }
+
+            btCollisionShape shape = null;
+            if (isKinematic || mass > 0) { // note does not use the gamObject.meshSHape name
+
+                shape = btcs; // note: 1 shape re-used
             }
 
             Entity e = buildObjectInstance(modelInst.copy(),  shape, id);
@@ -199,12 +205,12 @@ private String featureName; // if Entity is to be part of a feature
                 }
             }
 
-            if (null != playerFeatureName && objectName.equals(playerFeatureName)) {
+            if (/*null != playerFeatureName && */ objectName.equals(playerFeatureName)) {
                     playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
                     e.getComponent(CharacterComponent.class).isPlayer = true;
             }
 
-        } while (null != id && n < instanceData.size);
+        } while (/*null != id && */ n < instanceData.size);
     }
 
     /* could end up "gameObject.build()" ?? */
