@@ -219,6 +219,12 @@ public class GameScreen extends TimedGameScreen {
             @Override
             public void act (float delta) {
 
+// get the controller to model update out of the way before start messing with any screen transitions/disposals
+                if (controllerInputsActive){
+                    controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                }
+
                 super.act(delta);
 
                 // handle a (hopefully) small subset of control actions specific to the model or whatever
@@ -248,10 +254,6 @@ public class GameScreen extends TimedGameScreen {
                         break;
                 }
 
-                if (controllerInputsActive){
-                    controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
-                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
-                }
 
                 updateRays();
             }
