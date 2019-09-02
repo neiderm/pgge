@@ -37,9 +37,9 @@ public class BulletComponent implements Component {
     public btCollisionShape shape;
     public btRigidBody body;
     public float mass;
-//    private final int id;
+    //    private final int id;
 //    private static int cnt = 0;
-
+    public boolean iHaveBeenDisposed;
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 

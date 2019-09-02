@@ -28,6 +28,7 @@ import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObjectArray;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
@@ -125,27 +126,6 @@ public class BulletWorld implements Disposable {
                 }
             }
         }
-        private void onCollision(int id, int userValue){
-
-            Entity ee;
-            int lutSize = userToEntityLUT.size;
-
-            if (userValue < lutSize) { // TODO: noticed some crazy big (negative int?) values on Android device and results in crash :(
-
-                ee = (Entity) userToEntityLUT.get(userValue);
-                if (null != ee) {
-                    FeatureComponent comp = ee.getComponent(FeatureComponent.class);
-
-                    if (null != comp) {
-                        FeatureAdaptor fa = comp.featureAdpt;
-
-                        if (null != fa) {
-                            fa.onCollision(ee, id);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private BulletWorld() {
@@ -196,6 +176,14 @@ public class BulletWorld implements Disposable {
     @Override
     public void dispose() {
 
+        btCollisionObjectArray objs = collisionWorld.getCollisionObjectArray();
+
+        for (int i = 0; i < objs.size(); i++) {
+            btCollisionObject body =  objs.at(i);
+            if (body instanceof  btRigidBody){
+                Gdx.app.log("Bulletwrld:dispose()" , "btRigidBody has NOT been dispose() !!!!!");
+            }
+        }
         collisionWorld.dispose();
         solver.dispose();
         broadphase.dispose();

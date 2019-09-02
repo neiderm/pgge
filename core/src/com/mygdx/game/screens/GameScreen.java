@@ -37,7 +37,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Timer;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -220,7 +219,10 @@ public class GameScreen extends TimedGameScreen {
             public void act (float delta) {
 
 // get the controller to model update out of the way before start messing with any screen transitions/disposals
-                if (controllerInputsActive){
+                if (
+                        ! pickedPlayer.getComponent(BulletComponent.class).iHaveBeenDisposed
+//                        controllerInputsActive
+                ){
                     controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                             (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
                 }
@@ -374,7 +376,7 @@ public class GameScreen extends TimedGameScreen {
         font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
 */
-debugPrint("**", color, 0, 0 );
+        debugPrint("**", color, 0, 0 );
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -411,34 +413,27 @@ debugPrint("**", color, 0, 0 );
             if (sc.deleteMe) {
 
                 Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
-                engine.removeEntity(e); // if we don't remove the Bullet Comp, it can be handled by BulletSystem:entityRemoved()
+                engine.removeEntity(e); // calls BulletSystem:entityRemoved() ..
 
             } else {
-//                if (sc.deleteFlag > 0) {
-                switch (sc.deleteFlag) {
-                    case 0:
-                        break;
-                    default:
-                    case 2:
-//                    if (2 == sc.deleteFlag) {
-                        BulletComponent bc = e.getComponent(BulletComponent.class);
+                if (2 == sc.deleteFlag) {
+                    BulletComponent bc = e.getComponent(BulletComponent.class);
 
-                        if (null != bc) {
-                            Gdx.app.log("GameScreen", "cleanr: remove BC.");
-                            // hmmmm .... triggers BulletSystem.entityRemoved() .... then why is  BC sometimes null /??? ??/
-                            e.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
+                    if (null != bc) {
 
-                            if (null != bc.motionstate) {
-                                bc.motionstate.dispose();
-                            }
-                            BulletWorld.getInstance().removeBody(bc.body);
-                            bc.shape.dispose();
-                            bc.body.dispose();
-                            bc.body = null; // idfk ... is this useful?
+                        e.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
+                        Gdx.app.log("GameScreen", "cleanr: .... BulletComponent being disposed!!!!!");
+
+                        if (null != bc.motionstate) {
+                            bc.motionstate.dispose();
                         }
+                        BulletWorld.getInstance().removeBody(bc.body);
+                        bc.shape.dispose();
+                        bc.body.dispose();
+                        bc.body = null; // idfk ... is this useful?
+                    }
                 }
             }
-
             sc.deleteFlag = 0;
         }
     }
@@ -484,8 +479,6 @@ debugPrint("**", color, 0, 0 );
     private void screenTeardown(){
 
         Gdx.app.log("GameScreen", "screenTearDown");
-
-        Timer.instance().clear();
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeSystem(renderSystem); // make the system dispose its stuff

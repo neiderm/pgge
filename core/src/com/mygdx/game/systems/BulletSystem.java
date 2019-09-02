@@ -46,6 +46,9 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
             // assert null != bc
             // assert null != bc.shape
             // assert null != bc.body
+
+            BulletWorld.getInstance().removeBody(bc.body);
+
             if (null != bc.motionstate) {
                 bc.motionstate.dispose();
             }
@@ -66,15 +69,26 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
     @Override
     public void entityRemoved(Entity entity) {
 
-        BulletComponent bc = entity.getComponent(BulletComponent.class); // always null ~?!?
+        BulletComponent bc = entity.getComponent(BulletComponent.class);
 
         // assert null != bc
         // assert null != bc.body
 
-/*
+        if (null != bc){
+
+            Gdx.app.log("BulletSystem", "HEY! on entityRemoved() ...  null != bc   (( will my stuff be disposed ????? )) ");
+
+            /*
         BulletWorld.getInstance().removeBody(bc.body);
         bc.body.dispose();
 */
-Gdx.app.log("BulletSystem", "entityRemoved()");
+
+            bc.iHaveBeenDisposed = true;
+
+            Gdx.app.log("BulletSystem", "YIKES!   my stuff is NOOOTTTT gtting disposed !!!!  )) ");
+
+        }else{
+            Gdx.app.log("BulletSystem", "??? on entityRemoved() ... wtf I can't dispose a NULL Comonent !!!!");
+        }
     }
 }
