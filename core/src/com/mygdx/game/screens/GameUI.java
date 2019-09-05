@@ -51,7 +51,6 @@ public class GameUI extends InGameMenu {
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
     int continueScreenTimeUp;
-    boolean controllerInputsActive = false;
     private int hitCount;
 
     private StringBuilder stringBuilder = new StringBuilder();
@@ -355,10 +354,10 @@ public class GameUI extends InGameMenu {
     }
 
 
-/*
- * todo: wrapper for setRoundActiveState() so that new screen only called from one place
- */
-    public void onSelectEvent() {
+    public void onSelectEvent() { // mt ... override it
+    }
+
+    public void onPauseEvent() {
 
         if (GameWorld.getInstance().getIsPaused()) {
 
@@ -383,10 +382,11 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                     break;
             }
-        } else if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-
-            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
         }
+//        else if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+//
+//            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+//        }
     }
 
     /* can be overridden */
@@ -410,8 +410,22 @@ public class GameUI extends InGameMenu {
         mapper.latchInputState();
 
         if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
-            onSelectEvent();
+
+            if (GameWorld.getInstance().getIsPaused()) {
+
+                onPauseEvent();
+
+            } else {
+                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
+
+                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                } else {
+
+                    onSelectEvent(); // so it can be overriden
+                }
+            }
         } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+
             onEscEvent();
         }
 
@@ -430,7 +444,6 @@ public class GameUI extends InGameMenu {
 
         switch (GameWorld.getInstance().getRoundActiveState()) {
 
-            default:
             case ROUND_ACTIVE:
                 if (getHitCount() >= ALL_HIT_COUNT) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
@@ -453,7 +466,6 @@ public class GameUI extends InGameMenu {
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
-
                 if (canExit) { // exit sensor is tripped
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
                 }
@@ -466,15 +478,16 @@ public class GameUI extends InGameMenu {
                 }
                 break;
 
-            case ROUND_OVER_RESTART:
-                break;
-
             case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
                 GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
                 break;
 
             case ROUND_OVER_QUIT:
                 GameWorld.getInstance().showScreen(new SplashScreen());
+                break;
+
+            case ROUND_OVER_RESTART:
+            default:
                 break;
         }
     }
@@ -493,29 +506,17 @@ public class GameUI extends InGameMenu {
 
     private void showPauseMenu(boolean show){
 // about 80% of the time, these are opposite to each other (menu goes up, on-screen-display down).
-        onscreenMenuTbl.setVisible(show);
-        playerInfoTbl.setVisible(!show);
-    }
-
-    private void setPaused() {
-
-        if (GameWorld.getInstance().getIsPaused()) {
-            setOverlayColor(0, 0, 1, 0.5f);
-            showPauseMenu(true);
-        } else {
-            controllerInputsActive = true;
-            if (GameWorld.getInstance().getIsTouchScreen())
-                showOSC(true);
-        }
+        onscreenMenuTbl.setVisible( show );
+        playerInfoTbl.setVisible( ! show);
     }
 
     private void updateUI(){
 
+        setOverlayColor(0, 0, 0, 0);
         showOSC(false);
         showPauseMenu(false);
         mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
-        controllerInputsActive = false;
         updateTimerLbl();
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
@@ -533,25 +534,25 @@ public class GameUI extends InGameMenu {
             setLabelColor(itemsLabel, Color.GREEN);
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append("EXIT"));
-            controllerInputsActive = true;
-            showOSC(true);
-            setOverlayColor(0, 0, 0, 0);
-            setPaused(); //
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3")); // ALL_HIT_COUNT!
-//            overlayImage.getColor().a = 0;
-            setOverlayColor(0, 0, 0, 0);
-            setPaused();
 
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
             playerInfoTbl.setVisible(false);
-            // onscreenMenuTbl.setVisible(false);
             fadeScreen();
         }
+
+        if (GameWorld.getInstance().getIsPaused()) {
+            setOverlayColor(0, 0, 1, 0.5f);
+            showPauseMenu(true);
+        } else
+            if (GameWorld.getInstance().getIsTouchScreen()) {
+                showOSC(true);
+            }
     }
 
     @Override
