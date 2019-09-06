@@ -145,7 +145,6 @@ class InputMapper /* stageWithController extends stage ? */ {
         }
     }
 
-
     private void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
 
         buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
@@ -267,6 +266,7 @@ class InputMapper /* stageWithController extends stage ? */ {
         if (preInputState != newInputState) { // debounce
             rv = newInputState;
         }
+
         preInputState = newInputState;
         incomingInputState = InputState.INP_NONE; // unlatch the input state
 
@@ -311,12 +311,7 @@ class InputMapper /* stageWithController extends stage ? */ {
         }
         return rv;
     }
-/*
-    boolean checkInputState(InputState wantedInputState) {
 
-        return checkInputState(wantedInputState, false);
-    }
-*/
     /*
      * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
      */
@@ -365,14 +360,14 @@ class InputMapper /* stageWithController extends stage ? */ {
     }
 
     public class DpadAxis {
+        // Vector2 ??
         int x;
         int y;
 
-        Vector2 axes = new Vector2();
-
-        Vector2 getAxes() {
-            return axes.set(x, y);
-        }
+        /* protect agains key held-over during screen transition ...my
+         stupid wonky key handling  */
+        boolean xBreak;
+        boolean yBreak;
 
         void clear() {
             x = 0;
@@ -380,12 +375,41 @@ class InputMapper /* stageWithController extends stage ? */ {
         }
 
         public int getX() {
-            return x;
+
+            int rt = 0;
+
+            if (xBreak)
+                rt = this.x;
+
+            if ( 0 == this.x )
+                xBreak = true;
+
+            return rt;
         }
 
         public int getY() {
-            return y;
+
+            int rt = 0;
+
+            if (yBreak)
+                rt = this.y;
+
+            if ( 0 == this.y )
+                yBreak = true;
+
+            return rt;
         }
+
+        public void setX(int x){
+
+            this.x = x;
+        }
+
+        public void setY(int y){
+
+            this.y = y;
+        }
+
     }
 
     private class AnalogAxis {
@@ -406,7 +430,6 @@ class InputMapper /* stageWithController extends stage ? */ {
         }
     }
 
-    // Vector2 ??
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
     private AnalogAxis analogAxes = new AnalogAxis(); // would need array of max analog axes, for now just use one
 
@@ -417,7 +440,7 @@ class InputMapper /* stageWithController extends stage ? */ {
      * But glitchy and not worth considering.
      */
     /* Vector2 */
-    DpadAxis getDpad(DpadAxis asdf) {
+    DpadAxis getDpad(DpadAxis axisIndex) {
 
         dPadAxes.clear();
 
@@ -433,16 +456,16 @@ class InputMapper /* stageWithController extends stage ? */ {
                    ( previousPovDirection.north == povDir && ( PovDirection.northEast == povDir || PovDirection.northWest == povDir  ) )  )
          */
         if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir) {
-            dPadAxes.y = -1;
+            dPadAxes.setY(-1); //            dPadAxes.y = -1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || PovDirection.south == povDir) {
-            dPadAxes.y = 1;
+            dPadAxes.setY( 1); //            dPadAxes.y = 1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || PovDirection.west == povDir) {
-            dPadAxes.x = -1;
+            dPadAxes.setX(-1); //            dPadAxes.x = -1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
-            dPadAxes.x = 1;
+            dPadAxes.setX( 1); //            dPadAxes.x = 1;
         }
         return dPadAxes;
     }
