@@ -45,6 +45,7 @@ import com.mygdx.game.features.FeatureAdaptor;
 
 // ref:
 //   https://github.com/xoppa/blog/blob/master/tutorials/src/com/xoppa/blog/libgdx/g3d/bullet/dynamics/
+//   https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Contact-callbacks#contact-filtering
 
 public class BulletWorld implements Disposable {
 
@@ -66,13 +67,14 @@ public class BulletWorld implements Disposable {
 
         @Override
         public void onContactEnded(int userValue0, int userValue1) {
+//        public boolean onContactAdded( int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
 
             Entity ee;
             int lutSize = userToEntityLUT.size;
 
             if (userValue0 > 0) {
 
-                if (userValue0 < lutSize) { // I noticed some crazy big (negative int?) values on Android device
+                if (userValue0 < lutSize) {
 
                     ee = (Entity) userToEntityLUT.get(userValue0);
 
@@ -80,7 +82,7 @@ public class BulletWorld implements Disposable {
 
                         BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
 
-                        if (null != bc){
+                        if (null != bc) {
 
                             FeatureComponent comp = ee.getComponent(FeatureComponent.class);
 
@@ -91,40 +93,42 @@ public class BulletWorld implements Disposable {
                                     fa.onCollision(ee, 0);
                                 }
                             }
-                        } else{
+                        } else {
                             Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
                         }
                     }
                 }
+            }
 
-                if (userValue1 > 0) {
+            if (userValue1 > 0) {
 
-                    if (userValue1 < lutSize) { // TODO: noticed some crazy big (negative int?) values on Android device and results in crash :(
+                if (userValue1 < lutSize) {
 
-                        ee = (Entity) userToEntityLUT.get(userValue1);
+                    ee = (Entity) userToEntityLUT.get(userValue1);
 
-                        if (null != ee) {
+                    if (null != ee) {
 
-                            BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
+                        BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
 
-                            if (null != bc){
+                        if (null != bc) {
 //                                Gdx.app.log("onContactEnded", "sumting funkee hya 111u");
-                                FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+                            FeatureComponent comp = ee.getComponent(FeatureComponent.class);
 
-                                if (null != comp) {
-                                    FeatureAdaptor fa = comp.featureAdpt;
+                            if (null != comp) {
+                                FeatureAdaptor fa = comp.featureAdpt;
 
-                                    if (null != fa) {
-                                        fa.onCollision(ee, 1);
-                                    }
+                                if (null != fa) {
+                                    fa.onCollision(ee, 1);
                                 }
-                            }else{
-                                Gdx.app.log("onContactEnded", "no Bullet Comp (1)");
                             }
+                        } else {
+                            Gdx.app.log("onContactEnded", "no Bullet Comp (1)");
                         }
                     }
                 }
             }
+
+//            return true; // GN: contactadded
         }
     }
 
@@ -179,9 +183,9 @@ public class BulletWorld implements Disposable {
         btCollisionObjectArray objs = collisionWorld.getCollisionObjectArray();
 
         for (int i = 0; i < objs.size(); i++) {
-            btCollisionObject body =  objs.at(i);
-            if (body instanceof  btRigidBody){
-                Gdx.app.log("Bulletwrld:dispose()" , "btRigidBody has NOT been dispose() !!!!!");
+            btCollisionObject body = objs.at(i);
+            if (body instanceof btRigidBody) {
+                Gdx.app.log("Bulletwrld:dispose()", "btRigidBody has NOT been dispose() !!!!!");
             }
         }
         collisionWorld.dispose();
