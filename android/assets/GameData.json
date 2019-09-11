@@ -224,6 +224,17 @@
 			{
 				"instanceData": [
 					{
+						"adaptr": {
+							"class": "com.mygdx.game.features.DroppedThing"
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "DroppingExitSensor"
+			},
+			{
+				"instanceData": [
+					{
 						"translation": {
 							"x": 5,
 							"y": 10,
@@ -237,7 +248,7 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.OOBSensor",
 							"vS": {
-								"x": 10
+								"x": 25
 							}
 						}
 					}
@@ -245,9 +256,10 @@
 				"objectName": "sphere",
 				"featureName": "OutOfBounds",
 				"scale": {
-					"x": 20,
-					"y": 20,
-					"z": 20
+
+					"x": 50,
+					"y": 50,
+					"z": 50
 				}
 			},
 			{
