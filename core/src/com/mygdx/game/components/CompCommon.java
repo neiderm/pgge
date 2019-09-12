@@ -21,8 +21,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.mygdx.game.BulletWorld;
+import com.mygdx.game.GameWorld;
+import com.mygdx.game.features.ExitSensor;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
  * the catch-all of the moment ...
@@ -86,4 +91,76 @@ public class CompCommon {
         sc.deleteFlag = 2;         // flag bullet Comp for deletion
         sss.add(sc);
     }
+
+    public static void releasePayload(Entity target) {
+
+        // insert a newly created game OBject into the "spawning" model group
+        GameObject gameObject = new GameObject();
+        gameObject.isShadowed = true;
+
+        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
+        gameObject.scale = new Vector3(size);
+
+//        gameObject.mass = 1; // let it be stationary
+
+        gameObject.objectName = "sphere";
+
+        Vector3 translation = new Vector3();
+//                translation = bc.body.getWorldTransform().getTranslation(translation);
+
+        ModelComponent mc = target.getComponent(ModelComponent.class);
+
+        Matrix4 tmpM4 = mc.modelInst.transform;
+        translation = tmpM4.getTranslation(translation);
+
+        InstanceData id = new InstanceData(translation);
+        ExitSensor es = new ExitSensor();
+        es.init(target);
+        es.vS.set(new Vector3(1.5f, 0, 0));
+        id.adaptr = es;
+        gameObject.getInstanceData().add(id);
+
+        GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
+    }
+
+    /* create a "bomb" ... creates a graphical mesh-shape and a matching
+ physics body, adds it to the bullet world ... the drop is according to the height set above the target
+ */
+    public static void dropBomb(Entity sensor, Entity target){
+
+        // set position above target, add bulletcomp to sensor
+        Vector3 translation = new Vector3();
+        BulletComponent bc = target.getComponent(BulletComponent.class);
+        translation = bc.body.getWorldTransform().getTranslation(translation);
+
+        ModelComponent mc = target.getComponent(ModelComponent.class);
+        Matrix4 tmpM4 = mc.modelInst.transform;
+        translation = tmpM4.getTranslation(translation);
+
+        translation.y += 8; // idfkk ... make it fall from the sky!
+
+        btCollisionShape shape = PrimitivesBuilder.getShape(
+                "box", new Vector3(1, 1, 1));
+
+//            add BulletComponent and link to the model comp xform
+        mc = sensor.getComponent(ModelComponent.class);
+        mc.modelInst.transform.setTranslation(translation);
+        bc = new BulletComponent(shape, mc.modelInst.transform, 5.1f);
+        bc.body.setWorldTransform(mc.modelInst.transform);
+        sensor.add(bc);
+
+        /* add body to bullet world (duplicated code ... refactor !!  (see GameObject)
+         */
+        btCollisionObject body = bc.body;
+//        if (null != body)
+        {
+            // build a map associating these entities with an int index
+            int next = BulletWorld.getInstance().userToEntityLUT.size;
+            body.setUserValue(next);
+            body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+            BulletWorld.getInstance().userToEntityLUT.add(sensor);
+        }
+    }
+
+
 }
