@@ -90,7 +90,11 @@ public class BulletWorld implements Disposable {
                                 FeatureAdaptor fa = comp.featureAdpt;
 
                                 if (null != fa) {
-                                    fa.onCollision(ee, 0);
+                                    if (null != fa.collisionProcessor){
+                                        fa.collisionProcessor.onCollision(ee);
+                                    }
+                                    else // tmp
+                                       fa.onCollision(ee, 0);
                                 }
                             }
                         } else {
@@ -102,7 +106,7 @@ public class BulletWorld implements Disposable {
 
             if (userValue1 > 0) {
 
-                if (userValue1 < lutSize) {
+                 if (userValue1 < lutSize) {
 
                     ee = (Entity) userToEntityLUT.get(userValue1);
 
@@ -118,7 +122,11 @@ public class BulletWorld implements Disposable {
                                 FeatureAdaptor fa = comp.featureAdpt;
 
                                 if (null != fa) {
-                                    fa.onCollision(ee, 1);
+                                    if (null != fa.collisionProcessor){
+                                        fa.collisionProcessor.onCollision(ee);
+                                    }
+                                    else // tmp ..
+                                          fa.onCollision(ee, 1);
                                 }
                             }
                         } else {
