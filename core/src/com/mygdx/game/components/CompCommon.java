@@ -23,8 +23,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.GameWorld;
-import com.mygdx.game.features.ExitSensor;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -58,7 +56,7 @@ public class CompCommon {
         picked.add(new StatusComponent(true));
     }
 
-    public static void mkStaticFromDynamicEntity(Entity sss) {
+    public static void mkStaticFromDynamicEntity(Entity sss) { // entityRmvPhysicsBody
 
         BulletComponent bc = sss.getComponent(BulletComponent.class);
         if (null == bc) {
@@ -92,36 +90,6 @@ public class CompCommon {
         sss.add(sc);
     }
 
-    public static void releasePayload(Entity target) {
-
-        // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject();
-        gameObject.isShadowed = true;
-
-        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
-        gameObject.scale = new Vector3(size);
-
-//        gameObject.mass = 1; // let it be stationary
-
-        gameObject.objectName = "sphere";
-
-        Vector3 translation = new Vector3();
-//                translation = bc.body.getWorldTransform().getTranslation(translation);
-
-        ModelComponent mc = target.getComponent(ModelComponent.class);
-
-        Matrix4 tmpM4 = mc.modelInst.transform;
-        translation = tmpM4.getTranslation(translation);
-
-        InstanceData id = new InstanceData(translation);
-        ExitSensor es = new ExitSensor();
-        es.init(target);
-        es.vS.set(new Vector3(1.5f, 0, 0));
-        id.adaptr = es;
-        gameObject.getInstanceData().add(id);
-
-        GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
-    }
 
     /*
      * dynamically "activate" a template entity and set its location
