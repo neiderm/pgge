@@ -16,9 +16,14 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.InstanceData;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
@@ -43,7 +48,7 @@ public class FeatureAdaptor implements FeatureIntrf {
     }
 
     @Override
-    public void update(Entity e) { // mt
+    public void update(Entity ee) { // mt
 
         if (
                 !exitXflag &&
@@ -51,11 +56,54 @@ public class FeatureAdaptor implements FeatureIntrf {
 
             exitXflag = true;
 
-            onActivate(e);
+            onActivate(ee);
         }
 
-        collisionProcessor.processCollision(e);
+        if (collisionProcessor.processCollision(ee)) {
+
+            spawnNewGameObject(ee); // spawnNewGameObject
+            ee.add(new StatusComponent(true)); // delete me!
+        }
     }
+
+
+    void spawnNewGameObject(Entity ee) {
+
+        // insert a newly created game OBject into the "spawning" model group
+        GameObject gameObject = new GameObject();
+        gameObject.isShadowed = true;
+
+        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
+        gameObject.scale = new Vector3(size);
+
+//        gameObject.mass = 1; // let it be stationary
+
+        gameObject.objectName = "sphere";
+
+        Vector3 translation = new Vector3();
+//                translation = bc.body.getWorldTransform().getTranslation(translation);
+
+        ModelComponent mc = ee.getComponent(ModelComponent.class);
+
+        Matrix4 tmpM4 = mc.modelInst.transform;
+        translation = tmpM4.getTranslation(translation);
+
+        InstanceData id = new InstanceData(translation);
+
+
+        ExitSensor es = new ExitSensor();
+
+        FeatureAdaptor newFa = getFeatureAdapter(this); // tmp test
+//newFa = es;
+
+        es.init(ee);
+        es.vS.set(new Vector3(1.5f, 0, 0));
+        id.adaptr = es;
+        gameObject.getInstanceData().add(id);
+
+        GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
+    }
+
 
     @Override
     public void onActivate(Entity ee) {

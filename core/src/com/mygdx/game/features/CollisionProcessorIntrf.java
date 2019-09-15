@@ -6,5 +6,5 @@ public interface CollisionProcessorIntrf {
 
     public void onCollision(Entity myCollisionObject) ;
 
-    public void processCollision(Entity myCollisionObject) ;
+    public boolean processCollision(Entity myCollisionObject) ;
 }
