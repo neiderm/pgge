@@ -228,7 +228,7 @@
 							"class": "com.mygdx.game.features.DroppedThing",
 							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"collisionProcessor": {
-								"class": "com.mygdx.game.features.DebouncedCollisionProcessor"
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							}
 						}
 					}
