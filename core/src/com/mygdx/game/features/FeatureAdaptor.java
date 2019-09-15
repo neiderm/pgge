@@ -47,26 +47,40 @@ public class FeatureAdaptor implements FeatureIntrf {
     public void init(Object asdf) { // mt
     }
 
+
+    private int tempasdf;
+
     @Override
     public void update(Entity ee) { // mt
 
-        if (
-                !exitXflag &&
-                                activateOnState == GameWorld.getInstance().getRoundActiveState()){
+        // allow not defined in json to be implicitly ignoired,
+        if (null != activateOnState) {
+            if (
+                    !exitXflag &&
+                            activateOnState == GameWorld.getInstance().getRoundActiveState()) {
 
-            exitXflag = true;
+                exitXflag = true;
 
-            onActivate(ee);
+                onActivate(ee);
+            }
         }
 
-        if (collisionProcessor.processCollision(ee)) {
+        if (null != collisionProcessor) {
+            if (collisionProcessor.processCollision(ee)) {
 
-            spawnNewGameObject(ee); // spawnNewGameObject
-            ee.add(new StatusComponent(true)); // delete me!
+                spawnNewGameObject(ee); // spawnNewGameObject
+                ee.add(new StatusComponent(true)); // delete me!
+            }
+        } else {
+
+            tempasdf += 1; // todo check thius
         }
     }
 
 
+    /*
+     * clone gaame objectfeature ?
+     */
     void spawnNewGameObject(Entity ee) {
 
         // insert a newly created game OBject into the "spawning" model group
@@ -91,10 +105,7 @@ public class FeatureAdaptor implements FeatureIntrf {
         InstanceData id = new InstanceData(translation);
 
 
-        ExitSensor es = new ExitSensor();
-
-        FeatureAdaptor newFa = getFeatureAdapter(this); // tmp test
-//newFa = es;
+        FeatureAdaptor es = getFeatureAdapter(this); // clone the feature
 
         es.init(ee);
         es.vS.set(new Vector3(1.5f, 0, 0));

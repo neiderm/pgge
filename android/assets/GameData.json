@@ -225,7 +225,7 @@
 				"instanceData": [
 					{
 						"adaptr": {
-							"class": "com.mygdx.game.features.SensorAdaptor",
+							"class": "com.mygdx.game.features.ExitSensor",
 							"vT": {
 								"y": 8
 							},

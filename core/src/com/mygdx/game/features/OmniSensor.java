@@ -66,7 +66,8 @@ public class OmniSensor extends SensorAdaptor {
 
     @Override
     public void update(Entity sensor) {
-        //                super.update(e);
+
+        super.update(sensor);
 
         // grab the starting Origin (translation) of the entity from the instance data
 // hmmmm ...  it could have been spawned "up there" and now falling to the floor ... so vT0 as handed by GameObject constructor is not the origin we're looking for!
