@@ -18,6 +18,7 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.components.CompCommon;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
@@ -57,7 +58,11 @@ public class FeatureAdaptor implements FeatureIntrf {
     }
 
     @Override
-    public void onActivate(Entity e) {
+    public void onActivate(Entity ee) {
+        /*
+         * vT = positoin ! this is the default activation for now, otherwise override!
+         */
+        CompCommon.entityAddPhysicsBody(ee, vT0);
     }
 
     @Override

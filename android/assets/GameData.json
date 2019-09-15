@@ -225,7 +225,10 @@
 				"instanceData": [
 					{
 						"adaptr": {
-							"class": "com.mygdx.game.features.DroppedThing",
+							"class": "com.mygdx.game.features.SensorAdaptor",
+							"vT": {
+								"y": 8
+							},
 							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"

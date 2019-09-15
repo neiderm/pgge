@@ -1,11 +1,16 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by neiderm on 7/5/2019.
  *
- * base type for a "Feature with a Target"
+ * base type for a "Feature with a Target" ... the sensor is distinct from the generic feature
+ * in its targetting characterisitcs.
+ *
+ * For now The body activation stuff is here but could be in feature adapter .
  */
 class SensorAdaptor extends FeatureAdaptor {
 
@@ -17,5 +22,29 @@ class SensorAdaptor extends FeatureAdaptor {
     public void init(Object target){
 
         this.target = (Entity)target;
+    }
+
+    /*
+     * position sensor at offset from player (resulting position vector passed to base handler in vT0)
+     */
+    @Override
+    public void onActivate(Entity ee) {
+
+        // base OFFSETS  xlation to vT ... so here initialize vT so the offset is against the target location then call the base nethiod
+
+        FeatureAdaptor newFa = getFeatureAdapter(this);
+
+        Vector3 translation = new Vector3();
+/*
+        BulletComponent bc = target.getComponent(BulletComponent.class);
+        translation = bc.body.getWorldTransform().getTranslation(translation);
+*/
+        ModelComponent mc = target.getComponent(ModelComponent.class);
+        translation = mc.modelInst.transform.getTranslation(translation);
+
+        /* position vector offsets by user value from json, to be loaded by super method */
+        vT0.set(vT).add(translation);
+
+        super.onActivate(ee);
     }
 }
