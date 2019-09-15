@@ -219,13 +219,14 @@
 		],
 		"modelName": "scene"
 	},
-	"Features": {
+	"features": {
 		"gameObjects": [
 			{
 				"instanceData": [
 					{
 						"adaptr": {
-							"class": "com.mygdx.game.features.DroppedThing"
+							"class": "com.mygdx.game.features.DroppedThing",
+							"activateOnState": "ROUND_COMPLETE_WAIT"
 						}
 					}
 				],
@@ -256,7 +257,6 @@
 				"objectName": "sphere",
 				"featureName": "OutOfBounds",
 				"scale": {
-
 					"x": 50,
 					"y": 50,
 					"z": 50

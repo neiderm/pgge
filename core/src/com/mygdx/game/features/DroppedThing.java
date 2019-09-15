@@ -17,7 +17,6 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.StatusComponent;
 
@@ -30,29 +29,31 @@ public class DroppedThing extends SensorAdaptor {
     private int contactCount;
     private int contactBucket;
 
-    private boolean exitXflag;
 
     /*
        Implmenetation notes WIP ...
         - allow jSON to define object that definately has no model instance . (ModelGroup:build() barfs .. )
      */
     @Override
-    public void update(Entity sensor /* bombEntity ;)  */ ) {
+    public void update(Entity sensor /* bombEntity ;)  */) {
 
         super.update(sensor);
 
         debounceCollision(sensor);
-
-        // check timer and /or bit-flag (@ GameState transition?) to do this 1 time only!
-        if (!exitXflag &&
-                GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
-
-            exitXflag = true;
-
-            CompCommon.dropBomb(sensor, target);
+        /*
+        if (null != collisionProcessor){
+            collisionProcessor.debounceCollision(ee);
         }
+         */
     }
 
+    @Override
+    public void onActivate(Entity ee) {
+
+        FeatureAdaptor newFa = getFeatureAdapter(this);
+
+        CompCommon.dropBomb(ee, target); // entityAddRigidBody
+    }
 
     private void debounceCollision(Entity sensor) {
 
@@ -62,21 +63,25 @@ public class DroppedThing extends SensorAdaptor {
 
                 contactBucket -= 1;
 
-            } else {
-
+            } else
                 if (0 == contactBucket) {
 
                     Gdx.app.log(" asdfdfd", "object is at rest ?? ");
                     contactCount = 0;
 
-                    CompCommon.releasePayload(sensor);   // some how make me an exit sensor
+                    CompCommon.releasePayload(sensor);   // spawnNewGameObject
 
                     sensor.add(new StatusComponent(true)); // delete me!
                 }
-            }
         }
     }
 
+    /*
+        ???????
+                                if (null != fa) {
+                                    fa.collisionProcessor.onCollision(ee, 1); //
+                                }
+     */
     @Override
     public void onCollision(Entity myCollisionObject, int id) {
 
@@ -87,5 +92,4 @@ public class DroppedThing extends SensorAdaptor {
         // bucket fills faster to ensure that it takes time to empty the bucket once the contacts have rung out ....
         contactBucket = 60; // idfk ... allow at least 1 frames worth of updates to ensure object is at rest?
     }
-
 }

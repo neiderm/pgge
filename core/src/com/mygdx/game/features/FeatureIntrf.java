@@ -10,5 +10,6 @@ public interface FeatureIntrf {
 
     void update(Entity e);
     void onCollision(Entity e, int id);
+    void onActivate(Entity e);
     void init(Object asdf);
 }

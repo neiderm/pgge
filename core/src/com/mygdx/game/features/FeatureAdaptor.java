@@ -16,10 +16,14 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.GameWorld;
 
 public class FeatureAdaptor implements FeatureIntrf {
+
+    private GameWorld.GAME_STATE_T activateOnState;
+    private boolean exitXflag;
+
 
     // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
 //    public Vector3 vR = new Vector3();
@@ -38,6 +42,19 @@ public class FeatureAdaptor implements FeatureIntrf {
 
     @Override
     public void update(Entity e) { // mt
+
+        if (
+                !exitXflag &&
+                                activateOnState == GameWorld.getInstance().getRoundActiveState()){
+
+            exitXflag = true;
+
+            onActivate(e);
+        }
+    }
+
+    @Override
+    public void onActivate(Entity e) {
     }
 
     @Override
@@ -53,36 +70,43 @@ public class FeatureAdaptor implements FeatureIntrf {
      */
     public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity target) {
 
-        FeatureAdaptor adaptor = null;
+        FeatureAdaptor adaptor = getFeatureAdapter(this);
 
-        Class c = getClass();
+        if (null != adaptor) {
 
-        if (c.toString().contains("KillSensor")) {
-            Gdx.app.log("asdf", c.toString()); // tmp
-        }
+            // maybe this is lame but have to copy each field of interest .. (clone () ??
+            adaptor.activateOnState = this.activateOnState;
 
-        try {
-
-            adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
-
-            if (null != adaptor) {
-                // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
-                // get the "characteristiics" for this type from the JSON
+            // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
+            // get the "characteristiics" for this type from the JSON
 //                        adaptor.vR.set(fa.vR);
-                adaptor.vS.set(vS);
-                adaptor.vT.set(vT);
+            adaptor.vS.set(vS);
+            adaptor.vT.set(vT);
 
-                // get location or whatever from object instance data
+            // get location or whatever from object instance data
 //                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
 //                        adaptor.vS0.set(transform.getScale(tmpV));
 
-                // grab the starting Origin (translation) of the entity from the instance data
-                adaptor.vT0.set(position);
+            // grab the starting Origin (translation) of the entity from the instance data
+            adaptor.vT0.set(position);
 
-                adaptor.init(target);
-            }
+            adaptor.init(target);
+        }
+
+        return adaptor;
+    }
+
+    static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa){
+
+        FeatureAdaptor adaptor = null;
+
+        Class c = thisFa.getClass();
+
+        try {
+            adaptor = (FeatureAdaptor) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
+
         } catch (Exception ex) {
-            //System.out.println("we're doomed");
+
             ex.printStackTrace();
         }
 
