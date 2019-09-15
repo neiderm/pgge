@@ -24,6 +24,7 @@ public class FeatureAdaptor implements FeatureIntrf {
     private GameWorld.GAME_STATE_T activateOnState;
     private boolean exitXflag;
 
+    public CollisionProcessorIntrf collisionProcessor;
 
     // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
 //    public Vector3 vR = new Vector3();
@@ -51,6 +52,8 @@ public class FeatureAdaptor implements FeatureIntrf {
 
             onActivate(e);
         }
+
+        collisionProcessor.processCollision(e);
     }
 
     @Override
@@ -76,6 +79,7 @@ public class FeatureAdaptor implements FeatureIntrf {
 
             // maybe this is lame but have to copy each field of interest .. (clone () ??
             adaptor.activateOnState = this.activateOnState;
+            adaptor.collisionProcessor = this.collisionProcessor;
 
             // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
             // get the "characteristiics" for this type from the JSON
