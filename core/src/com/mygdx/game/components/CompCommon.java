@@ -123,44 +123,35 @@ public class CompCommon {
         GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
     }
 
-    /* create a "bomb" ... creates a graphical mesh-shape and a matching
- physics body, adds it to the bullet world ... the drop is according to the height set above the target
- */
-    public static void dropBomb(Entity sensor, Entity target){
+    /*
+     * dynamically "activate" a template entity and set its location
+     *  creates a graphical mesh-shape and a matching physics body, adds it to the bullet world
+     */
+    public static void entityAddPhysicsBody(Entity ee, Vector3 translation){
 
-        // set position above target, add bulletcomp to sensor
-        Vector3 translation = new Vector3();
-        BulletComponent bc = target.getComponent(BulletComponent.class);
-        translation = bc.body.getWorldTransform().getTranslation(translation);
-
-        ModelComponent mc = target.getComponent(ModelComponent.class);
-        Matrix4 tmpM4 = mc.modelInst.transform;
-        translation = tmpM4.getTranslation(translation);
-
-        translation.y += 8; // idfkk ... make it fall from the sky!
-
-        btCollisionShape shape = PrimitivesBuilder.getShape(
-                "box", new Vector3(1, 1, 1));
+        // tooooo dooo how to handle shape?
+        btCollisionShape shape = PrimitivesBuilder.getShape("box", new Vector3(1, 1, 1));
 
 //            add BulletComponent and link to the model comp xform
-        mc = sensor.getComponent(ModelComponent.class);
-        mc.modelInst.transform.setTranslation(translation);
-        bc = new BulletComponent(shape, mc.modelInst.transform, 5.1f);
-        bc.body.setWorldTransform(mc.modelInst.transform);
-        sensor.add(bc);
+        ModelComponent mc = ee.getComponent(ModelComponent.class);
+        Matrix4 transform = mc.modelInst.transform;
+        transform.setTranslation(translation);
+        BulletComponent
+                bc = new BulletComponent(shape, transform, 1f); // how to set mass?
+        ee.add(bc);
 
         /* add body to bullet world (duplicated code ... refactor !!  (see GameObject)
          */
         btCollisionObject body = bc.body;
 //        if (null != body)
         {
-            // build a map associating these entities with an int index
-            int next = BulletWorld.getInstance().userToEntityLUT.size;
-            body.setUserValue(next);
-            body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-            BulletWorld.getInstance().userToEntityLUT.add(sensor);
+            bc.body.setWorldTransform(transform);
+            body.setCollisionFlags(
+                    body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+
+            // map entities to int index
+            body.setUserValue(BulletWorld.getInstance().userToEntityLUT.size);
+            BulletWorld.getInstance().userToEntityLUT.add(ee);
         }
     }
-
-
 }

@@ -16,7 +16,9 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.ModelComponent;
 
 /*
  extends the sensor adaptor only for means of obtaining target
@@ -29,6 +31,15 @@ public class DroppedThing extends SensorAdaptor {
 
         FeatureAdaptor newFa = getFeatureAdapter(this);
 
-        CompCommon.dropBomb(ee, target); // entityAddRigidBody
+        Vector3 translation = new Vector3();
+/*
+        BulletComponent bc = target.getComponent(BulletComponent.class);
+        translation = bc.body.getWorldTransform().getTranslation(translation);
+*/
+        ModelComponent mc = target.getComponent(ModelComponent.class);
+        translation = mc.modelInst.transform.getTranslation(translation);
+        translation.y += 8; // idfkk ... make it fall from the sky!
+
+        CompCommon.entityAddPhysicsBody(ee, translation);
     }
 }
