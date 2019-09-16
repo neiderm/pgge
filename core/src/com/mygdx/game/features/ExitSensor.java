@@ -15,20 +15,25 @@ public class ExitSensor extends OmniSensor {
 
         super.update(sensor);
 
-        if (isTriggered){
+        if (isActivated) {
 
             ModelComponent mc = sensor.getComponent(ModelComponent.class);
             ModelInstance mi = mc.modelInst;
-            ModelInstanceEx.setColorAttribute(mi, new Color(Color.FIREBRICK)); // tmp
+            ModelInstanceEx.setColorAttribute(mi, new Color(Color.TEAL)); // tmp
 
-            StatusComponent sc = target.getComponent(StatusComponent.class);
+            if (isTriggered) {
 
-            if (null != sc.UI){
+                StatusComponent sc = target.getComponent(StatusComponent.class);
 
-                sc.UI.canExit = true;
+                if (null != sc.UI) {
+
+                    sc.UI.canExit = true;
+                } else
+                    Gdx.app.log("barf", "gacked");
             }
-            else
-                Gdx.app.log("barf", "gacked");
         }
     }
+
+    //    public void onProcessedCollision(Entity ee){
+
 }

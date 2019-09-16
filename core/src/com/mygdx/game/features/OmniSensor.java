@@ -90,6 +90,9 @@ public class OmniSensor extends SensorAdaptor {
         if (null != tgtTransform)
             tgtPosition = tgtTransform.getTranslation(tgtPosition);
 
+
+        isTriggered = false; // hmmm should be "non-latching? "
+
         if (inverted) {
             if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
                 isTriggered = true;

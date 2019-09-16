@@ -28,7 +28,7 @@ import com.mygdx.game.sceneLoader.InstanceData;
 public class FeatureAdaptor implements FeatureIntrf {
 
     private GameWorld.GAME_STATE_T activateOnState;
-    private boolean exitXflag;
+    protected boolean isActivated;
 
     public CollisionProcessorIntrf collisionProcessor;
 
@@ -56,32 +56,39 @@ public class FeatureAdaptor implements FeatureIntrf {
         // allow not defined in json to be implicitly ignoired,
         if (null != activateOnState) {
             if (
-                    !exitXflag &&
+                    !isActivated &&
                             activateOnState == GameWorld.getInstance().getRoundActiveState()) {
 
-                exitXflag = true;
+                isActivated = true;
 
                 onActivate(ee);
             }
         }
 
         if (null != collisionProcessor) {
+
             if (collisionProcessor.processCollision(ee)) {
 
-                spawnNewGameObject(ee); // spawnNewGameObject
-                ee.add(new StatusComponent(true)); // delete me!
+                onProcessedCollision(ee);
             }
-        } else {
-
-            tempasdf += 1; // todo check thius
         }
     }
 
+    /*
+     * default collision processing handler
+     */
+    public void onProcessedCollision(Entity ee) {
+
+//        CompCommon.mkStaticFromDynamicEntity(ee);
+
+        spawnNewGameObject(ee);
+        ee.add(new StatusComponent(true)); // delete me!
+    }
 
     /*
      * clone gaame objectfeature ?
      */
-    void spawnNewGameObject(Entity ee) {
+    private void spawnNewGameObject(Entity ee) {
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject();
@@ -106,6 +113,7 @@ public class FeatureAdaptor implements FeatureIntrf {
 
 
         FeatureAdaptor es = getFeatureAdapter(this); // clone the feature
+        es.isActivated = true; // force activation set ???
 
         es.init(ee);
         es.vS.set(new Vector3(1.5f, 0, 0));
@@ -121,7 +129,8 @@ public class FeatureAdaptor implements FeatureIntrf {
         /*
          * vT = positoin ! this is the default activation for now, otherwise override!
          */
-        CompCommon.entityAddPhysicsBody(ee, vT0);
+        if (null != collisionProcessor) // .... hmmm let's see
+            CompCommon.entityAddPhysicsBody(ee, vT0);
     }
 
     @Override
@@ -143,6 +152,13 @@ public class FeatureAdaptor implements FeatureIntrf {
 
             // maybe this is lame but have to copy each field of interest .. (clone () ??
             adaptor.activateOnState = this.activateOnState;
+
+            if (null == adaptor.activateOnState) {
+                adaptor.isActivated = true; // default to "activated" if no activation trigger is specified
+            } else { // idfk ...
+                adaptor.isActivated = this.isActivated; // activation flag can be set (independent of activation state)
+            }
+
             adaptor.collisionProcessor = this.collisionProcessor;
 
             // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
@@ -164,7 +180,7 @@ public class FeatureAdaptor implements FeatureIntrf {
         return adaptor;
     }
 
-    static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa){
+    static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa) {
 
         FeatureAdaptor adaptor = null;
 
