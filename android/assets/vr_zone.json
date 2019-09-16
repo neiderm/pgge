@@ -122,7 +122,7 @@
 					}
 				],
 				"objectName": "Exit",
-				"featureName": "IsNotRetrievedDoesntNEedFtrName"
+				"featureName": "LocatedFromSceneModel"
 			}
 		],
 		"modelName": "scene"
@@ -139,7 +139,7 @@
 						},
 						"color": {
 							"r": 1,
-							"g": 1,
+							"g": 0,
 							"a": 0.9
 						},
 						"adaptr": {
@@ -153,7 +153,7 @@
 					}
 				],
 				"objectName": "box",
-				"featureName": "Mine1",
+				"featureName": "MineBombThng",
 				"scale": {
 					"x": 0.5,
 					"y": 0.5,
@@ -167,9 +167,9 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 5,
-							"y": 30,
-							"z": 15
+							"x": 2,
+							"y": 10,
+							"z": -5
 						},
 						"color": {
 							"g": 1,
@@ -186,7 +186,7 @@
 					}
 				],
 				"objectName": "box",
-				"featureName": "Mine1",
+				"featureName": "LegacyGreenBoxExitSensor",
 				"scale": {
 					"x": 0.5,
 					"y": 0.5,
