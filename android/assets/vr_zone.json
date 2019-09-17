@@ -134,17 +134,20 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": -11,
+							"x": -4,
 							"y": 30,
 							"z": -10
 						},
 						"color": {
 							"r": 1,
 							"g": 0,
-							"a": 0.9
+							"a": 0.6
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.KillThing",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
 							"vS": {
 								"x": 0.75,
 								"y": 0.75,
