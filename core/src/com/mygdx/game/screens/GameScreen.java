@@ -196,7 +196,7 @@ public class GameScreen extends TimedGameScreen {
 
                 if (null != picked) { //            picked.onSelect();  ???
 
-                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
+//                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
                     incHitCount(1);
 
                     CompCommon.explode(engine, picked);
@@ -412,30 +412,42 @@ public class GameScreen extends TimedGameScreen {
             //  check for entities to be removed first ... there would bw no point in separate comps deleteion
             if (sc.deleteMe) {
 
+                // have to do bullet comp tear down here ...
+                if (e != pickedPlayer) { // bah .... need to handle player "explosioh differnetly because of all the UI, camera links :(
+                    removeBulletComp(e);
+                }
+
                 Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
-                engine.removeEntity(e); // calls BulletSystem:entityRemoved() ..
+                engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
+
 
             } else {
-                if (2 == sc.deleteFlag) {
-                    BulletComponent bc = e.getComponent(BulletComponent.class);
+                if (2 == sc.deleteFlag) { // will use flags for comps to remove
 
-                    if (null != bc) {
-
-                        e.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
-                        Gdx.app.log("GameScreen", "cleanr: .... BulletComponent being disposed!!!!!");
-
-                        if (null != bc.motionstate) {
-                            bc.motionstate.dispose();
-                        }
-                        BulletWorld.getInstance().removeBody(bc.body);
-                        bc.shape.dispose();
-                        bc.body.dispose();
-                        bc.body = null; // idfk ... is this useful?
-                    }
+                    removeBulletComp(e);
                 }
             }
             sc.deleteFlag = 0;
         }
+    }
+
+    private void removeBulletComp(Entity ee){
+
+        BulletComponent bc = ee.getComponent(BulletComponent.class);
+
+        if (null != bc) {
+
+            ee.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
+            Gdx.app.log("GameScreen", "cleanr: .... BulletComponent being disposed!!!!!");
+
+            if (null != bc.motionstate) {
+                bc.motionstate.dispose();
+            }
+            BulletWorld.getInstance().removeBody(bc.body);
+            bc.shape.dispose();
+            bc.body.dispose();
+            bc.body = null; // idfk ... is this useful?
+        } // if
     }
 
     private  SpriteBatch batch = new SpriteBatch();
