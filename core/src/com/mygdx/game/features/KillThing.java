@@ -29,10 +29,20 @@ public class KillThing extends KillSensor {
 
                     Gdx.app.log(" asdfdfd", "object is at rest ?? ");
                     contactCount = 0;
-                    CompCommon.mkStaticFromDynamicEntity(sensor);
+                    CompCommon.physicsBodyMarkForRemoval(sensor);
                 }
             }
         }
+    }
+
+    /*
+     * have to put a "collision processor" in json
+     */
+    @Override
+    public void onProcessedCollision(Entity ee){
+
+        super.onProcessedCollision(ee);
+//        CompCommon.entityRmvPhysicsBody(ee); // entityRmvPhysicsBody
     }
 
     @Override

@@ -24,7 +24,6 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
@@ -56,9 +55,13 @@ public class CompCommon {
         picked.add(new StatusComponent(true));
     }
 
-    public static void mkStaticFromDynamicEntity(Entity sss) { // entityRmvPhysicsBody
+    /*
+     * doesn't do much more than flag the comp for removal
+     * set the collision flags is probably pointless
+     */
+    public static void physicsBodyMarkForRemoval(Entity ee) {
 
-        BulletComponent bc = sss.getComponent(BulletComponent.class);
+        BulletComponent bc = ee.getComponent(BulletComponent.class);
         if (null == bc) {
             Gdx.app.log("collisionHdlr", "BulletComponent bc =  === NULLLL");
             return; // bah processing object that should already be "at rest" ???? .....................................................
@@ -66,28 +69,9 @@ public class CompCommon {
 
         bc.body.setCollisionFlags( bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
-        // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject();
-        gameObject.isShadowed = true;
-
-        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
-        gameObject.scale = new Vector3(size);
-
-        gameObject.objectName = "box";
-
-        Vector3 translation = new Vector3();
-//                translation = bc.body.getWorldTransform().getTranslation(translation);
-
-        ModelComponent mc = sss.getComponent(ModelComponent.class);
-        Matrix4 tmpM4 = mc.modelInst.transform;
-//            translation = tmpM4.getTranslation(translation);
-        gameObject.getInstanceData().add(new InstanceData(tmpM4.getTranslation(translation)));
-
-//                GameWorld.getInstance().addSpawner(gameObject);         ///    toooodllly dooodddd    object is added "kinematic" ???
-
         StatusComponent sc = new StatusComponent();
         sc.deleteFlag = 2;         // flag bullet Comp for deletion
-        sss.add(sc);
+        ee.add(sc);
     }
 
 
@@ -97,8 +81,10 @@ public class CompCommon {
      */
     public static void entityAddPhysicsBody(Entity ee, Vector3 translation){
 
+
         // tooooo dooo how to handle shape?
         btCollisionShape shape = PrimitivesBuilder.getShape("box", new Vector3(1, 1, 1));
+
 
 //            add BulletComponent and link to the model comp xform
         ModelComponent mc = ee.getComponent(ModelComponent.class);
