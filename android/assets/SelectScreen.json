@@ -3,7 +3,7 @@
 	"Platform": {}
 },
 "modelGroups": {
-	"characters": {
+	"Characters": {
 		"gameObjects": [
 			{
 				"objectName": "truck",
@@ -20,7 +20,7 @@
 		],
 		"isCharacter": true
 	},
-	"platforms": {
+	"ThePlatform": {
 		"gameObjects": [
 			{
 				"objectName": "boxTex",
