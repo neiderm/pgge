@@ -45,7 +45,7 @@ public class SceneLoader implements Disposable {
     private AssetManager assets;
 
 
-    public SceneLoader(){
+    public SceneLoader() {
 
 //        gameData = new SceneData();
 /*
@@ -132,9 +132,9 @@ again a need to creat3e these directly in code
     }*/
 
 
-  /*
-   * build up the scene chunk after the background asset loading process is finished
-   */
+    /*
+     * build up the scene chunk after the background asset loading process is finished
+     */
     public void doneLoading() {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
@@ -150,7 +150,7 @@ again a need to creat3e these directly in code
 
         String pn = SceneData.getPlayerObjectName();
 
-        if (null != pn){
+        if (null != pn) {
             GameFeature gf = new GameFeature(pn);
             sd.features.put("Player", gf);
         }
@@ -192,7 +192,7 @@ again a need to creat3e these directly in code
 //        return playerFeature.entity;
 //    }
 
-    private void buildModelGroup(Engine engine, String key){
+    private void buildModelGroup(Engine engine, String key) {
 
         Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
@@ -209,62 +209,40 @@ again a need to creat3e these directly in code
 
         createTestObjects(engine); // tmp
 
-//        GameFeature playerFeature = GameWorld.getInstance(). getFeature("Player"); // assumes already loaded Characters group ;)
-//        String playerObjectName = null; // idfk
-//        if (null != playerFeature) {
-//            playerObjectName = playerFeature.featureName;
-////            playerFeatureEntity = playerFeature.getEntity();
-//            // mg.build(engine, playerObjectName );
-//        }
-//        // mg.build(engine, "^playerFeatureName" ); // builds group EXCEPT for "^objectName" (^ inverts sense of match?)
-//
-//// mg.build(engine, "thing1", "thing2", "^thing3");         // perhaps? ...
-
-
         // if there is a Characters group, try to get a Player
 // no longer should need "isCharacter"
-        buildModelGroup(engine, "characters");   // buildModelGroup(engine, "characters", "^" + playerObjectname); // pass object name var args to mg.build() ?
+        buildModelGroup(engine, "Characters");   // buildModelGroup(engine, "characters", "^" + playerObjectname); // pass object name var args to mg.build() ?
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
         for (String key : sd.modelGroups.keySet()) {
 
-            if (key.equals("characters")){
+            if (key.equals("Characters")) {
                 continue;
             }
 
             buildModelGroup(engine, key);
         }
 
-/*
- TODO: why did I crash when timer running out (collis. w/ badlogic killThing)
- */
+        // any other one-time setups after all file data object loaded ... features set target to player by default
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
 
-//        // any other one-time setups after all file data object loaded ...
-//        // Select all entities from Engine with FeatureComp, set target to player
-        ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
+        if (null != playerFeature) {
 
-        for (Entity fe : feats){
-            FeatureAdaptor fa = fe.getComponent(FeatureComponent.class).featureAdpt;
+            ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
 
-            if (null != fa){ // have to set default ... default target is player ...
+            for (Entity ee : feats) {
 
-                // only set the target if it is not already set ????
-                GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+                FeatureAdaptor fa = ee.getComponent(FeatureComponent.class).featureAdpt;
 
-                if (null != playerFeature) {
+                if (null != fa) { // have to set default ... default target is player ...
+
                     fa.init(playerFeature.getEntity());
                 }
             }
         }
     }
 
-    /*
-     * searching the group model for the given gameObject.objectName* ...
-     * may not be super efficient and  ... increasing number of model nodes ???
-     * However walking the model is needed for globbed object name, not
-     * seeing a more efficient way right now.
-     */
 
     @Override
     public void dispose() {

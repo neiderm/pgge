@@ -290,7 +290,7 @@ class SelectScreen extends TimedGameScreen {
         // screen pass sceneData to scene loader as parameter.
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get("characters");
+        ModelGroup mg = sd.modelGroups.get("Characters");
         GameObject go = mg.getGameObject(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
 
         GameWorld.getInstance().setSceneData(path, go.objectName);
