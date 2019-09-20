@@ -6,14 +6,14 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 6,
+							"x": -16,
 							"y": 20,
 							"z": 5
 						}
 					},
 					{
 						"translation": {
-							"x": 6,
+							"x": -16,
 							"y": 12,
 							"z": 5
 						}
@@ -225,6 +225,43 @@
 					"x": 0.5,
 					"y": 0.5,
 					"z": 0.5
+				},
+				"mass": 5.1,
+				"meshShape": "btBoxShape",
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 4,
+							"y": 6,
+							"z": 12
+						},
+						"color": {
+							"b": 1,
+							"g": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.ElectricEye",
+							"vS": {
+								"x": 12,
+								"y": 12,
+								"z": 12
+							},
+							"vT": {
+								"y": 6
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "InTheSky",
+				"scale": {
+					"x": 1,
+					"y": 0.5,
+					"z": 1.5
 				},
 				"mass": 5.1,
 				"meshShape": "btBoxShape",
