@@ -3,7 +3,6 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -18,8 +17,11 @@ public class ExitSensor extends OmniSensor {
         if (isActivated) {
 
             ModelComponent mc = sensor.getComponent(ModelComponent.class);
-            ModelInstance mi = mc.modelInst;
-            ModelInstanceEx.setColorAttribute(mi, new Color(Color.TEAL)); // tmp
+
+            if (mc.modelInst.materials.size > 0)
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.TEAL)); // tmp test code
+//else
+//    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
 
             if (isTriggered) {
 
@@ -33,7 +35,4 @@ public class ExitSensor extends OmniSensor {
             }
         }
     }
-
-    //    public void onProcessedCollision(Entity ee){
-
 }
