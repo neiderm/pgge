@@ -1,0 +1,246 @@
+{
+"modelGroups": {
+	"Characters": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 13,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "militaryvan",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isPickable": true,
+				"isShadowed": true,
+				"isSteerable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -1,
+							"y": 13,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "truck",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isPickable": true,
+				"isShadowed": true,
+				"isSteerable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 1,
+							"y": 11,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "tank",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isPickable": true,
+				"isShadowed": true,
+				"isSteerable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 1,
+							"y": 53,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"x": 2,
+							"y": 53,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"x": 3,
+							"y": 51,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "ship",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isShadowed": true,
+				"isSteerable": true
+			}
+		],
+		"isCharacter": true
+	},
+	"Features": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"adaptr": {
+							"class": "com.mygdx.game.features.ExitSensor",
+							"activateOnState": "ROUND_COMPLETE_WAIT",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
+							"vT": {
+								"y": 8
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "DroppingExitSensor"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 5,
+							"y": 10,
+							"z": -4
+						},
+						"color": {
+							"r": 1,
+							"g": 1,
+							"a": 0.4
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.OOBSensor",
+							"vS": {
+								"x": 25
+							}
+						}
+					}
+				],
+				"objectName": "sphere",
+				"featureName": "OutOfBounds",
+				"scale": {
+					"x": 50,
+					"y": 50,
+					"z": 50
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 10,
+							"z": -5
+						},
+						"color": {
+							"r": 1,
+							"g": 0.64705884,
+							"a": 0.5
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.MovingPlatform",
+							"vT": {
+								"y": 15
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"scale": {
+					"x": 4,
+					"y": 1,
+					"z": 4
+				},
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"isShadowed": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 10,
+							"y": 10,
+							"z": -5
+						},
+						"color": {
+							"r": 0.627,
+							"g": 0.125,
+							"b": 0.941,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.MovingPlatform",
+							"vT": {
+								"x": 20,
+								"y": 10,
+								"z": -5
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"scale": {
+					"x": 4,
+					"y": 1,
+					"z": 4
+				},
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"isShadowed": true
+			}
+		]
+	},
+	"TempSceneMesh": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"x": 0.17364818,
+							"w": 0.9848077
+						},
+						"translation": {
+							"y": -10
+						}
+					}
+				],
+				"objectName": "landscape",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true,
+				"isShadowed": true
+			}
+		],
+		"modelName": "landscape"
+	}
+},
+"modelInfo": {
+	"objects": {
+		"fileName": "data/cubetest.g3dj"
+	},
+	"militaryvan": {
+		"fileName": "tanks/militaryvan.g3db"
+	},
+	"truck": {
+		"fileName": "tanks/ram.g3db"
+	},
+	"ship": {
+		"fileName": "tanks/ship.g3db"
+	},
+	"tank": {
+		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"landscape": {
+		"fileName": "data/landscape.g3db"
+	}
+}
+}

@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -42,6 +43,8 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+
+import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -108,12 +111,12 @@ public class PrimitivesBuilder /* implements Disposable */ {
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
-        /* example of createCullFace */ /*
-        tex = new Texture(Gdx.files.internal("data/sky.jpg"), true);
+        /* example of createCullFace */ ///*
+        tex = new Texture(Gdx.files.internal("data/moonsky.png"), true);
         mb.node().id = "skySphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
         new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
-*/
+//*/
         model = mb.end();
     }
 
@@ -122,10 +125,17 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return shape;
     }
 
+    /*
+     * workaround for - shapes that are estranged from an owning entity ? (exploding model?)
+     * - single instance of collision shape to be shared between multiple (same size/scale) entity/geometries?
+     */
     public static void clearShapeRefs(){
+        int n = 0;
         for (btCollisionShape shape : savedShapeRefs){
+            n += 1;
             shape.dispose();
         }
+        Gdx.app.log("Primtive:clearShapeRefs", "Removed shapes ct = " + n);
     }
 
     /*
@@ -164,6 +174,14 @@ public class PrimitivesBuilder /* implements Disposable */ {
         } else if (objectName.contains("cone")) {
 
             shape = new btConeShape(size.x * DIM_HE, size.y);
+        }
+        else {
+            Gdx.app.log("Prim", "object name not found");
+        }
+
+        // if object name doesn't match then ... no shape
+        if (null == shape){
+            return null;
         }
 
         return saveShapeRef(shape);

@@ -337,6 +337,14 @@
 	"PrimitiveObjects": {
 		"gameObjects": [
 			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			},
+			{
 				"instanceData": [
 					{
 						"translation": {
@@ -490,28 +498,6 @@
 				"isShadowed": true
 			}
 		]
-	},
-	"TempSceneMesh": {
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"rotation": {
-							"x": 0.17364818,
-							"w": 0.9848077
-						},
-						"translation": {
-							"y": -10
-						}
-					}
-				],
-				"objectName": "landscape",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true,
-				"isShadowed": true
-			}
-		],
-		"modelName": "landscape"
 	}
 },
 "modelInfo": {
@@ -529,9 +515,6 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"landscape": {
-		"fileName": "data/landscape.g3db"
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"
