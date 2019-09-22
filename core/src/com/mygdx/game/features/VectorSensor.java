@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by neiderm on 7/5/2019.
@@ -49,7 +48,7 @@ public class VectorSensor extends SensorAdaptor {
         myPos = sensTransform.getTranslation(myPos);
 
         lookRay.set(sensTransform.getTranslation(myPos), // myPos
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+                GfxUtil.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
         /* add scaled look-ray-unit-vector to sensor position */
         myPos.add(lookRay.direction.scl( senseZoneDistance )); // we'll see

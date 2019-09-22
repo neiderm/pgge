@@ -24,7 +24,6 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
 
 public class TankController implements SimpleVehicleModel
 {
@@ -55,7 +54,7 @@ public class TankController implements SimpleVehicleModel
         final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
 
         if (coolJump) {
-            ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
+            GfxUtil.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
             body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
         }
 
@@ -73,7 +72,7 @@ public class TankController implements SimpleVehicleModel
         tmpM.getTranslation(trans);
 
         Quaternion orientation = body.getOrientation();
-        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
+        GfxUtil.rotateRad(tmpV.set(0, -1, 0), orientation);
 
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(trans, tmpV, 1.0f);
 
@@ -98,7 +97,7 @@ public class TankController implements SimpleVehicleModel
             // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
             // a pushing force to the vehicle along tt's Z axis. This gets a desired effect of i.e. magnitude
             // of applied force reduces proportionately the more that the vehicle is on an incline
-            ModelInstanceEx.rotateRad(accelV.set(0, 0, direction), orientation);
+            GfxUtil.rotateRad(accelV.set(0, 0, direction), orientation);
 
             accelV.scl(LINEAR_GAIN * this.mass);
 
@@ -108,7 +107,7 @@ public class TankController implements SimpleVehicleModel
         }
 
         RenderSystem.debugGraphics.add(gfxLine.line(trans,
-                ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), tmpM.getRotation(orientation)),
+                GfxUtil.rotateRad(tmpV.set(0, -1, 0), tmpM.getRotation(orientation)),
                 Color.RED));
 
 //Gdx.app.log(this.getClass().getName(), String.format("GfxUtil.line x = %f y = %f, z = %f", trans.x, trans. y, trans.z));

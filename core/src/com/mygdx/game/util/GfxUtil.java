@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.BufferUtils;
 
@@ -36,6 +37,21 @@ public class GfxUtil  /*extends ModelInstance*/ {
         int mts = getMaxTextureSize();
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
+
+
+
+    /*
+     * convenience wrapper to keep the temp vector axis somewhere
+     */
+    private static Vector3 axis = new Vector3();
+
+    public static Vector3 rotateRad(Vector3 v, Quaternion rotation){
+
+        return v.rotateRad(axis, rotation.getAxisAngleRad(axis));
+    }
+
+
+
 
     public static Model makeModelMesh(int nVertices, String meshPartID) {
 
