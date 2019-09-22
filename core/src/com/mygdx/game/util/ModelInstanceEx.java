@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
+import static com.mygdx.game.util.GfxUtil.LINE_MESH_PART_ID;
 import static com.mygdx.game.util.GfxUtil.makeModelMesh;
 
 
@@ -125,7 +126,7 @@ public class ModelInstanceEx extends ModelInstance {
         ModelInstance instance = getModelInstance(model, node);
 
         if (null == instance){ // TODO: cleaner way to deal with objects like this
-            Model mdl = makeModelMesh(2, "line");
+            Model mdl = makeModelMesh(2, LINE_MESH_PART_ID);
             instance = new ModelInstance(mdl);
         }
 

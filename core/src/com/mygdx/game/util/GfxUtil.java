@@ -21,29 +21,34 @@ import java.nio.IntBuffer;
 
 // https://stackoverflow.com/questions/28057588/setting-the-indices-for-a-3d-mesh-in-libgdx
 
-public class GfxUtil  /*extends ModelInstance*/ {
+public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
 
-    private Vector3 to = new Vector3();
-    private Model lineModel;
-    private ModelInstance instance;
+    static final String LINE_MESH_PART_ID = "linemeshpartid";
+
+    // default id name is "node" + .size .. nothing fancy  see "ModelBuilder::node()"
+    private static final String DEFAULT_MODEL_NODE_ID = "node1";
+
+    private final Vector3 to = new Vector3();
+
+    private final Model lineModel;
+    private final ModelInstance instance;
 
     public GfxUtil() {
 
-        lineModel = makeModelMesh(2, "line");
+        lineModel = makeModelMesh(2, LINE_MESH_PART_ID); // simple mesh part ID,
         instance = new ModelInstance(lineModel);
-        Node modelNode = instance.getNode("node1");
-        modelNode.id = "asdf";
+
+//        Node modelNode = instance.getNode(DEFAULT_MODEL_NODE_ID);
+        // use default, don't need to set it    // modelNode.id = LINE_MODEL_NODE_ID;
 
         int mts = getMaxTextureSize();
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
-
-
     /*
      * convenience wrapper to keep the temp vector axis somewhere
      */
-    private static Vector3 axis = new Vector3();
+    private static final Vector3 axis = new Vector3(); // make these temp objects final
 
     public static Vector3 rotateRad(Vector3 v, Quaternion rotation){
 
@@ -51,11 +56,8 @@ public class GfxUtil  /*extends ModelInstance*/ {
     }
 
 
-
-
     public static Model makeModelMesh(int nVertices, String meshPartID) {
 
-        Model model;
         int maxVertices = nVertices;
         int maxIndices = nVertices;
 
@@ -70,12 +72,12 @@ public class GfxUtil  /*extends ModelInstance*/ {
 
         short[] indices = new short[nVertices];
         for (short n = 0; n < nVertices; n++){
-            indices[n] = n; // idfk
+            indices[n] = n;
         }
         mesh.setIndices(indices);
 
         modelBuilder.part(meshPartID, mesh, GL20.GL_LINES, new Material());
-        model = modelBuilder.end();
+        Model model = modelBuilder.end();
 
         return model;
     }
@@ -94,6 +96,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
      */
     public ModelInstance line(Vector3 from, Vector3 b, Color c) {
 
+        // to := from + b and preserve "from" // to.set(from.add(b));
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
 
         return lineTo(from, to, c);
@@ -106,7 +109,11 @@ public class GfxUtil  /*extends ModelInstance*/ {
             //Vector3[] lineVertsBuffer, int nVertices,
                                 Vector3 from, Vector3 to, Color c) {
 
-        Node modelNode = instance.getNode("asdf");
+//         Node modelNode = instance.getNode("asdf");
+        Node modelNode = Node.getNode(
+                instance.nodes, DEFAULT_MODEL_NODE_ID, true, true);
+
+// if (null != modelNode) {
         MeshPart meshPart = modelNode.parts.get(0).meshPart;
 
         float[] nVerts = MeshHelper.getVertices(meshPart);
@@ -114,7 +121,7 @@ public class GfxUtil  /*extends ModelInstance*/ {
         setVertex(nVerts, 1, 7, from, c );
 
         meshPart.mesh.setVertices(nVerts);
-
+// }
         return instance;
     }
 
@@ -149,6 +156,9 @@ public class GfxUtil  /*extends ModelInstance*/ {
         return buffer.get(0);
     }
 
+    /*
+     * convert-a-model
+     */
     public static Model modelFromNodes(Model model){
 
         // "demodularize" model - combine modelParts into single Node for generating the physics shape
@@ -174,7 +184,8 @@ public class GfxUtil  /*extends ModelInstance*/ {
         Mesh mesh = meshBuilder.end();
 
         // all nodes we're combining would have the same material ... I guesss
-        modelBuilder.part("node1", mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
+        modelBuilder.part(
+                DEFAULT_MODEL_NODE_ID, mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
 
         return modelBuilder.end(); // TODO // model reference for unloading!!!
     }
