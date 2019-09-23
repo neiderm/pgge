@@ -1,27 +1,54 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.util;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 
-import static com.mygdx.game.util.GfxUtil.LINE_MESH_PART_ID;
-import static com.mygdx.game.util.GfxUtil.makeModelMesh;
+/*
+ * just statics now, not neant to be instanced
+ */
+public class ModelInstanceEx {
+
+    // default id name is "node" + .size .. nothing fancy  see "ModelBuilder::node()"
+    private static final String DEFAULT_MODEL_NODE_ID = "node1";
 
 
-public class ModelInstanceEx extends ModelInstance {
+    /*
+     * convenience wrapper to keep the temp vector axis somewhere
+     */
+    private static final Vector3 axis = new Vector3(); // make these temp objects final
 
-    public ModelInstanceEx() {
-        super(new Model());
+    public static Vector3 rotateRad(Vector3 v, Quaternion rotation){
+
+        return v.rotateRad(axis, rotation.getAxisAngleRad(axis));
     }
-
 
     public static void setColorAttribute(ModelInstance inst, Color color) {
 
@@ -46,95 +73,77 @@ public class ModelInstanceEx extends ModelInstance {
     }
 
 
-//    private static int nextColor = 0;
-//
-//    public static void setMaterialColor(ModelInstance modelInst, Color c) {
-//
-//        Array<Color> colors = new Array<Color>();
-//        colors.add(Color.WHITE);
-//        colors.add(Color.RED);
-//        colors.add(Color.ORANGE);
-//        colors.add(Color.YELLOW);
-//        colors.add(Color.GREEN);
-//        colors.add(Color.BLUE);
-//        colors.add(Color.VIOLET);
-//
-//        // hmmm, w/ alt. pick test, now getting null somtimes?
-////        if (null == modelInst) {
-////            return; //  throw new GdxRuntimeException("e == null ");
-////        }
-//
-//        nextColor += 1;
-//        if (nextColor >= colors.size) {
-//            nextColor = 0;
-//        }
-//
-///*        ColorAttribute ca = (ColorAttribute) mat.get(ColorAttribute.Diffuse);
-//
-//        for (Color color : colors) {
-//            if (ca.color != color) {
-//                mat.set(ColorAttribute.createDiffuse(color));
-//                break;
-//            }
-//        }*/
-//        setColorAttribute(modelInst, colors.get(nextColor), 0.5f);
-//    }
-//
-//
-///*    private static void setObjectMatlTex(ModelInstance inst, Texture tex){
-//
-//        Material mat = inst.materials.get(0);
-//        if (null == mat)
-//            return; // throw new GdxRuntimeException("not found");
-//
-//mat.remove(ColorAttribute.Diffuse);
-//mat.remove(BlendingAttribute.Type);
-//        mat.set(TextureAttribute.createDiffuse(tex));
-//    }*/
-
-
-
     /*
      * IN:
      *
      * RETURN:
      *   ModelInstance ... which would be passed in to ModelComponent()
+     *
+     * Reference:
+     *    https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+     *    https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
      */
-    public static ModelInstance getModelInstance(Model model, String node) {
+    public static ModelInstance getModelInstance(Model model, String node, Vector3 scale) {
 
-        Matrix4 transform = new Matrix4();
-        ModelInstance instance = new ModelInstance(model, transform, node);
-        Node modelNode = instance.getNode(node);
+        ModelInstance instance = new ModelInstance(model, node);
 
-        if (null == modelNode){
-            Gdx.app.log("ModelInstanceEx", "Failed, inst.nodes.size = " + instance.nodes.size);
-            instance = null;
+        if (null != instance)
+        {
+            Node modelNode = instance.getNode(node);
 
-        } else {
-// https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-            instance.transform.set(modelNode.globalTransform);
-            modelNode.translation.set(0, 0, 0);
-            modelNode.scale.set(1, 1, 1);
-            modelNode.rotation.idt();
-            instance.calculateTransforms();
+            if (null == modelNode){
+                Gdx.app.log("ModelInstanceEx", "Failed, inst.nodes.size = " + instance.nodes.size);
+                instance = null;
+
+            } else {
+                instance.transform.set(modelNode.globalTransform);
+                modelNode.translation.set(0, 0, 0);
+                modelNode.scale.set(1, 1, 1);
+                modelNode.rotation.idt();
+                instance.calculateTransforms();
+            }
+
+            if (null != scale) {
+                instance.nodes.get(0).scale.set(scale);
+                instance.calculateTransforms();
+            }
         }
         return instance;
     }
 
-    public static ModelInstance getModelInstance(Model model, String node, Vector3 scale) {
+    /*
+     * convert-a-model
+     *
+     * creates a model that is not disposed .... !!!!!
+     */
+    public static Model modelFromNodes(Model model){
 
-        ModelInstance instance = getModelInstance(model, node);
+        // "demodularize" model - combine modelParts into single Node for generating the physics shape
+        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
 
-        if (null == instance){ // TODO: cleaner way to deal with objects like this
-            Model mdl = makeModelMesh(2, LINE_MESH_PART_ID);
-            instance = new ModelInstance(mdl);
+        MeshBuilder meshBuilder = new MeshBuilder();
+        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
+
+        for (Node node : model.nodes) {
+
+            if (node.parts.size > 0) {
+
+                MeshPart meshPart = node.parts.get(0).meshPart;
+                meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
+                meshBuilder.addMesh(meshPart);
+            }
+            else
+                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size );
         }
 
-        // https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
-        if (null != scale) {
-            instance.nodes.get(0).scale.set(scale);
-            instance.calculateTransforms();
-        }
-        return instance;
+        Mesh mesh = meshBuilder.end();
+
+        // all nodes we're combining would have the same material ... I guesss
+        modelBuilder.part(
+                DEFAULT_MODEL_NODE_ID, mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
+
+        return modelBuilder.end(); // TODO // model reference for unloading!!!
     }
 }

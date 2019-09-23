@@ -270,7 +270,7 @@ public class GameScreen extends TimedGameScreen {
                 Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
 
                 lookRay.set(transform.getTranslation(tmpV3),
-                        GfxUtil.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
+                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
 
                 //                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
                 gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
@@ -502,6 +502,7 @@ public class GameScreen extends TimedGameScreen {
         font.dispose(); // only instantiated on show()  for some reaseon
 
         PrimitivesBuilder.clearShapeRefs();
+        GfxUtil.clearRefs();
     }
 
     @Override

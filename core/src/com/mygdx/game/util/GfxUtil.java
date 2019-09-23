@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.util;
 
 import com.badlogic.gdx.Gdx;
@@ -11,19 +26,29 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.BufferUtils;
 
 import java.nio.IntBuffer;
 
-// https://stackoverflow.com/questions/28057588/setting-the-indices-for-a-3d-mesh-in-libgdx
 
+/**
+ *  Creating Models on the fly seems to be something that happens.
+ *  Possibly because I am dumb about this ... e.g.  creating new Mesh and Model for all my debug graphic lines.
+ *    .... can get on with just one model ... if each new Mesh added as a Node and unify w/ the "Primtivess" model.
+ *  For now, provide some static structures to track and manage lifecycle (implement dispose() on them!).
+ *
+ *  FOr now stubbornly refuses to be extendsion of Model
+ */
 public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
 
-    static final String LINE_MESH_PART_ID = "linemeshpartid";
+
+    private static Array<Model> savedModelRefs;
+
+
+    private static final String LINE_MESH_PART_ID = "linemeshpartid";
 
     // default id name is "node" + .size .. nothing fancy  see "ModelBuilder::node()"
     private static final String DEFAULT_MODEL_NODE_ID = "node1";
@@ -35,28 +60,45 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
 
     public GfxUtil() {
 
+        if (null == savedModelRefs){
+            savedModelRefs = new Array<Model>();
+        }
+
         lineModel = makeModelMesh(2, LINE_MESH_PART_ID); // simple mesh part ID,
         instance = new ModelInstance(lineModel);
+
+        savedModelRefs.add(lineModel);
+
 
 //        Node modelNode = instance.getNode(DEFAULT_MODEL_NODE_ID);
         // use default, don't need to set it    // modelNode.id = LINE_MODEL_NODE_ID;
 
+// interesting
         int mts = getMaxTextureSize();
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
-    /*
-     * convenience wrapper to keep the temp vector axis somewhere
-     */
-    private static final Vector3 axis = new Vector3(); // make these temp objects final
-
-    public static Vector3 rotateRad(Vector3 v, Quaternion rotation){
-
-        return v.rotateRad(axis, rotation.getAxisAngleRad(axis));
+    public static void clearRefs(){
+        int n = 0;
+        for (Model mmm : savedModelRefs){
+            n += 1;
+/*
+            mmm.dispose();
+ */
+        }
+        // savedModelRefs = null ??? ?
+        Gdx.app.log("GfxUtil:clearRefs()", "Models removed = " + n);
     }
 
 
-    public static Model makeModelMesh(int nVertices, String meshPartID) {
+    /**
+     *
+     * Ref:
+     *   https://stackoverflow.com/questions/28057588/setting-the-indices-for-a-3d-mesh-in-libgdx
+     *
+     *   Needs to be static because the Model needs to be tracked for dispose()
+     */
+    private static Model makeModelMesh(int nVertices, String meshPartID) {
 
         int maxVertices = nVertices;
         int maxIndices = nVertices;
@@ -82,15 +124,23 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         return model;
     }
 
+
     // TODO:
 //    @Override
     public void dispose() {
 
         lineModel.dispose();
+        // ihni ... identity If true, == comparison will be used. If false, .equals() comparison will be used
+        savedModelRefs.removeValue(this.lineModel, true);
     }
 
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+
+Below mostly is dogpile of what started as debuggin helps for drawing lines.
+Using lineTo and line to manipulate the "this.instance" modelInstance of this Model ... yep wtf alright
+Sets the vertices directly in the float buffers and then the instance returned to caller to pump thru the render batch.
+
 
     Builder.createXYZCoordinates() ??
      */
@@ -154,39 +204,5 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         IntBuffer buffer = BufferUtils.newIntBuffer(16);
         Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buffer);
         return buffer.get(0);
-    }
-
-    /*
-     * convert-a-model
-     */
-    public static Model modelFromNodes(Model model){
-
-        // "demodularize" model - combine modelParts into single Node for generating the physics shape
-        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
-        ModelBuilder modelBuilder = new ModelBuilder();
-        modelBuilder.begin();
-
-        MeshBuilder meshBuilder = new MeshBuilder();
-        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
-
-        for (Node node : model.nodes) {
-
-            if (node.parts.size > 0) {
-
-                MeshPart meshPart = node.parts.get(0).meshPart;
-                meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
-                meshBuilder.addMesh(meshPart);
-            }
-            else
-                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size );
-        }
-
-        Mesh mesh = meshBuilder.end();
-
-        // all nodes we're combining would have the same material ... I guesss
-        modelBuilder.part(
-                DEFAULT_MODEL_NODE_ID, mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
-
-        return modelBuilder.end(); // TODO // model reference for unloading!!!
     }
 }

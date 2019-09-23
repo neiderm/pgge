@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
@@ -9,6 +24,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
+import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by neiderm on 7/5/2019.
@@ -48,7 +64,7 @@ public class VectorSensor extends SensorAdaptor {
         myPos = sensTransform.getTranslation(myPos);
 
         lookRay.set(sensTransform.getTranslation(myPos), // myPos
-                GfxUtil.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
         /* add scaled look-ray-unit-vector to sensor position */
         myPos.add(lookRay.direction.scl( senseZoneDistance )); // we'll see
