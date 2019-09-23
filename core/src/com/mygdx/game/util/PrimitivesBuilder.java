@@ -257,8 +257,13 @@ public class PrimitivesBuilder /* implements Disposable */ {
     }
 
 
-    private static void load(
-            ModelInstance instance, Vector3 size, Vector3 translation) {
+    public static Entity load(
+            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+
+        // we can roll the instance scale transform into the getModelInstance ;)
+//        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
+
+        ModelInstance instance = new ModelInstance(model, nodeID);
 
         if (null != size) {
             instance.nodes.get(0).scale.set(size);
@@ -268,15 +273,6 @@ public class PrimitivesBuilder /* implements Disposable */ {
         if (null != translation) {
             instance.transform.trn(translation);
         }
-    }
-
-    public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
-
-        // we can roll the instance scale transform into the getModelInstance ;)
-        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
-
-        load(instance, size, translation);
 
         BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
 
