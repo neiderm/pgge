@@ -17,12 +17,14 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -103,6 +105,13 @@ public class ModelGroup {
 
             groupModel = mi.model; // should maybe check model valid ;)
 
+
+            if (null == mi.model && null != mi.fileName){
+
+                Gdx.app.log("ModelGroup", "Not a valid model! (null == mi.model && null != mi.fileName)");
+                return; // for now ... ?
+            }
+
         } else if (null == this.modelName && 0 == this.gameObjects.size) {
 
             return; // bah
@@ -135,12 +144,14 @@ public class ModelGroup {
                 if (null != mdlInfo) {
 
                     model = mdlInfo.model;
+// no null model here ;)
                     rootNodeId = model.nodes.get(0).id;
 
                     if (model.nodes.size > 1) { // multi-node model
 // vehicle models are made to explode to each is in own g3db subdivided into meshparts/nodes. Since I don't know anybetter the GfxUtil is there as helper to track the new Model()
+// since the Model is created outside of asset Loader
                         // "demodularize" model - combine modelParts into single Node for generating the physics shape
-                        Model newModel = ModelInstanceEx.modelFromNodes(model); // TODO // model reference for unloading!!!
+                        Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
 
                         rootNodeId = DEFAULT_MODEL_NODE_ID;
 

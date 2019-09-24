@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -204,5 +205,41 @@ Sets the vertices directly in the float buffers and then the instance returned t
         IntBuffer buffer = BufferUtils.newIntBuffer(16);
         Gdx.gl.glGetIntegerv(GL20.GL_MAX_TEXTURE_SIZE, buffer);
         return buffer.get(0);
+    }
+
+    /*
+     * convert-a-model
+     *
+     * creates a model that is not disposed .... !!!!!
+     */
+    public static Model modelFromNodes(Model model){
+
+        // "demodularize" model - combine modelParts into single Node for generating the physics shape
+        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+
+        MeshBuilder meshBuilder = new MeshBuilder();
+        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
+
+        for (Node node : model.nodes) {
+
+            if (node.parts.size > 0) {
+
+                MeshPart meshPart = node.parts.get(0).meshPart;
+                meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
+                meshBuilder.addMesh(meshPart);
+            }
+            else
+                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size );
+        }
+
+        Mesh mesh = meshBuilder.end();
+
+        // all nodes we're combining would have the same material ... I guesss
+        modelBuilder.part(
+                DEFAULT_MODEL_NODE_ID, mesh, GL20.GL_TRIANGLES, model.nodes.get(0).parts.get(0).material);
+
+        return modelBuilder.end(); // TODO // model reference for unloading!!!
     }
 }
