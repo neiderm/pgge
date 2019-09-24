@@ -128,6 +128,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
     /*
      * workaround for - shapes that are estranged from an owning entity ? (exploding model?)
      * - single instance of collision shape to be shared between multiple (same size/scale) entity/geometries?
+     *
+     * THIS IS NOT DONE IN DISPOSE because dispose trashses the entire Model which is presently
+     *   persists entire app lifecycle  so that those meshses are always available for e.g. lo-level
+     *   UI work etc.   This maybe rethought.
      */
     public static void clearShapeRefs(){
         int n = 0;
@@ -257,13 +261,16 @@ public class PrimitivesBuilder /* implements Disposable */ {
     }
 
 
+    /*
+     * this one is practically a vestige
+     */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
-        // we can roll the instance scale transform into the getModelInstance ;)
-//        ModelInstance instance = ModelInstanceEx.getModelInstance(model, nodeID);
-
         ModelInstance instance = new ModelInstance(model, nodeID);
+
+        Entity e = new Entity();
+        e.add(new ModelComponent(instance));
 
         if (null != size) {
             instance.nodes.get(0).scale.set(size);
@@ -274,20 +281,20 @@ public class PrimitivesBuilder /* implements Disposable */ {
             instance.transform.trn(translation);
         }
 
-        BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+        if (null != shape) {
 
-        if (0 == mass) {
-            // special sauce here for static entity
+            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+
+            if (0 == mass) {
+                // special sauce here for static entity
 // set these flags in bullet comp?
-            bc.body.setCollisionFlags(
-                    bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-            bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                bc.body.setCollisionFlags(
+                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+            }
+
+            e.add(bc);
         }
-
-        Entity e  = new Entity();
-        e.add(new ModelComponent(instance));
-        e.add(bc);
-
         return e;
     }
 
