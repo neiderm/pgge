@@ -52,6 +52,7 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
@@ -143,7 +144,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new CharacterSystem());
         engine.addSystem(new FeatureSystem());
 
-        sceneLoader.buildScene(engine);
+        SceneLoader.buildScene(engine);
 
         GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
         pickedPlayer = pf.getEntity();

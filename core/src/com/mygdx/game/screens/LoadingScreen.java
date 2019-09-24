@@ -50,8 +50,6 @@ public class LoadingScreen implements Screen {
 
     private Screen newScreen;
 
-    private SceneLoader sceneLoader;
-
 
     public enum ScreenTypes {
         SETUP,
@@ -72,7 +70,6 @@ public class LoadingScreen implements Screen {
 
         // instancing asset Loader class kicks off asynchronous asset loading which we need to start
         // right now obviously. Then the asset loader instance must be passed off to the Screen to use and dispose.
-        sceneLoader = new SceneLoader();
 
         switch (screenType) {
             default:
@@ -133,10 +130,10 @@ public class LoadingScreen implements Screen {
 
             // make the bar up to half the screen width
             loadCounter = 
-               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * sceneLoader.getAssets().getProgress()) ;
+               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress()) ;
 
-            if (sceneLoader.getAssets().update()) {
-                sceneLoader.doneLoading();
+            if (SceneLoader.getAssets().update()) {
+                SceneLoader.doneLoading();
                 isLoaded = true;
             }
         } else {

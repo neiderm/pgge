@@ -22,12 +22,17 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.FeatureComponent;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.features.MovingPlatform;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -42,7 +47,7 @@ import java.util.Random;
 public class SceneLoader implements Disposable {
 
     private static boolean useTestObjects = true;
-    private AssetManager assets;
+    private static AssetManager assets;
 
 
     public SceneLoader() {
@@ -102,8 +107,17 @@ again a need to creat3e these directly in code
 */
 //        int i = gameData.modelInfo.values().size();
         for (String key : sd.modelInfo.keySet()) {
+            String fn = sd.modelInfo.get(key).fileName;
             if (null != sd.modelInfo.get(key).fileName) {
-                assets.load(sd.modelInfo.get(key).fileName, Model.class);
+                if (sd.modelInfo.get(key).fileName.contains(".png")){
+
+                    assets.load(sd.modelInfo.get(key).fileName, Texture.class);
+                }
+                else                 if (sd.modelInfo.get(key).fileName.contains(".g3d")){
+
+                    assets.load(sd.modelInfo.get(key).fileName, Model.class);
+                }
+//                assets.load(sd.modelInfo.get(key).fileName, Model.class);
             }
         }
 ///*
@@ -111,7 +125,7 @@ again a need to creat3e these directly in code
 //*/
     }
 
-    public AssetManager getAssets() {
+    public static AssetManager getAssets() {
         return assets;
     }
 
@@ -135,14 +149,25 @@ again a need to creat3e these directly in code
     /*
      * build up the scene chunk after the background asset loading process is finished
      */
-    public void doneLoading() {
+    public static void doneLoading() {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
         /* get references to the loaded models */
         for (String key : sd.modelInfo.keySet()) {
+
             if (null != sd.modelInfo.get(key).fileName) {
-                sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Model.class);
+
+                if (sd.modelInfo.get(key).fileName.contains(".png")){
+
+//                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
+                    Gdx.app.log("scene loaer", "load a texture");
+                }
+                else
+                if (sd.modelInfo.get(key).fileName.contains(".g3d")){
+
+                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Model.class);
+                }
             }
         }
 
@@ -192,7 +217,7 @@ again a need to creat3e these directly in code
 //        return playerFeature.entity;
 //    }
 
-    private void buildModelGroup(Engine engine, String key) {
+    static private void buildModelGroup(Engine engine, String key) {
 
         Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
@@ -205,7 +230,7 @@ again a need to creat3e these directly in code
         }
     }
 
-    public void buildScene(Engine engine) {
+    static public void buildScene(Engine engine) {
 
         createTestObjects(engine); // tmp
 
@@ -218,6 +243,48 @@ again a need to creat3e these directly in code
         for (String key : sd.modelGroups.keySet()) {
 
             if (key.equals("Characters")) {
+                continue;
+            }
+
+            /*
+
+	"SkyBox": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			}
+		],
+		"modelName": "skyBoxTexture"
+	}
+
+	"skySphere": {
+		"fileName": "data/moonsky.png"
+	}
+
+             */
+            if (key.equals("SkyBox")) { // skysphere
+
+                Vector3 size = new Vector3(50, 50, 50);
+                Vector3 trans = null;
+
+                Entity e = PrimitivesBuilder.load(
+                        PrimitivesBuilder.getModel(), "skySphere", null, new Vector3(size.x, size.x, size.x), 0, trans);
+                engine.addEntity(e);
+
+// TODO need s to come from JSON
+                Texture tex = new Texture(Gdx.files.internal("data/redsky.png"), true);
+
+                ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+                Material mat = inst.materials.get(0);
+//        if (null == mat)
+                mat.set(TextureAttribute.createDiffuse(tex));
+//                mat.set(IntAttribute.createCullFace(GL_FRONT));
+
                 continue;
             }
 

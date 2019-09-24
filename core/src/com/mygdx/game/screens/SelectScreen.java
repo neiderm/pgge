@@ -43,6 +43,7 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.RenderSystem;
 
 
@@ -111,7 +112,7 @@ class SelectScreen extends TimedGameScreen {
         cam.up.set(0, 1, 0);
         cam.update();
 
-        sceneLoader.buildScene(engine);
+        SceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         GameFeature f = GameWorld.getInstance().getFeature("Platform");
