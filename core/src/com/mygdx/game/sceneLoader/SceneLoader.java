@@ -26,6 +26,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -34,10 +35,11 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.features.MovingPlatform;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
+
+import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 
 /**
@@ -217,7 +219,7 @@ again a need to creat3e these directly in code
 //        return playerFeature.entity;
 //    }
 
-    static private void buildModelGroup(Engine engine, String key) {
+    private static void buildModelGroup(Engine engine, String key) {
 
         Gdx.app.log("SceneLoader", "modelGroup = " + key);
 
@@ -230,7 +232,7 @@ again a need to creat3e these directly in code
         }
     }
 
-    static public void buildScene(Engine engine) {
+    public static void buildScene(Engine engine) {
 
         createTestObjects(engine); // tmp
 
@@ -247,43 +249,42 @@ again a need to creat3e these directly in code
             }
 
             /*
-
-	"SkyBox": {
-		"gameObjects": [
-			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				}
-			}
-		],
-		"modelName": "skyBoxTexture"
-	}
-
-	"skySphere": {
-		"fileName": "data/moonsky.png"
-	}
-
+             * Hacking this in here for now I guess (in ModelGroup? idfk
+             *  texture objects  needs special sauce so is setup in own modelGroup
              */
-            if (key.equals("SkyBox")) { // skysphere
+            if (key.equals("TextureObjects")) {
 
-                Vector3 size = new Vector3(50, 50, 50);
-                Vector3 trans = null;
+                ModelGroup mg = sd.modelGroups.get(key);
 
+                /* here is where need to iterate the objects in the ModelGroup! */
+                GameObject go = mg.getGameObject(0); // there can be only one ;)
+
+                String modelName = go.objectName;    // use "objectName" to look up file name in ModelInfo section
+                ModelInfo mi =  sd.modelInfo.get(modelName);
+
+                Vector3 size = new Vector3(1, 1, 1 );
+
+                if (null != go.scale){
+                    size.set(go.scale);
+                }
+
+                Vector3 trans = null; // defaults to 0 origin for now
+
+                /* nothing special about the skySphere .. ordinary unit sphere with a material (color and face attributes but no texture) */
                 Entity e = PrimitivesBuilder.load(
-                        PrimitivesBuilder.getModel(), "skySphere", null, new Vector3(size.x, size.x, size.x), 0, trans);
+                        PrimitivesBuilder.getModel(),
+                        go.objectName /*"skySphere"*/, null, new Vector3(size.x, size.x, size.x), 0, trans);
                 engine.addEntity(e);
 
-// TODO need s to come from JSON
-                Texture tex = new Texture(Gdx.files.internal("data/redsky.png"), true);
-
+                Texture tex = new Texture(Gdx.files.internal(mi.fileName /*"data/redsky.png"*/), true);
+//
                 ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
                 Material mat = inst.materials.get(0);
-//        if (null == mat)
+////        if (null != mat)
+                mat.clear(); // clear out ColorAttribute of whatever if there was default material?  i guess this ok to do
                 mat.set(TextureAttribute.createDiffuse(tex));
-//                mat.set(IntAttribute.createCullFace(GL_FRONT));
+
+                mat.set(IntAttribute.createCullFace(GL_FRONT)); // haven't codified this attribute yet
 
                 continue;
             }
@@ -335,19 +336,19 @@ again a need to creat3e these directly in code
 
             ModelGroup mg = new ModelGroup(key /* sd.modelGroups.get(key).groupName */);
 
-            for (GameObject o : sd.modelGroups.get(key).gameObjects) {
-
-                GameObject cpObject = new GameObject(o.objectName, o.meshShape);
-
-                InstanceData i = new InstanceData();
-                i.adaptr = new MovingPlatform();
-                i.adaptr.vT = new Vector3(0.4f, 0.5f, 0.6f);
-                cpObject.getInstanceData().add(i);
-
-                mg.gameObjects.add(cpObject);
-            }
-
-            cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
+//            for (GameObject o : sd.modelGroups.get(key).gameObjects) {
+//
+//                GameObject cpObject = new GameObject(o.objectName, o.meshShape);
+//
+//                InstanceData i = new InstanceData();
+//                i.adaptr = new MovingPlatform();
+//                i.adaptr.vT = new Vector3(0.4f, 0.5f, 0.6f);
+//                cpObject.getInstanceData().add(i);
+//
+//                mg.gameObjects.add(cpObject);
+//            }
+//
+//            cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
         }
       /*
         saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
