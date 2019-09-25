@@ -129,9 +129,6 @@
 				"isShadowed": true
 			},
 			{
-				"objectName": "SkyBox"
-			},
-			{
 				"objectName": "Cube*",
 				"isShadowed": true
 			},
@@ -309,6 +306,18 @@
 				"isShadowed": true
 			}
 		]
+	},
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			}
+		]
 	}
 },
 "modelInfo": {
@@ -329,6 +338,9 @@
 	},
 	"scene": {
 		"fileName": "data/vr_zone.g3db"
+	},
+	"skySphere": {
+		"fileName": "data/redsky.png"
 	}
 }
 }

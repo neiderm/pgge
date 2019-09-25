@@ -33,6 +33,18 @@
 				"isShadowed": true
 			}
 		]
+	},
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			}
+		]
 	}
 },
 "modelInfo": {

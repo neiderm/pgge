@@ -221,6 +221,18 @@
 			}
 		],
 		"modelName": "landscape"
+	},
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			}
+		]
 	}
 },
 "modelInfo": {
@@ -241,6 +253,9 @@
 	},
 	"landscape": {
 		"fileName": "data/landscape.g3db"
+	},
+	"skySphere": {
+		"fileName": "data/cloudsky.png"
 	}
 }
 }

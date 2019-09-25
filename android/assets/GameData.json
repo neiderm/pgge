@@ -337,14 +337,6 @@
 	"PrimitiveObjects": {
 		"gameObjects": [
 			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				}
-			},
-			{
 				"instanceData": [
 					{
 						"translation": {
@@ -498,6 +490,18 @@
 				"isShadowed": true
 			}
 		]
+	},
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			}
+		]
 	}
 },
 "modelInfo": {
@@ -518,6 +522,9 @@
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"
+	},
+	"skySphere": {
+		"fileName": "data/moonsky.png"
 	}
 }
 }

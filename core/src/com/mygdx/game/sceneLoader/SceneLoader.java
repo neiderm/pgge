@@ -276,16 +276,19 @@ again a need to creat3e these directly in code
                         go.objectName /*"skySphere"*/, null, new Vector3(size.x, size.x, size.x), 0, trans);
                 engine.addEntity(e);
 
-                Texture tex = new Texture(Gdx.files.internal(mi.fileName /*"data/redsky.png"*/), true);
-//
-                ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
-                Material mat = inst.materials.get(0);
+                if (null != mi) {
+//                    FileHandle fh = Gdx.files.internal(mi.fileName);
+//                    if (null != fh)
+                        Texture tex = new Texture(Gdx.files.internal(mi.fileName /*"data/redsky.png"*/), true);
+
+                        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+                        Material mat = inst.materials.get(0);
 ////        if (null != mat)
-                mat.clear(); // clear out ColorAttribute of whatever if there was default material?  i guess this ok to do
-                mat.set(TextureAttribute.createDiffuse(tex));
+                        mat.clear(); // clear out ColorAttribute of whatever if there was default material?  i guess this ok to do
+                        mat.set(TextureAttribute.createDiffuse(tex));
 
-                mat.set(IntAttribute.createCullFace(GL_FRONT)); // haven't codified this attribute yet
-
+                        mat.set(IntAttribute.createCullFace(GL_FRONT)); // haven't codified this attribute yet
+                }
                 continue;
             }
 

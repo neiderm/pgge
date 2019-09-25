@@ -88,7 +88,8 @@ public class RenderSystem extends EntitySystem {
 
         renderableCount += 1;
 
-        if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius)) {
+//        if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius))
+        {
             visibleCount += 1;
             modelBatch.render(modelInst, environment);
         }
