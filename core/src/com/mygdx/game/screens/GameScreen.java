@@ -145,6 +145,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new FeatureSystem());
 
         SceneLoader.buildScene(engine);
+        GfxUtil.init();
 
         GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
         pickedPlayer = pf.getEntity();
@@ -256,7 +257,6 @@ public class GameScreen extends TimedGameScreen {
                     default:
                         break;
                 }
-
 
                 updateRays();
             }
@@ -505,7 +505,9 @@ public class GameScreen extends TimedGameScreen {
         // I guess not everything is handled by ECS ;)
         PrimitivesBuilder.clearShapeRefs();
 
-        RenderSystem.debugGraphics.clear(); // clear this queue of model instances first before ....
+        // other Systems may have run after last Render System update, so be sure clear this queue
+        // of model instances first before ....
+        RenderSystem.debugGraphics.clear();
         GfxUtil.clearRefs();                 // ... invalidating the underlying models!
     }
 

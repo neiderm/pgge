@@ -61,7 +61,7 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
     public GfxUtil() {
 
         if (null == savedModelRefs){
-            savedModelRefs = new Array<Model>();
+            init();
         }
 
         lineModel = makeModelMesh(2, LINE_MESH_PART_ID); // simple mesh part ID,
@@ -78,6 +78,10 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
+    public static void init(){
+
+        savedModelRefs = new Array<Model>();
+    }
 
     public static void clearRefs(){
 
