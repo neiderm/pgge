@@ -54,7 +54,6 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
     // default id name is "node" + .size .. nothing fancy  see "ModelBuilder::node()"
     private static final String DEFAULT_MODEL_NODE_ID = "node1";
 
-    private final Vector3 to = new Vector3();
 
     private final Model lineModel;
     private final ModelInstance instance;
@@ -79,14 +78,21 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
+
     public static void clearRefs(){
+
         int n = 0;
+
         for (Model mmm : savedModelRefs){
             n += 1;
-/*
+
+            savedModelRefs.removeValue(mmm, true);
+
             mmm.dispose();
- */
         }
+        savedModelRefs.clear();
+        savedModelRefs = null;
+
         // savedModelRefs = null ??? ?
         Gdx.app.log("GfxUtil:clearRefs()", "Models removed = " + n);
     }
@@ -126,15 +132,6 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
     }
 
 
-    // TODO:
-//    @Override
-    public void dispose() {
-
-        lineModel.dispose();
-        // ihni ... identity If true, == comparison will be used. If false, .equals() comparison will be used
-        savedModelRefs.removeValue(this.lineModel, true);
-    }
-
     /*
     https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
 
@@ -144,6 +141,11 @@ Sets the vertices directly in the float buffers and then the instance returned t
 
 
     Builder.createXYZCoordinates() ??
+     */
+    private final Vector3 to = new Vector3();
+
+    /*
+     * convenience for lineTo ... return modelInstance for chaining
      */
     public ModelInstance line(Vector3 from, Vector3 b, Color c) {
 

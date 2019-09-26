@@ -502,8 +502,11 @@ public class GameScreen extends TimedGameScreen {
 
         font.dispose(); // only instantiated on show()  for some reaseon
 
+        // I guess not everything is handled by ECS ;)
         PrimitivesBuilder.clearShapeRefs();
-        GfxUtil.clearRefs();
+
+        RenderSystem.debugGraphics.clear(); // clear this queue of model instances first before ....
+        GfxUtil.clearRefs();                 // ... invalidating the underlying models!
     }
 
     @Override
