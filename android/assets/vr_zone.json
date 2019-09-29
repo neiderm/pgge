@@ -292,7 +292,7 @@
 			}
 		]
 	},
-	"TextureObjectsMdlGrp": {
+	"TextureObjects": {
 		"gameObjects": [
 			{
 				"objectName": "skySphere",
@@ -304,12 +304,12 @@
 				"isShadowed": false
 			}
 		],
-		"modelName": "TexturesMdlInfo"
+		"modelName": "UserMeshesModel"
 	},
-	"TexturesNodes": {
+	"UserModelPartsNodes": {
 		"gameObjects": [
 			{
-				"objectName": "skySphereT",
+				"objectName": "skySphere",
 				"iSWhatever": true
 			},
 			{
@@ -346,9 +346,6 @@
 	"skySphere": {
 		"fileName": "data/redsky.png"
 	},
-	"skySphereT": {
-		"fileName": "data/redsky.png"
-	},
 	"boxTexT": {
 		"fileName": "data/crate.png"
 	},
@@ -358,7 +355,7 @@
 	"sphereCharacterT": {
 		"fileName": "data/badlogic.png"
 	},
-	"TexturesMdlInfo": {
+	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
 	}
 }

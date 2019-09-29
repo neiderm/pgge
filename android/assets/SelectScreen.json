@@ -41,6 +41,15 @@
 				},
 				"isShadowed": false
 			}
+		],
+		"modelName": "UserMeshesModel"
+	},
+	"UserModelPartsNodes": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"iSWhatever": true
+			}
 		]
 	}
 },
@@ -56,6 +65,9 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReference_derskySphereHere"
 	}
 }
 }

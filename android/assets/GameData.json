@@ -477,6 +477,21 @@
 				},
 				"isShadowed": false
 			}
+		],
+		"modelName": "UserMeshesModel"
+	},
+	"UserModelPartsNodes": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"iSWhatever": true
+			},
+			{
+				"objectName": "boxTexT"
+			},
+			{
+				"objectName": "sphereTexT"
+			}
 		]
 	}
 },
@@ -501,6 +516,15 @@
 	},
 	"skySphere": {
 		"fileName": "data/moonsky.png"
+	},
+	"boxTexT": {
+		"fileName": "data/crate.png"
+	},
+	"sphereTexT": {
+		"fileName": "data/day.png"
+	},
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReferecne"
 	}
 }
 }
