@@ -14,9 +14,7 @@
 				"objectName": "militaryvan",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -31,9 +29,7 @@
 				"objectName": "truck",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -48,9 +44,7 @@
 				"objectName": "tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -78,9 +72,7 @@
 				],
 				"objectName": "ship",
 				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isShadowed": true,
-				"isSteerable": true
+				"meshShape": "convexHullShape"
 			}
 		],
 		"isCharacter": true
@@ -161,8 +153,7 @@
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
 				"instanceData": [
@@ -195,8 +186,7 @@
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			}
 		]
 	},
@@ -216,8 +206,7 @@
 				],
 				"objectName": "landscape",
 				"meshShape": "triangleMeshShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			}
 		],
 		"modelName": "landscape"
@@ -230,7 +219,8 @@
 					"x": 200,
 					"y": 200,
 					"z": 200
-				}
+				},
+				"isShadowed": false
 			}
 		]
 	}

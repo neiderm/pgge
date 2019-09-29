@@ -22,12 +22,17 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
@@ -50,7 +55,7 @@ public class SceneLoader implements Disposable {
 
     private static boolean useTestObjects = true;
     private static AssetManager assets;
-
+    private static Model texModel;
 
     public SceneLoader() {
 
@@ -181,6 +186,32 @@ again a need to creat3e these directly in code
             GameFeature gf = new GameFeature(pn);
             sd.features.put("Player", gf);
         }
+
+
+        /*
+         * Textureds Model only need built on Screen Loading (should not be necessary  on a screen Re-Start)
+         */
+        ModelGroup tnmg = sd.modelGroups.get("TexturesNodes");
+
+        if (null != tnmg) { // may or may not be define in scene data
+
+            if (null != texModel){
+                Gdx.app.log("SceneLoader", "tex Model not been disposed properly?");
+            }
+            texModel = makeTexModel(tnmg); // stores reference to model in the dummy ModelInfo block
+
+            /*
+             * use the dummy ModelInfo block to store reference to the newly-constructred model
+             */
+            ModelInfo textureModelInfo = sd.modelInfo.get("TexturesMdlInfo");
+
+            if (null != textureModelInfo) {
+
+                textureModelInfo.model = texModel;
+            }
+        }
+
+        Gdx.app.log("SceneLoader", "INitializeation complete!");
     }
 
     private static void createTestObjects(Engine engine) {
@@ -214,11 +245,6 @@ again a need to creat3e these directly in code
         }
     }
 
-//    Entity getPlayer() {
-//        GameFeature playerFeature = getFeature("Player");
-//        return playerFeature.entity;
-//    }
-
     private static void buildModelGroup(Engine engine, String key) {
 
         Gdx.app.log("SceneLoader", "modelGroup = " + key);
@@ -237,8 +263,7 @@ again a need to creat3e these directly in code
         createTestObjects(engine); // tmp
 
         // if there is a Characters group, try to get a Player
-// no longer should need "isCharacter"
-        buildModelGroup(engine, "Characters");   // buildModelGroup(engine, "characters", "^" + playerObjectname); // pass object name var args to mg.build() ?
+        buildModelGroup(engine, "Characters"); // possible to eliminate "isCharacter" ?
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
@@ -247,7 +272,12 @@ again a need to creat3e these directly in code
             if (key.equals("Characters")) {
                 continue;
             }
-
+            if (key.equals("TexturesModel")) {
+                continue;
+            }
+            if (key.equals("TexturesNodes")) {
+                continue; // removed Model Group (shouldn't be hre)
+            }
             /*
              * Hacking this in here for now I guess (in ModelGroup? idfk
              *  texture objects  needs special sauce so is setup in own modelGroup
@@ -256,39 +286,8 @@ again a need to creat3e these directly in code
 
                 ModelGroup mg = sd.modelGroups.get(key);
 
-                /* here is where need to iterate the objects in the ModelGroup! */
-                GameObject go = mg.getGameObject(0); // there can be only one ;)
+                TEMP_mkSkySphere(engine, mg.getGameObject(0)); // tmp ... 0
 
-                String modelName = go.objectName;    // use "objectName" to look up file name in ModelInfo section
-                ModelInfo mi =  sd.modelInfo.get(modelName);
-
-                Vector3 size = new Vector3(1, 1, 1 );
-
-                if (null != go.scale){
-                    size.set(go.scale);
-                }
-
-                Vector3 trans = null; // defaults to 0 origin for now
-
-                /* nothing special about the skySphere .. ordinary unit sphere with a material (color and face attributes but no texture) */
-                Entity e = PrimitivesBuilder.load(
-                        PrimitivesBuilder.getModel(),
-                        go.objectName /*"skySphere"*/, null, new Vector3(size.x, size.x, size.x), 0, trans);
-                engine.addEntity(e);
-
-                if (null != mi) {
-//                    FileHandle fh = Gdx.files.internal(mi.fileName);
-//                    if (null != fh)
-                        Texture tex = new Texture(Gdx.files.internal(mi.fileName /*"data/redsky.png"*/), true);
-
-                        ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
-                        Material mat = inst.materials.get(0);
-////        if (null != mat)
-                        mat.clear(); // clear out ColorAttribute of whatever if there was default material?  i guess this ok to do
-                        mat.set(TextureAttribute.createDiffuse(tex));
-
-                        mat.set(IntAttribute.createCullFace(GL_FRONT)); // haven't codified this attribute yet
-                }
                 continue;
             }
 
@@ -314,6 +313,91 @@ again a need to creat3e these directly in code
         }
     }
 
+    private static void TEMP_mkSkySphere(Engine engine, GameObject go) {
+
+        SceneData sd = GameWorld.getInstance().getSceneData();
+
+        String modelName = go.objectName;    // use "objectName" to look up file name in ModelInfo section
+        ModelInfo mi = sd.modelInfo.get(modelName);
+
+        Vector3 size = new Vector3(1, 1, 1);
+
+        if (null != go.scale) {
+            size.set(go.scale);
+        }
+
+        Vector3 trans = null; // defaults to 0 origin for now
+
+        /* nothing special about the skySphere .. ordinary unit sphere with a material (color and face attributes but no texture) */
+        Entity e = PrimitivesBuilder.load(
+                PrimitivesBuilder.getModel(),
+                go.objectName /*"skySphere"*/, null, new Vector3(size.x, size.x, size.x), 0, trans);
+        engine.addEntity(e);
+
+        if (null != mi) {
+//                    FileHandle fh = Gdx.files.internal(mi.fileName);
+//                    if (null != fh)
+            Texture tex = new Texture(Gdx.files.internal(mi.fileName /*"data/redsky.png"*/), true);
+
+            ModelInstance inst = e.getComponent(ModelComponent.class).modelInst;
+            Material mat = inst.materials.get(0);
+////        if (null != mat)
+            mat.clear(); // clear out ColorAttribute of whatever if there was default material?  i guess this ok to do
+            mat.set(TextureAttribute.createDiffuse(tex));
+
+            mat.set(IntAttribute.createCullFace(GL_FRONT)); // haven't codified this attribute yet
+        }
+    }
+
+    private static Model makeTexModel(ModelGroup mg) {
+
+        SceneData sd = GameWorld.getInstance().getSceneData();
+
+        final ModelBuilder mb = new ModelBuilder();
+        long attributes =
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        attributes |= VertexAttributes.Usage.TextureCoordinates;
+
+        mb.begin();
+
+        for (GameObject go : mg.gameObjects) {
+
+            ModelInfo mi = sd.modelInfo.get(go.objectName);
+            String fileName = mi.fileName;
+
+            Material mat = new Material();
+            Texture tex = assets.get(fileName, Texture.class);
+
+            if (null != tex) {
+                mat.set(TextureAttribute.createDiffuse(tex));
+            } else {
+                mat.set(ColorAttribute.createDiffuse(Color.MAROON));// shouldn't be here?
+            }
+
+            if (go.iSWhatever) { // isReverseFace
+                mat.set(IntAttribute.createCullFace(GL_FRONT)); // will reuse this Game oBject field
+            }
+
+            mb.node().id = go.objectName;
+
+            if (go.objectName.contains("box")) {
+
+                mb.part("box", GL20.GL_TRIANGLES, attributes, mat).box(1f, 1f, 1f);
+
+            } else
+                if (
+                        go.objectName.contains("Sphere") // ... case hmmmm we'lll see
+                    || go.objectName.contains("sphere")) {
+
+                mb.part("sphere", GL20.GL_TRIANGLES, attributes, mat).sphere(1f, 1f, 1f, 10, 10);
+            }
+        }
+
+        Model model = mb.end();
+
+        return model;
+    }
+
 
     @Override
     public void dispose() {
@@ -321,6 +405,12 @@ again a need to creat3e these directly in code
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
         //  Disposing the file will automatically make all instances invalid!
         assets.dispose();
+
+        /* be careful this one isn't constructed unless defined in json */
+        if (null != texModel){
+            texModel.dispose();
+            texModel = null;
+        }
 
 // new test file writer
         SceneData cpGameData = new SceneData();

@@ -6,16 +6,13 @@
 	"Characters": {
 		"gameObjects": [
 			{
-				"objectName": "truck",
-				"isShadowed": true
+				"objectName": "truck"
 			},
 			{
-				"objectName": "militaryvan",
-				"isShadowed": true
+				"objectName": "militaryvan"
 			},
 			{
-				"objectName": "tank",
-				"isShadowed": true
+				"objectName": "tank"
 			}
 		],
 		"isCharacter": true
@@ -29,8 +26,7 @@
 					"x": 4,
 					"y": 0.2,
 					"z": 4
-				},
-				"isShadowed": true
+				}
 			}
 		]
 	},
@@ -42,7 +38,8 @@
 					"x": 200,
 					"y": 200,
 					"z": 200
-				}
+				},
+				"isShadowed": false
 			}
 		]
 	}

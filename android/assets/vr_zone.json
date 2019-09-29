@@ -21,8 +21,7 @@
 				],
 				"objectName": "Crate.001",
 				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			}
 		],
 		"modelName": "objects"
@@ -42,9 +41,7 @@
 				"objectName": "truck",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -59,9 +56,7 @@
 				"objectName": "militaryvan",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -76,9 +71,7 @@
 				"objectName": "tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -113,9 +106,7 @@
 				],
 				"objectName": "sphereCharacter",
 				"mass": 5.1,
-				"meshShape": "btSphereShape",
-				"isShadowed": true,
-				"isSteerable": true
+				"meshShape": "btSphereShape"
 			}
 		],
 		"isCharacter": true
@@ -125,12 +116,10 @@
 			{
 				"objectName": "Plane*",
 				"meshShape": "triangleMeshShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
-				"objectName": "Cube*",
-				"isShadowed": true
+				"objectName": "Cube*"
 			},
 			{
 				"instanceData": [
@@ -187,8 +176,7 @@
 					"z": 0.5
 				},
 				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -224,8 +212,7 @@
 					"z": 0.5
 				},
 				"mass": 5.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -261,8 +248,7 @@
 					"z": 1.5
 				},
 				"mass": 5.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -302,12 +288,11 @@
 					"z": 2
 				},
 				"mass": 1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			}
 		]
 	},
-	"TextureObjects": {
+	"TextureObjectsMdlGrp": {
 		"gameObjects": [
 			{
 				"objectName": "skySphere",
@@ -315,7 +300,26 @@
 					"x": 200,
 					"y": 200,
 					"z": 200
-				}
+				},
+				"isShadowed": false
+			}
+		],
+		"modelName": "TexturesMdlInfo"
+	},
+	"TexturesNodes": {
+		"gameObjects": [
+			{
+				"objectName": "skySphereT",
+				"iSWhatever": true
+			},
+			{
+				"objectName": "boxTexT"
+			},
+			{
+				"objectName": "sphereTexT"
+			},
+			{
+				"objectName": "sphereCharacterT"
 			}
 		]
 	}
@@ -341,6 +345,21 @@
 	},
 	"skySphere": {
 		"fileName": "data/redsky.png"
+	},
+	"skySphereT": {
+		"fileName": "data/redsky.png"
+	},
+	"boxTexT": {
+		"fileName": "data/crate.png"
+	},
+	"sphereTexT": {
+		"fileName": "data/day.png"
+	},
+	"sphereCharacterT": {
+		"fileName": "data/badlogic.png"
+	},
+	"TexturesMdlInfo": {
+		"fileName": "DummyForModelReferecne"
 	}
 }
 }
