@@ -94,6 +94,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
         mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
 
+        /*
+         * these shuold be going away ;)
+         */
         attributes |= VertexAttributes.Usage.TextureCoordinates;
 
         tex = new Texture(Gdx.files.internal("data/crate.png"), true);
@@ -111,12 +114,6 @@ public class PrimitivesBuilder /* implements Disposable */ {
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
-        /* example of createCullFace */ ///*
-        tex = new Texture(Gdx.files.internal("data/moonsky.png"), true);
-        mb.node().id = "skySphere";
-        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
-        new Material(TextureAttribute.createDiffuse(tex), IntAttribute.createCullFace(GL_FRONT))).sphere(1f, 1f, 1f, 10, 10);
-//*/
         model = mb.end();
     }
 
@@ -263,11 +260,18 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
     /*
      * this one is practically a vestige
+     *  or a nuisance
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
         ModelInstance instance = new ModelInstance(model, nodeID);
+
+        return load(instance, shape, size, mass, translation);
+    }
+
+    public static Entity load(
+            ModelInstance instance, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
         Entity e = new Entity();
         e.add(new ModelComponent(instance));
@@ -297,6 +301,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         }
         return e;
     }
+
 
     public static void dispose() {
         // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
