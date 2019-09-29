@@ -41,24 +41,24 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public class GameObject {
 
     public GameObject() {
+
+        this.isShadowed = true;
     }
 
-    public GameObject(String objectName, String shapeName) {
-        this.objectName = objectName;
-        this.meshShape = shapeName;
-        this.isShadowed = true;
-//        this.isKinematic = true;
-        this.isPickable = false;
-        this.scale = new Vector3(1, 1, 1); // placeholder
-    }
+//    public GameObject(String objectName, String shapeName) {
+//        this.objectName = objectName;
+//        this.meshShape = shapeName;
+//        this.isShadowed = true;
+////        this.isKinematic = true;
+//        this.isPickable = false;
+//        this.scale = new Vector3(1, 1, 1); // placeholder
+//    }
 
 
     private Array<InstanceData> instanceData = new Array<InstanceData>();
 
-
     public String objectName;
-//public Entity entity; // reference to an entity, if one is used
-private String featureName; // if Entity is to be part of a feature
+    private String featureName; // if Entity is to be part of a feature
     //            Vector3 translation; // needs to be only per-instance
     public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
     public float mass;
@@ -66,11 +66,11 @@ private String featureName; // if Entity is to be part of a feature
     boolean isKinematic;  //  "isStatic" ?
     private boolean isPickable;
     public boolean isShadowed;
-    boolean isSteerable;
+    boolean iSWhatever;
     boolean isCharacter;
 
 
-    public Array<InstanceData> getInstanceData(){
+    public Array<InstanceData> getInstanceData() {
 
         return instanceData;
     }
@@ -85,7 +85,7 @@ private String featureName; // if Entity is to be part of a feature
 
     void buildNodes(Engine engine, Model model) {
 
-        buildNodes(engine, model, null, false) ;
+        buildNodes(engine, model, null, false);
     }
 
     public void buildNodes(Engine engine, Model model, Vector3 translation, boolean useLocalTranslation) {
@@ -105,7 +105,7 @@ private String featureName; // if Entity is to be part of a feature
                     mi.transform.trn(translation);   // set trans only (offset)
                 }
 
-                if (useLocalTranslation){
+                if (useLocalTranslation) {
                     mi.transform.trn(node.localTransform.getTranslation(new Vector3()));
                 }
 
@@ -125,7 +125,7 @@ private String featureName; // if Entity is to be part of a feature
         scale is in parent object (not instances) because object should be able to share same bullet shape!
         HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
          */
-                buildGameObject(model, engine,                         mi, shape);
+                buildGameObject(model, engine, mi, shape);
             } // else  ... bail out if matched an un-globbed name ?
         }
     }
@@ -140,7 +140,7 @@ private String featureName; // if Entity is to be part of a feature
         String playerFeatureName = null;
         Entity playerFeatureEntity = null;
 
-        GameFeature playerFeature = GameWorld.getInstance(). getFeature("Player"); // assumes already loaded Characters group ;)
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // assumes already loaded Characters group ;)
 
         if (null != playerFeature) {
             playerFeatureName = playerFeature.featureName;
@@ -159,7 +159,7 @@ private String featureName; // if Entity is to be part of a feature
                 shape = btcs; // note: 1 shape re-used
             }
 
-            Entity e = buildObjectInstance(modelInst.copy(),  shape, id);
+            Entity e = buildObjectInstance(modelInst.copy(), shape, id);
             engine.addEntity(e);
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -175,11 +175,11 @@ private String featureName; // if Entity is to be part of a feature
                 adaptor = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
 
                 // for now, assign Entity ref to bullet body userValue (only for feature entity right now)
-                BulletComponent bc  = e.getComponent(BulletComponent.class);
+                BulletComponent bc = e.getComponent(BulletComponent.class);
 
-                if (null != bc){
+                if (null != bc) {
                     btCollisionObject body = bc.body;
-                    if (null != body){
+                    if (null != body) {
                         // build a map associating these entities with an int index
                         int next = BulletWorld.getInstance().userToEntityLUT.size;
                         body.setUserValue(next);
@@ -189,7 +189,7 @@ private String featureName; // if Entity is to be part of a feature
                 }
             }
 
-            GameFeature gf = GameWorld.getInstance(). getFeature(featureName);  // obviously gameObject.feature Name is used as the key
+            GameFeature gf = GameWorld.getInstance().getFeature(featureName);  // obviously gameObject.feature Name is used as the key
 
             if (null != gf || null != adaptor) {
 
@@ -206,8 +206,8 @@ private String featureName; // if Entity is to be part of a feature
             }
 
             if (/*null != playerFeatureName && */ objectName.equals(playerFeatureName)) {
-                    playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-                    e.getComponent(CharacterComponent.class).isPlayer = true;
+                playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
+                e.getComponent(CharacterComponent.class).isPlayer = true;
             }
 
         } while (/*null != id && */ n < instanceData.size);
@@ -251,7 +251,6 @@ private String featureName; // if Entity is to be part of a feature
             }
         }
 
-//        if (gameObject.isSteerable) {
         if (isCharacter) {
             e.add(new CharacterComponent());
         }
