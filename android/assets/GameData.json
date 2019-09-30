@@ -16,8 +16,7 @@
 					"y": 2,
 					"z": 40
 				},
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -34,8 +33,7 @@
 					"y": 16,
 					"z": 16
 				},
-				"meshShape": "btSphereShape",
-				"isShadowed": true
+				"meshShape": "btSphereShape"
 			}
 		],
 		"modelName": "",
@@ -88,8 +86,7 @@
 				],
 				"objectName": "Crate.000",
 				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			}
 		],
 		"modelName": "objects"
@@ -108,9 +105,7 @@
 				"objectName": "militaryvan",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -125,9 +120,7 @@
 				"objectName": "truck",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -142,9 +135,7 @@
 				"objectName": "tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true,
-				"isShadowed": true,
-				"isSteerable": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -172,9 +163,7 @@
 				],
 				"objectName": "ship",
 				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isShadowed": true,
-				"isSteerable": true
+				"meshShape": "convexHullShape"
 			}
 		],
 		"isCharacter": true
@@ -255,8 +244,7 @@
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
 				"instanceData": [
@@ -289,8 +277,7 @@
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			}
 		]
 	},
@@ -299,37 +286,31 @@
 			{
 				"objectName": "Crate*",
 				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"objectName": "cube*",
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			},
 			{
 				"objectName": "mushroom*",
 				"meshShape": "convexHullShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
 				"objectName": "Wall*",
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
 				"objectName": "Platform.*",
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			},
 			{
 				"objectName": "Plane*",
 				"meshShape": "triangleMeshShape",
-				"isKinematic": true,
-				"isShadowed": true
+				"isKinematic": true
 			}
 		],
 		"modelName": "scene"
@@ -353,8 +334,7 @@
 					"z": 2
 				},
 				"mass": 5,
-				"isPickable": true,
-				"isShadowed": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -373,8 +353,7 @@
 					"z": 2
 				},
 				"mass": 5,
-				"isPickable": true,
-				"isShadowed": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -393,8 +372,7 @@
 					"z": 2
 				},
 				"mass": 5,
-				"isPickable": true,
-				"isShadowed": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -413,8 +391,7 @@
 					"z": 2
 				},
 				"mass": 5,
-				"isPickable": true,
-				"isShadowed": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -433,8 +410,7 @@
 					"z": 3
 				},
 				"mass": 5,
-				"isPickable": true,
-				"isShadowed": true
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -486,8 +462,7 @@
 					"z": 2
 				},
 				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isShadowed": true
+				"meshShape": "btBoxShape"
 			}
 		]
 	},
@@ -499,7 +474,23 @@
 					"x": 200,
 					"y": 200,
 					"z": 200
-				}
+				},
+				"isShadowed": false
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
+	"UserModelPartsNodes": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"iSWhatever": true
+			},
+			{
+				"objectName": "boxTexT"
+			},
+			{
+				"objectName": "sphereTexT"
 			}
 		]
 	}
@@ -525,6 +516,15 @@
 	},
 	"skySphere": {
 		"fileName": "data/moonsky.png"
+	},
+	"boxTexT": {
+		"fileName": "data/crate.png"
+	},
+	"sphereTexT": {
+		"fileName": "data/day.png"
+	},
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReferecne"
 	}
 }
 }
