@@ -35,7 +35,7 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class VectorSensor extends SensorAdaptor {
 
     private Vector3 trans = new Vector3();
-    private GfxUtil lineInstance = new GfxUtil();
+    private GfxUtil lineInstance;// = new GfxUtil();
 
     private Vector3 myPos = new Vector3();
     private Vector3 targetPos = new Vector3();
@@ -68,7 +68,13 @@ public class VectorSensor extends SensorAdaptor {
 
         /* add scaled look-ray-unit-vector to sensor position */
         myPos.add(lookRay.direction.scl( senseZoneDistance )); // we'll see
+
+// the Feature Adapter will be populated in the "out.json" file but don't want the debug line instance
+// spewing all it's crap in there, so allow the debug line graphic to be instantantiated late
 ///*
+if (null == lineInstance){
+    lineInstance = new GfxUtil();
+}
         RenderSystem.debugGraphics.add(lineInstance.lineTo(
                 sensTransform.getTranslation(trans),
                 myPos,
