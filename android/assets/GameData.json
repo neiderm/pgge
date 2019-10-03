@@ -52,45 +52,6 @@
 		],
 		"modelName": "objects"
 	},
-	"UserModelStaticGroup": {
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": -14
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 40,
-					"y": 2,
-					"z": 40
-				},
-				"meshShape": "btBoxShape"
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 10,
-							"y": -5
-						}
-					}
-				],
-				"objectName": "sphereTex",
-				"scale": {
-					"x": 16,
-					"y": 16,
-					"z": 16
-				},
-				"meshShape": "btSphereShape"
-			}
-		],
-		"modelName": "UserMeshesModel",
-		"isKinematic": true
-	},
 	"UserModelGroup": {
 		"gameObjects": [
 			{
@@ -460,9 +421,6 @@
 			},
 			{
 				"objectName": "boxTex"
-			},
-			{
-				"objectName": "sphereTex"
 			}
 		]
 	}
@@ -470,9 +428,6 @@
 "modelInfo": {
 	"boxTex": {
 		"fileName": "data/crate.png"
-	},
-	"sphereTex": {
-		"fileName": "data/day.png"
 	},
 	"skySphere": {
 		"fileName": "data/moonsky.png"

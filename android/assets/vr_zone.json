@@ -309,6 +309,36 @@
 				},
 				"mass": 5.1,
 				"meshShape": "btBoxShape"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 5,
+							"y": 10,
+							"z": -4
+						},
+						"color": {
+							"r": 0.2,
+							"g": 0.2,
+							"b": 0.2,
+							"a": 0.4
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.OOBSensor",
+							"vS": {
+								"x": 25
+							}
+						}
+					}
+				],
+				"objectName": "sphere",
+				"featureName": "OutOfBounds",
+				"scale": {
+					"x": 50,
+					"y": 50,
+					"z": 50
+				}
 			}
 		]
 	},
