@@ -1,5 +1,19 @@
 {
 "modelGroups": {
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				},
+				"isShadowed": false
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
 	"Characters": {
 		"gameObjects": [
 			{
@@ -190,6 +204,14 @@
 			}
 		]
 	},
+	"UserModelPartsNodes": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"iSWhatever": true
+			}
+		]
+	},
 	"TempSceneMesh": {
 		"gameObjects": [
 			{
@@ -210,39 +232,11 @@
 			}
 		],
 		"modelName": "landscape"
-	},
-	"TextureObjects": {
-		"gameObjects": [
-			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				},
-				"isShadowed": false
-			}
-		],
-		"modelName": "UserMeshesModel"
-	},
-	"UserModelPartsNodes": {
-		"gameObjects": [
-			{
-				"objectName": "skySphere",
-				"iSWhatever": true
-			},
-			{
-				"objectName": "boxTexT"
-			},
-			{
-				"objectName": "sphereTexT"
-			}
-		]
 	}
 },
 "modelInfo": {
-	"objects": {
-		"fileName": "data/cubetest.g3dj"
+	"skySphere": {
+		"fileName": "data/cloudsky.png"
 	},
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
@@ -253,23 +247,14 @@
 	"ship": {
 		"fileName": "tanks/ship.g3db"
 	},
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReferecne"
+	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
 	"landscape": {
 		"fileName": "data/landscape.g3db"
-	},
-	"skySphere": {
-		"fileName": "data/cloudsky.png"
-	},
-	"boxTexT": {
-		"fileName": "data/crate.png"
-	},
-	"sphereTexT": {
-		"fileName": "data/day.png"
-	},
-	"UserMeshesModel": {
-		"fileName": "DummyForModelReferecne"
 	}
 }
 }

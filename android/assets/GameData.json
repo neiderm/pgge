@@ -1,44 +1,5 @@
 {
 "modelGroups": {
-	"PrimitiveStatics": {
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": -14
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 40,
-					"y": 2,
-					"z": 40
-				},
-				"meshShape": "btBoxShape"
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 10,
-							"y": -5
-						}
-					}
-				],
-				"objectName": "sphereTex",
-				"scale": {
-					"x": 16,
-					"y": 16,
-					"z": 16
-				},
-				"meshShape": "btSphereShape"
-			}
-		],
-		"modelName": "",
-		"isKinematic": true
-	},
 	"InstancedModelMeshes": {
 		"gameObjects": [
 			{
@@ -91,6 +52,111 @@
 		],
 		"modelName": "objects"
 	},
+	"UserModelStaticGroup": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": -14
+						}
+					}
+				],
+				"objectName": "boxTex",
+				"scale": {
+					"x": 40,
+					"y": 2,
+					"z": 40
+				},
+				"meshShape": "btBoxShape"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 10,
+							"y": -5
+						}
+					}
+				],
+				"objectName": "sphereTex",
+				"scale": {
+					"x": 16,
+					"y": 16,
+					"z": 16
+				},
+				"meshShape": "btSphereShape"
+			}
+		],
+		"modelName": "UserMeshesModel",
+		"isKinematic": true
+	},
+	"UserModelGroup": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				},
+				"isShadowed": false
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -2,
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"y": 6,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -2,
+							"y": 6,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 6,
+							"z": -15
+						}
+					}
+				],
+				"objectName": "boxTex",
+				"scale": {
+					"x": 2,
+					"y": 2,
+					"z": 2
+				},
+				"mass": 0.1,
+				"meshShape": "btBoxShape"
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
 	"Characters": {
 		"gameObjects": [
 			{
@@ -136,34 +202,6 @@
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 1,
-							"y": 53,
-							"z": -5
-						}
-					},
-					{
-						"translation": {
-							"x": 2,
-							"y": 53,
-							"z": -5
-						}
-					},
-					{
-						"translation": {
-							"x": 3,
-							"y": 51,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "ship",
-				"mass": 5.1,
-				"meshShape": "convexHullShape"
 			}
 		],
 		"isCharacter": true
@@ -411,74 +449,8 @@
 				},
 				"mass": 5,
 				"isPickable": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"translation": {
-							"x": -2,
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"translation": {
-							"x": -4,
-							"y": 4,
-							"z": -15
-						}
-					},
-					{
-						"translation": {
-							"y": 6,
-							"z": -15
-						}
-					},
-					{
-						"translation": {
-							"x": -2,
-							"y": 6,
-							"z": -15
-						}
-					},
-					{
-						"translation": {
-							"x": -4,
-							"y": 6,
-							"z": -15
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 2,
-					"y": 2,
-					"z": 2
-				},
-				"mass": 0.1,
-				"meshShape": "btBoxShape"
 			}
 		]
-	},
-	"TextureObjects": {
-		"gameObjects": [
-			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				},
-				"isShadowed": false
-			}
-		],
-		"modelName": "UserMeshesModel"
 	},
 	"UserModelPartsNodes": {
 		"gameObjects": [
@@ -487,15 +459,24 @@
 				"iSWhatever": true
 			},
 			{
-				"objectName": "boxTexT"
+				"objectName": "boxTex"
 			},
 			{
-				"objectName": "sphereTexT"
+				"objectName": "sphereTex"
 			}
 		]
 	}
 },
 "modelInfo": {
+	"boxTex": {
+		"fileName": "data/crate.png"
+	},
+	"sphereTex": {
+		"fileName": "data/day.png"
+	},
+	"skySphere": {
+		"fileName": "data/moonsky.png"
+	},
 	"objects": {
 		"fileName": "data/cubetest.g3dj"
 	},
@@ -505,26 +486,14 @@
 	"truck": {
 		"fileName": "tanks/ram.g3db"
 	},
-	"ship": {
-		"fileName": "tanks/ship.g3db"
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReferecne"
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"
-	},
-	"skySphere": {
-		"fileName": "data/moonsky.png"
-	},
-	"boxTexT": {
-		"fileName": "data/crate.png"
-	},
-	"sphereTexT": {
-		"fileName": "data/day.png"
-	},
-	"UserMeshesModel": {
-		"fileName": "DummyForModelReferecne"
 	}
 }
 }

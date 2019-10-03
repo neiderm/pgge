@@ -3,6 +3,29 @@
 	"Platform": {}
 },
 "modelGroups": {
+	"TextureObjects": {
+		"gameObjects": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				},
+				"isShadowed": false
+			},
+			{
+				"objectName": "boxTex",
+				"featureName": "Platform",
+				"scale": {
+					"x": 4,
+					"y": 0.2,
+					"z": 4
+				}
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
 	"Characters": {
 		"gameObjects": [
 			{
@@ -17,57 +40,33 @@
 		],
 		"isCharacter": true
 	},
-	"ThePlatform": {
-		"gameObjects": [
-			{
-				"objectName": "boxTex",
-				"featureName": "Platform",
-				"scale": {
-					"x": 4,
-					"y": 0.2,
-					"z": 4
-				}
-			}
-		]
-	},
-	"TextureObjects": {
-		"gameObjects": [
-			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				},
-				"isShadowed": false
-			}
-		],
-		"modelName": "UserMeshesModel"
-	},
 	"UserModelPartsNodes": {
 		"gameObjects": [
 			{
 				"objectName": "skySphere",
 				"iSWhatever": true
+			},
+			{
+				"objectName": "boxTex"
 			}
 		]
 	}
 },
 "modelInfo": {
+	"boxTex": {
+		"fileName": "data/crate.png"
+	},
 	"militaryvan": {
 		"fileName": "tanks/militaryvan.g3db"
 	},
 	"truck": {
 		"fileName": "tanks/ram.g3db"
 	},
-	"ship": {
-		"fileName": "tanks/ship.g3db"
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReference_derskySphereHere"
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"UserMeshesModel": {
-		"fileName": "DummyForModelReference_derskySphereHere"
 	}
 }
 }
