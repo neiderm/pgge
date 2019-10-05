@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 
 public class GameFeature {
 
-    String featureName;
+    public String featureName;
     public Vector3 v3data;
     private Entity entity;
 

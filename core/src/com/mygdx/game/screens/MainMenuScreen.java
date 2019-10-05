@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.sceneLoader.GameFeature;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -56,10 +57,18 @@ public class MainMenuScreen implements Screen {
 
         if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()) {
 
+// pass along the local player object name, wever the heck that means
+            GameFeature gf = GameWorld.getInstance().getSceneData().features.get("Player");
+            String featureName = null;
+
+            if (null != gf) {
+                featureName = gf.featureName; // i hope so
+            }
+
             switch (idxCurSel) {
                 default:
                 case 0:
-                    GameWorld.getInstance().setSceneData("GameData.json");
+                    GameWorld.getInstance().setSceneData("GameData.json", featureName);
                     GameWorld.getInstance().showScreen(new LoadingScreen());
                     break;
 
