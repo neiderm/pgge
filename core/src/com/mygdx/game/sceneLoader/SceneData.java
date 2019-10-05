@@ -22,7 +22,6 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class SceneData {
 
@@ -31,12 +30,6 @@ public class SceneData {
     public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
     public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
-    private static String playerObjectName;
-
-
-    public static String getPlayerObjectName(){
-        return playerObjectName;
-    }
 
     public static void saveData(SceneData data) {
         Json json = new Json();
@@ -52,8 +45,16 @@ public class SceneData {
 
     public static SceneData loadData(String path,  String playerObjectName){
 
-        SceneData.playerObjectName = playerObjectName;
-        return loadData(path);
+        SceneData sd = loadData(path);
+
+        // localplayer object-name is passed along from parent screen ... make a Geame Feature in which
+        // to stash this "persistent" local player info . Other systems/comps will be looking for this
+        // magik name to get reference to the entity.
+        // The bottom falls out and Whole world comes crashing down otherwise :(
+        GameFeature gf = new GameFeature( playerObjectName );
+        sd.features.put("Player", gf  /* new GameFeature( playerObjectName ) */ );
+
+        return sd;
     }
 
     public static SceneData loadData(String path) {

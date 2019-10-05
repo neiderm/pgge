@@ -51,6 +51,9 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 public class SceneLoader implements Disposable {
 
+    // Model Group name,  has to be fixed
+    private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
+
     private static boolean useTestObjects = true;
     private static AssetManager assets;
     private static Model userModel;
@@ -122,7 +125,6 @@ again a need to creat3e these directly in code
 
                     assets.load(sd.modelInfo.get(key).fileName, Model.class);
                 }
-//                assets.load(sd.modelInfo.get(key).fileName, Model.class);
             }
         }
 ///*
@@ -133,23 +135,6 @@ again a need to creat3e these directly in code
     public static AssetManager getAssets() {
         return assets;
     }
-
-
-
-    /*
-        http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
-    */
-
-/*    public void initializeGameData() {
-        if (!fileHandle.exists()) {
-            gameData = new GameData();
-
-            saveData();
-        } else {
-            loadData();
-        }
-    }*/
-
 
     /*
      * build up the scene chunk after the background asset loading process is finished
@@ -176,21 +161,11 @@ again a need to creat3e these directly in code
             }
         }
 
-        /* next step is for the client SCreen to build up the scene chunk */
-
-        String pn = SceneData.getPlayerObjectName();
-
-        if (null != pn) {
-            GameFeature gf = new GameFeature(pn);
-            sd.features.put("Player", gf);
-        }
-
-
         /*
          * simple parts Model bult up from instances created by Model Builder .part() ... only need
          * built on Screen Loading   (should not be disposed on a screen Re-Start)
          */
-        ModelGroup umg = sd.modelGroups.get("UserModelPartsNodes");
+        ModelGroup umg = sd.modelGroups.get(USER_MODEL_PARTS);
 
         if (null != umg) { // may or may not be define in scene data
 
@@ -269,13 +244,21 @@ again a need to creat3e these directly in code
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+//        String featureName = playerFeature.featureName; // hmmmm
+        //  make a Model Group for the local player ... sd.addModelGroup() ????
+//ModelGroup tmg = mkModelGroup( featureName );
+//if (null != tmg) {
+//    sd.modelGroups.put("LocalPlayer", tmg);
+//}
+
         for (String key : sd.modelGroups.keySet()) {
 
             if (key.equals("Characters")) {
                 continue;
             }
 
-            if (key.equals("UserModelPartsNodes")) {
+            if (key.equals(USER_MODEL_PARTS)) {
                 continue; // removed Model Group (shouldn't be hre)
             }
 
@@ -283,7 +266,6 @@ again a need to creat3e these directly in code
         }
 
         // any other one-time setups after all file data object loaded ... features set target to player by default
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
 
         if (null != playerFeature) {
 
@@ -299,6 +281,29 @@ again a need to creat3e these directly in code
                 }
             }
         }
+    }
+
+    private static ModelGroup mkModelGroup(String featureName) {
+
+        ModelGroup tmg = new ModelGroup(featureName);
+
+        Vector3 translation = new Vector3(7, 10, -8); // where is local player spawning right now? defualt... ?
+
+        GameObject gameObject = new GameObject();
+        gameObject.mass = 5.1f;
+        gameObject.isShadowed = true;
+        gameObject.scale = new Vector3(1, 1, 1);
+        gameObject.objectName = featureName;
+        gameObject.iSWhatever = true; ////////////////// bah look at me hack
+//                gameObject.meshShape = "convexHullShape";
+        gameObject.isCharacter = true;
+
+        InstanceData id = new InstanceData(translation);
+        gameObject.getInstanceData().add(id);
+
+        tmg.addGameObject(gameObject);
+
+        return tmg;
     }
 
     /*
