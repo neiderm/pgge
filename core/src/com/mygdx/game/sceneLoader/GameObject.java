@@ -68,7 +68,7 @@ public class GameObject {
     public boolean isShadowed;
     boolean iSWhatever;
     boolean isCharacter;
-
+    boolean isPlayer; // i guess
 
     public Array<InstanceData> getInstanceData() {
 
@@ -205,9 +205,13 @@ public class GameObject {
                 }
             }
 
-            if (/*null != playerFeatureName && */ objectName.equals(playerFeatureName)) {
+            if (/*null != playerFeatureName && */
+                    // objectName.equals(playerFeatureName
+                                                  this.isPlayer
+            )
+            {
                 playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-                e.getComponent(CharacterComponent.class).isPlayer = true;
+//                e.getComponent(CharacterComponent.class).isPlayer = true;
             }
 
         } while (/*null != id && */ n < instanceData.size);

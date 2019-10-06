@@ -239,24 +239,20 @@ again a need to creat3e these directly in code
 
         createTestObjects(engine); // tmp
 
-        // if there is a Characters group, try to get a Player
-        buildModelGroup(engine, "Characters"); // possible to eliminate "isCharacter" ?
-
         SceneData sd = GameWorld.getInstance().getSceneData();
 
         GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
-//        String featureName = playerFeature.featureName; // hmmmm
-        //  make a Model Group for the local player ... sd.addModelGroup() ????
-//ModelGroup tmg = mkModelGroup( featureName );
-//if (null != tmg) {
-//    sd.modelGroups.put("LocalPlayer", tmg);
-//}
+
+        if (null!= playerFeature){
+            //  make a Model Group for the local player ... sd.addModelGroup() ????
+            ModelGroup tmg = mkModelGroup( playerFeature.featureName );
+
+            if (null != tmg) {
+                sd.modelGroups.put("LocalPlayer", tmg);
+            }
+        }
 
         for (String key : sd.modelGroups.keySet()) {
-
-            if (key.equals("Characters")) {
-                continue;
-            }
 
             if (key.equals(USER_MODEL_PARTS)) {
                 continue; // removed Model Group (shouldn't be hre)
@@ -294,9 +290,7 @@ again a need to creat3e these directly in code
         gameObject.isShadowed = true;
         gameObject.scale = new Vector3(1, 1, 1);
         gameObject.objectName = featureName;
-        gameObject.iSWhatever = true; ////////////////// bah look at me hack
-//                gameObject.meshShape = "convexHullShape";
-        gameObject.isCharacter = true;
+        gameObject.isPlayer = true; ////////////////// bah look at me hack
 
         InstanceData id = new InstanceData(translation);
         gameObject.getInstanceData().add(id);

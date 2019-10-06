@@ -14,7 +14,6 @@ import com.mygdx.game.controllers.SteeringEntity;
 public class CharacterComponent implements Component {
 
     public SteeringEntity steerable;
-    public boolean isPlayer;
 
     public CharacterComponent(){ /* mt */
     }

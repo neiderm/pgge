@@ -29,8 +29,6 @@ public class InstanceData {
     public InstanceData(Vector3 translation) {
 
         this.translation = new Vector3(translation);
-
-        this.color = new  Color(Color.GREEN);    // idfk
     }
 
     public Quaternion rotation;

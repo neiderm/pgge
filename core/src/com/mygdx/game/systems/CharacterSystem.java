@@ -10,6 +10,7 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
+import com.mygdx.game.sceneLoader.GameFeature;
 
 /**
  * Created by neiderm on 2/10/18.
@@ -38,26 +39,28 @@ public class CharacterSystem extends IteratingSystem /*implements EntityListener
 
         CharacterComponent cc = entity.getComponent(CharacterComponent.class);
 
-        if (cc.isPlayer) {
-            player = entity;
-        } else {
-            cc.isPlayer = false; // debug
-        }
-
+        // once the player has been found...
         if (null != player) {
+
+            // if steerable is valid, update() it, ...
+
             if (null != cc.steerable) {
 
                 entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
-
-            } else if (!cc.isPlayer) {
-
+            } else {
+                // spin up a new steerable
                 btRigidBody rb = entity.getComponent(BulletComponent.class).body;
-
                 TankController tc = new TankController(rb, entity.getComponent(BulletComponent.class).mass); /* should be a property of the tank? */
 
                 cc.setSteerable(
                         new SteeringTankController(
                                 tc, rb, new SteeringBulletEntity(player.getComponent(BulletComponent.class).body)));
+            }
+        } else // loooking for player target to use
+        {
+            GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+            if (null != playerFeature) {
+                player = playerFeature.getEntity();
             }
         }
     }
