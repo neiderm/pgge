@@ -198,9 +198,7 @@ public class GameScreen extends TimedGameScreen {
 
                 if (null != picked) { //            picked.onSelect();  ???
 
-//                    ModelInstanceEx.setMaterialColor(picked.getComponent(ModelComponent.class).modelInst, Color.RED);
-                    incHitCount(1);
-
+//                    incHitCount(1);
                     CompCommon.explode(engine, picked);
 
                     // mark dead entity for deletion

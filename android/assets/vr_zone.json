@@ -121,56 +121,6 @@
 		],
 		"modelName": "objects"
 	},
-	"Characters": {
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 7,
-							"y": 6,
-							"z": -8
-						}
-					}
-				],
-				"objectName": "truck",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 6,
-							"y": 6,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "militaryvan",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 7,
-							"y": 6,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "tank",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
-			}
-		],
-		"isCharacter": true
-	},
 	"SceneStaticObjects": {
 		"gameObjects": [
 			{
@@ -244,7 +194,7 @@
 						"translation": {
 							"x": 2,
 							"y": 10,
-							"z": -5
+							"z": 5
 						},
 						"color": {
 							"g": 1,
@@ -273,6 +223,82 @@
 				},
 				"mass": 5.1,
 				"meshShape": "btBoxShape"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 2,
+							"y": 10,
+							"z": -5
+						},
+						"color": {
+							"r": 0,
+							"g": 1,
+							"b": 0,
+							"a": 0.5
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"vS": {
+								"x": 0.95,
+								"y": 0.95,
+								"z": 0.95
+							}
+						}
+					},
+					{
+						"translation": {
+							"x": -8,
+							"y": 10,
+							"z": -5
+						},
+						"color": {
+							"r": 0,
+							"g": 1,
+							"b": 0,
+							"a": 0.5
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"vS": {
+								"x": 0.95,
+								"y": 0.95,
+								"z": 0.95
+							}
+						}
+					},
+					{
+						"translation": {
+							"x": 4,
+							"y": 10,
+							"z": 10
+						},
+						"color": {
+							"r": 0,
+							"g": 1,
+							"b": 0,
+							"a": 0.5
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"vS": {
+								"x": 0.95,
+								"y": 0.95,
+								"z": 0.95
+							}
+						}
+					}
+				],
+				"objectName": "cone",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				},
+				"mass": 5.1,
+				"meshShape": "btConeShape"
 			},
 			{
 				"instanceData": [

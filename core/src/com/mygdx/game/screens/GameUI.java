@@ -45,7 +45,14 @@ public class GameUI extends InGameMenu {
 
     public boolean canExit; // exit sensor is tripped
 
-    private static final int ALL_HIT_COUNT = 2;
+    private int ALL_HIT_COUNT = 65535 ;    // wtfe
+    private static int SET_HIT_COUNT;
+
+    public static void inc_SET_HIT_COUNT(){
+        SET_HIT_COUNT += 1;
+    }
+
+
     private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;
@@ -83,10 +90,16 @@ public class GameUI extends InGameMenu {
     private Color hudOverlayColor;
 
 
-    GameUI() {
+    public GameUI() {
+
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
+
+
+        ALL_HIT_COUNT = SET_HIT_COUNT;
+        SET_HIT_COUNT = 0;
+
 
         // start with White, alpha==0 and fade to Black with alpha=1
         hudOverlayColor = new Color(1, 1, 1, 0);
@@ -341,9 +354,10 @@ public class GameUI extends InGameMenu {
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
-    int incHitCount(int ct) {
+    public int incHitCount(int ct) {
 
-        if ( ! GameWorld.getInstance().getIsPaused()) {
+//        if ( ! GameWorld.getInstance().getIsPaused())
+        {
             hitCount += ct;
         }
         return hitCount;
@@ -538,7 +552,7 @@ public class GameUI extends InGameMenu {
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(incHitCount(0) ).append(" / 3")); // ALL_HIT_COUNT!
+            itemsLabel.setText(stringBuilder.append(getHitCount() ).append(" / " + ALL_HIT_COUNT));
 
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
