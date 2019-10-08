@@ -174,7 +174,9 @@ public class FeatureAdaptor implements FeatureIntrf {
             // grab the starting Origin (translation) of the entity from the instance data
             adaptor.vT0.set(position);
 
+/* initting all these at once then eh
             adaptor.init(target);
+            */
         }
 
         return adaptor;
