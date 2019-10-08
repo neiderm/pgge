@@ -235,7 +235,11 @@ again a need to creat3e these directly in code
         }
     }
 
+    public static int numberOfCrapiums;
+
     public static void buildScene(Engine engine) {
+
+        numberOfCrapiums = 0;
 
         createTestObjects(engine); // tmp
 

@@ -24,7 +24,7 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.screens.GameUI;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
@@ -41,7 +41,7 @@ public class Crapium extends OmniSensor {
         super.init(obj);
 
         // ha nice hackage
-        GameUI.inc_SET_HIT_COUNT();
+        SceneLoader.numberOfCrapiums += 1;
     }
 
 

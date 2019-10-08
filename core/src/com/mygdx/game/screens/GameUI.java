@@ -34,6 +34,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.sceneLoader.SceneLoader;
 
 import java.util.Locale;
 
@@ -44,14 +45,6 @@ import java.util.Locale;
 public class GameUI extends InGameMenu {
 
     public boolean canExit; // exit sensor is tripped
-
-    private int ALL_HIT_COUNT = 65535 ;    // wtfe
-    private static int SET_HIT_COUNT;
-
-    public static void inc_SET_HIT_COUNT(){
-        SET_HIT_COUNT += 1;
-    }
-
 
     private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
@@ -95,11 +88,6 @@ public class GameUI extends InGameMenu {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
 
         super(null, "Paused");
-
-
-        ALL_HIT_COUNT = SET_HIT_COUNT;
-        SET_HIT_COUNT = 0;
-
 
         // start with White, alpha==0 and fade to Black with alpha=1
         hudOverlayColor = new Color(1, 1, 1, 0);
@@ -459,7 +447,7 @@ public class GameUI extends InGameMenu {
         switch (GameWorld.getInstance().getRoundActiveState()) {
 
             case ROUND_ACTIVE:
-                if (getHitCount() >= ALL_HIT_COUNT) {
+                if (getHitCount() >= SceneLoader.numberOfCrapiums) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
 //                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 }
@@ -552,7 +540,7 @@ public class GameUI extends InGameMenu {
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(getHitCount() ).append(" / " + ALL_HIT_COUNT));
+            itemsLabel.setText(stringBuilder.append(getHitCount() ).append(" / " + SceneLoader.numberOfCrapiums));
 
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
