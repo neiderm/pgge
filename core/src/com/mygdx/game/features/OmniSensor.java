@@ -3,7 +3,9 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.sceneLoader.GameFeature;
 
 /**
  * Created by neiderm on 7/5/2019.
@@ -23,7 +25,7 @@ public class OmniSensor extends SensorAdaptor {
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
 
 
-    public OmniSensor(){/* no-arg constructor */
+    public OmniSensor() {/* no-arg constructor */
 
         omniRadius.set(DEFAULT_RADIUS); // maybe .. idfk
     }
@@ -32,7 +34,7 @@ public class OmniSensor extends SensorAdaptor {
 
     private OmniSensor(Entity target) {
 
-         setTarget(target, DEFAULT_RADIUS);
+        setTarget(target, DEFAULT_RADIUS);
     }
 
     /*
@@ -45,18 +47,18 @@ public class OmniSensor extends SensorAdaptor {
     }
 
     @Override
-    public void init(Object target){
+    public void init(Object target) {
 
-        setTarget((Entity)target, vS /* radius */, vT /* origin */);
+        setTarget((Entity) target, vS /* radius */, vT /* origin */);
     }
 
-    private void setTarget(Entity target, Vector3 radius){
+    private void setTarget(Entity target, Vector3 radius) {
 
         this.target = target;
         this.omniRadius.set(radius);
     }
 
-    private void setTarget(Entity target, Vector3 radius, Vector3 origin){
+    private void setTarget(Entity target, Vector3 radius, Vector3 origin) {
 
         setTarget(target, radius);
         this.sensorOrigin.set(origin);
@@ -85,21 +87,31 @@ public class OmniSensor extends SensorAdaptor {
 
         float boundsDst2 = bounds.dst2(sensorOrigin);
 
-        Matrix4 tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+        if (null == target) {
 
-        if (null != tgtTransform)
-            tgtPosition = tgtTransform.getTranslation(tgtPosition);
+            GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+            if (null != playerFeature) {
 
-
-        isTriggered = false; // hmmm should be "non-latching? "
-
-        if (inverted) {
-            if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
-                isTriggered = true;
+                //// ha ha hackit hgacktity
+                target = playerFeature.getEntity();
             }
         } else {
-            if (tgtPosition.dst2(sensorOrigin) < boundsDst2) {
-                isTriggered = true;
+            Matrix4 tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+
+            if (null != tgtTransform)
+                tgtPosition = tgtTransform.getTranslation(tgtPosition);
+
+
+            isTriggered = false; // hmmm should be "non-latching? "
+
+            if (inverted) {
+                if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
+                    isTriggered = true;
+                }
+            } else {
+                if (tgtPosition.dst2(sensorOrigin) < boundsDst2) {
+                    isTriggered = true;
+                }
             }
         }
     }
