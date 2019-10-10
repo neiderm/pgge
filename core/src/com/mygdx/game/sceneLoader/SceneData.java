@@ -23,6 +23,9 @@ import com.badlogic.gdx.utils.JsonWriter;
 
 import java.util.HashMap;
 
+/* References
+ *  http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
+ */
 public class SceneData {
 
     // ignore Lint warning about using type Map ?

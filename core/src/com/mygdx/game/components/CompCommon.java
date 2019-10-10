@@ -23,7 +23,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.GameWorld;
+import com.mygdx.game.features.BurnOut;
 import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
@@ -51,9 +54,53 @@ public class CompCommon {
         gameObject.buildNodes(engine, mc.model, translation, true);
         // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
-        // mark dead entity for deletion
-        picked.add(new StatusComponent(true));
+        // mark dead entity for deletion ... do it here? idfk ...
+//        picked.add(new StatusComponent(true));
     }
+
+
+
+    /*
+     * clone gaame objectfeature ?
+     * COPIED FROM FEATURE ADAPTER!
+     */
+    public static void makeBurnOut(Entity ee) {
+
+        // insert a newly created game OBject into the "spawning" model group
+        GameObject gameObject = new GameObject();
+        gameObject.isShadowed = true;
+
+        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
+        gameObject.scale = new Vector3(size);
+
+//        gameObject.mass = 1; // let it be stationary
+
+        gameObject.objectName = "sphere";
+
+        Vector3 translation = new Vector3();
+//                translation = bc.body.getWorldTransform().getTranslation(translation);
+
+        ModelComponent mc = ee.getComponent(ModelComponent.class);
+
+        Matrix4 tmpM4 = mc.modelInst.transform;
+        translation = tmpM4.getTranslation(translation);
+
+        InstanceData id = new InstanceData(translation);
+
+        /*
+        Status Comp use "die" to time "fade-out"?
+         Here an Game Object is made but not the engtity yet, as delayed-queued for spawnning.
+         However, the anonymous sub-class here will have a reference to its own instantitatedn entity-self!!!
+         ... nope ...
+         */
+        id.adaptr =  new BurnOut(); // must be a non-anonynoyus class to work thru gameobject.build
+
+        gameObject.getInstanceData().add(id);
+
+        GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
+    }
+
+
 
     /*
      * doesn't do much more than flag the comp for removal
@@ -67,7 +114,8 @@ public class CompCommon {
             return; // bah processing object that should already be "at rest" ???? .....................................................
         }
 
-        bc.body.setCollisionFlags( bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+        bc.body.setCollisionFlags(
+                bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
         StatusComponent sc = new StatusComponent();
         sc.deleteFlag = 2;         // flag bullet Comp for deletion

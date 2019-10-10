@@ -43,6 +43,7 @@ import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -50,6 +51,7 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneLoader;
@@ -194,15 +196,27 @@ public class GameScreen extends TimedGameScreen {
 
                 super.onSelectEvent();
 
-                Entity picked = hitDetectEvent.getEntity();
+                final Entity picked = hitDetectEvent.getEntity();
 
                 if (null != picked) { //            picked.onSelect();  ???
 
-//                    incHitCount(1);
-                    CompCommon.explode(engine, picked);
-
                     // mark dead entity for deletion
                     picked.add(new StatusComponent(true));
+
+                    FeatureComponent fc = picked.getComponent(FeatureComponent.class);
+
+                    if (null != fc) {
+
+                        FeatureAdaptor fa = picked.getComponent(FeatureComponent.class).featureAdpt;
+// h mmmm better b carful here
+//                        fa.init(engine); // ha hackity BS !
+
+                        fa.update(picked); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
+
+                    } else {
+                        // do it the "common" way!
+                        CompCommon.explode(engine, picked);
+                    }
                 }
             }
 
