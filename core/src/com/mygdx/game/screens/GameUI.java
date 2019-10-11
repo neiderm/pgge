@@ -51,7 +51,9 @@ public class GameUI extends InGameMenu {
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
     int continueScreenTimeUp;
+
     private int hitCount;
+    private int score; // my certain game the score resets every screen anyway so who cares
 
     private StringBuilder stringBuilder = new StringBuilder();
     private static final int TIME_LIMIT_WARN_SECS = 10;
@@ -313,7 +315,8 @@ public class GameUI extends InGameMenu {
             seconds = screenTimerSecs % 60;
         }
         stringBuilder.setLength(0);
-        stringBuilder.append(String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
+        stringBuilder.append(
+                String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
 
         if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
             setLabelColor(timerLabel, Color.RED);
@@ -340,6 +343,15 @@ public class GameUI extends InGameMenu {
             hudOverlayColor.a += alphaStep;
 
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
+    }
+
+
+    public void addScore(int points) {
+            score += points;
+    }
+
+    private int getScore() {
+        return score;
     }
 
     public int incHitCount(int ct) {
@@ -541,6 +553,9 @@ public class GameUI extends InGameMenu {
 
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append(getHitCount() ).append(" / " + SceneLoader.numberOfCrapiums));
+
+            stringBuilder.setLength(0);
+            scoreLabel.setText(stringBuilder.append(getScore() ));
 
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 

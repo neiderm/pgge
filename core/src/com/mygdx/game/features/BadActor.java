@@ -17,15 +17,17 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.sceneLoader.GameFeature;
 
 /*
  * here is a Bad Actor
  */
 public class BadActor extends KillSensor {
 
-    Engine eeee = null;
+    private Engine eeee = null;
 
     @Override
     public void init(Object someObject) {
@@ -51,6 +53,14 @@ public class BadActor extends KillSensor {
 
         super.update(badActor);
 
+
+        /*
+         * migrate the following to Feature base class I guess ... basically then there is no need for this
+         * class .... (pretty sure we will definately have to have a "Bad Actor" class in here somewhere!
+         */
+
+
+
 // is lame i guss for Comp lookup every update here, but presently we are not adding Status Comp to
 // the entity , the SC is  being added dynamically for "explode()" feature ...
         // any problem building one into it ?... forgot exactly what triggers SC addition which inasmuch as i reclall is Player only
@@ -64,14 +74,26 @@ public class BadActor extends KillSensor {
         {
             if (sc.deleteMe) {
 
-                ///// temp hhack to get the explode effect
+                // he's dead Jim
+                addScore();
+
 //                if (null != eeee)
-                {
 
-//                    CompCommon.explode(eeee, badActor);
+                    CompCommon.makeBurnOut( badActor); //         gameObject.objectName = "sphereTex";
+            }
+        }
+    }
 
-                    CompCommon.makeBurnOut( badActor);
-                }
+    private void addScore(){
+
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+
+        if (null != playerFeature) {
+
+            StatusComponent sc = playerFeature.getEntity().getComponent(StatusComponent.class);
+
+            if (null != sc) {
+                sc.UI.addScore(1500);
             }
         }
     }
