@@ -25,25 +25,6 @@ import com.mygdx.game.components.StatusComponent;
 public class BadActor extends KillSensor {
 
     @Override
-    public void init(Object someObject) {
-
-        if (null == target) {
-
-            super.init(someObject);    // bidness as usual
-
-        } else {
-        /*
-         target has already been set, use the "newly called" init() to set the 'Engine"
-         what BS!
-         somebody saying "I really hate java right now?!
-        */
-//            eeee = (Engine) someObject;
-        }
-    }
-
-    private StatusComponent sc = null;
-
-    @Override
     public void update(Entity ee) {
 
         super.update(ee);
