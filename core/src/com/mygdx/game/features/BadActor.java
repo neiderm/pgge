@@ -15,19 +15,14 @@
  */
 package com.mygdx.game.features;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
 
 /*
  * here is a Bad Actor
  */
 public class BadActor extends KillSensor {
-
-    private Engine eeee = null;
 
     @Override
     public void init(Object someObject) {
@@ -42,58 +37,38 @@ public class BadActor extends KillSensor {
          what BS!
          somebody saying "I really hate java right now?!
         */
-            eeee = (Engine) someObject;
+//            eeee = (Engine) someObject;
         }
     }
 
     private StatusComponent sc = null;
 
     @Override
-    public void update(Entity badActor) {
+    public void update(Entity ee) {
 
-        super.update(badActor);
-
+        super.update(ee);
 
         /*
          * migrate the following to Feature base class I guess ... basically then there is no need for this
          * class .... (pretty sure we will definately have to have a "Bad Actor" class in here somewhere!
          */
 
-
-
-// is lame i guss for Comp lookup every update here, but presently we are not adding Status Comp to
+// lame-o Comp lookup every update here, but presently we are not adding Status Comp to
 // the entity , the SC is  being added dynamically for "explode()" feature ...
-        // any problem building one into it ?... forgot exactly what triggers SC addition which inasmuch as i reclall is Player only
+        /*
+         * if I am pickable, then pick handler could have invoked this update() ... having added the
+         * Status Comp + deleteMe ... why not let Status System handle it !!!!! e.g. "adapter.deactivate(Entity ee)"
+         */
 
-//        if (null == sc)
-        {
-            sc = badActor.getComponent(StatusComponent.class);
-        }
-//else
-        if (null != sc)
-        {
+        StatusComponent sc = ee.getComponent(StatusComponent.class);
+
+        // check this since the SC is actaully added dynamically (so no point to caching)
+        if (null != sc) {
+
             if (sc.deleteMe) {
 
-                // he's dead Jim
-                addScore();
-
-//                if (null != eeee)
-
-                    CompCommon.makeBurnOut( badActor); //         gameObject.objectName = "sphereTex";
-            }
-        }
-    }
-
-    private void addScore(){
-
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
-
-        if (null != playerFeature) {
-
-            StatusComponent sc = playerFeature.getEntity().getComponent(StatusComponent.class);
-
-            if (null != sc) {
-                sc.UI.addScore(1500);
+                // uses the Model Compont .transform translation so
+                CompCommon.makeBurnOut(ee, 1500);
             }
         }
     }

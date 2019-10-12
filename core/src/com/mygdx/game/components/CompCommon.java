@@ -25,6 +25,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.features.BurnOut;
+import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -37,6 +38,9 @@ public class CompCommon {
     CompCommon(){ // mt
     }
 
+    /*
+     * hmmmm ... requires engine for massive buildNodes() call so may be limited in use
+     */
     public static void explode(Engine engine, Entity picked /* , ModelComponent mc */){
 
         ModelComponent mc = picked.getComponent(ModelComponent.class);
@@ -54,17 +58,33 @@ public class CompCommon {
         gameObject.buildNodes(engine, mc.model, translation, true);
         // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
 
-        // mark dead entity for deletion ... do it here? idfk ...
-//        picked.add(new StatusComponent(true));
+        // mark dead entity for deletion ... do it here? idfk ... probably more consistent
+        picked.add(new StatusComponent(true));
     }
 
 
+    public static void makeBurnOut(Entity ee, int points){
+
+        CompCommon.makeBurnOut( ee ); // doesn't have a texture, (Mat w/ Color Attr. only) so
+        // can we check and if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+
+        if (null != playerFeature) {
+
+            StatusComponent psc = playerFeature.getEntity().getComponent(StatusComponent.class);
+
+            if (null != psc) {
+                psc.UI.addScore(points);
+            }
+        }
+    }
 
     /*
      * clone gaame objectfeature ?
      * COPIED FROM FEATURE ADAPTER!
      */
-    public static void makeBurnOut(Entity ee) {
+    private static void makeBurnOut(Entity ee) {
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject();
@@ -84,6 +104,7 @@ public class CompCommon {
 
         Matrix4 tmpM4 = mc.modelInst.transform;
         translation = tmpM4.getTranslation(translation);
+
 
         InstanceData id = new InstanceData(translation);
 
