@@ -16,16 +16,15 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
 
 public class FeatureAdaptor implements FeatureIntrf {
+
+    protected Object userData; // oh geeez ... this is arbitrary data is populated into the "cloned'd" FA ...
 
     private GameWorld.GAME_STATE_T activateOnState;
     protected boolean isActivated;
@@ -47,8 +46,6 @@ public class FeatureAdaptor implements FeatureIntrf {
     public void init(Object asdf) { // mt
     }
 
-
-    private int tempasdf;
 
     @Override
     public void update(Entity ee) { // mt
@@ -76,51 +73,23 @@ public class FeatureAdaptor implements FeatureIntrf {
 
     /*
      * default collision processing handler
+     * Spawns a new static mesh shape (and triggers itself for deletion)
+     * most subs should override as this is probably NOT what is desired for most situations!
      */
     public void onProcessedCollision(Entity ee) {
 
-//        CompCommon.mkStaticFromDynamicEntity(ee);
+// the passed FA is obviously self-reference 'this' ... but note that when the object is built, Nothing
+// of this FA attributes is persisted! // Just the way it is ;)
+// ... what the so-called User Data is for.
 
-        spawnNewGameObject(ee);
+// userData = ?  ... is a java object, cast to anything ... so  is there any sensible default ?
+
+        String tmpObjectName = "sphere";
+
+        CompCommon.spawnNewGameObject(
+                ee.getComponent(ModelComponent.class).modelInst, this, tmpObjectName);
+
         ee.add(new StatusComponent(true)); // delete me!
-    }
-
-    /*
-     * clone gaame objectfeature ?
-     */
-    private void spawnNewGameObject(Entity ee) {
-
-        // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject();
-        gameObject.isShadowed = true;
-
-        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
-        gameObject.scale = new Vector3(size);
-
-//        gameObject.mass = 1; // let it be stationary
-
-        gameObject.objectName = "sphere";
-
-        Vector3 translation = new Vector3();
-//                translation = bc.body.getWorldTransform().getTranslation(translation);
-
-        ModelComponent mc = ee.getComponent(ModelComponent.class);
-
-        Matrix4 tmpM4 = mc.modelInst.transform;
-        translation = tmpM4.getTranslation(translation);
-
-        InstanceData id = new InstanceData(translation);
-
-
-        FeatureAdaptor es = getFeatureAdapter(this); // clone the feature
-        es.isActivated = true; // force activation set ???
-
-        es.init(ee);
-        es.vS.set(new Vector3(1.5f, 0, 0));
-        id.adaptr = es;
-        gameObject.getInstanceData().add(id);
-
-        GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
     }
 
 
@@ -138,17 +107,22 @@ public class FeatureAdaptor implements FeatureIntrf {
     }
 
     /*
-     * returns a new instance of featureAdapter
+     * returns a new instance of featureAdapter - i think it was in part to separate the runtime from the (de)serialized (JSON)  in Scene Data
      * The JSON read creates a new instance when sceneData is built, but we want to create a new instance
      * each time to be sure all data is initialized this is only being used for type information ... it
      * is instanced in SceneeData but the idea is for each game Object (Entity) to have it's own feature
      * adatpr instance
      */
-    public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity target) {
+    public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity unused_i_guess) {
 
         FeatureAdaptor adaptor = getFeatureAdapter(this);
 
         if (null != adaptor) {
+
+// big hack ... idfk... need some kind of generic means to let the Feature Adapter sub-class take care of its derived implementation
+            if (null != userData){
+                adaptor.init(userData);
+            }
 
             // maybe this is lame but have to copy each field of interest .. (clone () ??
             adaptor.activateOnState = this.activateOnState;
@@ -182,7 +156,11 @@ public class FeatureAdaptor implements FeatureIntrf {
         return adaptor;
     }
 
-    static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa) {
+    /*
+     here is some nice hackery to get an instance of the type of sub-class ...constructor of
+     sub-class is invoked but that's about it ... far from beging much of an actual "clone" at this point
+     */
+    private static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa) {
 
         FeatureAdaptor adaptor = null;
 

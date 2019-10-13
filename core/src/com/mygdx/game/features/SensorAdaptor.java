@@ -9,8 +9,6 @@ import com.mygdx.game.components.ModelComponent;
  *
  * base type for a "Feature with a Target" ... the sensor is distinct from the generic feature
  * in its targetting characterisitcs.
- *
- * For now The body activation stuff is here but could be in feature adapter .
  */
 class SensorAdaptor extends FeatureAdaptor {
 
@@ -32,13 +30,8 @@ class SensorAdaptor extends FeatureAdaptor {
 
         // base OFFSETS  xlation to vT ... so here initialize vT so the offset is against the target location then call the base nethiod
 
-        FeatureAdaptor newFa = getFeatureAdapter(this);
-
         Vector3 translation = new Vector3();
-/*
-        BulletComponent bc = target.getComponent(BulletComponent.class);
-        translation = bc.body.getWorldTransform().getTranslation(translation);
-*/
+
         ModelComponent mc = target.getComponent(ModelComponent.class);
         translation = mc.modelInst.transform.getTranslation(translation);
 

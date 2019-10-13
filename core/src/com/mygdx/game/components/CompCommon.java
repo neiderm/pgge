@@ -18,6 +18,7 @@ package com.mygdx.game.components;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
@@ -25,6 +26,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.features.BurnOut;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -35,13 +37,13 @@ import com.mygdx.game.util.PrimitivesBuilder;
  */
 public class CompCommon {
 
-    CompCommon(){ // mt
+    CompCommon() { // mt
     }
 
     /*
      * hmmmm ... requires engine for massive buildNodes() call so may be limited in use
      */
-    public static void explode(Engine engine, Entity picked /* , ModelComponent mc */){
+    public static void explode(Engine engine, Entity picked /* , ModelComponent mc */) {
 
         ModelComponent mc = picked.getComponent(ModelComponent.class);
         Vector3 translation = new Vector3();
@@ -62,11 +64,27 @@ public class CompCommon {
         picked.add(new StatusComponent(true));
     }
 
+    /*
+    killWithPoints ... gaBoom !
+    The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
+    (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+    */
+    public static void makeBurnOut(Entity ee, int points) {
 
-    public static void makeBurnOut(Entity ee, int points){
+        String tmpObjectName = "sphereTex";
 
-        CompCommon.makeBurnOut( ee ); // doesn't have a texture, (Mat w/ Color Attr. only) so
-        // can we check and if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+        ModelInstance mi = ee.getComponent(ModelComponent.class).modelInst;
+
+        spawnNewGameObject(
+
+                mi, // just for the translation
+
+                // must be a non-anonynoyus class to work thru gameobject.build. For this default use, it is
+                // ok to have a constructor for a specific type of argument ...
+                new BurnOut(mi),  // ... this one happens to do special sauce w/ the so-called 'userData' hackamathing (to get mesh/texture info to render the efferct!)
+
+                tmpObjectName);
+
 
         GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
 
@@ -81,32 +99,31 @@ public class CompCommon {
     }
 
     /*
-     * clone gaame objectfeature ?
-     * COPIED FROM FEATURE ADAPTER!
+     * Object creator for dynamic spawning
+     * Caller can specify the Feature Adapter, mesh shape and material to use, (or let defaults) thus
+     * allowing the  type of explosion or whatever effect to be per-caller.
      */
-    private static void makeBurnOut(Entity ee) {
+    public static void spawnNewGameObject(ModelInstance mi,  FeatureAdaptor fa, String objectName) {
+
+        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
+
+        spawnNewGameObject(
+                mi.transform.getTranslation(translation),
+                fa,  // pass-thru
+                objectName); // doesn't have a texture, (Mat w/ Color Attr. only) so can we check and if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+
+    }
+
+    // ok to be public does't need to be right now
+    public static void spawnNewGameObject(Vector3 translation, FeatureAdaptor fa, String objectName) {
 
         // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject();
-        gameObject.isShadowed = true;
-
-        Vector3 size = new Vector3(0.5f, 0.5f, 0.5f); /// size of the "box" in json .... irhnfi  bah
-        gameObject.scale = new Vector3(size);
+        GameObject gameObject = new GameObject(/* objectName */);
+            gameObject.objectName = objectName;
 
 //        gameObject.mass = 1; // let it be stationary
 
-        gameObject.objectName = "sphere";
-
-        Vector3 translation = new Vector3();
-//                translation = bc.body.getWorldTransform().getTranslation(translation);
-
-        ModelComponent mc = ee.getComponent(ModelComponent.class);
-
-        Matrix4 tmpM4 = mc.modelInst.transform;
-        translation = tmpM4.getTranslation(translation);
-
-
-        InstanceData id = new InstanceData(translation);
+        InstanceData id = new InstanceData( translation );
 
         /*
         Status Comp use "die" to time "fade-out"?
@@ -114,13 +131,17 @@ public class CompCommon {
          However, the anonymous sub-class here will have a reference to its own instantitatedn entity-self!!!
          ... nope ...
          */
-        id.adaptr =  new BurnOut(); // must be a non-anonynoyus class to work thru gameobject.build
+ // must be a non-anonynoyus class to work thru gameobject.build. For this default used it is
+//        if (null != fa)
+        {
+            id.adaptr = fa; // last cbance, need to set anything for User Data ?
+        }
 
         gameObject.getInstanceData().add(id);
 
+// any sense for Game Object have its own static addSpawner() method ?  (need the Game World import/reference here ?)
         GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
     }
-
 
 
     /*
@@ -148,7 +169,7 @@ public class CompCommon {
      * dynamically "activate" a template entity and set its location
      *  creates a graphical mesh-shape and a matching physics body, adds it to the bullet world
      */
-    public static void entityAddPhysicsBody(Entity ee, Vector3 translation){
+    public static void entityAddPhysicsBody(Entity ee, Vector3 translation) {
 
 
         // tooooo dooo how to handle shape?
