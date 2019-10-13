@@ -84,8 +84,14 @@ public class Crapium extends OmniSensor {
                     StatusComponent sc = playerFeature.getEntity().getComponent(StatusComponent.class);
 
                     if (null != sc) {
-                        sc.UI.incHitCount(1);
-                   }
+// TODO: here's a good one, player is being has-been destroyed while triggering this Crapium so reference might be invalid   BUG thats not easy to reproduce
+                        if (null != sc.UI) {
+
+                            sc.UI.incHitCount(1);
+                        }
+                        else
+                            System.out.println();
+                    }
                 }
             } else {
 
