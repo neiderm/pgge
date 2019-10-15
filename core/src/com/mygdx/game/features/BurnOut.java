@@ -32,14 +32,12 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class BurnOut extends FeatureAdaptor {
 
     private int clock = 128;
-    private float alpha = 0.99f;
     private Vector3 scale = new Vector3(1, 1, 1);
-
-    private Color cc = new Color(Color.ORANGE);
+    private Color cc = new Color(Color.FIREBRICK);
 
     // save original model material attributes ? big hack!@
     private TextureAttribute fxTextureAttrib;
-    private Texture myTexture;
+    private Texture myTexture; // may not use this
 
 
     public BurnOut() { // mt
@@ -47,24 +45,7 @@ public class BurnOut extends FeatureAdaptor {
 
     private BurnOut(Material mat) {
 
-        if (null != mat && mat.size() > 0) {
-
-//            TextureAttribute tmpTa = (TextureAttribute) mat.get(TextureAttribute.Diffuse); // idfk
-//
-//            if (null != tmpTa)
-//            {
-//// here ... if tmpTa == null then create a new default Texture ... or Color
-//                userData = tmpTa; // big-ass hack
-///*
-//                Texture texture = tmpTa.textureDescription.texture;
-//                ta = TextureAttribute.createDiffuse(texture);
-//*/
-//            } else
-                {
-//                userData = 0xdeadbeef;
-                userData = mat;
-            }
-        }
+        userData = mat;
     }
 
     public BurnOut(ModelInstance mi) {
@@ -75,25 +56,8 @@ public class BurnOut extends FeatureAdaptor {
     @Override
     public void init(Object object) {
 
-        if (null == userData) {
-
-            userData = object;
-        } else {
-            System.out.println("never!");
-        }
-
         if (null != object) {
-
 //            Class c = object.getClass();
-//
-///* this is transitional thing for playing around ... its just a matter of settling on Material or whatever
-//as User Data type
-// */
-//            if (c.toString().contains("attributes.TextureAttribute"))  // lazy , discard the full class path
-//            {
-//                fxTextureAttrib = (TextureAttribute) object;
-//            }
-//
 //            if (c.toString().contains("g3d.Material"))  // lazy , discard the full class path
             {
                 Material saveMat = (Material) object;
@@ -101,11 +65,10 @@ public class BurnOut extends FeatureAdaptor {
                 TextureAttribute tmpTa = (TextureAttribute) saveMat.get(TextureAttribute.Diffuse);
 
                 if (null != tmpTa) {
-                    myTexture = tmpTa.textureDescription.texture;
 
-                    fxTextureAttrib = TextureAttribute.createDiffuse(myTexture);
-                }
-                else {
+                    Texture tt = tmpTa.textureDescription.texture;
+                    fxTextureAttrib = TextureAttribute.createDiffuse(tt);
+                } else {
 /*
                     myTexture = new Texture("data/crate.png"); // tmp test
                         ta = TextureAttribute.createDiffuse(myTexture);
@@ -130,17 +93,15 @@ public class BurnOut extends FeatureAdaptor {
                 ee.add( sc );
             }
 */
-            ModelComponent mc = ee.getComponent(ModelComponent.class);
-
             if (clock > 0) {
 
                 clock -= 1;     // could have a Status Comp provide this timer eh????
+                final float d_ALPHA = 0.01f;
+                scale.scl(/*1.010f*/ 1.0f + d_ALPHA);
 
-                alpha -= 0.01f;
-                scale.scl(1.010f);
-
+                ModelComponent mc = ee.getComponent(ModelComponent.class);
+                // if (null != mc) {
                 ModelInstance mi = mc.modelInst;
-
                 mi.nodes.get(0).scale.set(scale);
                 mi.calculateTransforms();
 
@@ -153,16 +114,12 @@ public class BurnOut extends FeatureAdaptor {
                             && null != fxTextureAttrib) {
 
                         mat.set(fxTextureAttrib); // idfk i guess don't care what tex coords are just smearing it around the shape anyway
-
-//                        BlendingAttribute blendingAttribute = new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alpha);
-//                        mat.set(blendingAttribute);
-                    } else
-                    {
+                    } else {
                         // just mess w/ color
                         mat.clear();
                     }
                     // and for the icing on this bitcake ... fade it out!!! whoooh ooo
-                    cc.a = alpha;
+                    cc.a -= d_ALPHA;
                     ModelInstanceEx.setColorAttribute(mi, cc); // this one sets the blending attribute .. doesn't matter
                 }
             } else {     // kill me

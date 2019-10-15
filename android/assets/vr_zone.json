@@ -20,7 +20,9 @@
 							"z": 10
 						},
 						"color": {
-							"r": 1,
+							"r": 0.4,
+							"g": 0.9,
+							"b": 0.7,
 							"a": 1
 						},
 						"adaptr": {
@@ -36,8 +38,8 @@
 				},
 				"mass": 5.1,
 				"meshShape": "btSphereShape",
-				"isCharacter": true,
-				"isPickable": true
+				"isPickable": true,
+				"isCharacter": true
 			},
 			{
 				"instanceData": [
@@ -300,7 +302,8 @@
 					"z": 1.5
 				},
 				"mass": 5.1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isPickable": true
 			},
 			{
 				"instanceData": [
