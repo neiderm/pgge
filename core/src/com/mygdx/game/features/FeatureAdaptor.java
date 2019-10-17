@@ -115,7 +115,7 @@ public class FeatureAdaptor implements FeatureIntrf {
      */
     public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity unused_i_guess) {
 
-        FeatureAdaptor adaptor = getFeatureAdapter(this);
+        FeatureAdaptor adaptor = cpyFeatureAdapter(this);
 
         if (null != adaptor) {
 
@@ -133,7 +133,7 @@ public class FeatureAdaptor implements FeatureIntrf {
                 adaptor.isActivated = this.isActivated; // activation flag can be set (independent of activation state)
             }
 
-            adaptor.collisionProcessor = this.collisionProcessor;
+            adaptor.collisionProcessor = cpyColllisionProcessor(this.collisionProcessor); // this.collisionProcessor;
 
             // argument passing convention for model instance is vT, vR, vS (trans, rot., scale) but these can be anything the sub-class wants.
             // get the "characteristiics" for this type from the JSON
@@ -160,7 +160,7 @@ public class FeatureAdaptor implements FeatureIntrf {
      here is some nice hackery to get an instance of the type of sub-class ...constructor of
      sub-class is invoked but that's about it ... far from beging much of an actual "clone" at this point
      */
-    private static FeatureAdaptor getFeatureAdapter(FeatureAdaptor thisFa) {
+    private static FeatureAdaptor cpyFeatureAdapter(FeatureAdaptor thisFa) {
 
         FeatureAdaptor adaptor = null;
 
@@ -175,5 +175,22 @@ public class FeatureAdaptor implements FeatureIntrf {
         }
 
         return adaptor;
+    }
+// obviously this cpy paste search replace
+    private static CollisionProcessorIntrf cpyColllisionProcessor(CollisionProcessorIntrf cpi) {
+
+        CollisionProcessorIntrf cpy = null;
+if (null != cpi) {
+    Class c = cpi.getClass();
+
+    try {
+        cpy = (CollisionProcessorIntrf) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
+
+    } catch (Exception ex) {
+
+        ex.printStackTrace();
+    }
+}
+        return cpy;
     }
 }
