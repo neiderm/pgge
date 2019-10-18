@@ -233,12 +233,16 @@ public class GameScreen extends TimedGameScreen {
             public void act (float delta) {
 
 // get the controller to model update out of the way before start messing with any screen transitions/disposals
-                if (
-                        ! pickedPlayer.getComponent(BulletComponent.class).iHaveBeenDisposed
-//                        controllerInputsActive
-                ){
-                    controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
-                            (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+
+                // how expensive are these get Comps ???   could be cached
+                BulletComponent bc = pickedPlayer.getComponent(BulletComponent.class);
+
+                if (null != bc){
+//                    if ( ! bc.iHaveBeenDisposed )
+                    {
+                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                    }
                 }
 
                 super.act(delta);
@@ -253,7 +257,6 @@ public class GameScreen extends TimedGameScreen {
                         if (0 == lc){
 
                             CompCommon.explode(engine, pickedPlayer);   //   don't really want it here
-                            pickedPlayer.add(new StatusComponent(true));
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             int continueTime = pickedPlayer.getComponent(StatusComponent.class).dieClock;
@@ -425,21 +428,18 @@ public class GameScreen extends TimedGameScreen {
             //  check for entities to be removed first ... there would bw no point in separate comps deleteion
             if (sc.deleteMe) {
 
-                // have to do bullet comp tear down here ...
-                if (e != pickedPlayer) { // bah .... need to handle player "explosioh differnetly because of all the UI, camera links :(
-                    removeBulletComp(e);
-                }
-
                 Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
+                removeBulletComp(e);
                 engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
 
-
             } else {
+
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
 
                     removeBulletComp(e);
                 }
             }
+
             sc.deleteFlag = 0;
         }
     }
