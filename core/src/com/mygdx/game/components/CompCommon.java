@@ -102,40 +102,42 @@ public class CompCommon {
      * Object creator for dynamic spawning
      * Caller can specify the Feature Adapter, mesh shape and material to use, (or let defaults) thus
      * allowing the  type of explosion or whatever effect to be per-caller.
+     * Here an Game Object is made but not the engtity yet, as delayed-queued for spawnning.
      */
-    public static void spawnNewGameObject(ModelInstance mi,  FeatureAdaptor fa, String objectName) {
+    public static void spawnNewGameObject(ModelInstance mi, FeatureAdaptor fa, String objectName) {
 
         Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
 
         spawnNewGameObject(
+                new Vector3(1, 1, 1),
                 mi.transform.getTranslation(translation),
                 fa,  // pass-thru
-                objectName); // doesn't have a texture, (Mat w/ Color Attr. only) so can we check and if no Texture Attrib. then we assign a default (fire-y!!) one! ?
-
+                objectName);
     }
 
-    // ok to be public does't need to be right now
-    public static void spawnNewGameObject(Vector3 translation, FeatureAdaptor fa, String objectName) {
+    /*
+     new OBject  - let it default color - for now
+     */
+    public static void spawnNewGameObject(Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
+
+        InstanceData id = new InstanceData(translation);
+
+//        if (null != fa)
+        {
+            id.adaptr = fa;
+        }
+
+        spawnNewGameObject(id, scale, objectName);
+    }
+
+    public static void spawnNewGameObject(InstanceData id, Vector3 scale, String objectName) {
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject(/* objectName */);
-            gameObject.objectName = objectName;
+        gameObject.objectName = objectName;
+        gameObject.scale = scale;
 
-//        gameObject.mass = 1; // let it be stationary
-
-        InstanceData id = new InstanceData( translation );
-
-        /*
-        Status Comp use "die" to time "fade-out"?
-         Here an Game Object is made but not the engtity yet, as delayed-queued for spawnning.
-         However, the anonymous sub-class here will have a reference to its own instantitatedn entity-self!!!
-         ... nope ...
-         */
- // must be a non-anonynoyus class to work thru gameobject.build. For this default used it is
-//        if (null != fa)
-        {
-            id.adaptr = fa; // last cbance, need to set anything for User Data ?
-        }
+        //        gameObject.mass = 1; // let it be stationary
 
         gameObject.getInstanceData().add(id);
 
