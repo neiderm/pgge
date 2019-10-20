@@ -51,8 +51,12 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 public class SceneLoader implements Disposable {
 
+    // special player
+    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string
+
     // Model Group name,  has to be fixed
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
+    private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
 
     private static boolean useTestObjects = true;
     private static AssetManager assets;
@@ -245,21 +249,24 @@ again a need to creat3e these directly in code
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+/*
+ * create the player Model group using the special Game Feature defined by the loader
+ */
+        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); // "Player"
 
         if (null!= playerFeature){
             //  make a Model Group for the local player ... sd.addModelGroup() ????
-            ModelGroup tmg = mkModelGroup( playerFeature.featureName );
+            ModelGroup tmg = mkPlayerModelGroup( playerFeature.featureName );
 
             if (null != tmg) {
-                sd.modelGroups.put("LocalPlayer", tmg);
+                sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
             }
         }
 
         for (String key : sd.modelGroups.keySet()) {
 
             if (key.equals(USER_MODEL_PARTS)) {
-                continue; // removed Model Group (shouldn't be hre)
+                continue; // how to remove Model Group ?
             }
 
             buildModelGroup(engine, key);
@@ -267,8 +274,8 @@ again a need to creat3e these directly in code
 
         // any other one-time setups after all file data object loaded ... features set target to player by default
 
-        if (null != playerFeature) {
-
+        if (true)
+        {
             ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
 
             for (Entity ee : feats) {
@@ -277,13 +284,16 @@ again a need to creat3e these directly in code
 
                 if (null != fa) { // have to set default ... default target is player ...
 
-                    fa.init(playerFeature.getEntity());
+                    /*
+                    tmp special sauce these Sensors need radius set 
+                     */
+                    fa.init(null /*playerFeature.getEntity()*/);
                 }
             }
         }
     }
 
-    private static ModelGroup mkModelGroup(String featureName) {
+    private static ModelGroup mkPlayerModelGroup(String featureName) {
 
         ModelGroup tmg = new ModelGroup(featureName);
 
