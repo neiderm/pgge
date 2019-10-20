@@ -49,12 +49,15 @@ public class CharacterSystem extends IteratingSystem /*implements EntityListener
                 entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
             } else {
                 // spin up a new steerable
-                btRigidBody rb = entity.getComponent(BulletComponent.class).body;
-                TankController tc = new TankController(rb, entity.getComponent(BulletComponent.class).mass); /* should be a property of the tank? */
 
-                cc.setSteerable(
-                        new SteeringTankController(
-                                tc, rb, new SteeringBulletEntity(player.getComponent(BulletComponent.class).body)));
+                BulletComponent bc = entity.getComponent(BulletComponent.class);
+                if (null != bc) {
+
+                    TankController tc = new TankController(bc.body, bc.mass); /* should be a property of the tank? */
+
+                    cc.setSteerable(
+                            new SteeringTankController(tc, bc.body, new SteeringBulletEntity(bc.body)));
+                }
             }
         } else // loooking for player target to use
         {
