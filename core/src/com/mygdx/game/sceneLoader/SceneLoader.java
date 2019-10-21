@@ -271,26 +271,6 @@ again a need to creat3e these directly in code
 
             buildModelGroup(engine, key);
         }
-
-        // any other one-time setups after all file data object loaded ... features set target to player by default
-
-        if (true)
-        {
-            ImmutableArray<Entity> feats = engine.getEntitiesFor(Family.all(FeatureComponent.class).get());
-
-            for (Entity ee : feats) {
-
-                FeatureAdaptor fa = ee.getComponent(FeatureComponent.class).featureAdpt;
-
-                if (null != fa) { // have to set default ... default target is player ...
-
-                    /*
-                    tmp special sauce these Sensors need radius set 
-                     */
-                    fa.init(null /*playerFeature.getEntity()*/);
-                }
-            }
-        }
     }
 
     private static ModelGroup mkPlayerModelGroup(String featureName) {
