@@ -18,8 +18,7 @@ public class KillSensor extends OmniSensor {
         ModelComponent mc = sensor.getComponent(ModelComponent.class);
 
         // default bounding radius determined from mesh dimensions unless specified overridden in vS (tmp ... should be done in  base-class )
-        if (mc.boundingRadius > 0 && vS.x == 0)
-        {
+        if (mc.boundingRadius > 0 && vS.x == 0) {
             float adjRadius = mc.boundingRadius; // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions of extents (box) so in many cases will look not close enuff ... but brute force collsision detect based on center-to-center dx of objects so that about as good as it gets (troubel detect collision w/  "longer" object e.g. the APC tank)
             this.omniRadius.set(adjRadius, adjRadius, adjRadius);
         }
@@ -36,8 +35,12 @@ public class KillSensor extends OmniSensor {
 
         super.update(sensor);
 
-        if (isTriggered){
-            target.getComponent(StatusComponent.class).lifeClock = 0;
+        if (isTriggered) {
+// clock target probly for player, other wise probly no status comp
+            StatusComponent sc = target.getComponent(StatusComponent.class);
+            if (null != sc) {
+                target.getComponent(StatusComponent.class).lifeClock = 0;
+            }
         }
     }
 }
