@@ -179,7 +179,14 @@
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
 							"vT": {
-								"y": 8
+								"x": -3,
+								"y": 8,
+								"z": -3
+							},
+							"vS": {
+								"x": 0.75,
+								"y": 0.75,
+								"z": 0.75
 							}
 						}
 					}

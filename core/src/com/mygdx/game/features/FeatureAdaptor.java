@@ -119,11 +119,6 @@ public class FeatureAdaptor implements FeatureIntrf {
 
         if (null != adaptor) {
 
-// big hack ... idfk... need some kind of generic means to let the Feature Adapter sub-class take care of its derived implementation
-            if (null != userData){
-                adaptor.init(userData);
-            }
-
             // maybe this is lame but have to copy each field of interest .. (clone () ??
             adaptor.activateOnState = this.activateOnState;
 
@@ -145,12 +140,12 @@ public class FeatureAdaptor implements FeatureIntrf {
 //                        adaptor.vR0.set(0, 0, 0); // unused ... whatever
 //                        adaptor.vS0.set(transform.getScale(tmpV));
 
+// hope init() won't clobber  vt0
             // grab the starting Origin (translation) of the entity from the instance data
             adaptor.vT0.set(position);
 
-/* initting all these at once then eh
-            adaptor.init(target);
-            */
+// big hack ... idfk... need some kind of generic means to let the Feature Adapter sub-class take care of its derived implementation
+            adaptor.init(userData);
         }
 
         return adaptor;

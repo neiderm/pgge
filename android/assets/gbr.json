@@ -142,7 +142,14 @@
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
 							"vT": {
-								"y": 8
+								"x": -2,
+								"y": 8,
+								"z": 0
+							},
+							"vS": {
+								"x": 0.75,
+								"y": 0.75,
+								"z": 0.75
 							}
 						}
 					}
@@ -227,27 +234,6 @@
 				"objectName": "boxTex"
 			}
 		]
-	},
-	"TempSceneMesh": {
-		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"rotation": {
-							"x": 0.17364818,
-							"w": 0.9848077
-						},
-						"translation": {
-							"y": -10
-						}
-					}
-				],
-				"objectName": "landscape",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true
-			}
-		],
-		"modelName": "landscape"
 	}
 },
 "modelInfo": {
