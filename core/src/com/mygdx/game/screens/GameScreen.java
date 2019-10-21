@@ -40,10 +40,9 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.FeatureComponent;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -51,7 +50,7 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
-import com.mygdx.game.features.FeatureAdaptor;
+import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneLoader;
@@ -191,32 +190,75 @@ public class GameScreen extends TimedGameScreen {
                     pickedPlayer.getComponent(BulletComponent.class).body,
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
+            // working variables
+            Matrix4 tmpM = new Matrix4();
+            Vector3 trans = new Vector3();
+            Quaternion orientation = new Quaternion();
+
+            // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
+            void gunSight( Entity target ){
+
+                GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
+                Entity pp = pf.getEntity(); // picked player
+
+                BulletComponent bc = pp.getComponent(BulletComponent.class); // picked player
+
+                if (null !=bc && null != bc.body){
+
+                    bc.body.getWorldTransform(tmpM);
+                }
+
+                tmpM.getRotation(orientation);
+
+                // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
+                // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
+                tmpV.set(0, +0.7f, 0); // using +y for up vector ...
+                ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
+                tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
+
+                // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
+  //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+//                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
+
+                /*
+                 * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
+                 */
+                CompCommon.spawnNewGameObject( new Vector3(0.1f, 0.1f, 0.1f),
+                        trans,
+                        new Projectile( target ),
+                        "cone");
+            }
+
             @Override
             public void onSelectEvent() {
 
-                super.onSelectEvent();
+                super.onSelectEvent(); //
 
+// we'll see what happens to this
                 final Entity picked = hitDetectEvent.getEntity();
+
+                gunSight( picked );
 
                 if (null != picked) { //            picked.onSelect();  ???
 
-                    // mark dead entity for deletion
-                    picked.add(new StatusComponent(true));
+//                    // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
+//                    picked.add(new StatusComponent(true));
+//
+//                    FeatureComponent fc = picked.getComponent(FeatureComponent.class);
+//
+//                    if (null != fc) {
+//
+//                        FeatureAdaptor fa = picked.getComponent(FeatureComponent.class).featureAdpt;
+//// h mmmm better b carful here
+////                        fa.init(engine); // ha hackity BS !
+//
+//                        fa.update(picked); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
+//
+//                    } else {
+//                        // do it the "common" way!
+//                        CompCommon.explode(engine, picked);
+//                    }
 
-                    FeatureComponent fc = picked.getComponent(FeatureComponent.class);
-
-                    if (null != fc) {
-
-                        FeatureAdaptor fa = picked.getComponent(FeatureComponent.class).featureAdpt;
-// h mmmm better b carful here
-//                        fa.init(engine); // ha hackity BS !
-
-                        fa.update(picked); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
-
-                    } else {
-                        // do it the "common" way!
-                        CompCommon.explode(engine, picked);
-                    }
                 }
             }
 
@@ -344,12 +386,14 @@ public class GameScreen extends TimedGameScreen {
             if (EVT_SEE_OBJECT == eventType && null != picked) {
 
                 //  picked.onSelect();  // I know you're lookin at me ...
-
+///*
                 RenderSystem.debugGraphics.add(lineInstance.lineTo(
                         pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                         Color.LIME));
-            }}
+//*/
+            }
+        }
     };
 
     private Vector3 tmpV = new Vector3();
