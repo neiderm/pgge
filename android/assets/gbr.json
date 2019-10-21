@@ -43,9 +43,9 @@
 				],
 				"objectName": "sphereTex",
 				"scale": {
-					"x": 16,
-					"y": 16,
-					"z": 16
+					"x": 6,
+					"y": 6,
+					"z": 6
 				},
 				"meshShape": "btSphereShape"
 			}
@@ -234,6 +234,27 @@
 				"objectName": "boxTex"
 			}
 		]
+	},
+	"TempSceneMesh": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"x": 0.17364818,
+							"w": 0.9848077
+						},
+						"translation": {
+							"y": -10
+						}
+					}
+				],
+				"objectName": "landscape",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "landscape"
 	}
 },
 "modelInfo": {
