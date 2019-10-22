@@ -3,22 +3,18 @@ package com.mygdx.game.systems;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringTankController;
 import com.mygdx.game.controllers.TankController;
-import com.mygdx.game.sceneLoader.GameFeature;
 
 /**
  * Created by neiderm on 2/10/18.
  */
 
 public class CharacterSystem extends IteratingSystem /*implements EntityListener */ {
-
-    private Entity player;
 
     public CharacterSystem() {
 
@@ -39,31 +35,21 @@ public class CharacterSystem extends IteratingSystem /*implements EntityListener
 
         CharacterComponent cc = entity.getComponent(CharacterComponent.class);
 
-        // once the player has been found...
-        if (null != player) {
+        // if steerable is valid, update() it, ...
 
-            // if steerable is valid, update() it, ...
+        if (null != cc.steerable) {
 
-            if (null != cc.steerable) {
+            entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
+        } else {
+            // spin up a new steerable
 
-                entity.getComponent(CharacterComponent.class).steerable.update(deltaTime);
-            } else {
-                // spin up a new steerable
+            BulletComponent bc = entity.getComponent(BulletComponent.class);
+            if (null != bc) {
 
-                BulletComponent bc = entity.getComponent(BulletComponent.class);
-                if (null != bc) {
+                TankController tc = new TankController(bc.body, bc.mass); /* should be a property of the tank? */
 
-                    TankController tc = new TankController(bc.body, bc.mass); /* should be a property of the tank? */
-
-                    cc.setSteerable(
-                            new SteeringTankController(tc, bc.body, new SteeringBulletEntity(bc.body)));
-                }
-            }
-        } else // loooking for player target to use
-        {
-            GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
-            if (null != playerFeature) {
-                player = playerFeature.getEntity();
+                cc.setSteerable(
+                        new SteeringTankController(tc, bc.body, new SteeringBulletEntity(bc.body)));
             }
         }
     }
