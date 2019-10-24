@@ -248,21 +248,55 @@ again a need to creat3e these directly in code
         createTestObjects(engine); // tmp
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-
 /*
- * create the player Model group using the special Game Feature defined by the loader
+ * create the player Model group using the special Game Feature defined by the loader, or get
+ * localplayer model group if one is defined in json (which also needs to know which object name
+ * to load).
+ * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
+ * global player feature.
  */
         GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); // "Player"
 
         if (null!= playerFeature){
-            //  make a Model Group for the local player ... sd.addModelGroup() ????
-            ModelGroup tmg = mkPlayerModelGroup( playerFeature.featureName );
+
+            ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
             if (null != tmg) {
+                GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
+                if (null != gameObject) {
+                    gameObject.mass = 5.1f;   // should be from the model or something
+                    gameObject.isShadowed = true;
+                    gameObject.scale = new Vector3(1, 1, 1);
+                    gameObject.isPlayer = true; ////////////////// bah look at me hack
+                    gameObject.objectName = playerFeature.featureName;
+
+                    // instance data should be set w/ translation loaded from data file
+                }
+            } else {
+                tmg = new ModelGroup(playerFeature.featureName);
+
+                GameObject gameObject = new GameObject();
+                gameObject.mass = 5.1f;
+                gameObject.isShadowed = true;
+                gameObject.scale = new Vector3(1, 1, 1);
+                gameObject.isPlayer = true; ////////////////// bah look at me hack
+                gameObject.objectName = playerFeature.featureName;
+
+                Vector3 translation = new Vector3(7, 10, -8); // where is local player spawning right now? defualt... ?
+
+                InstanceData id = new InstanceData(translation);
+                gameObject.getInstanceData().add(id);
+
+                tmg.addGameObject(gameObject);
+
                 sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
             }
         }
+        // else ... no feature name ... idk
 
+        /*
+         * build  the model groups
+         */
         for (String key : sd.modelGroups.keySet()) {
 
             if (key.equals(USER_MODEL_PARTS)) {
@@ -271,27 +305,6 @@ again a need to creat3e these directly in code
 
             buildModelGroup(engine, key);
         }
-    }
-
-    private static ModelGroup mkPlayerModelGroup(String featureName) {
-
-        ModelGroup tmg = new ModelGroup(featureName);
-
-        Vector3 translation = new Vector3(7, 10, -8); // where is local player spawning right now? defualt... ?
-
-        GameObject gameObject = new GameObject();
-        gameObject.mass = 5.1f;
-        gameObject.isShadowed = true;
-        gameObject.scale = new Vector3(1, 1, 1);
-        gameObject.objectName = featureName;
-        gameObject.isPlayer = true; ////////////////// bah look at me hack
-
-        InstanceData id = new InstanceData(translation);
-        gameObject.getInstanceData().add(id);
-
-        tmg.addGameObject(gameObject);
-
-        return tmg;
     }
 
     /*

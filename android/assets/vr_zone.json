@@ -1,5 +1,21 @@
 {
 "modelGroups": {
+	"LocalPlayer": {
+		"gameObjects": [
+			{
+				"objectName": "LocalPlayerObjectName",
+				"instanceData": [
+					{
+						"translation": {
+							"x": 7,
+							"y": 5.5,
+							"z": -8
+						}
+					}
+				]
+			}
+		]
+	},
 	"UserMeshezMdlGrupe": {
 		"gameObjects": [
 			{
