@@ -393,6 +393,9 @@
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
+	},
 	"scene": {
 		"fileName": "data/vr_zone.g3db"
 	}

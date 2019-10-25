@@ -35,7 +35,7 @@
 				"objectName": "militaryvan"
 			},
 			{
-				"objectName": "tank"
+				"objectName": "guntruck"
 			}
 		],
 		"isCharacter": true
@@ -67,6 +67,9 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
 	}
 }
 }

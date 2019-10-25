@@ -282,6 +282,9 @@
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
+	},
 	"landscape": {
 		"fileName": "data/landscape.g3db"
 	}

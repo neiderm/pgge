@@ -1,5 +1,21 @@
 {
 "modelGroups": {
+	"LocalPlayer": {
+		"gameObjects": [
+			{
+				"objectName": "LocalPlayerObjectName",
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 11,
+							"z": -5
+						}
+					}
+				]
+			}
+		]
+	},
 	"InstancedModelMeshes": {
 		"gameObjects": [
 			{
@@ -118,18 +134,18 @@
 		],
 		"modelName": "UserMeshesModel"
 	},
-	"Characters": {
+	"_Characters": {
 		"gameObjects": [
 			{
 				"instanceData": [
 					{
 						"translation": {
-							"y": 13,
+							"y": 2,
 							"z": -5
 						}
 					}
 				],
-				"objectName": "militaryvan",
+				"objectName": "tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
@@ -139,12 +155,12 @@
 					{
 						"translation": {
 							"x": -1,
-							"y": 13,
+							"y": 2,
 							"z": -5
 						}
 					}
 				],
-				"objectName": "truck",
+				"objectName": "tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
@@ -154,7 +170,7 @@
 					{
 						"translation": {
 							"x": 1,
-							"y": 11,
+							"y": 2,
 							"z": -5
 						}
 					}
@@ -453,6 +469,9 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
 	},
 	"scene": {
 		"fileName": "data/scene.g3dj"
