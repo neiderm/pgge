@@ -134,7 +134,7 @@
 		],
 		"modelName": "UserMeshesModel"
 	},
-	"_Characters": {
+	"GoonSquad": {
 		"gameObjects": [
 			{
 				"instanceData": [
@@ -214,9 +214,9 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 5,
-							"y": 10,
-							"z": -4
+							"x": -10,
+							"y": 4,
+							"z": -21
 						},
 						"color": {
 							"r": 1,
