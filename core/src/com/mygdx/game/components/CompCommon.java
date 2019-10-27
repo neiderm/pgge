@@ -87,8 +87,13 @@ else
      InstanceData id = new InstanceData(translation);
      gameObject.getInstanceData().add(id);
 
-     System.out.println("add to spawning group: " + targetMdlInfoKey);
-//  GameWorld.getInstance().addSpawner(gameObject /*, targetMdlInfoKey */); // tmp add spawner
+     if (null != targetMdlInfoKey) {
+         GameWorld.getInstance().addSpawner(gameObject, targetMdlInfoKey);
+     }
+     else {
+//          System.out.println("no targetMdlInfoKey found" );
+         makeBurnOut(picked, 100);
+     }
 }
 
     // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?

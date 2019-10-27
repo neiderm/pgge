@@ -53,6 +53,7 @@ import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -234,32 +235,7 @@ public class GameScreen extends TimedGameScreen {
 
                 super.onSelectEvent(); //
 
-// we'll see what happens to this
-                final Entity picked = hitDetectEvent.getEntity();
-
-                gunSight( picked );
-
-                if (null != picked) { //            picked.onSelect();  ???
-
-//                    // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
-//                    picked.add(new StatusComponent(true));
-//
-//                    FeatureComponent fc = picked.getComponent(FeatureComponent.class);
-//
-//                    if (null != fc) {
-//
-//                        FeatureAdaptor fa = picked.getComponent(FeatureComponent.class).featureAdpt;
-//// h mmmm better b carful here
-////                        fa.init(engine); // ha hackity BS !
-//
-//                        fa.update(picked); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
-//
-//                    } else {
-//                        // do it the "common" way!
-//                        CompCommon.explode(engine, picked);
-//                    }
-
-                }
+                gunSight(hitDetectEvent.getEntity());
             }
 
             @Override
@@ -436,7 +412,7 @@ public class GameScreen extends TimedGameScreen {
         font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
 */
-        debugPrint("**", color, 0, 0 );
+        debugPrint("**", color, 0, 0);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -456,10 +432,19 @@ public class GameScreen extends TimedGameScreen {
         cleaner();
 
         // update entities queued for spawning
-        ModelGroup mg = GameWorld.getInstance().getSceneData().modelGroups.get("spawners");  ///////// tooooodooo    putter    bah
+        spawner();
+    }
 
-        if (null != mg) {
-            mg.build(engine, true);
+    private void spawner(){
+
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        ModelGroup mg = sd.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
+
+        if (null != mg /* && mg.size > 0 */ ) {
+            mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
+            sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group;
+
+//            System.out.println("Built model group (model name = " + mg.modelName   );
         }
     }
 

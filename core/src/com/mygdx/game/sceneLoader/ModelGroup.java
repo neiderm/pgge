@@ -34,16 +34,17 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ModelGroup {
 
-
+    public static final String SPAWNERS_MGRP_KEY = "Spawners";
+    public static final String MGRP_DEFAULT_MDL_NAME = ""; // if MG key is "empty", then multiple gsme Objectca
 
     private static final String DEFAULT_MODEL_NODE_ID = "node1";
-
 
 
     ModelGroup() {
     }
 
-    public ModelGroup(String groupName) {
+    public ModelGroup(String modelName) {
+        this.modelName = modelName; // try setting this now
     }
 
     ModelGroup(String groupName, String modelName) {
@@ -53,7 +54,7 @@ public class ModelGroup {
         this.isKinematic = true;
     }
 
-    public Array<GameObject> gameObjects = new Array<GameObject>();
+    Array<GameObject> gameObjects = new Array<GameObject>();
     private String modelName;
     private boolean isKinematic;
     private boolean isCharacter;
@@ -63,39 +64,39 @@ public class ModelGroup {
      * iterate all GameObjects in this instance and build them
      *
      */
-    public void build(Engine engine, boolean deleteObjects){
+    public void build(Engine engine, boolean deleteObjects) {
 
-        /*
-         * For now let be simple case of spawning in game objects
-         * (eventually it ideally to commonize w/ sceneLoader but that is a ways off ...
-         */
         build(engine);
 
-        if (deleteObjects){
+        if (deleteObjects) {
             gameObjects.clear();
         }
     }
 
-    public void addGameObject(GameObject object){
+    public String getModelName() {
+        return modelName;
+    }
+
+    public void addGameObject(GameObject object) {
         gameObjects.add(object);
     }
 
-    public GameObject getGameObject(int index){
+    public GameObject getGameObject(int index) {
         return gameObjects.get(index);
     }
 
-    public GameObject getGameObject(String name){
+    public GameObject getGameObject(String name) {
 
         GameObject found = null;
 
         for (GameObject gameObject : gameObjects) {
-        if    (gameObject.objectName.equals(name))
-            found = gameObject;
+            if (gameObject.objectName.equals(name))
+                found = gameObject;
         }
         return found;
     }
 
-    void build(Engine engine){
+    void build(Engine engine) {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelInfo mi = sd.modelInfo.get(this.modelName); // mg can't be null ;)
@@ -106,7 +107,7 @@ public class ModelGroup {
             groupModel = mi.model; // should maybe check model valid ;)
 
 
-            if (null == mi.model && null != mi.fileName){
+            if (null == mi.model && null != mi.fileName) {
 
                 Gdx.app.log("ModelGroup", "Not a valid model! (null == mi.model && null != mi.fileName)");
                 return; // for now ... ?
@@ -120,10 +121,10 @@ public class ModelGroup {
 
         for (GameObject gameObject : gameObjects) {
 
-            if (this.isKinematic){
+            if (this.isKinematic) {
                 gameObject.isKinematic = this.isKinematic;
             }
-            if (this.isCharacter){
+            if (this.isCharacter) {
                 gameObject.isCharacter = this.isCharacter;
             }
             if (null == gameObject.scale) {
@@ -132,7 +133,7 @@ public class ModelGroup {
 
             Model model;
 
-            if (null == groupModel){
+            if (null == groupModel) {
 
                 String rootNodeId;
                 btCollisionShape shape;
@@ -155,10 +156,9 @@ public class ModelGroup {
 
                         rootNodeId = DEFAULT_MODEL_NODE_ID;
 
-                        instance = ModelInstanceEx.getModelInstance( newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
+                        instance = ModelInstanceEx.getModelInstance(newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
                         shape = PrimitivesBuilder.getShape(newModel.meshes.get(0)); //TODO we would only use this for generating the sHAPE (modelComps to be multi-model-instance)
-                    }
-                    else {
+                    } else {
                         instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
                         shape = PrimitivesBuilder.getShape(model.meshes.get(0));
                     }
@@ -170,9 +170,7 @@ public class ModelGroup {
                     instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
                 }
                 gameObject.buildGameObject(model, engine, instance, shape);
-            }
-            else
-            {
+            } else {
                 /* load all nodes from model that match /objectName.*/
                 gameObject.buildNodes(engine, groupModel);
             }

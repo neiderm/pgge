@@ -26,6 +26,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -99,7 +100,7 @@ public class Projectile extends KillSensor {
 //        tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
         // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-        float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+        float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
 
         vvv.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation));
 
@@ -143,11 +144,16 @@ public class Projectile extends KillSensor {
 // h mmmm better b carful here
 //                        fa.init(engine); // ha hackity BS !
 
+
+// "tANKS" etc. ?? "
                     fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
 
                 } else {
+
+// "tANKS" etc. presenetly are hare ..
+
                     // do it the "common" way!
-//                CompCommon.explode(engine, picked);
+                CompCommon.explode(null, target);
                 }
             }
         }

@@ -162,19 +162,39 @@ public final class GameWorld implements Disposable {
         return sceneData.features.get(featureName);
     }
 
-
     public void addSpawner(GameObject object){
 
-        ModelGroup mg = sceneData.modelGroups.get("spawners");
+        addSpawner(object, ModelGroup.MGRP_DEFAULT_MDL_NAME);
+    }
 
-        if (null == mg){
-            mg = new ModelGroup("spawners");
-            sceneData.modelGroups.put("spawners", mg);
+    public void addSpawner(GameObject object, String modelName){
+
+        ModelGroup mg = sceneData.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
+        /*
+         * this is likely jacked up, should it be possible for multiple calls into addSPawner() would result
+         * in additional objects queued into that MG instance, but the MG
+         */
+        if (null != mg) {
+
+            System.out.println("spawners mg NOT null ... ?");
+
+            // model Name is used for e.g. "tank" and similiar models - loading entire model and globbing it toether (game object is literally "*" )
+            if (
+                    /* mg.modelName.equals(modelName)  && */
+                    mg.getModelName().isEmpty()  // idfk
+                            || mg.getModelName().equals(ModelGroup.MGRP_DEFAULT_MDL_NAME)
+            )
+            {
+                System.out.println("mg.modelName.isEmpty(), ok to add another Game object to this model Group ... ?");
+            }
+        }
+        else{
+            mg = new ModelGroup(modelName);
+            sceneData.modelGroups.put(ModelGroup.SPAWNERS_MGRP_KEY, mg);
         }
 
         mg.addGameObject(object);
     }
-
 
     /* I don't think we see a dispose event on Android */
 @Override
