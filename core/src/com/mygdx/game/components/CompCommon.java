@@ -30,6 +30,8 @@ import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
+import com.mygdx.game.sceneLoader.ModelInfo;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
@@ -56,10 +58,40 @@ public class CompCommon {
         gameObject.scale = new Vector3(1, 1, 1);
         gameObject.objectName = "*";
         gameObject.meshShape = "convexHullShape";
+        gameObject.useLocalTranslation = true; // building out model as nodes so need to add relative node offsets to  object position
 
-        gameObject.buildNodes(engine, mc.model, translation, true);
-        // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
+if (null != engine) {
+// tmp to get rid of this 
+    gameObject.buildNodes(engine, mc.model, translation, true);
+}
+else
+{
+    // has local translation but also need to set in instance w/ the "parent" instance translation
+        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
+        int countIndex = 0;
+        int targetModelGroupIndex = picked.getComponent(ModelComponent.class).modelInfoIndx;
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        String targetMdlInfoKey = null;
 
+        for (String key : sd.modelInfo.keySet()){
+            if (targetModelGroupIndex == countIndex){
+                ModelInfo mi = sd.modelInfo.get(key);
+                targetMdlInfoKey = key;
+                break;
+            }
+            countIndex += 1;
+        }
+
+     // almost... need to set the group Name
+//     spawnNewGameObject(new Vector3(1, 1, 1), translation, null, "*");
+     InstanceData id = new InstanceData(translation);
+     gameObject.getInstanceData().add(id);
+
+     System.out.println("add to spawning group: " + targetMdlInfoKey);
+//  GameWorld.getInstance().addSpawner(gameObject /*, targetMdlInfoKey */); // tmp add spawner
+}
+
+    // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
         // mark dead entity for deletion ... do it here? idfk ... probably more consistent
         picked.add(new StatusComponent(true));
     }
@@ -93,7 +125,11 @@ public class CompCommon {
             StatusComponent psc = playerFeature.getEntity().getComponent(StatusComponent.class);
 
             if (null != psc) {
+                if (null == psc.UI)
+                    System.out.println(); // i think race condition, confirm assert ... somehow player kills BA, but BA is kills player, so SC->UI going invalid
+                else {
                 psc.UI.addScore(points);
+                }
             }
         }
     }
@@ -118,7 +154,8 @@ public class CompCommon {
     /*
      new OBject  - let it default color - for now
      */
-    public static void spawnNewGameObject(Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
+    public static void spawnNewGameObject(
+Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
         InstanceData id = new InstanceData(translation);
 
@@ -141,7 +178,7 @@ public class CompCommon {
 
         gameObject.getInstanceData().add(id);
 
-// any sense for Game Object have its own static addSpawner() method ?  (need the Game World import/reference here ?)
+// any sense for Game Object have its own static addspawner() method ?  (need the Game World import/reference here ?)
         GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
     }
 

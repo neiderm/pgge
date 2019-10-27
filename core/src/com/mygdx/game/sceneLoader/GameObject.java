@@ -59,6 +59,7 @@ public class GameObject {
 
     public String objectName;
     private String featureName; // if Entity is to be part of a feature
+
     //            Vector3 translation; // needs to be only per-instance
     public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
     public float mass;
@@ -66,7 +67,8 @@ public class GameObject {
     boolean isKinematic;  //  "isStatic" ?
     private boolean isPickable;
     public boolean isShadowed;
-    boolean iSWhatever;
+    public boolean iSWhatever;
+    public boolean useLocalTranslation;
     boolean isCharacter;
     boolean isPlayer; // i guess
 
@@ -82,14 +84,16 @@ public class GameObject {
      * However walking the model is needed for globbed object name, not
      * seeing a more efficient way right now.
      */
-
     void buildNodes(Engine engine, Model model) {
 
-        buildNodes(engine, model, null, false);
+        buildNodes(engine, model, null , 
+false
+);
     }
 
-    public void buildNodes(Engine engine, Model model, Vector3 translation, boolean useLocalTranslation) {
-
+    public void buildNodes(Engine engine, Model model, Vector3 translation,
+                           boolean useLocalTranslation
+) {
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
 
@@ -137,13 +141,11 @@ public class GameObject {
         InstanceData id = new InstanceData();
         int n = 0;
 
-        String playerFeatureName = null;
         Entity playerFeatureEntity = null;
 
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // assumes already loaded Characters group ;)
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
 
         if (null != playerFeature) {
-            playerFeatureName = playerFeature.featureName;
             playerFeatureEntity = playerFeature.getEntity();
         }
 
@@ -163,7 +165,20 @@ public class GameObject {
             engine.addEntity(e);
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
+
+
             mc.model = model;  // bah
+            int countIndex = 0;
+
+           SceneData sd = GameWorld.getInstance().getSceneData();
+           for (String key : sd.modelInfo.keySet()){
+
+               if (key.equals( this.objectName )) {
+                   mc.modelInfoIndx = countIndex;    // ok maybe this is dumb why not just keep the name string 
+                   break;
+               }
+               countIndex += 1;
+           }
 
             Vector3 position = new Vector3();
             position = mc.modelInst.transform.getTranslation(position);
@@ -205,13 +220,9 @@ public class GameObject {
                 }
             }
 
-            if (/*null != playerFeatureName && */
-                    // objectName.equals(playerFeatureName
-                                                  this.isPlayer
-            )
+            if (  this.isPlayer )
             {
                 playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-//                e.getComponent(CharacterComponent.class).isPlayer = true;
             }
 
         } while (/*null != id && */ n < instanceData.size);

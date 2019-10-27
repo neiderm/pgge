@@ -19,6 +19,7 @@ public class ModelComponent implements Component {
     public Vector3 center = new Vector3();
 
     public int id;
+    public int modelInfoIndx = -1;
     private static int instcnt = 0;
 
 
