@@ -149,11 +149,11 @@ public class Projectile extends KillSensor {
                     fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
 
                 } else {
-
 // "tANKS" etc. presenetly are hare ..
+                    CompCommon.explode(null, target);
 
-                    // do it the "common" way!
-                CompCommon.explode(null, target);
+                    // mark dead entity for deletion
+                    target.add(new StatusComponent(true));
                 }
             }
         }

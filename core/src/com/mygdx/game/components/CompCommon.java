@@ -18,6 +18,7 @@ package com.mygdx.game.components;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -45,11 +46,15 @@ public class CompCommon {
     /*
      * hmmmm ... requires engine for massive buildNodes() call so may be limited in use
      */
-    public static void explode(Engine engine, Entity picked /* , ModelComponent mc */) {
+    public static void explode(Engine engine, Entity picked) {
 
         ModelComponent mc = picked.getComponent(ModelComponent.class);
+        explode(engine, mc.model, mc.modelInst, mc.modelInfoIndx);
+ }
+    public static void explode(Engine engine, Model model, ModelInstance modelInst, int modelInfoIndx) {
+
         Vector3 translation = new Vector3();
-        translation = mc.modelInst.transform.getTranslation(translation);
+        modelInst.transform.getTranslation(translation);
         translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
 
         GameObject gameObject = new GameObject();
@@ -60,45 +65,42 @@ public class CompCommon {
         gameObject.meshShape = "convexHullShape";
         gameObject.useLocalTranslation = true; // building out model as nodes so need to add relative node offsets to  object position
 
-if (null != engine) {
+        if (null != engine) {
 // tmp to get rid of this 
-    gameObject.buildNodes(engine, mc.model, translation, true);
-}
-else
-{
-    // has local translation but also need to set in instance w/ the "parent" instance translation
-        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
-        int countIndex = 0;
-        int targetModelGroupIndex = picked.getComponent(ModelComponent.class).modelInfoIndx;
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        String targetMdlInfoKey = null;
+            gameObject.buildNodes(engine, model, translation, true);
+        } else {
+            // has local translation but also need to set in instance w/ the "parent" instance translation
+            // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
+            int countIndex = 0;
+            int targetModelGroupIndex = modelInfoIndx;
+            SceneData sd = GameWorld.getInstance().getSceneData();
+            String targetMdlInfoKey = null;
 
-        for (String key : sd.modelInfo.keySet()){
-            if (targetModelGroupIndex == countIndex){
-                ModelInfo mi = sd.modelInfo.get(key);
-                targetMdlInfoKey = key;
-                break;
+            for (String key : sd.modelInfo.keySet()) {
+                if (targetModelGroupIndex == countIndex) {
+                    ModelInfo mi = sd.modelInfo.get(key);
+                    targetMdlInfoKey = key;
+                    break;
+                }
+                countIndex += 1;
             }
-            countIndex += 1;
+
+            // almost... need to set the group Name
+//     spawnNewGameObject(new Vector3(1, 1, 1), translation, null, "*");
+            InstanceData id = new InstanceData(translation);
+            gameObject.getInstanceData().add(id);
+
+            if (null != targetMdlInfoKey) {
+                GameWorld.getInstance().addSpawner(gameObject, targetMdlInfoKey);
+            } else {
+//          System.out.println("no targetMdlInfoKey found" );
+                makeBurnOut(modelInst, 100);
+            }
         }
 
-     // almost... need to set the group Name
-//     spawnNewGameObject(new Vector3(1, 1, 1), translation, null, "*");
-     InstanceData id = new InstanceData(translation);
-     gameObject.getInstanceData().add(id);
-
-     if (null != targetMdlInfoKey) {
-         GameWorld.getInstance().addSpawner(gameObject, targetMdlInfoKey);
-     }
-     else {
-//          System.out.println("no targetMdlInfoKey found" );
-         makeBurnOut(picked, 100);
-     }
-}
-
-    // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
-        // mark dead entity for deletion ... do it here? idfk ... probably more consistent
-        picked.add(new StatusComponent(true));
+        // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
+        // mark dead entity for deletion ... do it here?
+//        picked.add(new StatusComponent(true));       ........ nope ... caller decides if/how to dispose of its target
     }
 
     /*
@@ -107,10 +109,14 @@ else
     (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
     */
     public static void makeBurnOut(Entity ee, int points) {
+        makeBurnOut(
+                ee.getComponent(ModelComponent.class).modelInst, points);
+    }
+
+    public static void makeBurnOut( ModelInstance mi, int points) {
 
         String tmpObjectName = "sphereTex";
 
-        ModelInstance mi = ee.getComponent(ModelComponent.class).modelInst;
 
         spawnNewGameObject(
 
@@ -122,7 +128,6 @@ else
 
                 tmpObjectName);
 
-
         GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
 
         if (null != playerFeature) {
@@ -133,7 +138,7 @@ else
                 if (null == psc.UI)
                     System.out.println(); // i think race condition, confirm assert ... somehow player kills BA, but BA is kills player, so SC->UI going invalid
                 else {
-                psc.UI.addScore(points);
+                    psc.UI.addScore(points);
                 }
             }
         }
@@ -160,7 +165,7 @@ else
      new OBject  - let it default color - for now
      */
     public static void spawnNewGameObject(
-Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
+            Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
         InstanceData id = new InstanceData(translation);
 
