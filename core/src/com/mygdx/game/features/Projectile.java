@@ -128,32 +128,36 @@ public class Projectile extends KillSensor {
 
 
             if (isTriggered) {
-//            target.getComponent(StatusComponent.class).lifeClock = 0;
 
-                featureEnt.add(new StatusComponent(true)); // kill this projectile
+                // simple obvious action is to terminate this Projectile
+                featureEnt.add(new StatusComponent(true));
 
+// some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
+                StatusComponent sc = target.getComponent(StatusComponent.class);
+                if (null != sc) {
 
-                // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
-                target.add(new StatusComponent(true));
+                    System.out.println("already got one");
+                } else// if (null == sc )
+                {
+                    // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
+                    //            target.getComponent(StatusComponent.class).lifeClock = 0; ... use target clock maybe idk
+                    target.add(new StatusComponent(true));
 
-                FeatureComponent fc = target.getComponent(FeatureComponent.class);
+                    FeatureComponent fc = target.getComponent(FeatureComponent.class);
 
-                if (null != fc) {
+                    if (null != fc) {
 
-                    FeatureAdaptor fa = target.getComponent(FeatureComponent.class).featureAdpt;
+                        FeatureAdaptor fa = fc.featureAdpt;
 // h mmmm better b carful here
 //                        fa.init(engine); // ha hackity BS !
-
-
 // "tANKS" etc. ?? "
-                    fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass the picked as update()!!!
+                        fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass target as arg to update()!!!
 
-                } else {
-// "tANKS" etc. presenetly are hare ..
-                    CompCommon.explode(null, target);
+                    } else {
 
-                    // mark dead entity for deletion
-                    target.add(new StatusComponent(true));
+// "tANKS" etc. presenetly are hare .. there were characters before there were features so that needs figured out
+                        CompCommon.explode(null, target);
+                    }
                 }
             }
         }
@@ -170,13 +174,15 @@ public class Projectile extends KillSensor {
             if (mi.materials.size > 0) {
                 ModelInstanceEx.setColorAttribute(mi, new Color(Color.PINK), 0.5f); //tmp?
             }
-
-            // tmp test (stick to wall ;)
+/*
+ now what?     tmp test ... paintball effect splatters signboarded to wall would look cool and be fun to do
+ */
+// otherwise, the project feature can be stopped here
 //            featureEnt.add(new StatusComponent(true));
+
         } else {
 
             // no collision imminient so keep it moving along
-
             instance.transform.trn(vF);
         }
     }
