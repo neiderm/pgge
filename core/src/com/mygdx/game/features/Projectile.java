@@ -156,7 +156,8 @@ public class Projectile extends KillSensor {
                     } else {
 
 // "tANKS" etc. presenetly are hare .. there were characters before there were features so that needs figured out
-                        CompCommon.explode(null, target);
+                        ModelComponent mc = target.getComponent(ModelComponent.class);
+                        CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
                     }
                 }
             }

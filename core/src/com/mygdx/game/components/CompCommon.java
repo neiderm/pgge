@@ -15,10 +15,8 @@
  */
 package com.mygdx.game.components;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -43,59 +41,38 @@ public class CompCommon {
     CompCommon() { // mt
     }
 
-    /*
-     * hmmmm ... requires engine for massive buildNodes() call so may be limited in use
-     */
-    public static void explode(Engine engine, Entity picked) {
+    public static void exploducopia(ModelInstance modelInst, int modelInfoIndx) {
 
-        ModelComponent mc = picked.getComponent(ModelComponent.class);
-        explode(engine, mc.model, mc.modelInst, mc.modelInfoIndx);
- }
-    public static void explode(Engine engine, Model model, ModelInstance modelInst, int modelInfoIndx) {
+        // has local translation but also need to set in instance w/ the "parent" instance translation
+        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
+        int countIndex = 0;
+        int targetModelGroupIndex = modelInfoIndx;
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        String targetMdlInfoKey = null;
 
-        Vector3 translation = new Vector3();
-        modelInst.transform.getTranslation(translation);
-        translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
+        for (String key : sd.modelInfo.keySet()) {
+            if (targetModelGroupIndex == countIndex) {
+                ModelInfo mi = sd.modelInfo.get(key);
+                targetMdlInfoKey = key;
+                break;
+            }
+            countIndex += 1;
+        }
 
-        GameObject gameObject = new GameObject();
-        gameObject.mass = 1f;
-        gameObject.isShadowed = true;
-        gameObject.scale = new Vector3(1, 1, 1);
-        gameObject.objectName = "*";
-        gameObject.meshShape = "convexHullShape";
-        gameObject.useLocalTranslation = true; // building out model as nodes so need to add relative node offsets to  object position
+/*
+ this is still wonky and need generalized more
+ */
+        if (null != targetMdlInfoKey) {
 
-        if (null != engine) {
-// tmp to get rid of this 
-            gameObject.buildNodes(engine, model, translation, true);
+            Vector3 translation = new Vector3();
+            modelInst.transform.getTranslation(translation);
+            translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
+
+            spawnNewGameObject(
+                    null, translation, "*", targetMdlInfoKey, true);
         } else {
-            // has local translation but also need to set in instance w/ the "parent" instance translation
-            // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
-            int countIndex = 0;
-            int targetModelGroupIndex = modelInfoIndx;
-            SceneData sd = GameWorld.getInstance().getSceneData();
-            String targetMdlInfoKey = null;
-
-            for (String key : sd.modelInfo.keySet()) {
-                if (targetModelGroupIndex == countIndex) {
-                    ModelInfo mi = sd.modelInfo.get(key);
-                    targetMdlInfoKey = key;
-                    break;
-                }
-                countIndex += 1;
-            }
-
-            // almost... need to set the group Name
-//     spawnNewGameObject(new Vector3(1, 1, 1), translation, null, "*");
-            InstanceData id = new InstanceData(translation);
-            gameObject.getInstanceData().add(id);
-
-            if (null != targetMdlInfoKey) {
-                GameWorld.getInstance().addSpawner(gameObject, targetMdlInfoKey);
-            } else {
-//          System.out.println("no targetMdlInfoKey found" );
-                makeBurnOut(modelInst, 100);
-            }
+            System.out.println("no targetMdlInfoKey found");
+            makeBurnOut(modelInst, 100);
         }
 
         // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
@@ -113,7 +90,7 @@ public class CompCommon {
                 ee.getComponent(ModelComponent.class).modelInst, points);
     }
 
-    public static void makeBurnOut( ModelInstance mi, int points) {
+    public static void makeBurnOut(ModelInstance mi, int points) {
 
         String tmpObjectName = "sphereTex";
 
@@ -161,9 +138,31 @@ public class CompCommon {
                 objectName);
     }
 
-    /*
-     new OBject  - let it default color - for now
-     */
+    private static void spawnNewGameObject(
+            Vector3 scale, Vector3 translation, String objectName, String modelInfoKey, boolean useLOcalTranslation) {
+
+        // insert a newly created game OBject into the "spawning" model group
+        GameObject gameObject = new GameObject(/* objectName */);
+        gameObject.useLocalTranslation = useLOcalTranslation;
+        gameObject.objectName = objectName;
+
+// fixed for now ;
+        gameObject.mass = 1f;
+        gameObject.meshShape = "convexHullShape";
+
+        if (null != scale) {
+            gameObject.scale = new Vector3(scale);
+        } else {
+            gameObject.scale = new Vector3(1, 1, 1);
+        }
+
+        //        gameObject.mass = 1; // let it be stationary
+        gameObject.getInstanceData().add(new InstanceData(translation));
+
+// any sense for Game Object have its own static addspawner() method ?  (need the Game World import/reference here ?)
+        GameWorld.getInstance().addSpawner(gameObject, modelInfoKey); //  is added "kinematic" ???
+    }
+
     public static void spawnNewGameObject(
             Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
@@ -173,11 +172,6 @@ public class CompCommon {
         {
             id.adaptr = fa;
         }
-
-        spawnNewGameObject(id, scale, objectName);
-    }
-
-    public static void spawnNewGameObject(InstanceData id, Vector3 scale, String objectName) {
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject(/* objectName */);
