@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
@@ -29,50 +44,17 @@ public class OmniSensor extends SensorAdaptor {
         omniRadius.set(DEFAULT_RADIUS); // maybe .. idfk
     }
 
-    // Pass in the tgt xform .. not the Entity?
-
-//    private OmniSensor(Entity target) {
-//
-//        setTarget(
-////                target,
-//                DEFAULT_RADIUS);
-//    }
-
-    /*
-     * sets the given T0 vector as origin location (e.g. if object location loaded from model
-     */
-//    protected OmniSensor(Entity target, Vector3 origin) {
-//
-//        this(target);
-//        this.vT0.set(origin); // sensor origin
-//    }
-
     @Override
     public void init(Object target) {
 
-//        setTarget(
-////                (Entity) target,
-//                vS /* radius */, vT /* origin */);
+        super.init(target); // not much there, just sets the target,
 
         this.omniRadius.set(vS);
+/*
+seems useless right now ....
         this.sensorOrigin.set(vT);
+*/
     }
-
-//    private void setTarget(
-////            Entity target,
-//            Vector3 radius) {
-//
-////        this.target = target;
-//        this.omniRadius.set(radius);
-//    }
-
-//    private void setTarget(
-////            Entity target,
-//            Vector3 radius, Vector3 origin) {
-//
-//        this.omniRadius.set(radius);
-//        this.sensorOrigin.set(origin);
-//    }
 
     private Vector3 vvv = new Vector3();
 
@@ -83,12 +65,13 @@ public class OmniSensor extends SensorAdaptor {
 
         // grab the starting Origin (translation) of the entity from the instance data
 // hmmmm ...  it could have been spawned "up there" and now falling to the floor ... so vT0 as handed by GameObject constructor is not the origin we're looking for!
+
 ////        sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
 
         ModelComponent mc = sensor.getComponent(ModelComponent.class);
         Matrix4 transform = mc.modelInst.transform;
         vvv = transform.getTranslation(vvv);
-        sensorOrigin.set(vvv);
+        sensorOrigin.set(vvv);               ///   blah
 
 
         bounds.set(sensorOrigin);

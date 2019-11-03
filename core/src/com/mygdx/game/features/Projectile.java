@@ -77,7 +77,7 @@ tmp this part  is obviously hardlocked to the player!
     }
 
     /*
-     *   had to change Feature Adaptor to call init() regdless of passing null 'object')
+     * minimal init() to do chaining
      */
     @Override
     public void init(Object object) {
@@ -90,14 +90,6 @@ tmp this part  is obviously hardlocked to the player!
         this.sensorOrigin.set(vT);
          */
         super.init(object); // sets vS->omniradius && vT->sensorOrigin (offset... usually 0,0,0 for proj.)
-
-        /*
-         * todo can be moved in to the sensor!!!
-         */
-//        if (null != object)
-        {
-            this.target = (Entity) object; // it's a moving target
-        }
     }
 
 
