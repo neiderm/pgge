@@ -18,14 +18,12 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -35,17 +33,47 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class Projectile extends KillSensor {
 
-    private Vector3 dVector = new Vector3();
-
     public Projectile() { // mt
     }
 
 //    public Projectile(Vector3 vvv) {
     //  }
 
-    public Projectile(Entity picked) {
+    public Projectile(Object target) {
 
-        this.userData = picked;//.getComponent(ModelComponent.class).modelInst.transform;
+        this.userData = target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
+
+// proj. sense radius (provde constructor arg)
+// TODO: generaly this would be radius or half-extent of projectile geometry!
+        this.vS.set(0.76f, .76f, .76f); // radiys of the kill sensor
+
+/*
+tmp this part  is obviously hardlocked to the player!
+ */
+        GameFeature pf = GameWorld.getInstance().getFeature("Player");
+        Entity pp = pf.getEntity();
+        ModelComponent mc = pp.getComponent(ModelComponent.class);
+
+        // i believe sensor was intended to be able to exist w/o a model instance, thus sensor origin
+        // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
+        // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
+        // in order to set up the moving step vector (in term of the shooter facing orientiation)
+        vT.set( getDirectionVector( mc.modelInst.transform ));
+    }
+
+    public Projectile(Object target, Matrix4 mtransform) {
+
+        this.userData = target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
+
+// proj. sense radius (provde constructor arg)
+// TODO: generaly this would be radius or half-extent of projectile geometry!
+        this.vS.set(0.76f, .76f, .76f); // radiys of the kill sensor
+
+        // i believe sensor was intended to be able to exist w/o a model instance, thus sensor origin
+        // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
+        // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
+        // in order to set up the moving step vector (in term of the shooter facing orientiation)
+        vT.set( getDirectionVector( mtransform ));
     }
 
     /*
@@ -54,16 +82,18 @@ public class Projectile extends KillSensor {
     @Override
     public void init(Object object) {
 
-        // object==target
-        // super.init(object):
-        //        setTarget((Entity) target, vS /* radius */, vT /* origin */);
+        // be sure appropriate vS (proj. sense radis) and vT (0, 0, 0) which IAIR is an (relative/offset) positioning vector!
+//        this.vS.set(0.6f, 0.6f, 0.6f); // radiys of the kill sensor
+//        this.vT.set(0,0,0); // (relative/offset) positioning vector!
+        /*
+        this.omniRadius.set(vS);
+        this.sensorOrigin.set(vT);
+         */
+        super.init(object); // sets vS->omniradius && vT->sensorOrigin (offset... usually 0,0,0 for proj.)
 
-        // is fine, but vT needs to be reset at each update anywaty!!!!
-        this.dVector = getDirectionVector();
-        this.vT0 = getDirectionVector(); // uhhhh don't think the originating posiotun used right now
-
-        this.vS = new Vector3(0.9f, 0.9f, 0.9f); // idfk think it need vS for radiys of the kill sensor
-
+        /*
+         * todo can be moved in to the sensor!!!
+         */
 //        if (null != object)
         {
             this.target = (Entity) object; // it's a moving target
@@ -73,24 +103,16 @@ public class Projectile extends KillSensor {
 
     // working variables
     private Vector3 tmpV = new Vector3();
-    private Matrix4 tmpM = new Matrix4();
     private Quaternion orientation = new Quaternion();
 
-    private Vector3 getDirectionVector() {
+    /*
+     * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector
+     */
+    private Vector3 getDirectionVector(Matrix4 shootersTransform) {
 
         Vector3 vvv = new Vector3();
 
-        GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
-        Entity pp = pf.getEntity(); // picked player
-
-        BulletComponent bc = pp.getComponent(BulletComponent.class); // picked player
-
-        if (null != bc && null != bc.body) {
-
-            bc.body.getWorldTransform(tmpM);
-        }
-
-        tmpM.getRotation(orientation);
+        shootersTransform.getRotation(orientation);
 
         // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
         // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
@@ -110,16 +132,6 @@ public class Projectile extends KillSensor {
 
     @Override
     public void update(Entity featureEnt) {
-
-        // i believe sensor was intended to be able to exist w/o a model instance, thus origin
-        // has to be stored sepeatetely in vT
-
-        // so i need to reset vT to present position
-        ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
-
-        instance.transform.getTranslation(tmpV);    ///  set  vT  to getTranslation() ????
-
-        vT.set(tmpV); ///  set  vT  to getTranslation() ????
 
         // update the sensor: BUT check target validity, because of omni sensor auto-player-target selection default kludgey behavior!!!!!
         if (null != target) {
@@ -156,24 +168,24 @@ public class Projectile extends KillSensor {
                     } else {
 
 // "tANKS" etc. presenetly are hare .. there were characters before there were features so that needs figured out
-                        ModelComponent mc = target.getComponent(ModelComponent.class);
-                        CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
+                        ModelComponent tmc = target.getComponent(ModelComponent.class);
+                        CompCommon.exploducopia(tmc.modelInst, tmc.modelInfoIndx);
                     }
                 }
             }
         }
 
         // move the projectile by one step vector
-        Vector3 vF = dVector;
-
+        Vector3 vF = vT;
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
+
+        // could cache this model comp lookup?
+        ModelComponent fmc = featureEnt.getComponent(ModelComponent.class);
 
         if (null != rayPickObject) {
 
-            ModelComponent mc = featureEnt.getComponent(ModelComponent.class);
-            ModelInstance mi = mc.modelInst;
-            if (mi.materials.size > 0) {
-                ModelInstanceEx.setColorAttribute(mi, new Color(Color.PINK), 0.5f); //tmp?
+            if (fmc.modelInst.materials.size > 0) {
+                ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
             }
 /*
  now what?     tmp test ... paintball effect splatters signboarded to wall would look cool and be fun to do
@@ -182,9 +194,8 @@ public class Projectile extends KillSensor {
 //            featureEnt.add(new StatusComponent(true));
 
         } else {
-
             // no collision imminient so keep it moving along
-            instance.transform.trn(vF);
+            fmc.modelInst.transform.trn(vF);
         }
     }
 }
