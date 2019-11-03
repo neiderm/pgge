@@ -45,19 +45,28 @@ public class VectorSensor extends SensorAdaptor {
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
+    // tmp  need to be Game Data
+    private float senseZoneRadius = 2.0f;
+    private float senseZoneDistance = 5.0f;
+
+
     public VectorSensor() {/*mt*/}
 
-//    public VectorSensor(Entity target) {
-//        this.target = target;
-//    }
+    @Override
+    public void init(Object target){
+
+        super.init(target);
+
+// we'll see
+        senseZoneRadius = vS.x;
+        senseZoneDistance = vT.x;
+    }
+
 
     @Override
     public void update(Entity sensor) {
 
         //        super.update(me);
-
-        float senseZoneRadius = 2.0f;
-        float senseZoneDistance = 5.0f;
 
         /*
          * note duplicate the target-getting as from omni sensor

@@ -287,10 +287,14 @@
 			{
 				"instanceData": [
 					{
+						"rotation": {
+							"y": -0.7071067,
+							"w": 0.7071067
+						},
 						"translation": {
-							"x": 4,
-							"y": 6,
-							"z": 12
+							"x": -16,
+							"y": 5,
+							"z": 14
 						},
 						"color": {
 							"g": 1,
@@ -300,12 +304,10 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.ElectricEye",
 							"vS": {
-								"x": 12,
-								"y": 12,
-								"z": 12
+								"x": 2
 							},
 							"vT": {
-								"y": 6
+								"x": 6
 							}
 						}
 					}
@@ -317,7 +319,7 @@
 					"y": 0.5,
 					"z": 1.5
 				},
-				"mass": 5.1,
+				"isKinematic": true,
 				"meshShape": "btBoxShape",
 				"isPickable": true
 			},
@@ -325,9 +327,9 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 5,
-							"y": 10,
-							"z": -4
+							"x": -2,
+							"y": 8,
+							"z": 0
 						},
 						"color": {
 							"r": 0.2,
