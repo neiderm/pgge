@@ -23,15 +23,18 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.util.ModelInstanceEx;
 
 public class Projectile extends KillSensor {
+
+    // working variables
+    private Vector3 tmpV = new Vector3();
+    private Quaternion orientation = new Quaternion();
+
 
     public Projectile() { // mt
     }
@@ -39,27 +42,6 @@ public class Projectile extends KillSensor {
 //    public Projectile(Vector3 vvv) {
     //  }
 
-    public Projectile(Object target) {
-
-        this.userData = target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
-
-// proj. sense radius (provde constructor arg)
-// TODO: generaly this would be radius or half-extent of projectile geometry!
-        this.vS.set(0.76f, .76f, .76f); // radiys of the kill sensor
-
-/*
-tmp this part  is obviously hardlocked to the player!
- */
-        GameFeature pf = GameWorld.getInstance().getFeature("Player");
-        Entity pp = pf.getEntity();
-        ModelComponent mc = pp.getComponent(ModelComponent.class);
-
-        // i believe sensor was intended to be able to exist w/o a model instance, thus sensor origin
-        // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
-        // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
-        // in order to set up the moving step vector (in term of the shooter facing orientiation)
-        vT.set( getDirectionVector( mc.modelInst.transform ));
-    }
 
     public Projectile(Object target, Matrix4 mtransform) {
 
@@ -76,26 +58,6 @@ tmp this part  is obviously hardlocked to the player!
         vT.set( getDirectionVector( mtransform ));
     }
 
-    /*
-     * minimal init() to do chaining
-     */
-    @Override
-    public void init(Object object) {
-
-        // be sure appropriate vS (proj. sense radis) and vT (0, 0, 0) which IAIR is an (relative/offset) positioning vector!
-//        this.vS.set(0.6f, 0.6f, 0.6f); // radiys of the kill sensor
-//        this.vT.set(0,0,0); // (relative/offset) positioning vector!
-        /*
-        this.omniRadius.set(vS);
-        this.sensorOrigin.set(vT);
-         */
-        super.init(object); // sets vS->omniradius && vT->sensorOrigin (offset... usually 0,0,0 for proj.)
-    }
-
-
-    // working variables
-    private Vector3 tmpV = new Vector3();
-    private Quaternion orientation = new Quaternion();
 
     /*
      * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector

@@ -197,18 +197,13 @@ public class GameScreen extends TimedGameScreen {
             Quaternion orientation = new Quaternion();
 
             // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
-            void gunSight( Entity target ){
+            void gunSight( Entity target, Entity player ){
 
-                GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
-                Entity pp = pf.getEntity(); // picked player
+                ModelComponent mc = player.getComponent(ModelComponent.class);
 
-                BulletComponent bc = pp.getComponent(BulletComponent.class); // picked player
-
-                if (null !=bc && null != bc.body){
-
-                    bc.body.getWorldTransform(tmpM);
+                if (null != mc && null != mc.modelInst){
+                    tmpM = mc.modelInst.transform;
                 }
-
                 tmpM.getRotation(orientation);
 
                 // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
@@ -220,13 +215,12 @@ public class GameScreen extends TimedGameScreen {
                 // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
   //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
 //                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
-
                 /*
                  * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
                  */
                 CompCommon.spawnNewGameObject( new Vector3(0.1f, 0.1f, 0.1f),
                         trans,
-                        new Projectile( target ),
+                        new Projectile( target, tmpM ),
                         "cone");
             }
 
@@ -235,7 +229,7 @@ public class GameScreen extends TimedGameScreen {
 
                 super.onSelectEvent(); //
 
-                gunSight(hitDetectEvent.getEntity());
+                gunSight(hitDetectEvent.getEntity(), pickedPlayer);
             }
 
             @Override
