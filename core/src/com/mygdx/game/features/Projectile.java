@@ -131,10 +131,12 @@ public class Projectile extends KillSensor {
 
         // move the projectile by one step vector
         Vector3 vF = vT;
-        btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
         // could cache this model comp lookup?
         ModelComponent fmc = featureEnt.getComponent(ModelComponent.class);
+
+        fmc.modelInst.transform.getTranslation(tmpV);
+        btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
         if (null != rayPickObject) {
 
