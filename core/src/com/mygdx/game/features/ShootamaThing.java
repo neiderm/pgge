@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2019 Glenn Neidermeier
  *
@@ -31,19 +30,14 @@ public class ShootamaThing extends VectorSensor {
     private Quaternion orientation = new Quaternion();
     private Vector3 down = new Vector3();
     private Vector3 xlation = new Vector3();
-    private float originDegrees = -1;
-    private final float ROTATION_STEP_INC = 0.25f;
-    private float rotationStep = ROTATION_STEP_INC;
-
-    private  float rotationMin = 0;
-    private  float rotationMax = 0;
+    private float originDegrees = -1;  // dumb ;)
+    private final float ROTATION_STEP_DEGREES = 0.25f;
+    private float rotationStep = ROTATION_STEP_DEGREES;
+    private final float ROTATION_RANGE_DEGREES = 90.0f;
+    private float rotationMin = 0;
+    private float rotationMax = 0;
     private final int CAN_SHOOOT_INTERVAL = 64;
     private int canShootTimer = 0;
-
-    float orientationAngle;
-
-    int updown;
-
 
 
     @Override
@@ -57,25 +51,19 @@ public class ShootamaThing extends VectorSensor {
 
         super.update(sensor);
 
-        if (originDegrees < 0){
-            // love me some hacking .. one time init to get start rotation of thing
+        if (originDegrees < 0) { // so dumb
+            // one time init to rotation params
             ModelComponent mymc = sensor.getComponent(ModelComponent.class);
             Matrix4 myxfm = mymc.modelInst.transform;
 
-           myxfm.getRotation(orientation);
+            myxfm.getRotation(orientation);
 
-            originDegrees = orientation.getAngle();
+//            ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
+            tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
+            originDegrees = orientation.getAngleAround(tmpV);
+
             rotationMin = originDegrees;
-            rotationMax = originDegrees +       90 ;
-
-            orientationAngle = originDegrees;
-
-// bah
-             if (orientation.y < 0){
-                     updown = -1;}
-                     else
-                         updown = 1;
-
+            rotationMax = originDegrees + ROTATION_RANGE_DEGREES;
 
             System.out.println("shootamathing ... origin angle = " + originDegrees + " " + this.vT.x);
         }
@@ -103,14 +91,11 @@ public class ShootamaThing extends VectorSensor {
             if (isTriggered ||
                     canShootTimer > 0) {
 
-                if (canShootTimer > 0)
-                {
+                if (canShootTimer > 0) {
                     canShootTimer -= 1;
 
                 } else {
-
                     canShootTimer = CAN_SHOOOT_INTERVAL;
-
                     gunSight(sensor, target);
                 }
 
@@ -142,68 +127,33 @@ public class ShootamaThing extends VectorSensor {
         updatePlatformRotation(mymc.modelInst.transform);
     }
 
-        /*
-        toodoo use raycast to determine dx to stop of cast and if target comes within x degrees of
-        whatever direction it happens to be pointing, then it begins rotating to track target
+    /*
+    toodoo use raycast to determine dx to stop of cast and if target comes within x degrees of
+    whatever direction it happens to be pointing, then it begins rotating to track target
+     */
+    private void updatePlatformRotation(Matrix4 myxfm) {
 
-        turn toward the target
-         */
-    private void updatePlatformRotation(Matrix4 myxfm){
+        myxfm.getRotation(orientation);
+        tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
+//        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
 
- //       float orientationAngle = orientation.getAngle();
-        orientationAngle += rotationStep;
+        float orientationAngle = orientation.getAngleAround(tmpV);
+//        System.out.println("orientationAngle = " + orientationAngle);
 
         if (orientationAngle > rotationMax) {
 //            System.out.println("shootamathing ...  angle > rotationMax " + orientationAngle + " " + this.vT.x);
-
-            orientationAngle = rotationMax;
-            rotationStep = -ROTATION_STEP_INC;
-
+            rotationStep = -ROTATION_STEP_DEGREES;
             canShootTimer = 0;
 
         } else if (orientationAngle < rotationMin) {
 //            System.out.println("shootamathing ... angle < rotationMIN " + orientationAngle + " " + this.vT.x);
-
-            orientationAngle = rotationMin;
-            rotationStep = ROTATION_STEP_INC;
-
+            rotationStep = ROTATION_STEP_DEGREES;
             canShootTimer = 0;
         }
 
+        myxfm.rotate(tmpV, rotationStep);
 
-        myxfm.getRotation(orientation);
-        orientation.getAxisAngle(tmpV);
-
-        xlation = myxfm.getTranslation(new Vector3(xlation));
-
-        if (updown < 0) {
-//            myxfm.setToRotation(tmpV, orientationAngle );
-//            myxfm.setToRotation(down.set(0, -1, 0), orientationAngle);
-            myxfm.setFromEulerAngles(orientationAngle + 90, 0, 0);
-         }
-        else {
-//            myxfm.setToRotation(tmpV, orientationAngle);
-//            myxfm.setToRotation(down.set(0, 1, 0), orientationAngle) ;
-            myxfm.setFromEulerAngles(orientationAngle + 0, 0, 0);
-        }
-
-        myxfm.setTranslation(new Vector3(xlation));
-
-        myxfm.getRotation(orientation);
-
-//        myxfm.rotate(down.set(0, 1, 0), rotationStep);
-    }
-
-
-    private void __updatePlatformRotation(Matrix4 myxfm){
-
-        myxfm.getRotation(orientation);
-
-        float rad = orientation.getAngleRad();
-        float orientationAngle = orientation.getAngle();
-
-
-        myxfm.rotate(down.set(0, 1, 0), ROTATION_STEP_INC);
+//        myxfm.getRotation(orientation); // tmp test
     }
 
 
