@@ -1,21 +1,5 @@
 {
 "modelGroups": {
-	"LocalPlayer": {
-		"gameObjects": [
-			{
-				"objectName": "LocalPlayerObjectName",
-				"instanceData": [
-					{
-						"translation": {
-							"x": 7,
-							"y": 5.5,
-							"z": -8
-						}
-					}
-				]
-			}
-		]
-	},
 	"UserMeshezMdlGrupe": {
 		"gameObjects": [
 			{
@@ -125,6 +109,22 @@
 			}
 		],
 		"modelName": "objects"
+	},
+	"LocalPlayer": {
+		"gameObjects": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 7,
+							"y": 5.5,
+							"z": -8
+						}
+					}
+				],
+				"objectName": "LocalPlayerObjectName"
+			}
+		]
 	},
 	"SceneStaticObjects": {
 		"gameObjects": [
@@ -238,9 +238,7 @@
 							"z": -5
 						},
 						"color": {
-							"r": 0,
 							"g": 1,
-							"b": 0,
 							"a": 0.5
 						},
 						"adaptr": {
@@ -259,9 +257,7 @@
 							"z": 10
 						},
 						"color": {
-							"r": 0,
 							"g": 1,
-							"b": 0,
 							"a": 0.5
 						},
 						"adaptr": {
@@ -283,6 +279,83 @@
 				},
 				"mass": 5.1,
 				"meshShape": "btConeShape"
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"y": -0.7071067,
+							"w": 0.7071067
+						},
+						"translation": {
+							"x": -16,
+							"y": 5,
+							"z": -12
+						},
+						"color": {
+							"g": 1,
+							"b": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.ShootamaThing",
+							"vS": {
+								"x": 1.4
+							},
+							"vT": {
+								"x": 8
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "OhNo",
+				"scale": {
+					"x": 1,
+					"y": 0.5,
+					"z": 1.5
+				},
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"isPickable": true
+			},
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"y": 1
+						},
+						"translation": {
+							"x": 11,
+							"y": 5,
+							"z": 15
+						},
+						"color": {
+							"g": 1,
+							"b": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.ShootamaThing",
+							"vS": {
+								"x": 1
+							},
+							"vT": {
+								"x": 10
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "OhNo",
+				"scale": {
+					"x": 1,
+					"y": 0.5,
+					"z": 1.5
+				},
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -319,8 +392,8 @@
 					"y": 0.5,
 					"z": 1.5
 				},
-				"isKinematic": true,
 				"meshShape": "btBoxShape",
+				"isKinematic": true,
 				"isPickable": true
 			},
 			{
@@ -328,8 +401,7 @@
 					{
 						"translation": {
 							"x": -2,
-							"y": 8,
-							"z": 0
+							"y": 8
 						},
 						"color": {
 							"r": 0.2,
@@ -371,6 +443,9 @@
 	}
 },
 "modelInfo": {
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
+	},
 	"boxTex": {
 		"fileName": "data/crate.png"
 	},
@@ -394,9 +469,6 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"guntruck": {
-		"fileName": "tanks/guntruck.g3db"
 	},
 	"scene": {
 		"fileName": "data/vr_zone.g3db"
