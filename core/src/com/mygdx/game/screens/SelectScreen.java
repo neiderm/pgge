@@ -104,7 +104,7 @@ class SelectScreen extends TimedGameScreen {
         engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
 
         // point the camera to platform
-        final Vector3 camPosition = new Vector3(0, 1.2f, 3f); // ook
+        final Vector3 camPosition = new Vector3(0, 1.2f, 3.2f);
         final Vector3 camLookAt = new Vector3(0, 0, 0);
 
         cam.position.set(camPosition);
@@ -291,7 +291,7 @@ class SelectScreen extends TimedGameScreen {
         // screen pass sceneData to scene loader as parameter.
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get("Characters");
+        ModelGroup mg = sd.modelGroups.get("Characters");        // Magik string
         GameObject go = mg.getGameObject(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
 
         GameWorld.getInstance().setSceneData(path, go.objectName);
@@ -336,7 +336,7 @@ class SelectScreen extends TimedGameScreen {
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
-            GameWorld.getInstance().showScreen(newLoadingScreen("GameData.json")); // LevelOne.json
+            GameWorld.getInstance().showScreen(newLoadingScreen("gbr.json")); // LevelOne.json
 
         } else if (InputMapper.InputState.INP_SELECT == inputState) {
 

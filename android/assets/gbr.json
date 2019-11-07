@@ -1,5 +1,21 @@
 {
 "modelGroups": {
+	"LocalPlayer": {
+		"gameObjects": [
+			{
+				"objectName": "LocalPlayerObjectName",
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 11,
+							"z": -5
+						}
+					}
+				]
+			}
+		]
+	},
 	"TextureObjects": {
 		"gameObjects": [
 			{
@@ -53,37 +69,8 @@
 		"modelName": "UserMeshesModel",
 		"isKinematic": true
 	},
-	"Characters": {
+	"_Characters": {
 		"gameObjects": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": 13,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "militaryvan",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": -1,
-							"y": 13,
-							"z": -5
-						}
-					}
-				],
-				"objectName": "truck",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
-			},
 			{
 				"instanceData": [
 					{
