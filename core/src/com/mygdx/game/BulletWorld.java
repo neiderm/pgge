@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game;
 
 import com.badlogic.ashley.core.Entity;
@@ -67,7 +66,6 @@ public class BulletWorld implements Disposable {
 
         @Override
         public void onContactEnded(int userValue0, int userValue1) {
-//        public boolean onContactAdded( int userValue0, int partId0, int index0, int userValue1, int partId1, int index1) {
 
             Entity ee;
             int lutSize = userToEntityLUT.size;
@@ -93,11 +91,9 @@ public class BulletWorld implements Disposable {
                                     if (null != fa.collisionProcessor){
                                         fa.collisionProcessor.onCollision(ee);
                                     }
-                                    else // tmp
-                                       fa.onCollision(ee, 0);
                                 }
                             }
-                        } else {
+                        } else { // no longer has bullet comp, can be ignored
                             Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
                         }
                     }
@@ -111,11 +107,11 @@ public class BulletWorld implements Disposable {
                     ee = (Entity) userToEntityLUT.get(userValue1);
 
                     if (null != ee) {
-
+                        // collision processors typically result in desctruction which may likely be bullet comp being removed
                         BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
 
                         if (null != bc) {
-//                                Gdx.app.log("onContactEnded", "sumting funkee hya 111u");
+
                             FeatureComponent comp = ee.getComponent(FeatureComponent.class);
 
                             if (null != comp) {
@@ -125,8 +121,6 @@ public class BulletWorld implements Disposable {
                                     if (null != fa.collisionProcessor){
                                         fa.collisionProcessor.onCollision(ee);
                                     }
-                                    else // tmp ..
-                                          fa.onCollision(ee, 1);
                                 }
                             }
                         } else {
@@ -135,8 +129,7 @@ public class BulletWorld implements Disposable {
                     }
                 }
             }
-
-//            return true; // GN: contactadded
+//            return true;
         }
     }
 

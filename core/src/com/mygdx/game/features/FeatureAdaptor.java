@@ -102,9 +102,6 @@ public class FeatureAdaptor implements FeatureIntrf {
             CompCommon.entityAddPhysicsBody(ee, vT0);
     }
 
-    @Override
-    public void onCollision(Entity e, int id) { // mt
-    }
 
     /*
      * returns a new instance of featureAdapter - i think it was in part to separate the runtime from the (de)serialized (JSON)  in Scene Data
