@@ -259,8 +259,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
 
     /*
-     * this one is practically a vestige
-     *  or a nuisance
+     *  test objects only, not part of Game Object loading stack
      */
     public static Entity load(
             Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
@@ -270,6 +269,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return load(instance, shape, size, mass, translation);
     }
 
+    /*
+     *  used by redux screen
+     */
     public static Entity load(
             ModelInstance instance, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
 
@@ -285,18 +287,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
             instance.transform.trn(translation);
         }
 
-        if (null != shape) {
-
+//        if (null != shape)
+        {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
-
-            if (0 == mass) {
-                // special sauce here for static entity
-// set these flags in bullet comp?
-                bc.body.setCollisionFlags(
-                        bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-            }
-
             e.add(bc);
         }
         return e;
