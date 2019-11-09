@@ -17,9 +17,6 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
-import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.Family;
-import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
@@ -36,8 +33,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.FeatureComponent;
-import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.Random;
@@ -261,36 +256,26 @@ again a need to creat3e these directly in code
 
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
-            if (null != tmg) {
-                GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
-                if (null != gameObject) {
-                    gameObject.mass = 5.1f;   // should be from the model or something
-                    gameObject.isShadowed = true;
-                    gameObject.scale = new Vector3(1, 1, 1);
-                    gameObject.isPlayer = true; ////////////////// bah look at me hack
-                    gameObject.objectName = playerFeature.featureName;
-
-                    // instance data should be set w/ translation loaded from data file
-                }
-            } else {
+            if (null == tmg){  // i don't think this is a thing anymore .. ?
                 tmg = new ModelGroup(playerFeature.featureName);
+            }
 
-                GameObject gameObject = new GameObject();
-                gameObject.mass = 5.1f;
-                gameObject.isShadowed = true;
-                gameObject.scale = new Vector3(1, 1, 1);
-                gameObject.isPlayer = true; ////////////////// bah look at me hack
-                gameObject.objectName = playerFeature.featureName;
+            GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
 
+            if (null == gameObject){   // apparently not used right now
+                gameObject = new GameObject();
                 Vector3 translation = new Vector3(7, 10, -8); // where is local player spawning right now? defualt... ?
-
                 InstanceData id = new InstanceData(translation);
                 gameObject.getInstanceData().add(id);
-
                 tmg.addGameObject(gameObject);
-
-                sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
             }
+
+            gameObject.mass = 5.1f;   // should be from the model or something
+            gameObject.isShadowed = true;
+            gameObject.scale = new Vector3(1, 1, 1);
+            gameObject.isPlayer = true; ////////////////// bah look at me hack
+            gameObject.objectName = playerFeature.featureName;
+            sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
         }
         // else ... no feature name ... idk
 
