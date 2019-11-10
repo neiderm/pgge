@@ -26,25 +26,21 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
+import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
-
-import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -147,6 +143,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
     */
     public static btCollisionShape getShape(final String objectName, Vector3 size) {
 
+        if (null == objectName){
+            return null; // sorry charlie
+        }
+
         btCollisionShape shape = null;
 
         if (objectName.contains("box")) {
@@ -196,7 +196,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
      *  need to look at this comment again ? ...
      *   "in some situations having issues (works only if single node in model, and it has no local translation - see code in Bullet.java)"
      */
-    public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node /* , Mesh mesh */) {
+    public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node) {
 
         btCollisionShape shape = null;
 
@@ -205,14 +205,11 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         if (shapeName.equals("convexHullShape")) {
 
-//            if (null != mesh) {
-//                shape = MeshHelper.createConvexHullShape(mesh);
-//            }
-//            else
 //                if (null != node) { // assert
-//                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
                     shape = getShape(node);
-                    //            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+
+            Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
+                    + ((btConvexHullShape) shape).getNumPoints() );
 
         } else if (shapeName.equals("triangleMeshShape")) {
 

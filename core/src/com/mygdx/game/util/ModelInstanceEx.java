@@ -79,16 +79,22 @@ public class ModelInstanceEx {
      *    https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
      *    https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
      */
-    public static ModelInstance getModelInstance(Model model, String node, Vector3 scale) {
+    public static ModelInstance getModelInstance(Model model, String strNodeName, Vector3 scale) {
 
-        ModelInstance instance = new ModelInstance(model, node);
+        if (null == strNodeName){
+            return null; // invalid node name are handled ok, but not if null, so gth out~!
+        }
+        ModelInstance instance = new ModelInstance(model, strNodeName);
 
         if (null != instance)
         {
-            Node modelNode = instance.getNode(node);
+            Node modelNode = instance.getNode(strNodeName);
 
+            // evidently the Node Name is not valid!
             if (null == modelNode){
-                Gdx.app.log("ModelInstanceEx", "Failed, inst.nodes.size = " + instance.nodes.size);
+                Gdx.app.log(
+                        "ModelInstanceEx: ",
+                        "Can't build \"" + strNodeName + "\" null == modelNode, inst.nodes.size = " + instance.nodes.size);
                 instance = null;
 
             } else {
@@ -99,8 +105,12 @@ public class ModelInstanceEx {
                 instance.calculateTransforms();
             }
 
-            if (null != scale) {
+            // definately don't do this if instance null!
+            if (null != instance && null != scale) {
+
                 instance.nodes.get(0).scale.set(scale);
+
+//maybe it doesn't matter if calculatr transfms is done irgardreless
                 instance.calculateTransforms();
             }
         }

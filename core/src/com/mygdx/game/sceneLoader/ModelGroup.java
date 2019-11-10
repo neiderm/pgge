@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
@@ -82,7 +81,14 @@ public class ModelGroup {
     }
 
     public GameObject getGameObject(int index) {
-        return gameObjects.get(index);
+
+        if (gameObjects.size > 0) {
+
+            return gameObjects.get(index);
+
+        } else
+            return
+                    null;
     }
 
     public GameObject getGameObject(String name) {
