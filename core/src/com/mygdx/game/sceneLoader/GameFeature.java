@@ -17,27 +17,34 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.math.Vector3;
 
 public class GameFeature {
 
-    public String featureName;
-    public Vector3 v3data;
+    private String sObjectName;
     private Entity entity;
 
 
-    GameFeature(){
+    GameFeature() {
     }
 
-    GameFeature(String featureName){
+    GameFeature(String strName) {
 
-        this.featureName = featureName;
+        setObjectName(strName);
     }
 
-    public void setEntity(Entity entity){
+    public void setObjectName(String objName) {
+        this.sObjectName = new String(objName);
+    }
+
+    public String getObjectName() {
+        return this.sObjectName;
+    }
+
+    public void setEntity(Entity entity) {
         this.entity = entity;
     }
-    public Entity getEntity(){
+
+    public Entity getEntity() {
         return this.entity;
     }
 }

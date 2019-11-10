@@ -47,7 +47,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 public class SceneLoader implements Disposable {
 
     // special player
-    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string
+    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string e.g.  SceneData.LOCAL_PLAYER_FNAME
 
     // Model Group name,  has to be fixed
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
@@ -250,14 +250,14 @@ again a need to creat3e these directly in code
  * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
  * global player feature.
  */
-        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); // "Player"
+        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); //  SceneData.LOCAL_PLAYER_FNAME
 
         if (null!= playerFeature){
 
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
             if (null == tmg){  // i don't think this is a thing anymore .. ?
-                tmg = new ModelGroup(playerFeature.featureName);
+                tmg = new ModelGroup(playerFeature.getObjectName());
             }
 
             GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
@@ -274,7 +274,7 @@ again a need to creat3e these directly in code
             gameObject.isShadowed = true;
             gameObject.scale = new Vector3(1, 1, 1);
             gameObject.isPlayer = true; ////////////////// bah look at me hack
-            gameObject.objectName = playerFeature.featureName;
+            gameObject.objectName = playerFeature.getObjectName();
             sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
         }
         // else ... no feature name ... idk

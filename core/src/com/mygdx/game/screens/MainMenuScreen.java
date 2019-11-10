@@ -58,11 +58,12 @@ public class MainMenuScreen implements Screen {
         if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()) {
 
 // pass along the local player object name, wever the heck that means
-            GameFeature gf = GameWorld.getInstance().getSceneData().features.get("Player");
+            GameFeature gf =
+                    GameWorld.getInstance().getSceneData().features.get( /* SceneData.LOCAL_PLAYER_FNAME */ "Player");
             String featureName = null;
 
             if (null != gf) {
-                featureName = gf.featureName; // i hope so
+                featureName = gf.getObjectName(); // i hope so
             }
 
             switch (idxCurSel) {
