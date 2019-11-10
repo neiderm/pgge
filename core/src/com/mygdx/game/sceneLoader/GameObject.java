@@ -45,16 +45,6 @@ public class GameObject {
         this.isShadowed = true;
     }
 
-//    public GameObject(String objectName, String shapeName) {
-//        this.objectName = objectName;
-//        this.meshShape = shapeName;
-//        this.isShadowed = true;
-////        this.isKinematic = true;
-//        this.isPickable = false;
-//        this.scale = new Vector3(1, 1, 1); // placeholder
-//    }
-
-
     private Array<InstanceData> instanceData = new Array<InstanceData>();
 
     public String objectName;
@@ -63,7 +53,7 @@ public class GameObject {
     //            Vector3 translation; // needs to be only per-instance
     public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
     public float mass;
-    public String meshShape; // triangleMeshShape, convexHullShape
+    public String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
     boolean isKinematic;  //  "isStatic" ?
     private boolean isPickable;
     public boolean isShadowed;
@@ -88,12 +78,12 @@ public class GameObject {
 
         buildNodes(engine, model, null , 
 false
-);
+        );
     }
 
-    public void buildNodes(Engine engine, Model model, Vector3 translation,
+    private void buildNodes(Engine engine, Model model, Vector3 translation,
                            boolean useLocalTranslation
-) {
+    ) {
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
 
@@ -138,12 +128,17 @@ false
     void buildGameObject(
             Model model, Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
+        if (null == modelInst){
+            System.out.println("GameObject:buildgameObject()" + "  modelInst==null, probably bad GameObject or ModelGroup definiation");
+            return;
+        }
+
         InstanceData id = new InstanceData();
         int n = 0;
 
         Entity playerFeatureEntity = null;
 
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // local player
 
         if (null != playerFeature) {
             playerFeatureEntity = playerFeature.getEntity();
@@ -165,7 +160,6 @@ false
             engine.addEntity(e);
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-
 
             mc.model = model;  // bah
             int countIndex = 0;
@@ -204,6 +198,7 @@ false
                 }
             }
 
+
             GameFeature gf = GameWorld.getInstance().getFeature(featureName);  // obviously gameObject.feature Name is used as the key
 
             if (null != gf || null != adaptor) {
@@ -213,10 +208,6 @@ false
                 if (null != gf) {
                     // stash data in the gameFeature ... this is pretty sketchy as gameFeatures are singular whereas there is possibly multiple GgameObjects/instances that could reference a single GameFeature
                     gf.setEntity(e); ///   bah assigning one entity to a Game Feature
-
-                    if (null == gf.v3data) {
-                        gf.v3data = new Vector3(position); // object position from model transform
-                    }
                 }
             }
 
@@ -257,11 +248,16 @@ false
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
             e.add(bc);
 
-            // special sauce here for static entity
-            if (isKinematic) {  // if (0 == mass) ??
-// set these flags in bullet comp?
+            // "CF_KINEMATIC_OBJECT informs Bullet that the ground is a kinematic body and that we might want to change its transformation"
+            // ref https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
+            // explicit flag from json for this: need for e.g. so as not to fall thru "moving platforms" .. for
+            // landscape 'disable deactivation'   wake it when "velocity of the body is below the threshold"  (character resting on it would get "stuck")
+            //
+            if (isKinematic) {   // if (0 == mass) ??
+
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
         }
