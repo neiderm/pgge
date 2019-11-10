@@ -1,6 +1,6 @@
 {
 "features": {
-	"Platform": {}
+	"Player": {}
 },
 "modelGroups": {
 	"TextureObjects": {
@@ -16,12 +16,13 @@
 			},
 			{
 				"objectName": "boxTex",
-				"featureName": "Platform",
+				"featureName": "PlayerIsPlatform",
 				"scale": {
 					"x": 4,
 					"y": 0.2,
 					"z": 4
-				}
+				},
+				"isPlayer": true
 			}
 		],
 		"modelName": "UserMeshesModel"
@@ -53,6 +54,9 @@
 	}
 },
 "modelInfo": {
+	"guntruck": {
+		"fileName": "tanks/guntruck.g3db"
+	},
 	"boxTex": {
 		"fileName": "data/crate.png"
 	},
@@ -67,9 +71,6 @@
 	},
 	"tank": {
 		"fileName": "tanks/panzerwagen.g3db"
-	},
-	"guntruck": {
-		"fileName": "tanks/guntruck.g3db"
 	}
 }
 }

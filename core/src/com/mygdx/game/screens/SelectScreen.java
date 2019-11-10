@@ -56,6 +56,8 @@ import com.mygdx.game.systems.RenderSystem;
  */
 class SelectScreen extends TimedGameScreen {
 
+    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string
+
     private static final int N_SELECTIONS = 3;
 
     private InputMapper mapper = new InputMapper();
@@ -115,7 +117,7 @@ class SelectScreen extends TimedGameScreen {
         SceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
-        GameFeature f = GameWorld.getInstance().getFeature("Platform");
+        GameFeature f = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME);
 
         if (null != f) {
             platform = f.getEntity();

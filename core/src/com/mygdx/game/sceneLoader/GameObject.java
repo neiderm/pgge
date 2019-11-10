@@ -198,20 +198,12 @@ false
                 }
             }
 
-
-            GameFeature gf = GameWorld.getInstance().getFeature(featureName);  // obviously gameObject.feature Name is used as the key
-
-            if (null != gf || null != adaptor) {
-
+            if (null != adaptor) 
+            {
                 e.add(new FeatureComponent(adaptor));
-
-                if (null != gf) {
-                    // stash data in the gameFeature ... this is pretty sketchy as gameFeatures are singular whereas there is possibly multiple GgameObjects/instances that could reference a single GameFeature
-                    gf.setEntity(e); ///   bah assigning one entity to a Game Feature
-                }
             }
 
-            if (  this.isPlayer )
+            if (isPlayer)
             {
                 playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
             }
