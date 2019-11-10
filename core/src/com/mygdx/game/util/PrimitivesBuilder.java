@@ -200,6 +200,11 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         btCollisionShape shape = null;
 
+        if (null == node){
+            Gdx.app.log("Pblder", "getShape() null == node");
+            // return   .... probably
+        }
+
         if (null == dimensions)
             dimensions = new Vector3(1, 1, 1);
 
@@ -208,8 +213,13 @@ public class PrimitivesBuilder /* implements Disposable */ {
 //                if (null != node) { // assert
                     shape = getShape(node);
 
-            Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
-                    + ((btConvexHullShape) shape).getNumPoints() );
+                    if (null == shape){
+                        Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
+                    }
+                    else {
+                        Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
+                                + ((btConvexHullShape) shape).getNumPoints() );
+                    }
 
         } else if (shapeName.equals("triangleMeshShape")) {
 
