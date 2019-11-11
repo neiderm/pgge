@@ -31,14 +31,18 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
+import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
 import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
+import com.badlogic.gdx.physics.bullet.collision.btTriangleInfoMap;
 import com.badlogic.gdx.utils.Array;
+import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 
@@ -223,7 +227,15 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         } else if (shapeName.equals("triangleMeshShape")) {
 
-            shape = Bullet.obtainStaticNodeShape(node, false);
+            btBvhTriangleMeshShape trimeshShape =
+                    (btBvhTriangleMeshShape)Bullet.obtainStaticNodeShape(node, false);
+
+            shape = trimeshShape;
+
+            //  btTriangleInfoMap will need to be disposed (and reference kept other wise GC will eat them!
+            btTriangleInfoMap tim = new btTriangleInfoMap();
+            Collision.btGenerateInternalEdgeInfo( trimeshShape, tim );
+            BulletWorld.getInstance().addTriangleInfoMap(tim);
 
         } else if (shapeName.equals("btBoxShape")) {
 

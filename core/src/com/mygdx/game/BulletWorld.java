@@ -22,14 +22,18 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.physics.bullet.collision.ClosestRayResultCallback;
+import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.ContactListener;
 import com.badlogic.gdx.physics.bullet.collision.btBroadphaseInterface;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObjectArray;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionObjectWrapper;
 import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase;
 import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration;
+import com.badlogic.gdx.physics.bullet.collision.btManifoldPoint;
+import com.badlogic.gdx.physics.bullet.collision.btTriangleInfoMap;
 import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver;
 import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld;
 import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld;
@@ -60,9 +64,51 @@ public class BulletWorld implements Disposable {
     private Camera camera; // for debug drawing
 
     public Array<Object> userToEntityLUT;
-    private MyContactListener mcl;
+    private static Array<btTriangleInfoMap> savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
+
+    private MyContactListener mcl;         // don't delete me!~!!!!!!
+
 
     class MyContactListener extends ContactListener {
+
+        /*
+I sure am glad other people figured out the thing with collision normals and edge contacts:
+ https://hub.jmonkeyengine.org/t/physics-shapes-collide-on-flat-surfaces-triangle-boundaries/35946/2
+ https://github.com/libgdx/libgdx/issues/2534
+ https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
+ https://stackoverflow.com/questions/25605659/avoid-ground-collision-with-bullet
+
+ https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
+ https://gist.github.com/FyiurAmron/3fa2d6b55fd96e50a6cce93f5859f680
+ */
+        @Override
+//        public boolean onContactAdded(btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, int partId0, int index0, btCollisionObjectWrapper colObj1Wrap, int partId1, int index1) {
+        public boolean onContactAdded(btManifoldPoint cp,
+                                      btCollisionObjectWrapper colObj0Wrap, int partId0, int index0, boolean match0,
+                                      btCollisionObjectWrapper colObj1Wrap, int partId1, int index1, boolean match1) {
+///*
+            btCollisionObject co0 = colObj0Wrap.getCollisionObject();
+            btCollisionObject co1 = colObj1Wrap.getCollisionObject();
+            int uv0 = co0.getUserValue();
+            int uv1 = co1.getUserValue();
+
+            if (uv0 != 0 /* match0 */ ) {
+                if ( 0 != (OBJECT_FLAG | co1.getContactCallbackFlag())
+                        && 0 != (GROUND_FLAG | co1.getContactCallbackFilter()) ) {
+                    // match0, but do nothing ... collision filtering setup to notify on object->ground
+                    // collision, whereas it needs to just handle the edge contact filtering for the terrain ...
+                }
+            }
+// . ..... so it seems then the terrain will be found in the other side of the collision point so apparently
+//        here is all the handling that needs done for edge filtering - go ahead and check for the ground flag anyway
+            if ( /*uv1 != 0*/ 0 != (GROUND_FLAG | co1.getContactCallbackFlag()) ) {
+//            btCollisionShape cs1 = co1.getCollisionShape();
+//                if (cs1.className.equals("btBvhTriangleMeshShape"))
+                Collision.btAdjustInternalEdgeContacts(cp, colObj1Wrap, colObj0Wrap, partId1, index1 /* int normalAdjustFlags */);
+            }
+
+            return true;
+        }
 
         @Override
         public void onContactStarted(
@@ -75,7 +121,7 @@ public class BulletWorld implements Disposable {
             Entity ee;
             int lutSize = userToEntityLUT.size;
 
-            if ( null != colObj0 /*userValue0 > 0*/) {
+            if (match0 /* null != colObj0 */ /*userValue0 > 0*/) {
 
                 if (userValue0 < lutSize) {
 
@@ -85,7 +131,7 @@ public class BulletWorld implements Disposable {
 
                         BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
 
-                        if (null != bc) {
+                        if (null != bc) { //  getting the bc is rather useless
 
                             FeatureComponent comp = ee.getComponent(FeatureComponent.class);
 
@@ -105,7 +151,7 @@ public class BulletWorld implements Disposable {
                 }
             }
 
-            if (null != colObj1 /*userValue1 > 0*/) {
+            if (match1 /* null != colObj1 */ /*userValue1 > 0*/) {
 
                  if (userValue1 < lutSize) {
 
@@ -128,8 +174,6 @@ public class BulletWorld implements Disposable {
                                     }
                                 }
                             }
-                        } else {
-                            Gdx.app.log("onContactEnded", "no Bullet Comp (1)");
                         }
                     }
                 }
@@ -156,6 +200,8 @@ public class BulletWorld implements Disposable {
         if (null != collisionWorld) {
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
         }
+
+        savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
 
         userToEntityLUT = new Array<Object>();
         userToEntityLUT.add(null); // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
@@ -185,6 +231,11 @@ public class BulletWorld implements Disposable {
     //            is dispose'd by BulletSystem
     @Override
     public void dispose() {
+
+        for ( btTriangleInfoMap infoMap : savedTriangleInfoMapRefs){
+
+            infoMap.dispose();
+        }
 
         btCollisionObjectArray objs = collisionWorld.getCollisionObjectArray();
 
@@ -269,6 +320,15 @@ public class BulletWorld implements Disposable {
 
         collisionWorld.removeRigidBody(body);
     }
+
+    /*
+     * for static "terrain" mesh only right now, should n't need to be removed "dynamicallyt"
+     */
+    public void addTriangleInfoMap(btTriangleInfoMap tim) {
+
+        savedTriangleInfoMapRefs.add(tim);
+    }
+
 
 
     // try collision flags
