@@ -227,18 +227,9 @@ public class CompCommon {
                 bc = new BulletComponent(shape, transform, 1f); // how to set mass?
         ee.add(bc);
 
-        /* add body to bullet world (duplicated code ... refactor !!  (see GameObject)
-         */
-        btCollisionObject body = bc.body;
-//        if (null != body)
-        {
-            bc.body.setWorldTransform(transform);
-            body.setCollisionFlags(
-                    body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-
-            // map entities to int index
-            body.setUserValue(BulletWorld.getInstance().userToEntityLUT.size);
-            BulletWorld.getInstance().userToEntityLUT.add(ee);
-        }
+        /* add body to bullet world  default adds as 'OBJECT FLAG'*/
+        BulletWorld.getInstance().addBodyWithCollisionNotif(
+                ee // needs the Entity to add to the table BLAH
+        );
     }
 }

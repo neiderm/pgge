@@ -65,7 +65,8 @@ public class BulletWorld implements Disposable {
     class MyContactListener extends ContactListener {
 
         @Override
-        public void onContactStarted(btCollisionObject colObj0, btCollisionObject colObj1) {
+        public void onContactStarted(
+                btCollisionObject colObj0, boolean match0, btCollisionObject colObj1, boolean match1) {
 
             int userValue0, userValue1;
             userValue0 = colObj0.getUserValue();
@@ -267,5 +268,54 @@ public class BulletWorld implements Disposable {
     public void removeBody(btRigidBody body) {
 
         collisionWorld.removeRigidBody(body);
+    }
+
+
+    // try collision flags
+    //    https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
+    public final static short GROUND_FLAG = 1<<8;
+    public final static short OBJECT_FLAG = 1<<9;
+    public final static short NONE_FLAG = 0;
+
+    /*
+     * setup Bullet body to handle collision notification and map entity to lookup by userValue of collision notifcaitob
+     * "onContactAdded callback will only be triggered if at least one of the two colliding bodies has the CF_CUSTOM_MATERIAL_CALLBACK set"
+     *  (ref https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Contact-callbacks#contact-filtering)
+     */
+    public void addBodyWithCollisionNotif(Entity ee){
+
+        addBodyWithCollisionNotif(ee, OBJECT_FLAG, GROUND_FLAG);
+    }
+
+    public void addBodyWithCollisionNotif(Entity ee,
+                                          int flag, int filter){
+
+        BulletComponent bc = ee.getComponent(BulletComponent.class);
+
+        if (null != bc) {
+
+            btCollisionObject body = bc.body;
+            if (null != body) {
+                    // set collision flags and map entities to int index
+                    int next = userToEntityLUT.size;
+                    body.setUserValue(next);
+                    body.setCollisionFlags(
+                            body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+                    userToEntityLUT.add(ee); // what if e (body) removed?
+
+// ground ->object collision
+//                    body.setContactCallbackFlag(GROUND_FLAG);
+//                    body.setContactCallbackFilter(0);
+// object->ground collision
+                    //body.setContactCallbackFlag(OBJECT_FLAG);
+                    // body.setContactCallbackFilter(GROUND_FLAG);
+
+// Developer mode flag to turn off Contact callback filtering  for debug pps????????
+///*
+                    body.setContactCallbackFlag(flag);
+                    body.setContactCallbackFilter(filter);
+//*/
+            }
+        }
     }
 }

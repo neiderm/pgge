@@ -182,19 +182,25 @@ false
             if (null != id.adaptr) {
 
                 adaptor = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
+            }
 
-                // for now, assign Entity ref to bullet body userValue (only for feature entity right now)
-                BulletComponent bc = e.getComponent(BulletComponent.class);
-
-                if (null != bc) {
-                    btCollisionObject body = bc.body;
-                    if (null != body) {
-                        // build a map associating these entities with an int index
-                        int next = BulletWorld.getInstance().userToEntityLUT.size;
-                        body.setUserValue(next);
-                        body.setCollisionFlags(body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-                        BulletWorld.getInstance().userToEntityLUT.add(e); // what if e (body) removed?
+            // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
+            if (isKinematic   // if (0 == mass) ??
+                    || isPlayer             // make sure gound contact colllision filtering works with player character!
+                    || null != id.adaptr) {
+//
+                // tmp hac, crap
+                if (isKinematic) {
+                    // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
+                    BulletWorld.getInstance().addBodyWithCollisionNotif(
+                            e, // needs the Entity to add to the table BLAH
+                            BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
                     }
+                else {
+                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
+                    BulletWorld.getInstance().addBodyWithCollisionNotif(
+                            e, // needs the Entity to add to the table BLAH
+                            BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
                 }
             }
 
