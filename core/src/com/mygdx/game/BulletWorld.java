@@ -65,12 +65,16 @@ public class BulletWorld implements Disposable {
     class MyContactListener extends ContactListener {
 
         @Override
-        public void onContactEnded(int userValue0, int userValue1) {
+        public void onContactStarted(btCollisionObject colObj0, btCollisionObject colObj1) {
+
+            int userValue0, userValue1;
+            userValue0 = colObj0.getUserValue();
+            userValue1 = colObj1.getUserValue();
 
             Entity ee;
             int lutSize = userToEntityLUT.size;
 
-            if (userValue0 > 0) {
+            if ( null != colObj0 /*userValue0 > 0*/) {
 
                 if (userValue0 < lutSize) {
 
@@ -100,7 +104,7 @@ public class BulletWorld implements Disposable {
                 }
             }
 
-            if (userValue1 > 0) {
+            if (null != colObj1 /*userValue1 > 0*/) {
 
                  if (userValue1 < lutSize) {
 
