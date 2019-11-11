@@ -20,7 +20,11 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
@@ -54,6 +58,8 @@ public class Crapium extends OmniSensor {
 
             ModelComponent mc = sensor.getComponent(ModelComponent.class);
 
+            updatePlatformRotation(mc.modelInst.transform);
+
             Material mat = null;
             if (mc.modelInst.materials.size > 0) {
                 mat = mc.modelInst.materials.get(0);
@@ -74,7 +80,11 @@ public class Crapium extends OmniSensor {
                     }
                 }
 
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.PURPLE)); // tmp test code
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
+
+                sensor.add(new StatusComponent(true)); // delete me!
+                CompCommon.makeBurnOut(sensor, 0);
+
 
                 isActivated = false;
 
@@ -101,5 +111,37 @@ public class Crapium extends OmniSensor {
                 }
             }
         }
+    }
+
+
+    private Quaternion orientation = new Quaternion();
+    private Vector3 tmpV = new Vector3();
+    private final float ROTATION_STEP_DEGREES = 0.5f;
+    private float rotationStep = ROTATION_STEP_DEGREES;
+    private final float ROTATION_RANGE_DEGREES = 90.0f;
+    private float rotationMin = 0;
+    private float rotationMax = 0;
+
+    private void updatePlatformRotation(Matrix4 myxfm) {
+
+        myxfm.getRotation(orientation);
+        tmpV.set(0, 0, 1); // todo: get the actual "down" vector e.g. in case on inclined sfc.
+//        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
+
+        float orientationAngle = orientation.getAngleAround(tmpV);
+//        System.out.println("orientationAngle = " + orientationAngle);
+
+        if (orientationAngle > rotationMax) {
+//            System.out.println("shootamathing ...  angle > rotationMax " + orientationAngle + " " + this.vT.x);
+            rotationStep = -ROTATION_STEP_DEGREES;
+
+        } else if (orientationAngle < rotationMin) {
+//            System.out.println("shootamathing ... angle < rotationMIN " + orientationAngle + " " + this.vT.x);
+            rotationStep = ROTATION_STEP_DEGREES;
+        }
+
+        myxfm.rotate(tmpV, rotationStep);
+
+//        myxfm.getRotation(orientation); // tmp test
     }
 }
