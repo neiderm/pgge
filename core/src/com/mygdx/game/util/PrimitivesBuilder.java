@@ -74,6 +74,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
         final ModelBuilder mb = new ModelBuilder();
         long attributes =
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+
+        attributes |= VertexAttributes.Usage.TextureCoordinates;
+
         Texture tex;
 
         mb.begin();
@@ -97,7 +100,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         /*
          * these shuold be going away ;)
          */
-        attributes |= VertexAttributes.Usage.TextureCoordinates;
+//        attributes |= VertexAttributes.Usage.TextureCoordinates;
 
         tex = new Texture(Gdx.files.internal("data/crate.png"), true);
         mb.node().id = "boxTex";

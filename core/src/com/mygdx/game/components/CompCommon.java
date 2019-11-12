@@ -86,14 +86,13 @@ public class CompCommon {
     (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
     */
     public static void makeBurnOut(Entity ee, int points) {
-        makeBurnOut(
-                ee.getComponent(ModelComponent.class).modelInst, points);
+
+        makeBurnOut(ee.getComponent(ModelComponent.class).modelInst, points);
     }
 
     public static void makeBurnOut(ModelInstance mi, int points) {
 
-        String tmpObjectName = "sphereTex";
-
+        String tmpObjectName = "sphere";
 
         spawnNewGameObject(
 
@@ -105,7 +104,7 @@ public class CompCommon {
 
                 tmpObjectName);
 
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // LOCAL_PLAYER_FNAME
 
         if (null != playerFeature) {
 
