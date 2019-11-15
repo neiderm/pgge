@@ -41,6 +41,8 @@ public class LoadingScreen implements Screen {
 
     private SpriteBatch batch;
     private Texture ttrSplash;
+    private Texture ttrLoad;
+    private Texture ttrBackDrop;
 
     private int loadCounter = 0;
     private boolean isLoaded;
@@ -50,6 +52,7 @@ public class LoadingScreen implements Screen {
 
     private Screen newScreen;
 
+    private int screenTimer = (int) (60 * 2.9f);//fps*sec
 
     public enum ScreenTypes {
         SETUP,
@@ -74,16 +77,19 @@ public class LoadingScreen implements Screen {
         switch (screenType) {
             default:
             case LEVEL:
+                ttrLoad = new Texture("data/crate.png");
                 newScreen = new GameScreen();
                 break;
             case SETUP:
+                ttrLoad = new Texture("data/redbote.png");
                 newScreen = new SelectScreen();
                 break;
         }
 
+        ttrBackDrop = ttrLoad;
+        ttrSplash = new Texture("splash-screen.png");
 
         batch = new SpriteBatch();
-        ttrSplash = new Texture("data/crate.png");
 
         font = new BitmapFont(
                 Gdx.files.internal("data/font.fnt"),
@@ -97,6 +103,7 @@ public class LoadingScreen implements Screen {
 
     private StringBuilder stringBuilder = new StringBuilder();
     private BitmapFont font;
+    float alpha = 1;
 
     @Override
     public void render(float delta) {
@@ -105,7 +112,9 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.draw(ttrSplash, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+
+        batch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+
         font.draw(batch, stringBuilder,
                 GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 4f) * 3f);
         batch.end();
@@ -113,41 +122,93 @@ public class LoadingScreen implements Screen {
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        shapeRenderer.setColor(new Color(255, 0 , 0, 1));
-        shapeRenderer.rect(
-                (GameWorld.VIRTUAL_WIDTH / 4f) , (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
-                20f + loadCounter, 10);
+// if screentype == whatever?
+        if (ScreenTypes.SETUP == screenType) {
+
+            if (!isLoaded) { // show load bar
+
+                shapeRenderer.setColor(new Color(Color.BLACK)); // only while loading
+                shapeRenderer.rect(
+                        (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
+                        20f + loadCounter, 1);
+            } else {
+// fade screen?
+                if (screenTimer > 0){
+                    if (screenTimer < 60) {
+                        alpha -= 1 / 60;
+                        shapeRenderer.setColor(new Color(0, 0, 0, 1 - alpha));
+                        shapeRenderer.rect(0, 0,
+                                GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+                    }
+                }
+            }
+        } else {
+            shapeRenderer.setColor(new Color(255, 0, 0, 1));
+            shapeRenderer.rect(
+                    (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
+                    20f + loadCounter, 10);
+        }
 
         shapeRenderer.end();
+
+        if (screenTimer > 0) {
+            screenTimer -= 1;
+        }
 
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
         if (!isLoaded) {
 
-            stringBuilder.setLength(0);
-            stringBuilder.append("Loading ... ");
+            if (ScreenTypes.SETUP == screenType) {
+                stringBuilder.setLength(0);
+                stringBuilder.append("Presenting ... ");
+            } else {
+                stringBuilder.setLength(0);
+                stringBuilder.append("Loading ... ");
+            }
 
             // make the bar up to half the screen width
-            loadCounter = 
-               (int)(GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress()) ;
+            loadCounter =
+                    (int) (GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress());
 
             if (SceneLoader.getAssets().update()) {
                 SceneLoader.doneLoading();
                 isLoaded = true;
             }
-        } else {
+        } else { // is loaded
 
-            stringBuilder.setLength(0);
-            stringBuilder.append("Ready!");
+            if (ScreenTypes.SETUP == screenType) {
+
+                if (screenTimer > 0) {
+                } else {
+                    ttrBackDrop = ttrSplash;
+                    stringBuilder.setLength(0);
+                    stringBuilder.append("Tap to Start!");
+                }
+            } else {
+                screenTimer = 0;
+                stringBuilder.setLength(0);
+                stringBuilder.append("Ready!");
+            }
 
             // simple polling for a tap on the touch screen
-            if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true) || !shouldPause) {
+            // one-time check for TS input (determine wether to show touchpad controll)
+            boolean isTouched = Gdx.input.isTouched(0);
 
-                GameWorld.getInstance().showScreen(newScreen);
+            // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
+            // (but once global "isTouchscreen" is set, don't clear it ;)
+            if (!GameWorld.getInstance().getIsTouchScreen() && isTouched) {
+                GameWorld.getInstance().setIsTouchScreen(true);
+            }
+
+            if (
+                    InputMapper.InputState.INP_SELECT == mapper.getInputState(true) || !shouldPause) {
+                if (0 == screenTimer) {
+                    GameWorld.getInstance().showScreen(newScreen);
+                }
             }
         }
-
     }
 
     @Override
@@ -170,6 +231,7 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void dispose() {
+        ttrLoad.dispose();
         ttrSplash.dispose();
         batch.dispose();
         shapeRenderer.dispose();

@@ -61,14 +61,16 @@ public class SplashScreen implements Screen {
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
 //        if (mapper.checkInputState(InputMapper.InputState.INP_SELECT, true)){   .......... doesn't work for TS :(
-        if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true)) {
+
+//        if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true))
+        {
             /*
              * if no data file found, go into test  Screen
              */
             if (Gdx.files.internal(dataFileName).exists()) { // returns void so check forst  valid file path
 
                 GameWorld.getInstance().setSceneData(dataFileName);
-                GameWorld.getInstance().showScreen(new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
+                GameWorld.getInstance().showScreen(new LoadingScreen(true, LoadingScreen.ScreenTypes.SETUP));
             } else {
                 Gdx.app.log("SplachScfren", "using TestMeScreen");
                 GameWorld.getInstance().showScreen(new ReduxScreen());
