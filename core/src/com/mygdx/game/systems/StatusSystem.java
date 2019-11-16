@@ -29,11 +29,11 @@ public class StatusSystem extends IteratingSystem {
                 if (comp.lifeClock > 0) {
 
                     comp.lifeClock -= 1;
+                }
 
-                    if (0 == comp.lifeClock) {
+                if (0 == comp.lifeClock) {
 //                            // can be removed ...
-                                comp.deleteMe = true;
-                    }
+                    comp.deleteMe = true;
                 }
             }
         }
