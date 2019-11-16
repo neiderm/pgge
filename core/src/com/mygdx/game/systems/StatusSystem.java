@@ -36,7 +36,7 @@ public class StatusSystem extends IteratingSystem {
 
                         comp.dieClock -= 1;
 
-                        if (1 == comp.dieClock) {
+                        if (0 == comp.dieClock) {
                             // really die
                             if (comp.isEntityRemoveable) { // can be removed ...
 
