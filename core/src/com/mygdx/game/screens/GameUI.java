@@ -46,6 +46,7 @@ public class GameUI extends InGameMenu {
 
     public boolean canExit; // exit sensor is tripped
 
+    public static final int SCREEN_CONTINUE_TIME = 10 * 60 ; // FPS
     private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;

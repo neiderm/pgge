@@ -270,10 +270,13 @@ public class GameScreen extends TimedGameScreen {
 //                            CompCommon.explode(pickedPlayer);   //   don't really want it here (why not?)
                             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
                             CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
+
                             pickedPlayer.add(new StatusComponent(true));
+
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
-                            int continueTime = pickedPlayer.getComponent(StatusComponent.class).dieClock;
-                            continueScreenTimeUp = getScreenTimer() - continueTime; // fps
+
+//                            int continueTime = pickedPlayer.getComponent(StatusComponent.class).dieClock;
+                            continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                         }
                         break;
 
