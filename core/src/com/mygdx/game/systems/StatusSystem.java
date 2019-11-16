@@ -30,16 +30,9 @@ public class StatusSystem extends IteratingSystem {
 
                     comp.lifeClock -= 1;
 
-                } else //       if (comp.lifeClock == 0)
-                {
-                    if (comp.dieClock > 0) {
-
-                        comp.dieClock -= 1;
-
-                        if (0 == comp.dieClock) {
-                            // can be removed ...
+                    if (0 == comp.lifeClock) {
+//                            // can be removed ...
                                 comp.deleteMe = true;
-                        }
                     }
                 }
             }

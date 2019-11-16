@@ -14,10 +14,8 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
 
     private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 999 * FPS;
-    private static final int DIECLOCKDEFAULT = 10 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
-    public int dieClock = DIECLOCKDEFAULT;
 
     public boolean deleteMe;
     public int deleteFlag;
@@ -28,12 +26,10 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public StatusComponent(boolean deleteMe){
         this.deleteMe = deleteMe;
 //        this.lifeClock = 0 * FPS;
-//        this.dieClock = 0 * FPS;
     }
 
     public StatusComponent(Stage UI, int lifeClockSecs, int dieClockSecs) {
         this.UI = (GameUI)UI; // tmp need to use GameUI until
         this.lifeClock = lifeClockSecs * FPS;
-        this.dieClock = dieClockSecs * FPS;
     }
 }
