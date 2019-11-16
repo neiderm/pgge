@@ -19,22 +19,19 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public int lifeClock = LIFECLOCKDEFAULT;
     public int dieClock = DIECLOCKDEFAULT;
 
-    // hackme: all should be removeable EXCEPT player
-    public boolean isEntityRemoveable = true;
     public boolean deleteMe;
     public int deleteFlag;
 
     public StatusComponent() {
-
-        isEntityRemoveable = false; // tmp workaround for player
     }
 
     public StatusComponent(boolean deleteMe){
         this.deleteMe = deleteMe;
+//        this.lifeClock = 0 * FPS;
+//        this.dieClock = 0 * FPS;
     }
 
     public StatusComponent(Stage UI, int lifeClockSecs, int dieClockSecs) {
-        this();
         this.UI = (GameUI)UI; // tmp need to use GameUI until
         this.lifeClock = lifeClockSecs * FPS;
         this.dieClock = dieClockSecs * FPS;
