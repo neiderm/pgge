@@ -202,6 +202,7 @@ public class CompCommon {
                 bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
         StatusComponent sc = new StatusComponent();
+        sc.lifeClock = 9999;
         sc.deleteFlag = 2;         // flag bullet Comp for deletion
         ee.add(sc);
     }
