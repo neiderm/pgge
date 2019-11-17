@@ -114,7 +114,7 @@ public class ShootamaThing extends VectorSensor {
             StatusComponent sc = sensor.getComponent(StatusComponent.class);
 
             // check this since the SC is actaully added dynamically (so no point to caching)
-            if (null != sc && sc.deleteMe) {
+            if (null != sc && 0 == sc.lifeClock) {
 
                 // uses the Model Compont .transform translation so
                 CompCommon.makeBurnOut(sensor, 1000);

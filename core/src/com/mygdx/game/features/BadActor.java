@@ -46,7 +46,7 @@ public class BadActor extends KillSensor {
         // check this since the SC is actaully added dynamically (so no point to caching)
         if (null != sc) {
 
-            if (sc.deleteMe) {
+            if (0 == sc.lifeClock) {
 
                 // uses the Model Compont .transform translation so
                 CompCommon.makeBurnOut(ee, 1500);
