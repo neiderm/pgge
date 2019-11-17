@@ -96,7 +96,10 @@ public class Projectile extends KillSensor {
             if (isTriggered) {
 
                 // simple obvious action is to terminate this Projectile
-                featureEnt.add(new StatusComponent());
+                StatusComponent fsc = featureEnt.getComponent(StatusComponent.class);
+                if (null == fsc){                         // be careful not to overwrite!
+                    featureEnt.add(new StatusComponent());
+                }
 
 // some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
                 StatusComponent sc = target.getComponent(StatusComponent.class);
