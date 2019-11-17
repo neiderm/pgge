@@ -89,7 +89,7 @@ public class FeatureAdaptor implements FeatureIntrf {
         CompCommon.spawnNewGameObject(
                 ee.getComponent(ModelComponent.class).modelInst, this, tmpObjectName);
 
-        ee.add(new StatusComponent(true)); // delete me!
+        ee.add(new StatusComponent()); // delete me!
     }
 
 

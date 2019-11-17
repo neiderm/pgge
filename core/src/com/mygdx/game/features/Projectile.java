@@ -96,7 +96,7 @@ public class Projectile extends KillSensor {
             if (isTriggered) {
 
                 // simple obvious action is to terminate this Projectile
-                featureEnt.add(new StatusComponent(true));
+                featureEnt.add(new StatusComponent());
 
 // some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
                 StatusComponent sc = target.getComponent(StatusComponent.class);
@@ -107,7 +107,7 @@ public class Projectile extends KillSensor {
                 {
                     // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
                     //            target.getComponent(StatusComponent.class).lifeClock = 0; ... use target clock maybe idk
-                    target.add(new StatusComponent(true));
+                    target.add(new StatusComponent());
 
                     FeatureComponent fc = target.getComponent(FeatureComponent.class);
 

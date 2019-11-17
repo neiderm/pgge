@@ -86,13 +86,6 @@ public class BurnOut extends FeatureAdaptor {
 
 //        if (isActivated)
         {
-            // Status System provides a die timer ... that would be fine, as once we are done we are finally done (so it's a simple dleteion)
-/*
-            if (null == sc){
-                sc = new StatusComponent(null, 0, 3);
-                ee.add( sc );
-            }
-*/
             if (clock > 0) {
 
                 clock -= 1;     // could have a Status Comp provide this timer eh????
@@ -122,12 +115,13 @@ public class BurnOut extends FeatureAdaptor {
                     cc.a -= d_ALPHA;
                     ModelInstanceEx.setColorAttribute(mi, cc); // this one sets the blending attribute .. doesn't matter
                 }
-            } else {     // kill me
-//                StatusComponent sc = sensor.getComponent((StatusComponent.class));
-//                if (null == sc)
-///*
-                ee.add(new StatusComponent(true));
-//*/
+            } else {
+                // kill me  - most of the time not having to protect against re-adding the Status Comp, but this one would't stay dead :(
+                StatusComponent sc = ee.getComponent((StatusComponent.class));
+                if (null == sc) {
+                    ee.add(new StatusComponent());
+                }
+
                 // check if we we're  using a "local" Texture  ( ??? wtfe )     and if so dispose()
                 if (null != myTexture) {
                     myTexture.dispose(); // idfk

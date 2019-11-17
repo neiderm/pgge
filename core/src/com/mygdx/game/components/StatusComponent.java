@@ -13,7 +13,7 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public GameUI UI; // UI is realized as instance of Stage ... tmp need to use GameUI until figure out the interface
 
     private static final int FPS = 60;
-    private static final int LIFECLOCKDEFAULT = 999 * FPS;
+    private static final int LIFECLOCKDEFAULT = 0 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
 
@@ -23,12 +23,7 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public StatusComponent() {
     }
 
-    public StatusComponent(boolean deleteMe){
-        this.deleteMe = deleteMe;
-//        this.lifeClock = 0 * FPS;
-    }
-
-    public StatusComponent(Stage UI, int lifeClockSecs, int dieClockSecs) {
+    public StatusComponent(Stage UI, int lifeClockSecs, int unused) {
         this.UI = (GameUI)UI; // tmp need to use GameUI until
         this.lifeClock = lifeClockSecs * FPS;
     }
