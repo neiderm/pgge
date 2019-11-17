@@ -174,7 +174,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        pickedPlayer.add(new StatusComponent(playerUI, playerUI.getScreenTimer(), 10));
+        pickedPlayer.add(new StatusComponent(playerUI, 9999, 10));
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
