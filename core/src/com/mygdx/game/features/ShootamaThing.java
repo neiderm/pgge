@@ -39,6 +39,7 @@ public class ShootamaThing extends VectorSensor {
     private final int CAN_SHOOOT_INTERVAL = 64;
     private int canShootTimer = 0;
 
+    int prev; // bah
 
     @Override
     public void init(Object target) {
@@ -116,8 +117,11 @@ public class ShootamaThing extends VectorSensor {
             // check this since the SC is actaully added dynamically (so no point to caching)
             if (null != sc && 0 == sc.lifeClock) {
 
-                // uses the Model Compont .transform translation so
-                CompCommon.makeBurnOut(sensor, 1000);
+                if (0 == prev++) { // bah crap
+
+                    // uses the Model Compont .transform translation so
+                    CompCommon.makeBurnOut(sensor, 1000);
+                }
             }
             // else System.out.println();
         }

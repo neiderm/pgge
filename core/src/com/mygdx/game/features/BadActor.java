@@ -24,6 +24,8 @@ import com.mygdx.game.components.StatusComponent;
  */
 public class BadActor extends KillSensor {
 
+    private int prev;
+
     @Override
     public void update(Entity ee) {
 
@@ -48,8 +50,11 @@ public class BadActor extends KillSensor {
 
             if (0 == sc.lifeClock) {
 
-                // uses the Model Compont .transform translation so
-                CompCommon.makeBurnOut(ee, 1500);
+                if (0 == prev++){ // bah crap
+
+                    // uses the Model Compont .transform translation so
+                    CompCommon.makeBurnOut(ee, 1500);
+                }
             }
         }
     }

@@ -21,6 +21,8 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 
+    int prev; // hack crap
+
     @Override
     public void update(Entity sensor) {
 
@@ -66,8 +68,11 @@ public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 
                 if (0 == sc.lifeClock) {
 
-                    // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut(sensor, 1000);
+                    if (0 == prev++) {// bah crap
+
+                        // uses the Model Compont .transform translation so
+                        CompCommon.makeBurnOut(sensor, 1000);
+                    }
                 }
             }
             // else System.out.println();
