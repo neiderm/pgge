@@ -25,12 +25,12 @@ public class StatusSystem extends IteratingSystem {
             StatusComponent comp = entity.getComponent(StatusComponent.class);
 
             if (null != comp) {
-
+/*
                 if (comp.lifeClock > 0) {
 
                     comp.lifeClock -= 1;
                 }
-
+*/
                 if (0 == comp.lifeClock) {
 //                            // can be removed ...
                     comp.deleteMe = true;
