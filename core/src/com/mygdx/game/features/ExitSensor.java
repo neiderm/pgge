@@ -1,7 +1,6 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -26,12 +25,7 @@ public class ExitSensor extends OmniSensor {
             if (isTriggered) {
 
                 StatusComponent sc = target.getComponent(StatusComponent.class);
-
-                if (null != sc.UI) {
-
-                    sc.UI.canExit = true;
-                } else
-                    Gdx.app.log("barf", "gacked");
+                sc.canExit = true;
             }
         }
     }

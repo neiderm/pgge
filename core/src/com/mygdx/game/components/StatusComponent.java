@@ -16,7 +16,9 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     private static final int LIFECLOCKDEFAULT = 0 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
+    public int bounty;
 
+    public boolean canExit;
     public boolean deleteMe;
     public int deleteFlag;
 

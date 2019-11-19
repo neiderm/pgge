@@ -264,7 +264,8 @@ public class GameScreen extends TimedGameScreen {
 
                     case ROUND_ACTIVE:
                     case ROUND_COMPLETE_WAIT:
-                        int lc = pickedPlayer.getComponent(StatusComponent.class).lifeClock;
+                        StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
+                        int lc = sc.lifeClock;
 
                         if (0 == lc){
 //                            CompCommon.explode(pickedPlayer);   //   don't really want it here (why not?)
@@ -275,6 +276,8 @@ public class GameScreen extends TimedGameScreen {
 
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                         }
+
+                        canExit = sc.canExit; // setting flag here because lol GameUI.java has not yet got access to local player entity
                         break;
 
                     case ROUND_OVER_RESTART:
