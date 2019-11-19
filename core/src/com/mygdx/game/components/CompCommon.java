@@ -17,6 +17,7 @@ package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -91,6 +92,10 @@ public class CompCommon {
     }
 
     public static void makeBurnOut(ModelInstance mi, int points) {
+
+        if (0 == points){
+            mi.userData = new Color(Color.YELLOW); // hacky hackhackster
+        }
 
         String tmpObjectName = "sphere";
 

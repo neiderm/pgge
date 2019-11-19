@@ -33,7 +33,8 @@ public class BurnOut extends FeatureAdaptor {
 
     private int clock = 128;
     private Vector3 scale = new Vector3(1, 1, 1);
-    private Color cc = new Color(Color.FIREBRICK);
+    private final Color cc0 = new Color(Color.FIREBRICK);
+    private Color cc = cc0;
 
     // save original model material attributes ? big hack!@
     private TextureAttribute fxTextureAttrib;
@@ -43,14 +44,9 @@ public class BurnOut extends FeatureAdaptor {
     public BurnOut() { // mt
     }
 
-    private BurnOut(Material mat) {
-
-        userData = mat;
-    }
-
     public BurnOut(ModelInstance mi) {
 
-        this(mi.materials.get(0));
+        userData =  mi;
     }
 
     @Override
@@ -60,7 +56,13 @@ public class BurnOut extends FeatureAdaptor {
 //            Class c = object.getClass();
 //            if (c.toString().contains("g3d.Material"))  // lazy , discard the full class path
             {
-                Material saveMat = (Material) object;
+                ModelInstance modelInstance = (ModelInstance)object;
+
+                if (modelInstance.userData != null){
+                    cc = (Color)modelInstance.userData; // hackity hack don't hack back
+                }
+
+                Material saveMat = modelInstance.materials.get(0);
 
                 TextureAttribute tmpTa = (TextureAttribute) saveMat.get(TextureAttribute.Diffuse);
 
