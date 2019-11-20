@@ -10,14 +10,13 @@ import com.mygdx.game.screens.GameUI;
 
 public class StatusComponent /* "UIComponent" ? */ implements Component {
 
-    public GameUI UI; // UI is realized as instance of Stage ... tmp need to use GameUI until figure out the interface
-
     private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 0 * FPS;
 
     public int lifeClock = LIFECLOCKDEFAULT;
     public int prizeCount;
-    public int bounty;
+    public int bounty; // is both the players points loot as well as point value of a prize or
+                       // killed-thing (added to players loot of course)
 
     public boolean canExit;
     public boolean deleteMe;
@@ -26,8 +25,8 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public StatusComponent() {
     }
 
-    public StatusComponent(Stage UI, int lifeClockSecs, int unused) {
-        this.UI = (GameUI)UI; // tmp need to use GameUI until
+    public StatusComponent(int lifeClockSecs) {
+
         this.lifeClock = lifeClockSecs * FPS;
     }
 }

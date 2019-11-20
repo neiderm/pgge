@@ -348,8 +348,8 @@ public class GameUI extends InGameMenu {
     }
 
 
-    public void addScore(int points) {
-            score += points;
+    public void setScore(int points) {
+            score = points;
     }
 
     private int getScore() {

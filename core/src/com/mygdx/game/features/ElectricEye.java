@@ -52,6 +52,7 @@ public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 
 
 // watch it ... i'm a BadActor  now!
+//                target.getComponent(StatusComponent.class).lifeClock -= 10;
                 target.getComponent(StatusComponent.class).lifeClock = 0; // use flags get rid of this
             }
 
@@ -70,8 +71,9 @@ public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 
                     if (0 == prev++) {// bah crap
 
+                        sc.bounty = 1000;
                         // uses the Model Compont .transform translation so
-                        CompCommon.makeBurnOut(sensor, 1000);
+                        CompCommon.makeBurnOut(sensor, sc.bounty);
                     }
                 }
             }

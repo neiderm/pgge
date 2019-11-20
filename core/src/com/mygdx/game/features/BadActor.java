@@ -52,8 +52,9 @@ public class BadActor extends KillSensor {
 
                 if (0 == prev++){ // bah crap
 
+                    sc.bounty = 1500;
                     // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut(ee, 1500);
+                    CompCommon.makeBurnOut(ee, sc.bounty);
                 }
             }
         }

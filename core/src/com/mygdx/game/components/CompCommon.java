@@ -85,6 +85,8 @@ public class CompCommon {
     killWithPoints ... gaBoom !
     The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
     (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+
+     IN: points : because floating signboarded  points
     */
     public static void makeBurnOut(Entity ee, int points) {
 
@@ -108,21 +110,6 @@ public class CompCommon {
                 new BurnOut(mi),  // ... this one happens to do special sauce w/ the so-called 'userData' hackamathing (to get mesh/texture info to render the efferct!)
 
                 tmpObjectName);
-
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // LOCAL_PLAYER_FNAME
-
-        if (null != playerFeature) {
-
-            StatusComponent psc = playerFeature.getEntity().getComponent(StatusComponent.class);
-
-            if (null != psc) {
-                if (null == psc.UI)
-                    System.out.println(); // i think race condition, confirm assert ... somehow player kills BA, but BA is kills player, so SC->UI going invalid
-                else {
-                    psc.UI.addScore(points);
-                }
-            }
-        }
     }
 
     /*

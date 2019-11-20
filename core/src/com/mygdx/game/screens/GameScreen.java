@@ -174,7 +174,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        pickedPlayer.add(new StatusComponent(playerUI, 9999, 10));
+        pickedPlayer.add(new StatusComponent(9999));
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -280,6 +280,7 @@ public class GameScreen extends TimedGameScreen {
                         // hackity crap setting flag here because lol GameUI.java has not yet got access to local player entity
                         canExit = sc.canExit;
                         prizeCount = sc.prizeCount;
+                        setScore(sc.bounty); // spare me your judgement ... at least do it with a setter ..
                         break;
 
                     case ROUND_OVER_RESTART:
@@ -461,8 +462,10 @@ public class GameScreen extends TimedGameScreen {
                 removeBulletComp(e);
                 engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
 
-            } else {
+                StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
+                psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
 
+            } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
 
                     removeBulletComp(e);
