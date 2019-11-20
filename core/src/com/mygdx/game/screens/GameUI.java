@@ -44,7 +44,9 @@ import java.util.Locale;
 
 public class GameUI extends InGameMenu {
 
-    public boolean canExit; // exit sensor is tripped
+    // too bad so sad package-private vars are messed w/ by gamescreeen
+    boolean canExit; // exit sensor is tripped
+    int prizeCount;
 
     public static final int SCREEN_CONTINUE_TIME = 10 * 60 ; // FPS
     private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
@@ -53,7 +55,6 @@ public class GameUI extends InGameMenu {
 
     int continueScreenTimeUp;
 
-    private int hitCount;
     private int score; // my certain game the score resets every screen anyway so who cares
 
     private StringBuilder stringBuilder = new StringBuilder();
@@ -355,17 +356,9 @@ public class GameUI extends InGameMenu {
         return score;
     }
 
-    public int incHitCount(int ct) {
 
-//        if ( ! GameWorld.getInstance().getIsPaused())
-        {
-            hitCount += ct;
-        }
-        return hitCount;
-    }
-
-    private int getHitCount(){
-        return hitCount;
+    private int getPrizeCount(){
+        return prizeCount;
     }
 
 
@@ -460,7 +453,7 @@ public class GameUI extends InGameMenu {
         switch (GameWorld.getInstance().getRoundActiveState()) {
 
             case ROUND_ACTIVE:
-                if (getHitCount() >= SceneLoader.numberOfCrapiums) {
+                if (getPrizeCount() >= SceneLoader.numberOfCrapiums) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
 //                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 }
@@ -553,7 +546,7 @@ public class GameUI extends InGameMenu {
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(getHitCount() ).append(" / " + SceneLoader.numberOfCrapiums));
+            itemsLabel.setText(stringBuilder.append(getPrizeCount() ).append(" / " + SceneLoader.numberOfCrapiums));
 
             stringBuilder.setLength(0);
             scoreLabel.setText(stringBuilder.append(getScore() ));

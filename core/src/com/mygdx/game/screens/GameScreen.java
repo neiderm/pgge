@@ -277,7 +277,9 @@ public class GameScreen extends TimedGameScreen {
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                         }
 
-                        canExit = sc.canExit; // setting flag here because lol GameUI.java has not yet got access to local player entity
+                        // hackity crap setting flag here because lol GameUI.java has not yet got access to local player entity
+                        canExit = sc.canExit;
+                        prizeCount = sc.prizeCount;
                         break;
 
                     case ROUND_OVER_RESTART:
