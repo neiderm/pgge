@@ -27,7 +27,6 @@ import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.features.BurnOut;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelInfo;
@@ -95,10 +94,12 @@ public class CompCommon {
 
     public static void makeBurnOut(ModelInstance mi, int points) {
 
-        if (0 == points){
-            mi.userData = new Color(Color.YELLOW); // hacky hackhackster
+        if (0 == points){ // marker for prize pickup
+            mi.userData = new Color(Color.SKY); // hacky hackhackster
         }
-
+        else if (points < 0){ // marker for hit/collision w/ damage
+            mi.userData = new Color(Color.YELLOW);
+        }
         String tmpObjectName = "sphere";
 
         spawnNewGameObject(
