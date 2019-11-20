@@ -8,16 +8,15 @@ import com.mygdx.game.screens.GameUI;
  * Created by neiderm on 7/5/2018.
  */
 
-public class StatusComponent /* "UIComponent" ? */ implements Component {
+public class StatusComponent implements Component {
 
-    private static final int FPS = 60;
-    private static final int LIFECLOCKDEFAULT = 0 * FPS;
+    //    private static final int FPS = 60;
+    private static final int LIFECLOCKDEFAULT = 0;
 
     public int lifeClock = LIFECLOCKDEFAULT;
     public int prizeCount;
     public int bounty; // is both the players points loot as well as point value of a prize or
-                       // killed-thing (added to players loot of course)
-
+    //  killed-thing (added to players loot of course)
     public boolean canExit;
     public boolean deleteMe;
     public int deleteFlag;
@@ -25,8 +24,8 @@ public class StatusComponent /* "UIComponent" ? */ implements Component {
     public StatusComponent() {
     }
 
-    public StatusComponent(int lifeClockSecs) {
+    public StatusComponent(int count) {
 
-        this.lifeClock = lifeClockSecs * FPS;
+        this.lifeClock = count;
     }
 }
