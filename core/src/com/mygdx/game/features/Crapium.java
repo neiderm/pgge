@@ -82,9 +82,9 @@ public class Crapium extends OmniSensor {
 
                 ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
 
-                sensor.add(new StatusComponent()); // delete me!
+                sensor.add(new StatusComponent()); // delete me! ... 0 points bounty
                 CompCommon.makeBurnOut(
-                        sensor.getComponent(ModelComponent.class).modelInst, 0);
+                        sensor.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.ACQUIRE);
 
 
                 isActivated = false;
@@ -96,7 +96,7 @@ public class Crapium extends OmniSensor {
                     StatusComponent sc = lclPlayer.getComponent(StatusComponent.class);
 
                     if (null != sc) {
-                            sc.prizeCount += 1;
+                        sc.prizeCount += 1;
                     }
                 }
             } else {

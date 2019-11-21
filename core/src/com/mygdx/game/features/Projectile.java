@@ -23,10 +23,12 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.util.ModelInstanceEx;
 
 public class Projectile extends KillSensor {
@@ -117,16 +119,17 @@ public class Projectile extends KillSensor {
                     if (null != fc) {
 
                         FeatureAdaptor fa = fc.featureAdpt;
-// h mmmm better b carful here
-//                        fa.init(engine); // ha hackity BS !
-// "tANKS" etc. ?? "
                         fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass target as arg to update()!!!
 
                     } else {
 
 // "tANKS" etc. presenetly are hare .. there were characters before there were features so that needs figured out
-                        ModelComponent tmc = target.getComponent(ModelComponent.class);
-                        CompCommon.exploducopia(tmc.modelInst, tmc.modelInfoIndx);
+                        StatusComponent tsc = target.getComponent(StatusComponent.class);
+                        if (null != tsc){
+                            tsc.bounty = 1000; // default whatever
+                        }
+
+                        Projectile.exploducopia(target.getComponent(ModelComponent.class));
                     }
                 }
             }
@@ -155,6 +158,34 @@ public class Projectile extends KillSensor {
         } else {
             // no collision imminient so keep it moving along
             fmc.modelInst.transform.trn(vF);
+        }
+    }
+
+
+    private static void exploducopia(ModelComponent tgtmc) {
+        // has local translation but also need to set in instance w/ the "parent" instance translation
+        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
+        int countIndex = 0;
+
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        String targetMdlInfoKey = null;
+
+        for (String key : sd.modelInfo.keySet()) {
+            if (tgtmc.modelInfoIndx == countIndex) {
+//                ModelInfo mi = sd.modelInfo.get(key);
+                targetMdlInfoKey = key;
+                break;
+            }
+            countIndex += 1;
+        }
+
+        if (null != targetMdlInfoKey) {
+
+            CompCommon.exploducopia(tgtmc.modelInst, targetMdlInfoKey);
+
+        } else {
+            System.out.println("no targetMdlInfoKey found");
+            CompCommon.makeBurnOut(tgtmc.modelInst, CompCommon.ImpactType.FATAL);
         }
     }
 }

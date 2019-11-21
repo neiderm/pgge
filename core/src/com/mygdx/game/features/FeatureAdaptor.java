@@ -84,10 +84,17 @@ public class FeatureAdaptor implements FeatureIntrf {
 
 // userData = ?  ... is a java object, cast to anything ... so  is there any sensible default ?
 
-        String tmpObjectName = "sphere";
+        final String tmpObjectName = "sphere";
+
+        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
+        ee.getComponent(ModelComponent.class).modelInst.transform.getTranslation(translation);
+
 
         CompCommon.spawnNewGameObject(
-                ee.getComponent(ModelComponent.class).modelInst, this, tmpObjectName);
+                new Vector3(1, 1, 1),
+                translation,
+                this,  // pass-thru
+                tmpObjectName);
 
         ee.add(new StatusComponent()); // delete me!
     }
@@ -168,21 +175,21 @@ public class FeatureAdaptor implements FeatureIntrf {
 
         return adaptor;
     }
-// obviously this cpy paste search replace
+    // obviously this cpy paste search replace
     private static CollisionProcessorIntrf cpyColllisionProcessor(CollisionProcessorIntrf cpi) {
 
         CollisionProcessorIntrf cpy = null;
-if (null != cpi) {
-    Class c = cpi.getClass();
+        if (null != cpi) {
+            Class c = cpi.getClass();
 
-    try {
-        cpy = (CollisionProcessorIntrf) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
+            try {
+                cpy = (CollisionProcessorIntrf) c.newInstance(); // have to cast this ... can cast to the base-class and it will still take the one of the intended sub-class!!
 
-    } catch (Exception ex) {
+            } catch (Exception ex) {
 
-        ex.printStackTrace();
-    }
-}
+                ex.printStackTrace();
+            }
+        }
         return cpy;
     }
 }

@@ -79,7 +79,7 @@ public class GameScreen extends TimedGameScreen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
     private CameraInputController camController; // FirstPersonCameraController camController;
-//    private BitmapFont font;
+    //    private BitmapFont font;
 //    private OrthographicCamera guiCam;
 //    private SpriteBatch batch = new SpriteBatch();
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -174,7 +174,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        pickedPlayer.add(new StatusComponent(40));
+        pickedPlayer.add(new StatusComponent(20));            // max damage
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -213,12 +213,13 @@ public class GameScreen extends TimedGameScreen {
                 tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
                 // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-  //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+                //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
 //                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
                 /*
                  * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
                  */
-                CompCommon.spawnNewGameObject( new Vector3(0.1f, 0.1f, 0.1f),
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f),
                         trans,
                         new Projectile( target, tmpM ),
                         "cone");
@@ -270,7 +271,8 @@ public class GameScreen extends TimedGameScreen {
                         if (0 == lc){
 //                            CompCommon.explode(pickedPlayer);   //   don't really want it here (why not?)
                             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-                            CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
+                            CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
+//                            CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
 
@@ -463,8 +465,8 @@ public class GameScreen extends TimedGameScreen {
                 engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
 
                 StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-                psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
-
+                if (sc.bounty > 0) // tmp for debug
+                    psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
 

@@ -121,8 +121,8 @@ public class ShootamaThing extends VectorSensor {
 
                     sc.bounty = 1200;
                     // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut(
-                            sensor.getComponent(ModelComponent.class).modelInst, sc.bounty);
+                    CompCommon.makeBurnOut( // Fatal, kills itself
+                            sensor.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.FATAL);
                 }
             }
             // else System.out.println();
@@ -191,7 +191,8 @@ public class ShootamaThing extends VectorSensor {
         /*
          * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
          */
-        CompCommon.spawnNewGameObject(new Vector3(0.2f, 0.2f, 0.2f),
+        CompCommon.spawnNewGameObject(
+                new Vector3(0.2f, 0.2f, 0.2f),
                 trans,
                 new Projectile(target, tmpM),
                 "sphere");

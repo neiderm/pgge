@@ -64,7 +64,8 @@ public class ElectricEye extends  VectorSensor {
                         lc -= 10;
                         if (lc > 0){ // don't Burn Out on final hit (explodacopia)
                             // use the target model instance texture etc.
-                            CompCommon.makeBurnOut(target.getComponent(ModelComponent.class).modelInst, -1);
+                            CompCommon.makeBurnOut(
+                                    target.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.DAMAGING);
                         }else{
                             lc = 0;
                         }
@@ -95,7 +96,7 @@ public class ElectricEye extends  VectorSensor {
                         sc.bounty = 1000;
                         // uses the Model Compont .transform translation so
                         CompCommon.makeBurnOut(
-                                sensor.getComponent(ModelComponent.class).modelInst, sc.bounty);
+                                sensor.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.FATAL);
                     }
                 }
             }

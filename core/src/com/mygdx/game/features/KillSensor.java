@@ -54,7 +54,7 @@ public class KillSensor extends OmniSensor {
                     if (lc > 0){ // don't Burn Out on final hit (explodacopia)
 
                         CompCommon.makeBurnOut(
-                                target.getComponent(ModelComponent.class).modelInst, -1);
+                                target.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.DAMAGING);
                     }else{
                         lc = 0;
                     }

@@ -55,8 +55,8 @@ public class BadActor extends KillSensor {
 
                     sc.bounty = 1500;
                     // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut(
-                            ee.getComponent(ModelComponent.class).modelInst, sc.bounty);
+                    CompCommon.makeBurnOut( // Fatal, kills itself
+                            ee.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.FATAL);
                 }
             }
         }
