@@ -73,7 +73,8 @@ public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 
                         sc.bounty = 1000;
                         // uses the Model Compont .transform translation so
-                        CompCommon.makeBurnOut(sensor, sc.bounty);
+                        CompCommon.makeBurnOut(
+                                sensor.getComponent(ModelComponent.class).modelInst, sc.bounty);
                     }
                 }
             }

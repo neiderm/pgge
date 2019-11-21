@@ -87,11 +87,6 @@ public class CompCommon {
 
      IN: points : because floating signboarded  points
     */
-    public static void makeBurnOut(Entity ee, int points) {
-
-        makeBurnOut(ee.getComponent(ModelComponent.class).modelInst, points);
-    }
-
     public static void makeBurnOut(ModelInstance mi, int points) {
 
         if (0 == points){ // marker for prize pickup

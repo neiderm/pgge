@@ -17,6 +17,7 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 
 /*
@@ -54,7 +55,8 @@ public class BadActor extends KillSensor {
 
                     sc.bounty = 1500;
                     // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut(ee, sc.bounty);
+                    CompCommon.makeBurnOut(
+                            ee.getComponent(ModelComponent.class).modelInst, sc.bounty);
                 }
             }
         }
