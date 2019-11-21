@@ -22,6 +22,9 @@ public class ModelComponent implements Component {
     public int modelInfoIndx = -1;
     private static int instcnt = 0;
 
+    // name of loading Gameobject, kludgily used for some things
+    public String strObjectName;
+
 
     public ModelComponent(ModelInstance instance) {
 

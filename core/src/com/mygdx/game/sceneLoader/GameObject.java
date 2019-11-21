@@ -45,6 +45,13 @@ public class GameObject {
         this.isShadowed = true;
     }
 
+    public GameObject(String objectName) {
+
+        this();
+
+        this.objectName = objectName;
+    }
+
     private Array<InstanceData> instanceData = new Array<InstanceData>();
 
     public String objectName;
@@ -54,7 +61,7 @@ public class GameObject {
     public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
     public float mass;
     public String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
-    boolean isKinematic;  //  "isStatic" ?
+    boolean isKinematic;  //  "is Platform" ?
     private boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
@@ -76,13 +83,12 @@ public class GameObject {
      */
     void buildNodes(Engine engine, Model model) {
 
-        buildNodes(engine, model, null , 
-false
+        buildNodes(engine, model, null , false
         );
     }
 
-    private void buildNodes(Engine engine, Model model, Vector3 translation,
-                           boolean useLocalTranslation
+    private void buildNodes(
+            Engine engine, Model model, Vector3 translation, boolean useLocalTranslation
     ) {
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
@@ -144,6 +150,20 @@ false
             playerFeatureEntity = playerFeature.getEntity();
         }
 
+        int countIndex = 0;
+        int keyIndex = 0xffff;
+        String strObjNameModelInfoKey = new String();
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        for (String key : sd.modelInfo.keySet()){
+
+            if (key.equals( this.objectName )) {
+                keyIndex = countIndex;
+                strObjNameModelInfoKey = new String(this.objectName);
+                break;
+            }
+            countIndex += 1;
+        }
+
         do { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
 
             if (instanceData.size > 0) {
@@ -162,26 +182,22 @@ false
             ModelComponent mc = e.getComponent(ModelComponent.class);
 
             mc.model = model;  // bah
-            int countIndex = 0;
 
-           SceneData sd = GameWorld.getInstance().getSceneData();
-           for (String key : sd.modelInfo.keySet()){
-
-               if (key.equals( this.objectName )) {
-                   mc.modelInfoIndx = countIndex;    // ok maybe this is dumb why not just keep the name string 
-                   break;
-               }
-               countIndex += 1;
-           }
+            if (0xffff== keyIndex){
+                System.out.println("keyindex?");
+            }
+            mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
+// grab the game object name string anyway
+            mc.strObjectName = new String( this.objectName );
 
             Vector3 position = new Vector3();
             position = mc.modelInst.transform.getTranslation(position);
 
-            FeatureAdaptor adaptor = null;
+            FeatureAdaptor adapter = null;
 
             if (null != id.adaptr) {
 
-                adaptor = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
+                adapter = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
             }
 
             // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
@@ -195,7 +211,7 @@ false
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
                             e, // needs the Entity to add to the table BLAH
                             BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
-                    }
+                }
                 else {
                     // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
@@ -204,9 +220,9 @@ false
                 }
             }
 
-            if (null != adaptor) 
+            if (null != adapter)
             {
-                e.add(new FeatureComponent(adaptor));
+                e.add(new FeatureComponent(adapter));
             }
 
             if (isPlayer)
