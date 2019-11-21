@@ -29,8 +29,6 @@ import com.mygdx.game.features.BurnOut;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
-import com.mygdx.game.sceneLoader.ModelInfo;
-import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
@@ -41,107 +39,77 @@ public class CompCommon {
     CompCommon() { // mt
     }
 
-    public static void exploducopia(ModelInstance modelInst, int modelInfoIndx) {
+    public enum ImpactType {
+        FATAL,
+        DAMAGING,
+        ACQUIRE
+    }
 
-        // has local translation but also need to set in instance w/ the "parent" instance translation
-        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
-        int countIndex = 0;
-        int targetModelGroupIndex = modelInfoIndx;
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        String targetMdlInfoKey = null;
+    /*
+         note: caller decides if/how to dispose of its target
+     this is still wonky and need generalized more
 
-        for (String key : sd.modelInfo.keySet()) {
-            if (targetModelGroupIndex == countIndex) {
-                ModelInfo mi = sd.modelInfo.get(key);
-                targetMdlInfoKey = key;
-                break;
-            }
-            countIndex += 1;
-        }
-
-/*
- this is still wonky and need generalized more
- */
-        if (null != targetMdlInfoKey) {
-
+     can designate what hierarchy "level" is the root node at which to load?
+     kludgey  loading being done for exploding model
+     */
+    public static void exploducopia(ModelInstance modelInst, String targetMdlInfoKey) {
+//        if (null != targetMdlInfoKey)
+        {
             Vector3 translation = new Vector3();
             modelInst.transform.getTranslation(translation);
             translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
 
+// note * .... need to inform the level !!!!!!
             spawnNewGameObject(
-                    null, translation, "*", targetMdlInfoKey, true);
-        } else {
-            System.out.println("no targetMdlInfoKey found");
-            makeBurnOut(modelInst, 100);
+                    translation, "*", targetMdlInfoKey, true);
         }
-
-        // remove intAttribute cullFace so both sides can show? Enable de-activation? Make the parts disappear?
-        // mark dead entity for deletion ... do it here?
-//        picked.add(new StatusComponent(true));       ........ nope ... caller decides if/how to dispose of its target
     }
 
     /*
-    killWithPoints ... gaBoom !
     The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
     (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
 
      IN: points : because floating signboarded  points
     */
-    public static void makeBurnOut(ModelInstance mi, int points) {
+    public static void makeBurnOut(ModelInstance mi, ImpactType useFlags) {
 
-        if (0 == points){ // marker for prize pickup
+        if (ImpactType.ACQUIRE == useFlags){ // marker for prize pickup
             mi.userData = new Color(Color.SKY); // hacky hackhackster
         }
-        else if (points < 0){ // marker for hit/collision w/ damage
+        else if (ImpactType.DAMAGING == useFlags){ // marker for hit/collision w/ damage
             mi.userData = new Color(Color.YELLOW);
         }
-        String tmpObjectName = "sphere";
 
-        spawnNewGameObject(
+        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
 
-                mi, // just for the translation
+        InstanceData id = new InstanceData( mi.transform.getTranslation(translation));
 
-                // must be a non-anonynoyus class to work thru gameobject.build. For this default use, it is
-                // ok to have a constructor for a specific type of argument ...
-                new BurnOut(mi),  // ... this one happens to do special sauce w/ the so-called 'userData' hackamathing (to get mesh/texture info to render the efferct!)
+        id.adaptr = new BurnOut(mi); // there it is
 
-                tmpObjectName);
+        final String tmpObjectName = "sphere";
+        GameObject gameObject = new GameObject( tmpObjectName );
+        gameObject.getInstanceData().add(id);
+
+        // insert a newly created game OBject into the "spawning" model group
+        GameWorld.getInstance().addSpawner(gameObject);
     }
 
     /*
      * Object creator for dynamic spawning
      * Caller can specify the Feature Adapter, mesh shape and material to use, (or let defaults) thus
      * allowing the  type of explosion or whatever effect to be per-caller.
-     * Here an Game Object is made but not the engtity yet, as delayed-queued for spawnning.
+     * Game Object is made but not the entity yet, as delayed-queued for spawnning.
      */
-    public static void spawnNewGameObject(ModelInstance mi, FeatureAdaptor fa, String objectName) {
-
-        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
-
-        spawnNewGameObject(
-                new Vector3(1, 1, 1),
-                mi.transform.getTranslation(translation),
-                fa,  // pass-thru
-                objectName);
-    }
-
     private static void spawnNewGameObject(
-            Vector3 scale, Vector3 translation, String objectName, String modelInfoKey, boolean useLOcalTranslation) {
+            Vector3 translation, String objectName, String modelInfoKey, boolean useLOcalTranslation) {
 
         // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject(/* objectName */);
+        GameObject gameObject = new GameObject( objectName );
         gameObject.useLocalTranslation = useLOcalTranslation;
-        gameObject.objectName = objectName;
 
 // fixed for now ;
         gameObject.mass = 1f;
         gameObject.meshShape = "convexHullShape";
-
-        if (null != scale) {
-            gameObject.scale = new Vector3(scale);
-        } else {
-            gameObject.scale = new Vector3(1, 1, 1);
-        }
 
         //        gameObject.mass = 1; // let it be stationary
         gameObject.getInstanceData().add(new InstanceData(translation));
@@ -154,18 +122,14 @@ public class CompCommon {
             Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
         InstanceData id = new InstanceData(translation);
-
 //        if (null != fa)
         {
             id.adaptr = fa;
         }
 
         // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject(/* objectName */);
-        gameObject.objectName = objectName;
+        GameObject gameObject = new GameObject( objectName );
         gameObject.scale = scale;
-
-        //        gameObject.mass = 1; // let it be stationary
 
         gameObject.getInstanceData().add(id);
 
@@ -194,7 +158,6 @@ public class CompCommon {
         sc.deleteFlag = 2;         // flag bullet Comp for deletion
         ee.add(sc);
     }
-
 
     /*
      * dynamically "activate" a template entity and set its location
