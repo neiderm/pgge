@@ -116,7 +116,7 @@ public class LoadingScreen implements Screen {
         batch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 
         font.draw(batch, stringBuilder,
-                GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 4f) * 3f);
+                GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 5f) * 3f);
         batch.end();
 
 

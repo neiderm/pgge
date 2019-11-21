@@ -174,7 +174,7 @@ public class GameScreen extends TimedGameScreen {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        pickedPlayer.add(new StatusComponent(9999));
+        pickedPlayer.add(new StatusComponent(40));
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -413,7 +413,7 @@ public class GameScreen extends TimedGameScreen {
         font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
 */
-        debugPrint("**", color, 0, 0);
+        debugPrint("**" + pickedPlayer.getComponent(StatusComponent.class).lifeClock, color, 0, 0);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);

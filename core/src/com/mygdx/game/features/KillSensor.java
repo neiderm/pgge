@@ -1,6 +1,22 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 
@@ -9,8 +25,9 @@ import com.mygdx.game.components.StatusComponent;
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
-
 public class KillSensor extends OmniSensor {
+
+    int bucket; // debounce bucket
 
     @Override
     public void update(Entity sensor) {
@@ -23,23 +40,34 @@ public class KillSensor extends OmniSensor {
             this.omniRadius.set(adjRadius, adjRadius, adjRadius);
         }
 
-// tmp test
-//        Vector3 dimensions = new Vector3();
-//        Vector3 center = new Vector3();
-//        float boundingRadius;
-//        BoundingBox  boundingBox = mc.modelInst.calculateBoundingBox(new BoundingBox());
-//        boundingBox.getDimensions(dimensions);
-//        boundingBox.getCenter(center);
-//        float sdf = dimensions.len();
-//        boundingRadius = dimensions.len() / 2f;
 
         super.update(sensor);
 
         if (isTriggered) {
-// clock target probly for player, other wise probly no status comp
-            StatusComponent sc = target.getComponent(StatusComponent.class);
-            if (null != sc) {
-                target.getComponent(StatusComponent.class).lifeClock = 0;
+
+            if (bucket < 1) {
+                // clock target probly for player, other wise probly no status comp
+                StatusComponent sc = target.getComponent(StatusComponent.class);
+                if (null != sc) {
+                    int lc = target.getComponent(StatusComponent.class).lifeClock;
+                    lc -= 10;
+                    if (lc > 0){ // don't Burn Out on final hit (explodacopia)
+
+                        CompCommon.makeBurnOut(
+                                target.getComponent(ModelComponent.class).modelInst, -1);
+                    }else{
+                        lc = 0;
+                    }
+                    target.getComponent(StatusComponent.class).lifeClock = lc;
+                }
+            }
+
+            bucket += 1;
+
+        } else {
+            bucket -= 2;
+            if (bucket < 0) {
+                bucket = 0;
             }
         }
     }

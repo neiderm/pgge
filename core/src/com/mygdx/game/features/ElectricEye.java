@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2019 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
@@ -8,20 +23,12 @@ import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
- * Maybe for starters just draw a red line and player becomes dead
+ * original prototype for killin things
  */
-
-/*
- * I wanna be a Bad Actor!!!!!!!
- * Well, a Bad Actor is presently just a Feeature (Kill Sensor) that has, most importantly, been made  Pickable. (and has a feature Adaptor that can be "update()d" from the  Pick event handler in Game Screen .
- * but more things should be destroyable (Pickable ... ahem, not all Pickable things are necessarily to be destroyed!)
- *
- * Beyond that, need to kill me, as well as bump the score.
- */
-
-public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
+public class ElectricEye extends  VectorSensor {
 
     int prev; // hack crap
+    int bucket;
 
     @Override
     public void update(Entity sensor) {
@@ -40,28 +47,42 @@ public class ElectricEye extends  VectorSensor {    // TODO: .... KILL !!!!!!!!
 //    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
 
             if (isTriggered) {
-                //                Vector3 trans = new Vector3();     ... trans can be used below if exploding .,,
-//                mc.modelInst.transform.getTranslation(trans);
 
                 if (mc.modelInst.materials.size > 0) {
 // well this is dumb its getting the insta.material anyway
                     ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
                 }
 
-                isTriggered = false; // need to unlatch it !
+                isTriggered = false; // VectorSensor not unlatching itself!
 
+                if (bucket < 1) {
+                    // clock target probly for player, other wise probly no status comp
+                    StatusComponent sc = target.getComponent(StatusComponent.class);
 
-// watch it ... i'm a BadActor  now!
-//                target.getComponent(StatusComponent.class).lifeClock -= 10;
-                target.getComponent(StatusComponent.class).lifeClock = 0; // use flags get rid of this
+                    if (null != sc) {
+                        int lc = target.getComponent(StatusComponent.class).lifeClock;
+                        lc -= 10;
+                        if (lc > 0){ // don't Burn Out on final hit (explodacopia)
+                            // use the target model instance texture etc.
+                            CompCommon.makeBurnOut(target.getComponent(ModelComponent.class).modelInst, -1);
+                        }else{
+                            lc = 0;
+                        }
+                        target.getComponent(StatusComponent.class).lifeClock = lc;
+                    }
+                }
+                bucket += 1;
+
+            } else {
+                bucket -= 2;
+                if (bucket < 0) {
+                    bucket = 0;
+                }
             }
 
-
             /*
-             * if I am pickable, then pick handler could have invoked this update() ... having added the
-             * Status Comp + deleteMe ... why not let Status System handle it !!!!!
+             * kill me
              */
-
             StatusComponent sc = sensor.getComponent(StatusComponent.class);
 
             // check this since the SC is actaully added dynamically (so no point to caching)
