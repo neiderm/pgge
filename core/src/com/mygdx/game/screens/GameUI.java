@@ -349,7 +349,7 @@ public class GameUI extends InGameMenu {
 
 
     public void setScore(int points) {
-            score = points;
+        score = points;
     }
 
     private int getScore() {
@@ -543,13 +543,16 @@ public class GameUI extends InGameMenu {
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append("EXIT"));
 
+            stringBuilder.setLength(0);
+            scoreLabel.setText(stringBuilder.append(getScore() ));      // update score indicateor
+
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
             itemsLabel.setText(stringBuilder.append(getPrizeCount() ).append(" / " + SceneLoader.numberOfCrapiums));
 
             stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore() ));
+            scoreLabel.setText(stringBuilder.append(getScore() ));      // update score indicateor
 
         } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
 
@@ -561,9 +564,9 @@ public class GameUI extends InGameMenu {
             setOverlayColor(0, 0, 1, 0.5f);
             showPauseMenu(true);
         } else
-            if (GameWorld.getInstance().getIsTouchScreen()) {
-                showOSC(true);
-            }
+        if (GameWorld.getInstance().getIsTouchScreen()) {
+            showOSC(true);
+        }
     }
 
     @Override
