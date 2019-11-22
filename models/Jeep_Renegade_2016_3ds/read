@@ -1,0 +1,17 @@
+
+Jeep Renegade 5 doors compact SUV 2016 
+https://www.cgtrader.com/free-3d-models/car/suv/jeep-renegade-a-5-doors-compact-suv-from-2016
+credit: Jose-Bronze (Icense Note: "Royalty Free License") 
+
+Import 3DS
+- unpack the archive and image files, import .3ds 
+- import .3ds, leave default 'y forward' 'z up' 
+- change 3d view to "texture" - model should renders w/ textures
+
+s .4 ^a scale
+r z 180  ^a rotation
+r x -90  ^a rotation
+r x 90         
+export fbx 'Selected Objects' Scale: .01 (Z)forward (Y)up
+
+
