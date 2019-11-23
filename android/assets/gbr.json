@@ -254,8 +254,8 @@
 	"skySphere": {
 		"fileName": "data/cloudsky.png"
 	},
-	"militaryvan": {
-		"fileName": "tanks/militaryvan.g3db"
+	"Jeep_Renegade_2016": {
+		"fileName": "tanks/Jeep_Renegade_2016.g3db"
 	},
 	"truck": {
 		"fileName": "tanks/ram.g3db"

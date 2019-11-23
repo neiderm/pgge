@@ -33,7 +33,7 @@
 				"objectName": "truck"
 			},
 			{
-				"objectName": "militaryvan"
+				"objectName": "Jeep_Renegade_2016"
 			},
 			{
 				"objectName": "guntruck"
@@ -60,8 +60,8 @@
 	"boxTex": {
 		"fileName": "data/crate.png"
 	},
-	"militaryvan": {
-		"fileName": "tanks/militaryvan.g3db"
+	"Jeep_Renegade_2016": {
+		"fileName": "tanks/Jeep_Renegade_2016.g3db"
 	},
 	"truck": {
 		"fileName": "tanks/ram.g3db"
