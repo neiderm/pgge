@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -57,11 +58,13 @@ public class CompCommon {
         {
             Vector3 translation = new Vector3();
             modelInst.transform.getTranslation(translation);
-            translation.y += 0.5f; // offset Y so that node objects dont fall thru floor
+
+            Quaternion rotation = new Quaternion();
+            rotation = modelInst.transform.getRotation(rotation);
 
 // note * .... need to inform the level !!!!!!
             spawnNewGameObject(
-                    translation, "*", targetMdlInfoKey, true);
+                    translation, rotation, "*", targetMdlInfoKey);
         }
     }
 
@@ -73,21 +76,20 @@ public class CompCommon {
     */
     public static void makeBurnOut(ModelInstance mi, ImpactType useFlags) {
 
-        if (ImpactType.ACQUIRE == useFlags){ // marker for prize pickup
+        if (ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
             mi.userData = new Color(Color.SKY); // hacky hackhackster
-        }
-        else if (ImpactType.DAMAGING == useFlags){ // marker for hit/collision w/ damage
+        } else if (ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
             mi.userData = new Color(Color.YELLOW);
         }
 
         Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
 
-        InstanceData id = new InstanceData( mi.transform.getTranslation(translation));
+        InstanceData id = new InstanceData(mi.transform.getTranslation(translation));
 
         id.adaptr = new BurnOut(mi); // there it is
 
         final String tmpObjectName = "sphere";
-        GameObject gameObject = new GameObject( tmpObjectName );
+        GameObject gameObject = new GameObject(tmpObjectName);
         gameObject.getInstanceData().add(id);
 
         // insert a newly created game OBject into the "spawning" model group
@@ -101,18 +103,23 @@ public class CompCommon {
      * Game Object is made but not the entity yet, as delayed-queued for spawnning.
      */
     private static void spawnNewGameObject(
-            Vector3 translation, String objectName, String modelInfoKey, boolean useLOcalTranslation) {
+            Vector3 translation, Quaternion rotation,
+            String objectName, String modelInfoKey) {
 
         // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject( objectName );
-        gameObject.useLocalTranslation = useLOcalTranslation;
+        GameObject gameObject = new GameObject(objectName);
 
 // fixed for now ;
         gameObject.mass = 1f;
         gameObject.meshShape = "convexHullShape";
 
+        InstanceData id = new InstanceData(translation);
+
+        id.rotation = new Quaternion();// tmp should not need to new it here!
+        id.rotation.set(rotation);
+
         //        gameObject.mass = 1; // let it be stationary
-        gameObject.getInstanceData().add(new InstanceData(translation));
+        gameObject.getInstanceData().add(id);
 
 // any sense for Game Object have its own static addspawner() method ?  (need the Game World import/reference here ?)
         GameWorld.getInstance().addSpawner(gameObject, modelInfoKey); //  is added "kinematic" ???
@@ -128,7 +135,7 @@ public class CompCommon {
         }
 
         // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject( objectName );
+        GameObject gameObject = new GameObject(objectName);
         gameObject.scale = scale;
 
         gameObject.getInstanceData().add(id);

@@ -65,7 +65,6 @@ public class GameObject {
     private boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
-    public boolean useLocalTranslation;
     boolean isCharacter;
     boolean isPlayer; // i guess
 
@@ -83,13 +82,6 @@ public class GameObject {
      */
     void buildNodes(Engine engine, Model model) {
 
-        buildNodes(engine, model, null , false
-        );
-    }
-
-    private void buildNodes(
-            Engine engine, Model model, Vector3 translation, boolean useLocalTranslation
-    ) {
         /* load all nodes from model that match /objectName.*/
         for (Node node : model.nodes) {
 
@@ -99,15 +91,6 @@ public class GameObject {
 
                 // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
                 ModelInstance mi = ModelInstanceEx.getModelInstance(model, node.id, scale);
-
-                if (null != translation) {
-                    mi.transform.setTranslation(0, 0, 0); // set trans only (absolute)
-                    mi.transform.trn(translation);   // set trans only (offset)
-                }
-
-                if (useLocalTranslation) {
-                    mi.transform.trn(node.localTransform.getTranslation(new Vector3()));
-                }
 
                 btCollisionShape shape = null;
 
@@ -134,7 +117,7 @@ public class GameObject {
     void buildGameObject(
             Model model, Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
-        if (null == modelInst){
+        if (null == modelInst) {
             System.out.println("GameObject:buildgameObject()" + "  modelInst==null, probably bad GameObject or ModelGroup definiation");
             return;
         }
@@ -154,9 +137,9 @@ public class GameObject {
         int keyIndex = 0xffff;
         String strObjNameModelInfoKey = new String();
         SceneData sd = GameWorld.getInstance().getSceneData();
-        for (String key : sd.modelInfo.keySet()){
+        for (String key : sd.modelInfo.keySet()) {
 
-            if (key.equals( this.objectName )) {
+            if (key.equals(this.objectName)) {
                 keyIndex = countIndex;
                 strObjNameModelInfoKey = new String(this.objectName);
                 break;
@@ -164,7 +147,8 @@ public class GameObject {
             countIndex += 1;
         }
 
-        do { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
+        do
+        { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
 
             if (instanceData.size > 0) {
                 id = instanceData.get(n++);
@@ -183,12 +167,12 @@ public class GameObject {
 
             mc.model = model;  // bah
 
-            if (0xffff== keyIndex){
+            if (0xffff == keyIndex) {
                 System.out.println("keyindex?");
             }
             mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
 // grab the game object name string anyway
-            mc.strObjectName = new String( this.objectName );
+            mc.strObjectName = new String(this.objectName);
 
             Vector3 position = new Vector3();
             position = mc.modelInst.transform.getTranslation(position);
@@ -211,8 +195,7 @@ public class GameObject {
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
                             e, // needs the Entity to add to the table BLAH
                             BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
-                }
-                else {
+                } else {
                     // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
                             e, // needs the Entity to add to the table BLAH
@@ -220,13 +203,11 @@ public class GameObject {
                 }
             }
 
-            if (null != adapter)
-            {
+            if (null != adapter) {
                 e.add(new FeatureComponent(adapter));
             }
 
-            if (isPlayer)
-            {
+            if (isPlayer) {
                 playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
             }
 
@@ -242,13 +223,17 @@ public class GameObject {
         if (null != id) {
 
             if (null != id.rotation) {
-                instance.transform.idt();
+// do not idt() this!
+//                instance.transform.idt();
                 instance.transform.rotate(id.rotation);
             }
+
             if (null != id.translation) {
-                instance.transform.setTranslation(0, 0, 0);
+// don't wipe the translation from the incoming modelInance! (this is where panzer tank getting scrwed up ... its nodes have offsets in the local transform! )
+//                instance.transform.setTranslation(0, 0, 0);
                 instance.transform.trn(id.translation);
             }
+
             if (null != id.color) {
                 ModelInstanceEx.setColorAttribute(instance, id.color, id.color.a); // kind of a hack ;)
             }
