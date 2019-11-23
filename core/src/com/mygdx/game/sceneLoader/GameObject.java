@@ -81,19 +81,34 @@ public class GameObject {
      * seeing a more efficient way right now.
      */
     void buildNodes(Engine engine, Model model) {
+        // default to search top level of model
+        Array<Node> nodeArray = model.nodes;
+        String nodeName = objectName.replaceAll("\\*$", "");
+
+// big hack special sausce, nodes are children ..
+        if (model.nodes.get(0).hasChildren()) {
+            nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+            nodeName = null;
+        }
 
         /* load all nodes from model that match /objectName.*/
-        for (Node node : model.nodes) {
+        for (Node node : nodeArray) {
+// allows match globbing
+            // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
+            ModelInstance mi = null;
 
-            String unGlobbedObjectName = objectName.replaceAll("\\*$", "");
+            if (null == nodeName) {
+// special sauce asssumes  loading from single parent-node Recursively searches the mode for the specified node
+                mi = new ModelInstance(model, node.id, false, false);
 
-            if (node.id.contains(unGlobbedObjectName)) {
-
+            } else if (node.id.contains(nodeName)) {
                 // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
-                ModelInstance mi = ModelInstanceEx.getModelInstance(model, node.id, scale);
+                mi = ModelInstanceEx.getModelInstance(model, node.id, scale);
+            }
+
+            if (null != mi) {
 
                 btCollisionShape shape = null;
-
                 // TODO find another way to get shape - depends on the instance which is bass-ackwards
                 // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
                 if (null != meshShape) {
@@ -102,7 +117,7 @@ public class GameObject {
                     mi.calculateBoundingBox(boundingBox);
 
                     shape = PrimitivesBuilder.getShape(
-                            meshShape, boundingBox.getDimensions(dimensions), node); // instance.getNode(node.id),
+                            meshShape, boundingBox.getDimensions(dimensions), node);
                 }
         /*
         scale is in parent object (not instances) because object should be able to share same bullet shape!
@@ -113,12 +128,15 @@ public class GameObject {
         }
     }
 
-    // gameObject.build() ?      NOTE : copies the passed "instance" ... so caller should discard the reference
+    /*
+     * NOTE : copies the passed "instance" ... so caller should discard the reference
+     */
     void buildGameObject(
             Model model, Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
         if (null == modelInst) {
-            System.out.println("GameObject:buildgameObject()" + "  modelInst==null, probably bad GameObject or ModelGroup definiation");
+            System.out.println(
+                    "GameObject:buildgameObject()" + "  modelInst==null, probably bad GameObject or ModelGroup definiation");
             return;
         }
 
@@ -147,9 +165,8 @@ public class GameObject {
             countIndex += 1;
         }
 
-        do
-        { // for (InstanceData i : gameObject.instanceData) ... but not, because game objects may have no instance data
-
+        do {
+            // game objects may have no instance data
             if (instanceData.size > 0) {
                 id = instanceData.get(n++);
             }
@@ -214,7 +231,9 @@ public class GameObject {
         } while (/*null != id && */ n < instanceData.size);
     }
 
-    /* could end up "gameObject.build()" ?? */
+    /*
+     * builds object with instance data
+     */
     private Entity buildObjectInstance(
             ModelInstance instance, btCollisionShape shape, InstanceData id) {
 
