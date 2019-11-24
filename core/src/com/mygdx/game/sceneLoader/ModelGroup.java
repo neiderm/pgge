@@ -24,7 +24,6 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.util.GfxUtil;
-import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
@@ -105,7 +104,7 @@ public class ModelGroup {
     void build(Engine engine) {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelInfo mi = sd.modelInfo.get(this.modelName); // mg can't be null ;)
+        ModelInfo mi = sd.modelInfo.get(this.modelName);
         Model groupModel = null;
 
         if (null != mi) {
@@ -119,22 +118,20 @@ public class ModelGroup {
                 return; // for now ... ?
             }
 
-        } else if (null == this.modelName && 0 == this.gameObjects.size) {
-
-            return; // bah
         }
 
-
         for (GameObject gameObject : gameObjects) {
+
+            if (null == this.modelName && null == gameObject.objectName){ // one of these has to be true in order to get model info !
+                System.out.println("null == this.modelName && null == gameObject.objectName");
+                continue; // break on localPlayer modelGroup as it is a "dummy"
+            }
 
             if (this.isKinematic) {
                 gameObject.isKinematic = this.isKinematic;
             }
             if (this.isCharacter) {
                 gameObject.isCharacter = this.isCharacter;
-            }
-            if (null == gameObject.scale) {
-                gameObject.scale = new Vector3(1, 1, 1);
             }
 
             Model model;
@@ -151,31 +148,51 @@ public class ModelGroup {
                 if (null != mdlInfo) {
 
                     model = mdlInfo.model;
-// no null model here ;)
-                    rootNodeId = model.nodes.get(0).id;
+                    Model loadModel;
 
                     if (model.nodes.size > 1) { // multi-node model
-// vehicle models are made to explode to each is in own g3db subdivided into meshparts/nodes. Since I don't know anybetter the GfxUtil is there as helper to track the new Model()
-// since the Model is created outside of asset Loader
+// vehicle models are made to explode to each is in own g3db subdivided into meshparts/nodes. Since I don't know anybetter
+// since the Model is created outside of asset Loader GfxUtil is there to track the new Model()
                         // "demodularize" model - combine modelParts into single Node for generating the physics shape
-                        Model newModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!!
-
+                        loadModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!! need to use multi-node model and eliminate this kludgey crap!
                         rootNodeId = DEFAULT_MODEL_NODE_ID;
-
-                        instance = ModelInstanceEx.getModelInstance(newModel /* NEW MODEL ! */, rootNodeId, gameObject.scale);
-                        shape = PrimitivesBuilder.getShape(newModel.meshes.get(0)); //TODO we would only use this for generating the sHAPE (modelComps to be multi-model-instance)
                     } else {
-                        instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
-                        shape = PrimitivesBuilder.getShape(model.meshes.get(0));
+                        loadModel = model;
+                        rootNodeId = model.nodes.get(0).id;
                     }
-                } else {
+
+                    shape = PrimitivesBuilder.getShape(loadModel.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
+//gameObject.objectName = rootNodeId;
+                    instance = new ModelInstance(loadModel, rootNodeId);
+                }
+                else {
                     model = PrimitivesBuilder.getModel();
                     rootNodeId = gameObject.objectName;
+
+                    Vector3 v3scale = gameObject.scale;
+
+                    if (null != rootNodeId){
+// doesn't protect itself again null node name
+                        instance  = new ModelInstance(model, rootNodeId);
+                    }
+                    else{
+                        instance = new ModelInstance(model); // probably no good!!!!!!!
+                    }
+
+                    if (null != v3scale) {
+                        instance.nodes.get(0).scale.set(v3scale);
+                        instance.calculateTransforms();
+                    }
+                    else{
+                        v3scale = new Vector3(1, 1, 1);
+                    }
+
                     // note does not use the gamObject.meshSHape name
-                    shape = PrimitivesBuilder.getShape(gameObject.objectName, gameObject.scale); // note: 1 shape re-used
-                    instance = ModelInstanceEx.getModelInstance(model, rootNodeId, gameObject.scale);
+                    shape = PrimitivesBuilder.getShape(rootNodeId, v3scale); // note: 1 shape re-used
                 }
+
                 gameObject.buildGameObject(model, engine, instance, shape);
+
             } else {
                 /* load all nodes from model that match /objectName.*/
                 gameObject.buildNodes(engine, groupModel);
