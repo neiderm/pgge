@@ -81,7 +81,7 @@ public class GameObject {
      * seeing a more efficient way right now.
      */
     void buildNodes(Engine engine, Model model) {
-        // default to search top level of model
+        // default to search top level of model (allows match globbing)
         Array<Node> nodeArray = model.nodes;
         String nodeName = objectName.replaceAll("\\*$", "");
 
@@ -91,10 +91,7 @@ public class GameObject {
             nodeName = null;
         }
 
-        /* load all nodes from model that match /objectName.*/
         for (Node node : nodeArray) {
-// allows match globbing
-            // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
             ModelInstance mi = null;
 
             if (null == nodeName) {
@@ -103,7 +100,7 @@ public class GameObject {
 
             } else if (node.id.contains(nodeName)) {
                 // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
-                mi = ModelInstanceEx.getModelInstance(model, node.id, scale);
+                mi = getModelInstance(model, node.id, scale);
             }
 
             if (null != mi) {
@@ -126,6 +123,45 @@ public class GameObject {
                 buildGameObject(model, engine, mi, shape);
             } // else  ... bail out if matched an un-globbed name ?
         }
+    }
+
+    /*
+     * IN:
+     *
+     * RETURN:
+     *   ModelInstance
+     *
+     * Reference:
+     *    https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+     *    https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+     */
+    private static ModelInstance getModelInstance(Model model, String strNodeName, Vector3 scale) {
+
+        if (null == strNodeName){
+            return null; // invalid node name are handled ok, but not if null, so gth out~!
+        }
+        ModelInstance instance = new ModelInstance(model, strNodeName);
+
+        if (null != instance)
+        {
+            Node modelNode = instance.getNode(strNodeName);
+
+            if (null == modelNode){
+                instance = null; // evidently the Node Name is not valid!
+            } else {
+                instance.transform.set(modelNode.globalTransform);
+                modelNode.translation.set(0, 0, 0);
+                modelNode.scale.set(1, 1, 1);
+                modelNode.rotation.idt();
+
+                if (null != scale) {
+                    instance.nodes.get(0).scale.set(scale);
+                }
+
+                instance.calculateTransforms();
+            }
+        }
+        return instance;
     }
 
     /*
