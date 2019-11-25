@@ -1,0 +1,22 @@
+
+Military Combat Vehicle
+by Yodha Game Studio
+
+https://www.turbosquid.com/FullPreview/Index.cfm/ID/1137847
+
+
+Royalty Free License - All Extended Uses
+
+
+Import from MilitaryCombatVehicle.zip/MilitaryCombatVehicle.fbx
+s 1.5
+r z 180
+r x -90
+ctrl+a+o (rotation & scale)
+r x 90
+
+export FBX, .01 Z-forw. Y-up (as usual)
+Note: while exporting .fbx, temporarily deleted file2 & file3 from Vehicle 
+ materials to avoid having to copy .tga images into android/assets
+ 
+ 
