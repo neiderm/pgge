@@ -250,8 +250,7 @@ public class GameScreen extends TimedGameScreen {
                 // how expensive are these get Comps ???   could be cached
                 BulletComponent bc = pickedPlayer.getComponent(BulletComponent.class);
 
-                if (null != bc){
-//                    if ( ! bc.iHaveBeenDisposed )
+                if (null != bc && !GameWorld.getInstance().getIsPaused()) {
                     {
                         controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
