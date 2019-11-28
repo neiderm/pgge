@@ -68,7 +68,10 @@ class InGameMenu extends Stage {
     private BitmapFont font;
 
 
-//    InGameMenu(String skinName){} // TODO
+    InGameMenu(){
+
+        this("skin/uiskin.json", null);
+    }
 
     InGameMenu(String skinName, String menuName) {
 
