@@ -120,7 +120,7 @@ class InputMapper /* stageWithController extends stage ? */ {
 
     private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
 
-    private InputMapper.ButtonData buttonsData = new InputMapper.ButtonData();
+    private ButtonData buttonsData = new ButtonData();
 
 
     InputMapper() {
@@ -129,7 +129,7 @@ class InputMapper /* stageWithController extends stage ? */ {
         connectedCtrl = getConnectedCtrl(0);
 
         // bah ... debounce this (bounce from key on previous screen)
-        checkInputState(InputMapper.InputState.INP_SELECT);
+        checkInputState(InputState.INP_SELECT); // maybe this is not that effective, race condition ...  here is too soon to consume the incoming "bouncing" keystroke ..
     }
 
 
@@ -296,7 +296,7 @@ class InputMapper /* stageWithController extends stage ? */ {
      * So this is useful for doing a series of tests for different wanted states where it is OK
      * (and necessary) that the incoming state is not reset/cleared.
      */
-    boolean checkInputState(InputState wantedInputState) {
+    private boolean checkInputState(InputState wantedInputState) {
 
         InputState newInputState = evalNewInputState(true);
 

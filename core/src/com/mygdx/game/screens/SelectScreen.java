@@ -60,7 +60,7 @@ class SelectScreen extends TimedGameScreen {
 
     private static final int N_SELECTIONS = 3;
 
-    private InputMapper mapper = new InputMapper();
+    private InputMapper mapper; // don't new it, it would race with bouncey key from parent screen and not init cleanly
     private Engine engine = new Engine();
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private DirectionalShadowLight shadowLight;
@@ -122,6 +122,9 @@ class SelectScreen extends TimedGameScreen {
         if (null != f) {
             platform = f.getEntity();
         }
+
+
+        mapper = new InputMapper(); // late construction here (race with bouncey key from parent screen )
 
         stage = new Stage();
         stage.addListener(new InputListener() {
