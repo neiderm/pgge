@@ -21,6 +21,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -225,7 +226,7 @@ public class GameObject {
             }
             mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
 // grab the game object name string anyway
-            mc.strObjectName = new String(this.objectName);
+            mc.strObjectName = this.objectName; // could be invalid ?
 
             Vector3 position = new Vector3();
             position = mc.modelInst.transform.getTranslation(position);

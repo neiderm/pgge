@@ -33,7 +33,8 @@ public class GameFeature {
     }
 
     public void setObjectName(String objName) {
-        this.sObjectName = new String(objName);
+
+        this.sObjectName = objName;
     }
 
     public String getObjectName() {

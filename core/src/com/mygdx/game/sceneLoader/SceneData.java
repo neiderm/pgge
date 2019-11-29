@@ -48,7 +48,10 @@ public class SceneData {
 
     public static SceneData loadData(String path,  String playerObjectName){
 
-        SceneData sd = loadData(path);
+        Json json = new Json();
+        FileHandle fileHandle = Gdx.files.internal(path);
+        //        gameData = json.fromJson(sceneData.class, Base64Coder.decodeString(fileHandle.readString()));
+        SceneData sd = json.fromJson(SceneData.class, fileHandle.readString());
 
         // localplayer object-name is passed along from parent screen ... make a Geame Feature in which
         // to stash this "persistent" local player info . Other systems/comps will be looking for this
@@ -61,9 +64,7 @@ public class SceneData {
     }
 
     public static SceneData loadData(String path) {
-        Json json = new Json();
-        FileHandle fileHandle = Gdx.files.internal(path);
-        //        gameData = json.fromJson(sceneData.class, Base64Coder.decodeString(fileHandle.readString()));
-        return json.fromJson(SceneData.class, fileHandle.readString());
+
+        return loadData(path, null);
     }
 }
