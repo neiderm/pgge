@@ -182,12 +182,43 @@ again a need to creat3e these directly in code
 
                 textureModelInfo.model = userModel;
             }
-
             // please ... release me .. let me go!  this Model Group no longer needed, if only i could purge!
-
         }
 
-        Gdx.app.log("SceneLoader", "INitializeation complete!");
+        /*
+         * create the player Model group using the special Game Feature defined by the loader, or get
+         * localplayer model group if one is defined in json (which also needs to know which object name
+         * to load).
+         * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
+         * global player feature.
+         */
+        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); //  SceneData.LOCAL_PLAYER_FNAME
+
+        String localPlayerObjectname = null;
+
+        if (null != playerFeature){
+            localPlayerObjectname = playerFeature.getObjectName();
+
+            ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
+
+            if (null == tmg){  // select screen doesnt define a player group
+
+                tmg = new ModelGroup( /*playerFeature.getObjectName()*/ );
+                tmg.addGameObject(new GameObject( localPlayerObjectname ));
+                sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
+            }
+
+            GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
+
+            if (null == gameObject){   // new instance of model gruop, game object
+                gameObject = new GameObject( localPlayerObjectname );
+                tmg.addGameObject(gameObject);
+            }
+
+            gameObject.mass = 5.1f;   // should be from the model or something
+            gameObject.isPlayer = true; ////////////////// bah look at me hack
+            gameObject.objectName = localPlayerObjectname;
+        }
     }
 
     private static void createTestObjects(Engine engine) {
@@ -240,44 +271,9 @@ again a need to creat3e these directly in code
 
         numberOfCrapiums = 0;
 
-        createTestObjects(engine); // tmp
+//        createTestObjects(engine); // tmp
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-/*
- * create the player Model group using the special Game Feature defined by the loader, or get
- * localplayer model group if one is defined in json (which also needs to know which object name
- * to load).
- * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
- * global player feature.
- */
-        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); //  SceneData.LOCAL_PLAYER_FNAME
-
-        if (null!= playerFeature){
-
-            ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
-
-            if (null == tmg){  // i don't think this is a thing anymore .. ?
-                tmg = new ModelGroup(playerFeature.getObjectName());
-            }
-
-            GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
-
-            if (null == gameObject){   // apparently not used right now
-                gameObject = new GameObject();
-                Vector3 translation = new Vector3(7, 10, -8); // where is local player spawning right now? defualt... ?
-                InstanceData id = new InstanceData(translation);
-                gameObject.getInstanceData().add(id);
-                tmg.addGameObject(gameObject);
-            }
-
-            gameObject.mass = 5.1f;   // should be from the model or something
-            gameObject.isShadowed = true;
-            gameObject.scale = new Vector3(1, 1, 1);
-            gameObject.isPlayer = true; ////////////////// bah look at me hack
-            gameObject.objectName = playerFeature.getObjectName();
-            sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
-        }
-        // else ... no feature name ... idk
 
         /*
          * build  the model groups
@@ -345,7 +341,7 @@ again a need to creat3e these directly in code
                 mb.part("box", GL20.GL_TRIANGLES, attributes, mat).box(1f, 1f, 1f);
 
             } else
-                if ( compString.contains("sphere")) {
+            if ( compString.contains("sphere")) {
 
                 mb.part("sphere", GL20.GL_TRIANGLES, attributes, mat).sphere(1f, 1f, 1f, 10, 10);
             }
