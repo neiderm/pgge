@@ -1,7 +1,7 @@
 {
 "modelGroups": {
 	"LocalPlayer": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "LocalPlayerObjectName",
 				"instanceData": [
@@ -17,7 +17,7 @@
 		]
 	},
 	"InstancedModelMeshes": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -66,10 +66,10 @@
 				"meshShape": "btBoxShape"
 			}
 		],
-		"modelName": "objects"
+		"modelName": "StaticObjects"
 	},
 	"UserModelGroup": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "skySphere",
 				"scale": {
@@ -135,7 +135,7 @@
 		"modelName": "UserMeshesModel"
 	},
 	"GoonSquad": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -145,7 +145,7 @@
 						}
 					}
 				],
-				"objectName": "tank",
+				"objectName": "Tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
@@ -160,7 +160,7 @@
 						}
 					}
 				],
-				"objectName": "tank",
+				"objectName": "Tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
@@ -175,7 +175,7 @@
 						}
 					}
 				],
-				"objectName": "tank",
+				"objectName": "Tank",
 				"mass": 5.1,
 				"meshShape": "convexHullShape",
 				"isPickable": true
@@ -184,7 +184,7 @@
 		"isCharacter": true
 	},
 	"Features": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -303,8 +303,8 @@
 			}
 		]
 	},
-	"sceneObjects": {
-		"gameObjects": [
+	"SceneObjects": {
+		"elements": [
 			{
 				"objectName": "Crate*",
 				"mass": 0.1,
@@ -335,10 +335,10 @@
 				"isKinematic": true
 			}
 		],
-		"modelName": "scene"
+		"modelName": "Scene"
 	},
 	"PrimitiveObjects": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -437,7 +437,7 @@
 		]
 	},
 	"UserModelPartsNodes": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "skySphere",
 				"iSWhatever": true
@@ -455,25 +455,16 @@
 	"skySphere": {
 		"fileName": "data/moonsky.png"
 	},
-	"objects": {
+	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
-	},
-	"Jeep_Renegade_2016": {
-		"fileName": "tanks/Jeep_Renegade_2016.g3db"
-	},
-	"truck": {
-		"fileName": "tanks/ram.g3db"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
 	},
-	"tank": {
+	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
-	"guntruck": {
-		"fileName": "tanks/guntruck.g3db"
-	},
-	"scene": {
+	"Scene": {
 		"fileName": "data/scene.g3dj"
 	}
 }

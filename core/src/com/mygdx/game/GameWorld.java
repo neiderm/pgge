@@ -23,6 +23,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.screens.SplashScreen;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -53,10 +54,11 @@ public final class GameWorld implements Disposable {
         ROUND_COMPLETE_NEXT  // transition to next screen after arena complete
     }
 
+    private SceneData sceneData;
+    private SceneData sceneSaveData; // keeping certain info betw. screens kdlugey whatever
     private Game game;
 
     private static GameWorld instance;
-
 
     // created lazily and cached for later usage.
     public static GameWorld getInstance(){
@@ -78,13 +80,7 @@ public final class GameWorld implements Disposable {
     }
 
     /*
-     * is caller calling this on their render() ? maybe it doesnt matter.
-     * should be concerned about how much construction is done then?
      * any screen that has more than trivial setup should be deferred thru the loading screen!
-     *
-     * mostly I do all screen init in constructor and do nothing in show() and chain the dispose() to hide() ... but we could call dispose below ....
-     * is there such a thing as leaving a screen instance persist (like a single instance of GameScreen  that could hold
-     * persistent data. It would still do model dispose etc. on the hide() event and then rebuild those on show()
      */
     public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */ ) {
 
@@ -142,15 +138,44 @@ public final class GameWorld implements Disposable {
     }
 
 
-    private SceneData sceneData;
-
     public void setSceneData(String path, String playerObjectName) {
 
-        sceneData = SceneData.loadData(path, playerObjectName);
+        ModelInfo selectedModelInfo = null;
+
+        // if player object name not null, set up new info
+        if (null != playerObjectName ) {
+
+            if (null == sceneSaveData) {
+                // get the present screen's Scene Data first time the player object name is encountered  (theoretically from Select Screen)
+                sceneSaveData = this.sceneData;                 // reset saved pointer to new instance
+            }
+            // get the local player model info
+            selectedModelInfo = sceneSaveData.modelInfo.get(playerObjectName);
+        }
+
+        this.sceneData = SceneData.loadData(path, playerObjectName);
+
+        if (null != selectedModelInfo) {
+            // set the player object model info in new scene data isntance
+            sceneData.modelInfo.put(playerObjectName, new ModelInfo(selectedModelInfo.fileName));
+        }
     }
 
     public void setSceneData(String path) {
-        sceneData = SceneData.loadData(path);
+
+        String playerObjectName = null;
+
+        if (null != sceneSaveData) {
+
+            GameFeature localplyaer = sceneSaveData.features.get(SceneData.LOCAL_PLAYER_FNAME);
+
+            if (null != localplyaer) {
+
+                playerObjectName = localplyaer.getObjectName();
+            }
+        }
+
+        setSceneData(path, playerObjectName);
     }
 
     public SceneData getSceneData() {

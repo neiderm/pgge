@@ -46,9 +46,6 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 public class SceneLoader implements Disposable {
 
-    // special player
-    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string e.g.  SceneData.LOCAL_PLAYER_FNAME
-
     // Model Group name,  has to be fixed
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
     private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
@@ -192,7 +189,8 @@ again a need to creat3e these directly in code
          * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
          * global player feature.
          */
-        GameFeature playerFeature = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME); //  SceneData.LOCAL_PLAYER_FNAME
+        GameFeature playerFeature =
+                GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
         String localPlayerObjectname = null;
 
@@ -300,7 +298,7 @@ again a need to creat3e these directly in code
 
         mb.begin();
 
-        for (GameObject go : mg.gameObjects) {
+        for (GameObject go : mg.elements) {
 
             ModelInfo mi = sd.modelInfo.get(go.objectName);
 

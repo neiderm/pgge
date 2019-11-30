@@ -52,7 +52,7 @@ public class ModelGroup {
         this.isKinematic = true;
     }
 
-    Array<GameObject> gameObjects = new Array<GameObject>();
+    Array<GameObject> elements = new Array<GameObject>();
     private String modelName;
     private boolean isKinematic;
     private boolean isCharacter;
@@ -67,7 +67,7 @@ public class ModelGroup {
         build(engine);
 
         if (deleteObjects) {
-            gameObjects.clear();
+            elements.clear();
         }
     }
 
@@ -76,14 +76,14 @@ public class ModelGroup {
     }
 
     public void addGameObject(GameObject object) {
-        gameObjects.add(object);
+        elements.add(object);
     }
 
     public GameObject getGameObject(int index) {
 
-        if (gameObjects.size > 0) {
+        if (elements.size > 0) {
 
-            return gameObjects.get(index);
+            return elements.get(index);
 
         } else
             return
@@ -94,7 +94,7 @@ public class ModelGroup {
 
         GameObject found = null;
 
-        for (GameObject gameObject : gameObjects) {
+        for (GameObject gameObject : elements) {
             if (gameObject.objectName.equals(name))
                 found = gameObject;
         }
@@ -120,7 +120,7 @@ public class ModelGroup {
 
         }
 
-        for (GameObject gameObject : gameObjects) {
+        for (GameObject gameObject : elements) {
 
             if (null == this.modelName && null == gameObject.objectName){ // one of these has to be true in order to get model info !
                 System.out.println("null == this.modelName && null == gameObject.objectName");
@@ -179,12 +179,9 @@ public class ModelGroup {
                         instance = new ModelInstance(model); // probably no good!!!!!!!
                     }
 
-                    if (null != v3scale) {
+                    if (null != v3scale && null != instance ) {
                         instance.nodes.get(0).scale.set(v3scale);
                         instance.calculateTransforms();
-                    }
-                    else{
-                        v3scale = new Vector3(1, 1, 1);
                     }
 
                     // note does not use the gamObject.meshSHape name

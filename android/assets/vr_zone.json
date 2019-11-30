@@ -1,7 +1,7 @@
 {
 "modelGroups": {
 	"UserMeshezMdlGrupe": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "skySphere",
 				"scale": {
@@ -85,7 +85,7 @@
 		"modelName": "UserMeshesModel"
 	},
 	"InstancedModelMeshes": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -108,10 +108,10 @@
 				"meshShape": "btBoxShape"
 			}
 		],
-		"modelName": "objects"
+		"modelName": "StaticObjects"
 	},
 	"LocalPlayer": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -127,7 +127,7 @@
 		]
 	},
 	"SceneStaticObjects": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "Plane*",
 				"meshShape": "triangleMeshShape",
@@ -154,10 +154,10 @@
 				"featureName": "LocatedFromSceneModel"
 			}
 		],
-		"modelName": "scene"
+		"modelName": "Scene"
 	},
 	"PrimitivesMisc": {
-		"gameObjects": [
+		"elements": [
 			{
 				"instanceData": [
 					{
@@ -431,7 +431,7 @@
 		]
 	},
 	"UserModelPartsNodes": {
-		"gameObjects": [
+		"elements": [
 			{
 				"objectName": "skySphere",
 				"iSWhatever": true
@@ -446,9 +446,6 @@
 	}
 },
 "modelInfo": {
-	"guntruck": {
-		"fileName": "tanks/guntruck.g3db"
-	},
 	"boxTex": {
 		"fileName": "data/crate.png"
 	},
@@ -458,22 +455,16 @@
 	"sphereCharacter": {
 		"fileName": "data/badlogic.png"
 	},
-	"objects": {
+	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
-	},
-	"Jeep_Renegade_2016": {
-		"fileName": "tanks/Jeep_Renegade_2016.g3db"
-	},
-	"truck": {
-		"fileName": "tanks/ram.g3db"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
 	},
-	"tank": {
+	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
-	"scene": {
+	"Scene": {
 		"fileName": "data/vr_zone.g3db"
 	}
 }
