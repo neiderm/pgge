@@ -154,6 +154,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
             return null; // sorry charlie
         }
 
+        if (null == size){
+            size = new Vector3(1, 1, 1);
+        }
+
         btCollisionShape shape = null;
 
         if (objectName.contains("box")) {
