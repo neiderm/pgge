@@ -20,6 +20,8 @@ import com.badlogic.ashley.core.Entity;
 
 public class GameFeature {
 
+    public int userData;
+
     private String sObjectName;
     private Entity entity;
 

@@ -1,4 +1,9 @@
 {
+"features": {
+		"Player": {
+			"userData": 80
+		}
+	},
 "modelGroups": {
 	"LocalPlayer": {
 		"gameObjects": [

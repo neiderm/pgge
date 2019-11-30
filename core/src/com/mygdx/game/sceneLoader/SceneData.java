@@ -28,6 +28,8 @@ import java.util.HashMap;
  */
 public class SceneData {
 
+    public static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string e.g.  SceneData.LOCAL_PLAYER_FNAME
+
     // ignore Lint warning about using type Map ?
     public HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
     public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
@@ -56,9 +58,16 @@ public class SceneData {
         // localplayer object-name is passed along from parent screen ... make a Geame Feature in which
         // to stash this "persistent" local player info . Other systems/comps will be looking for this
         // magik name to get reference to the entity.
-        // The bottom falls out and Whole world comes crashing down otherwise :(
-        GameFeature gf = new GameFeature( playerObjectName );
-        sd.features.put("Player", gf  /* new GameFeature( playerObjectName ) */ );
+        GameFeature gf = sd.features.get(LOCAL_PLAYER_FNAME);
+
+        if (null != gf) {
+            // Allow local player game feature to be defined in JSON (user Data)
+            gf.setObjectName(playerObjectName);
+        }
+        else{
+            gf = new GameFeature( playerObjectName );
+            sd.features.put(LOCAL_PLAYER_FNAME, gf  /* new GameFeature( playerObjectName ) */ );
+        }
 
         return sd;
     }

@@ -149,7 +149,7 @@ public class GameScreen extends TimedGameScreen {
         SceneLoader.buildScene(engine);
         GfxUtil.init();
 
-        GameFeature pf = GameWorld.getInstance().getFeature("Player"); // make tag a defined string
+        GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
         pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
 
@@ -251,10 +251,25 @@ public class GameScreen extends TimedGameScreen {
                 BulletComponent bc = pickedPlayer.getComponent(BulletComponent.class);
 
                 if (null != bc && !GameWorld.getInstance().getIsPaused()) {
-                    {
-                        controlledModel.updateControls(mapper.getAxisY(0), mapper.getAxisX(0),
+
+                        float yyy = mapper.getAxisY(0);
+
+                        if (true /* is touch screen */ ){
+// love this hacky crap
+                            GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+                            float xxx = pf.userData / 100.0f; // percent
+                            if (0 == yyy){
+                                // forces the forwared motion but doesn't affect the reverse, idfk
+                                yyy = (-1) * xxx;// -0.8f;
+                            }
+// can provide "bucket" of reverseing/brake power, (timed out)
+//if (yyy > 0) {
+//        yyy = -0.54f;
+                        }
+
+                        controlledModel.updateControls( yyy, // mapper.getAxisY(0) - 0.75f,
+                                mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
-                    }
                 }
 
                 super.act(delta);
@@ -268,13 +283,10 @@ public class GameScreen extends TimedGameScreen {
                         int lc = sc.lifeClock;
 
                         if (0 == lc){
-//                            CompCommon.explode(pickedPlayer);   //   don't really want it here (why not?)
                             ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
                             CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
-//                            CompCommon.exploducopia(mc.modelInst, mc.modelInfoIndx);
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
-
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                         }
 
