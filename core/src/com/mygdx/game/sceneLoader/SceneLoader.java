@@ -215,7 +215,7 @@ again a need to creat3e these directly in code
         }
     }
 
-    private static void createTestObjects(Engine engine) {
+    public static void createTestObjects(Engine engine) {
 
         Random rnd = new Random();
 
@@ -265,7 +265,6 @@ again a need to creat3e these directly in code
 
         numberOfCrapiums = 0;
 
-        createTestObjects(engine); // tmp
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 

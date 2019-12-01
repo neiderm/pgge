@@ -147,6 +147,8 @@ public class GameScreen extends TimedGameScreen {
         engine.addSystem(new FeatureSystem());
 
         SceneLoader.buildScene(engine);
+        SceneLoader.createTestObjects(engine); // tmp
+
         GfxUtil.init();
 
         GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
