@@ -49,7 +49,7 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
 /*
  * common init to tie together engine and scene loader
  */
-    void newScreen() {
+    public void init() {
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
         // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
@@ -87,6 +87,8 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
 
     /** Called when this screen should release all resources. */
     public void dispose (){
+
+        engine.removeSystem(renderSystem); // make the system dispose its stuff
 
         //  screens that load assets must calls assetLoader.dispose() !
         if (null != sceneLoader) {

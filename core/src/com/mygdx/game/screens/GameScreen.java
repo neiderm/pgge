@@ -70,7 +70,6 @@ import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
 public class GameScreen extends BaseScreenWithAssetsEngine {
 
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
-    private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
     private CameraInputController camController; // FirstPersonCameraController camController;
     //    private BitmapFont font;
@@ -84,8 +83,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
 
-
-    private void init(){
+@Override
+    public void init(){
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -117,7 +116,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
-        newScreen();
+        super.init();
 
         SceneLoader.createTestObjects(engine); // tmp
 
@@ -533,7 +532,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         Gdx.app.log("GameScreen", "screenTearDown");
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
-        engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         BulletWorld.getInstance().dispose();

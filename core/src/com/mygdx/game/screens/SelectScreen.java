@@ -54,15 +54,12 @@ import com.mygdx.game.systems.RenderSystem;
  * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
  * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
  */
-class SelectScreen implements  Screen /*extends TimedGameScreen*/ {
+class SelectScreen  extends BaseScreenWithAssetsEngine {
 
     private static final int N_SELECTIONS = 3;
 
     private InputMapper mapper; // don't new it, it would race with bouncey key from parent screen and not init cleanly
-    private Engine engine;
-    private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private DirectionalShadowLight shadowLight;
-    private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
+
     private BitmapFont font;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Stage stage;
@@ -81,46 +78,15 @@ class SelectScreen implements  Screen /*extends TimedGameScreen*/ {
             new Vector3()
     };
 
-    SceneLoader sceneLoader;
 
-public SelectScreen(){
+    SelectScreen(){
     sceneLoader = new SceneLoader();
 }
 
     @Override
     public void show() {
 
-        Environment environment = new Environment();
-        environment.set(
-                new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-
-        PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        cam.near = 1f;
-        cam.far = 300f;
-        cam.update();
-
-        environment.remove(shadowLight);
-
-        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
-
-        renderSystem = new RenderSystem(shadowLight, environment, cam);
-
-        engine = new Engine();
-        SceneLoader.buildScene(engine);
-
-        engine.addSystem(renderSystem);
-
-        // point the camera to platform
-        final Vector3 camPosition = new Vector3(0, 1.2f, 3.2f);
-        final Vector3 camLookAt = new Vector3(0, 0, 0);
-
-        cam.position.set(camPosition);
-        cam.lookAt(camLookAt);
-        cam.up.set(0, 1, 0);
-        cam.update();
+        super.init();
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
@@ -369,7 +335,6 @@ public SelectScreen(){
     @Override
     public void dispose() {
 
-        engine.removeSystem(renderSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         font.dispose();
@@ -377,11 +342,7 @@ public SelectScreen(){
         stage.dispose();
 
 // screens that load assets must calls assetLoader.dispose() !
-//        super.dispose();
-        if (null != sceneLoader) {
-            sceneLoader.dispose();
-            sceneLoader = null;
-        }
+        super.dispose();
     }
 
     /*
