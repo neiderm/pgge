@@ -32,24 +32,18 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ModelGroup {
 
+    public static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
     public static final String SPAWNERS_MGRP_KEY = "Spawners";
     public static final String MGRP_DEFAULT_MDL_NAME = ""; // if MG key is "empty", then multiple gsme Objectca
 
     private static final String DEFAULT_MODEL_NODE_ID = "node1";
 
 
-    ModelGroup() {
+    public ModelGroup() {
     }
 
     public ModelGroup(String modelName) {
         this.modelName = modelName; // try setting this now
-    }
-
-    ModelGroup(String groupName, String modelName) {
-
-        this(groupName);
-        this.modelName = modelName;
-        this.isKinematic = true;
     }
 
     Array<GameObject> elements = new Array<GameObject>();
@@ -75,22 +69,25 @@ public class ModelGroup {
         return modelName;
     }
 
-    public void addGameObject(GameObject object) {
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
+    public void addElement(GameObject object) {
         elements.add(object);
     }
 
-    public GameObject getGameObject(int index) {
+    public GameObject getElement(int index) {
 
         if (elements.size > 0) {
 
             return elements.get(index);
 
         } else
-            return
-                    null;
+            return null;
     }
 
-    public GameObject getGameObject(String name) {
+    public GameObject getElement(String name) {
 
         GameObject found = null;
 
@@ -111,13 +108,11 @@ public class ModelGroup {
 
             groupModel = mi.model; // should maybe check model valid ;)
 
-
             if (null == mi.model && null != mi.fileName) {
 
                 Gdx.app.log("ModelGroup", "Not a valid model! (null == mi.model && null != mi.fileName)");
                 return; // for now ... ?
             }
-
         }
 
         for (GameObject gameObject : elements) {

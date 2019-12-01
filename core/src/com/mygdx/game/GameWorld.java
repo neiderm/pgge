@@ -159,6 +159,22 @@ public final class GameWorld implements Disposable {
             // set the player object model info in new scene data isntance
             sceneData.modelInfo.put(playerObjectName, new ModelInfo(selectedModelInfo.fileName));
         }
+
+        /*
+         * create the player Model group if not  defined in json
+         */
+        ModelGroup tmg = this.sceneData.modelGroups.get(ModelGroup.LOCAL_PLAYER_MGRP);
+
+        if (null == tmg) {  // select screen doesnt define a player group
+
+            tmg = new ModelGroup( /* playerObjectName */ );
+            tmg.addElement(new GameObject(playerObjectName));
+            this.sceneData.modelGroups.put(ModelGroup.LOCAL_PLAYER_MGRP, tmg);
+        }
+//            else
+//                System.out.println("model group found " + ModelGroup.LOCAL_PLAYER_MGRP);
+
+//            tmg.setModelName(playerObjectName); // nope can't do this ... see "modelFromNodes()"
     }
 
     public void setSceneData(String path) {
@@ -218,7 +234,7 @@ public final class GameWorld implements Disposable {
             sceneData.modelGroups.put(ModelGroup.SPAWNERS_MGRP_KEY, mg);
         }
 
-        mg.addGameObject(object);
+        mg.addElement(object);
     }
 
     /* I don't think we see a dispose event on Android */

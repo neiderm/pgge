@@ -199,23 +199,19 @@ again a need to creat3e these directly in code
 
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
-            if (null == tmg){  // select screen doesnt define a player group
+            if (null != tmg){  // select screen doesnt define a player group
 
-                tmg = new ModelGroup( /*playerFeature.getObjectName()*/ );
-                tmg.addGameObject(new GameObject( localPlayerObjectname ));
-                sd.modelGroups.put(LOCAL_PLAYER_MGRP, tmg);
+                GameObject gameObject = tmg.getElement(0); // snhould be only 1!
+
+                if (null == gameObject){   // new instance of model gruop, game object
+                    gameObject = new GameObject( localPlayerObjectname );
+                    tmg.addElement(gameObject);
+                }
+
+                gameObject.mass = 5.1f;   // should be from the model or something
+                gameObject.isPlayer = true; ////////////////// bah look at me hack
+                gameObject.objectName = localPlayerObjectname;
             }
-
-            GameObject gameObject = tmg.getGameObject(0); // snhould be only 1!
-
-            if (null == gameObject){   // new instance of model gruop, game object
-                gameObject = new GameObject( localPlayerObjectname );
-                tmg.addGameObject(gameObject);
-            }
-
-            gameObject.mass = 5.1f;   // should be from the model or something
-            gameObject.isPlayer = true; ////////////////// bah look at me hack
-            gameObject.objectName = localPlayerObjectname;
         }
     }
 
@@ -269,7 +265,7 @@ again a need to creat3e these directly in code
 
         numberOfCrapiums = 0;
 
-//        createTestObjects(engine); // tmp
+        createTestObjects(engine); // tmp
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
