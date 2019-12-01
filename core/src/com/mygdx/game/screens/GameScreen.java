@@ -16,7 +16,6 @@
 
 package com.mygdx.game.screens;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
@@ -25,12 +24,8 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -72,9 +67,8 @@ import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
 /**
  * Created by neiderm on 12/18/17.
  */
-public class GameScreen extends TimedGameScreen {
+public class GameScreen extends BaseScreenWithAssetsEngine {
 
-    private Engine engine;
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
@@ -105,20 +99,12 @@ public class GameScreen extends TimedGameScreen {
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
-        // been using same light setup as ever
-        //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-        // shadow lighting lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
-        Environment environment = new Environment();
-        environment.set(
-                new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-//        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
-
-        PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-//        cam.position.set(3f, 7f, 10f);
-//        cam.lookAt(0, 4, 0);
-        cam.near = 1f;
-        cam.far = 300f;
-        cam.update();
+//        this.cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+////        cam.position.set(3f, 7f, 10f);
+////        cam.lookAt(0, 4, 0);
+//        cam.near = 1f;
+//        cam.far = 300f;
+//        cam.update();
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -131,23 +117,17 @@ public class GameScreen extends TimedGameScreen {
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
-        DirectionalShadowLight shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, new Vector3(0.5f, -1f, 0f));
-        environment.add(shadowLight);
-        environment.shadowMap = shadowLight;
+        newScreen();
 
-        engine = new Engine();
-        renderSystem = new RenderSystem(shadowLight, environment, cam);
+        SceneLoader.createTestObjects(engine); // tmp
+
         bulletSystem = new BulletSystem();
-        engine.addSystem(renderSystem);
         engine.addSystem(bulletSystem);
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
         engine.addSystem(new FeatureSystem());
 
-        SceneLoader.buildScene(engine);
-        SceneLoader.createTestObjects(engine); // tmp
 
         GfxUtil.init();
 
