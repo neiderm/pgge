@@ -2,10 +2,8 @@ package com.mygdx.game.systems;
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.ashley.core.EntityListener;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import com.badlogic.gdx.Gdx;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.BulletComponent;
 
@@ -13,7 +11,7 @@ import com.mygdx.game.components.BulletComponent;
  * Created by neiderm on 12/18/17.
  */
 
-public class BulletSystem extends IteratingSystem implements EntityListener {
+public class BulletSystem extends IteratingSystem {
 
 
     public BulletSystem() {
@@ -29,15 +27,10 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
     public void addedToEngine(Engine engine) {
 
         super.addedToEngine(engine);
-
-        // listener for these so that their bullet objects can be dispose'd
-        engine.addEntityListener(getFamily(), this);
     }
 
     @Override
     public void removedFromEngine(Engine engine) {
-
-        engine.removeEntityListener(this); // Ashley bug (doesn't remove listener when system removed?
 
         for (Entity e : getEntities()) {
 
@@ -54,41 +47,6 @@ public class BulletSystem extends IteratingSystem implements EntityListener {
             }
             bc.shape.dispose();
             bc.body.dispose();
-        }
-    }
-
-    @Override
-    public void entityAdded(Entity entity) {
-
-        BulletComponent bc = entity.getComponent(BulletComponent.class);
-        //assert null != bc
-        //assert null != bc.body
-        BulletWorld.getInstance().addBody(bc.body);
-    }
-
-    @Override
-    public void entityRemoved(Entity entity) {
-
-        BulletComponent bc = entity.getComponent(BulletComponent.class);
-
-        // assert null != bc
-        // assert null != bc.body
-
-        if (null != bc){
-
-            Gdx.app.log("BulletSystem", "HEY! on entityRemoved() ...  null != bc   (( will my stuff be disposed ????? )) ");
-
-            /*
-        BulletWorld.getInstance().removeBody(bc.body);
-        bc.body.dispose();
-*/
-
-            bc.iHaveBeenDisposed = true;
-
-            Gdx.app.log("BulletSystem", "YIKES!   my stuff is NOOOTTTT gtting disposed !!!!  )) ");
-
-        }else{
-            Gdx.app.log("BulletSystem", "??? on entityRemoved() ... wtf I can't dispose a NULL Comonent !!!!");
         }
     }
 }

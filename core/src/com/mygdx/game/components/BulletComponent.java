@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
+import com.mygdx.game.BulletWorld;
 
 /**
  * Created by neiderm on 12/21/2017.
@@ -34,16 +35,13 @@ public class BulletComponent implements Component {
     }
 
     public MotionState motionstate;
-    public btCollisionShape shape;
+    public btCollisionShape shape;  // this refefrence actually avialable thru the bc body
     public btRigidBody body;
     public float mass;
-    //    private final int id;
-//    private static int cnt = 0;
-    public boolean iHaveBeenDisposed;
+
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 
-//        this.id = cnt++;
         this.shape = shape;
         this.mass = mass;
 
@@ -64,5 +62,8 @@ public class BulletComponent implements Component {
         bodyInfo.dispose();
 
         this.body.setWorldTransform(transform);
+
+
+        BulletWorld.getInstance().addBody(this.body);
     }
 }
