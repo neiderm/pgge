@@ -54,12 +54,12 @@ import com.mygdx.game.systems.RenderSystem;
  * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
  * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
  */
-class SelectScreen extends TimedGameScreen {
+class SelectScreen implements  Screen /*extends TimedGameScreen*/ {
 
     private static final int N_SELECTIONS = 3;
 
     private InputMapper mapper; // don't new it, it would race with bouncey key from parent screen and not init cleanly
-    private Engine engine = new Engine();
+    private Engine engine;
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
     private DirectionalShadowLight shadowLight;
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
@@ -81,6 +81,11 @@ class SelectScreen extends TimedGameScreen {
             new Vector3()
     };
 
+    SceneLoader sceneLoader;
+
+public SelectScreen(){
+    sceneLoader = new SceneLoader();
+}
 
     @Override
     public void show() {
@@ -101,7 +106,12 @@ class SelectScreen extends TimedGameScreen {
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
 
-        engine.addSystem(renderSystem = new RenderSystem(shadowLight, environment, cam));
+        renderSystem = new RenderSystem(shadowLight, environment, cam);
+
+        engine = new Engine();
+        SceneLoader.buildScene(engine);
+
+        engine.addSystem(renderSystem);
 
         // point the camera to platform
         final Vector3 camPosition = new Vector3(0, 1.2f, 3.2f);
@@ -112,7 +122,6 @@ class SelectScreen extends TimedGameScreen {
         cam.up.set(0, 1, 0);
         cam.update();
 
-        SceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
         GameFeature f = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
@@ -368,7 +377,11 @@ class SelectScreen extends TimedGameScreen {
         stage.dispose();
 
 // screens that load assets must calls assetLoader.dispose() !
-        super.dispose();
+//        super.dispose();
+        if (null != sceneLoader) {
+            sceneLoader.dispose();
+            sceneLoader = null;
+        }
     }
 
     /*
