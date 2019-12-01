@@ -56,8 +56,6 @@ import com.mygdx.game.systems.RenderSystem;
  */
 class SelectScreen extends TimedGameScreen {
 
-    private static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string
-
     private static final int N_SELECTIONS = 3;
 
     private InputMapper mapper; // don't new it, it would race with bouncey key from parent screen and not init cleanly
@@ -117,7 +115,7 @@ class SelectScreen extends TimedGameScreen {
         SceneLoader.buildScene(engine);
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
 
-        GameFeature f = GameWorld.getInstance().getFeature(LOCAL_PLAYER_FNAME);
+        GameFeature f = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
         if (null != f) {
             platform = f.getEntity();
@@ -297,7 +295,7 @@ class SelectScreen extends TimedGameScreen {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get("Characters");        // Magik string
-        GameObject go = mg.getGameObject(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
+        GameObject go = mg.getElement(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
 
         GameWorld.getInstance().setSceneData(path, go.objectName);
 
