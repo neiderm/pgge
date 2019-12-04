@@ -68,7 +68,7 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private int idxCurSel;
     private final float platformHt = 0.2f; // tmp
-    private int touchPadDx;
+    private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
 
     // position them into equilateral triangle (sin/cos)
@@ -111,10 +111,10 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
                 return true; // must return true in order for touch up, dragged to work!
             }
 
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                touchPadDx = 0;
-            }
+//            @Override
+//            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+//                touchPadDx = 0;
+//            }
         });
 
         // Font files from ashley-superjumper
@@ -149,7 +149,10 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
                     axis = 1;
                 }
             }
+        }  else {
+            touchPadDx  = 0; // make sure clear any swipe event in progress
         }
+
         if (0 == axis) { // if input is inactive
             /* && 0 != dPadYaxis */ /* key is released ... not necessary but for debugging */
             dPadYaxis = 0; // de-latch previous input state
