@@ -52,6 +52,9 @@ import com.mygdx.game.GameWorld;
 
 class InGameMenu extends Stage {
 
+    private Vector2 v2 = new Vector2();
+    private Array<Texture> savedTextureRefs = new Array<Texture>();
+
     InputMapper mapper = new InputMapper();
     Table onscreenMenuTbl = new Table();
     Table playerInfoTbl = new Table();
@@ -77,6 +80,8 @@ class InGameMenu extends Stage {
     InGameMenu(String skinName, String menuName) {
 
         super();
+
+        savedTextureRefs.clear();
 
         // make suure to have a font to work with!
         font = new BitmapFont(
@@ -321,27 +326,13 @@ class InGameMenu extends Stage {
 //    public void act(float delta){
 //    }
 
-    @Override
-    public void dispose(){
-
-        if (null != overlayTexture)
-            overlayTexture.dispose();
-
-        if (null != font)
-            font.dispose();
-
-        if (null != uiSkin)
-            uiSkin.dispose();
-
-        if (null != buttonTexture)
-            buttonTexture.dispose();
-    }
-
-
-    private Vector2 v2 = new Vector2();
-
+    /*
+     * saves the texture ref for disposal ;)
+     */
     protected ImageButton addImageButton(
             Texture tex, float posX, float posY, final InputMapper.InputState ips) {
+
+        savedTextureRefs.add(tex);
 
         final ImageButton newButton = addImageButton(tex, posX, posY);
 
@@ -376,5 +367,32 @@ class InGameMenu extends Stage {
         addActor(newButton);
         newButton.setPosition(posX, posY);
         return newButton;
+    }
+
+    private void clearShapeRefs(){
+        int n = 0;
+        for (Texture tex : savedTextureRefs){
+            n += 1;
+            tex.dispose();
+
+        }
+    }
+
+    @Override
+    public void dispose(){
+
+        clearShapeRefs();
+
+        if (null != overlayTexture)
+            overlayTexture.dispose();
+
+        if (null != font)
+            font.dispose();
+
+        if (null != uiSkin)
+            uiSkin.dispose();
+
+        if (null != buttonTexture)
+            buttonTexture.dispose();
     }
 }

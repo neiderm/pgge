@@ -22,11 +22,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.EventListener;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
@@ -48,8 +44,8 @@ public class GameUI extends InGameMenu {
     boolean canExit; // exit sensor is tripped
     int prizeCount;
 
-    public static final int SCREEN_CONTINUE_TIME = 10 * 60 ; // FPS
-    private static final int DEFAULT_SCREEN_TIME = 55 * 60 ; // FPS
+    static final int SCREEN_CONTINUE_TIME = 10 * 60 ; // FPS
+    private static final int DEFAULT_SCREEN_TIME = 60 * 60 ; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
@@ -70,8 +66,6 @@ public class GameUI extends InGameMenu {
     private Touchpad touchpad;
     // @dispoable
     private Skin touchpadSkin;
-    private Texture gsTexture;
-    private Texture btnTexture;
     private Texture tpBackgnd;
     private Texture tpKnob;
 
@@ -94,7 +88,7 @@ public class GameUI extends InGameMenu {
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
 
-        setupOnscreenControls(mapper);
+        setupOnscreenControls();
         setupInGameMenu();
 
         addTouchPad(new ChangeListener() {
@@ -246,33 +240,41 @@ public class GameUI extends InGameMenu {
         onscreenMenuTbl.setVisible(false); // default not visible (Paused menu)
     }
 
-    private void setupOnscreenControls(final InputMapper mapper) {
+    private void setupOnscreenControls() {
 
         final int gsBTNwidth = Gdx.graphics.getHeight() * 3 / 8;
         final int gsBTNheight = Gdx.graphics.getHeight() * 3 / 8;
         // placement relative to absolute center of screen ... i guess
         final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth / 2;
-        final int gsBTNy = Gdx.graphics.getHeight() / 2;
+        final int gsBTNy = 0;
 
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap pixmap;
+        picButton = addImageButton(
+                gsBTNx + 0, gsBTNy - 0,
+                gsBTNwidth, gsBTNheight,
+                InputMapper.InputState.INP_NONE);
 
-        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, .3f);
-        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
-        gsTexture = new Texture(pixmap);
-// listener for touch X/Y
-        picButton = addImageButton(gsTexture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
-        pixmap.dispose();
-
-        pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, .3f);
-        pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
-        btnTexture = new Texture(pixmap);
-// placement relative to absolute center of screen .. i guess
         xButton = addImageButton(
-                btnTexture, 3f * Gdx.graphics.getWidth() / 4, 0, InputMapper.InputState.INP_B2);
+                3f * Gdx.graphics.getWidth() / 4, 0,
+                Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4,
+                InputMapper.InputState.INP_B2);
+    }
+
+    /*
+     * make simple outlined button to provide either InputState or touch/pointer input
+     */
+    private ImageButton addImageButton(
+            float btnX, float btnY, int btnWidth, int btnHeight, final InputMapper.InputState ips
+    ) {
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
+        Texture useTexture = new Texture(pixmap);
+// saves the texture ref for disposal ;)
+        ImageButton button = addImageButton(useTexture, btnX, btnY, ips);
+
         pixmap.dispose();
+        return button;
     }
 
     private void updateTimerLbl() {
@@ -560,12 +562,6 @@ public class GameUI extends InGameMenu {
 
         if (null != touchpadSkin)
             touchpadSkin.dispose();
-
-        if (null != btnTexture)
-            btnTexture.dispose();
-
-        if (null != gsTexture)
-            gsTexture.dispose();
 
         if (null != tpBackgnd)
             tpBackgnd.dispose();
