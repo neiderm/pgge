@@ -45,6 +45,7 @@ public final class GameWorld implements Disposable {
 
 
     public enum GAME_STATE_T {
+        ROUND_NONE,
         ROUND_ACTIVE,
         ROUND_OVER_RESTART,
         ROUND_OVER_QUIT,
@@ -127,7 +128,7 @@ public final class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
-    private GAME_STATE_T roundActiveState; // for better or worse ... ;)  gameScreenState ?? 
+    private GAME_STATE_T roundActiveState =  GAME_STATE_T.ROUND_NONE; // for better or worse ... ;)  gameScreenState ??
 
     public GAME_STATE_T getRoundActiveState() {
         return roundActiveState;
