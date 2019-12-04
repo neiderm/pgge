@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -334,5 +335,46 @@ class InGameMenu extends Stage {
 
         if (null != buttonTexture)
             buttonTexture.dispose();
+    }
+
+
+    private Vector2 v2 = new Vector2();
+
+    protected ImageButton addImageButton(
+            Texture tex, float posX, float posY, final InputMapper.InputState ips) {
+
+        final ImageButton newButton = addImageButton(tex, posX, posY);
+
+        newButton.addListener(
+                new InputListener() {
+
+                    final InputMapper.InputState InputStateBinding = ips;
+
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
+                        if (InputMapper.InputState.INP_NONE != InputStateBinding) {
+                            mapper.setInputState(InputStateBinding);
+                        }
+                        else{
+                            Vector2 toScrnCoord =
+                                    newButton.localToParentCoordinates(v2.set(x, y));
+
+                            mapper.setPointer(toScrnCoord.x, toScrnCoord.y); // sets INP SELECT
+                        }
+                        return false;
+                    }
+                }
+        );
+        return newButton;
+    }
+
+    protected ImageButton addImageButton(Texture tex, float posX, float posY) {
+
+        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
+        ImageButton newButton = new ImageButton(myTexRegionDrawable);
+        addActor(newButton);
+        newButton.setPosition(posX, posY);
+        return newButton;
     }
 }

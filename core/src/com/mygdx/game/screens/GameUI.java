@@ -75,13 +75,7 @@ public class GameUI extends InGameMenu {
     private Texture tpBackgnd;
     private Texture tpKnob;
 
-    private final int gsBTNwidth = Gdx.graphics.getHeight() * 3 / 8;
-    private final int gsBTNheight = Gdx.graphics.getHeight() * 3 / 8;
-    // placement relative to absolute center of screen ... i guess
-    private final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth / 2;
-    private final int gsBTNy = Gdx.graphics.getHeight() / 2;
 
-    private Vector2 v2 = new Vector2();
     private float[] axes = new float[4];
 
     private Color hudOverlayColor;
@@ -254,6 +248,12 @@ public class GameUI extends InGameMenu {
 
     private void setupOnscreenControls(final InputMapper mapper) {
 
+        final int gsBTNwidth = Gdx.graphics.getHeight() * 3 / 8;
+        final int gsBTNheight = Gdx.graphics.getHeight() * 3 / 8;
+        // placement relative to absolute center of screen ... i guess
+        final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth / 2;
+        final int gsBTNy = Gdx.graphics.getHeight() / 2;
+
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap;
 
@@ -261,17 +261,8 @@ public class GameUI extends InGameMenu {
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
         gsTexture = new Texture(pixmap);
-
-        picButton = addImageButton(gsTexture, gsBTNx, gsBTNy,
-                new InputListener() {
-                    @Override
-                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                        // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
-                        Vector2 toScrnCoord = picButton.localToParentCoordinates(v2.set(x, y));
-                        mapper.setPointer(toScrnCoord.x, toScrnCoord.y);
-                        return false;
-                    }
-                });
+// listener for touch X/Y
+        picButton = addImageButton(gsTexture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
         pixmap = new Pixmap(Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4, Pixmap.Format.RGBA8888);
@@ -279,26 +270,9 @@ public class GameUI extends InGameMenu {
         pixmap.drawRectangle(0, 0, Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4);
         btnTexture = new Texture(pixmap);
 // placement relative to absolute center of screen .. i guess
-        xButton = addImageButton(btnTexture, 3f * Gdx.graphics.getWidth() / 4, 0,
-                new InputListener() {
-                    @Override
-                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                        mapper.setInputState(InputMapper.InputState.INP_B2);
-                        return false;
-                    }
-                });
+        xButton = addImageButton(
+                btnTexture, 3f * Gdx.graphics.getWidth() / 4, 0, InputMapper.InputState.INP_B2);
         pixmap.dispose();
-    }
-
-    // libGdx managedTextures ??
-    private ImageButton addImageButton(Texture tex, float posX, float posY, EventListener listener) {
-
-        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
-        ImageButton newButton = new ImageButton(myTexRegionDrawable);
-        addActor(newButton);
-        newButton.setPosition(posX, posY);
-        newButton.addListener(listener); // ignored return value
-        return newButton;
     }
 
     private void updateTimerLbl() {
@@ -348,7 +322,7 @@ public class GameUI extends InGameMenu {
     }
 
 
-    public void setScore(int points) {
+    void setScore(int points) {
         score = points;
     }
 
@@ -365,7 +339,7 @@ public class GameUI extends InGameMenu {
     public void onSelectEvent() { // mt ... override it
     }
 
-    public void onPauseEvent() {
+    private void onPauseEvent() {
 
         if (GameWorld.getInstance().getIsPaused()) {
 

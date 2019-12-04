@@ -16,7 +16,6 @@
 
 package com.mygdx.game.screens;
 
-import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
@@ -24,17 +23,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
@@ -44,7 +38,6 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
-import com.mygdx.game.systems.RenderSystem;
 
 
 /*
@@ -58,11 +51,12 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
     private static final int N_SELECTIONS = 3;
 
-    private InputMapper mapper; // don't new it, it would race with bouncey key from parent screen and not init cleanly
+    private Texture gsTexture;
 
     private BitmapFont font;
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private Stage stage;
+    private InGameMenu stage;
+
     private Entity platform;
     private ImmutableArray<Entity> characters;
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
@@ -96,26 +90,21 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
             platform = f.getEntity();
         }
 
+        stage = new InGameMenu();
 
-        mapper = new InputMapper(); // late construction here (race with bouncey key from parent screen )
+        final int gsBTNwidth = Gdx.graphics.getWidth();
+        final int gsBTNheight = Gdx.graphics.getHeight() / 4;
+        final int gsBTNx = 0;
+        final int gsBTNy = 0;
 
-        stage = new Stage();
-        stage.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                Gdx.app.log("SelectScreen", "(TouchDown) x= " + x + " y= " + y);
-// work around troubles with dectecting touch Down vs touch Down+swipe
-                if (y < GameWorld.VIRTUAL_HEIGHT / 4)
-                    mapper.setInputState(InputMapper.InputState.INP_SELECT);
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
+        gsTexture = new Texture(pixmap);
+        stage.addImageButton(gsTexture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
+        pixmap.dispose();
 
-                return true; // must return true in order for touch up, dragged to work!
-            }
-
-//            @Override
-//            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-//                touchPadDx = 0;
-//            }
-        });
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
@@ -124,8 +113,9 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         font.getData().setScale(1.0f);
 
         // ok so you can add a label to the stage
-        Label label = new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE));
-        stage.addActor(label);
+        stage.addActor(
+                new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE)) );
+
         Gdx.input.setInputProcessor(stage);
 
         degreesSetp = 90 - idxCurSel * PLATFRM_INC_DEGREES;
@@ -136,7 +126,7 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
      */
     private int getStep() {
 
-        int axis = mapper.getDpad(null).getX();
+        int axis = stage.mapper.getDpad(null).getX();
 
         if (Gdx.input.isTouched()) {
             // make sure not in a swipe event already
@@ -313,7 +303,7 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
                 down.set(0, -0.5f, 0));
 
-        InputMapper.InputState inputState = mapper.getInputState();
+        InputMapper.InputState inputState = stage.mapper.getInputState();
 
         if (InputMapper.InputState.INP_ESC == inputState) {
 
@@ -344,7 +334,10 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         shapeRenderer.dispose();
         stage.dispose();
 
-// screens that load assets must calls assetLoader.dispose() !
+        if (null != gsTexture)
+            gsTexture.dispose();
+
+        // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }
 
