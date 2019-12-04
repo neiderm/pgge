@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -128,16 +129,17 @@ public class ShootamaThing extends VectorSensor {
             // else System.out.println();
         }
 
-        ModelComponent mymc = sensor.getComponent(ModelComponent.class);
-
-        updatePlatformRotation(mymc.modelInst.transform);
+        updatePlatformRotation(sensor);
     }
 
     /*
     toodoo use raycast to determine dx to stop of cast and if target comes within x degrees of
     whatever direction it happens to be pointing, then it begins rotating to track target
      */
-    private void updatePlatformRotation(Matrix4 myxfm) {
+    private void updatePlatformRotation(Entity sensor ) {
+
+        ModelComponent mymc = sensor.getComponent(ModelComponent.class);
+        Matrix4 myxfm = mymc.modelInst.transform;
 
         myxfm.getRotation(orientation);
         tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
@@ -159,7 +161,11 @@ public class ShootamaThing extends VectorSensor {
 
         myxfm.rotate(tmpV, rotationStep);
 
-//        myxfm.getRotation(orientation); // tmp test
+        BulletComponent bc = sensor.getComponent(BulletComponent.class);
+
+        if (null != bc) {
+            bc.body.setWorldTransform(myxfm);
+        }
     }
 
 
