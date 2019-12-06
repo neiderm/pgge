@@ -281,9 +281,10 @@ class InGameMenu extends Stage {
      */
     void setCheckedBox(int checked) {
 
-        String name = buttonNames.get(checked);
-
-        bg.setChecked(name);
+        if (buttonNames.size > 0) {
+            String name = buttonNames.get(checked);
+            bg.setChecked(name);
+        }
     }
 
     int getCheckedIndex(){
@@ -321,6 +322,17 @@ class InGameMenu extends Stage {
 
         return selectedIndex;
     }
+
+
+    protected void onSelectEvent() { // mt override
+    }
+
+    protected void onPauseEvent() { // mt override
+    }
+
+    protected void onEscEvent() { // mt override
+    }
+
 
 //    @Override
 //    public void act(float delta){
