@@ -21,6 +21,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -30,6 +31,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -72,10 +74,13 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
             new Vector3()
     };
 
+    private static Array<String> stageNamesList = new Array<String>();
+    private final String SCREENS_DIR = "screens/";
+    private boolean isPaused;
 
     SelectScreen(){
-    sceneLoader = new SceneLoader();
-}
+        sceneLoader = new SceneLoader();
+    }
 
     @Override
     public void show() {
@@ -91,6 +96,25 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         }
 
         stage = new InGameMenu();
+        Gdx.input.setInputProcessor(stage);
+
+        // setup a screen/file selection menu (development only)
+//        FileHandle[] files = Gdx.files.local(SCREENS_DIR).list();
+        FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
+
+        for (FileHandle file: files) {
+            // stick the base-name (no path, no extension) into the menu
+            String fname = file.name();
+            if (fname.matches("(.*).json($)")) {
+                String basename = fname.replaceAll(".json$", "");
+                stage.addButton(basename, "toggle");
+// specify the path+name for now until all screeen jsons are migrated to Screens_Dir
+                stageNamesList.add(SCREENS_DIR + fname);
+            }
+        }
+        stage.addNextButton();
+        stage.onscreenMenuTbl.setVisible( false );
+
 
         final int gsBTNwidth = Gdx.graphics.getWidth();
         final int gsBTNheight = Gdx.graphics.getHeight() / 4;
@@ -226,9 +250,7 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
     private void updatePlatform(float platformDegrees) {
 
-        Matrix4 transform;
-
-        transform = platform.getComponent(ModelComponent.class).modelInst.transform;
+        Matrix4 transform = platform.getComponent(ModelComponent.class).modelInst.transform;
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
         transform.setTranslation(new Vector3(originCoordinate));
         transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
@@ -243,17 +265,17 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
 //        previousIncrement = step;
 
-        if (selectedIndex >= N_SELECTIONS)
+        if (selectedIndex >= N_SELECTIONS) {
             selectedIndex = 0;
-        else if (selectedIndex < 0)
+        }
+        else if (selectedIndex < 0) {
             selectedIndex = N_SELECTIONS - 1;
-
+        }
 
         return selectedIndex;
     }
 
     private Screen newLoadingScreen(String path) {
-
         // show loading bar on this screen? omit LoadingScreen? allowing the
         // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
         // Can have a "generic" pass-off ... each screen as closed sets parameters in next screens data.
@@ -292,26 +314,47 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+        if (isPaused){
+            int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
+            stage.setCheckedBox(idxCurSel);
 
-        int step = getStep();
-        idxCurSel = checkedUpDown(step, idxCurSel);
-        // Necessary to increment the degrees because we are controlling to it like a setpoint (IOW
-        // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-        degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
+            InputMapper.InputState inp = stage.mapper.getInputState();
+            if (InputMapper.InputState.INP_SELECT == inp) {
 
-        // lower previous (raised current selection in updateTanks() )
-        characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
-                down.set(0, -0.5f, 0));
+                if (stageNamesList.size > 0){
+                    String stagename = stageNamesList.get(idxCurSel);
+                    GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
+                }
+            }
+            else if (InputMapper.InputState.INP_ESC == inp) {
 
-        InputMapper.InputState inputState = stage.mapper.getInputState();
+                stage.onscreenMenuTbl.setVisible( false );
+                isPaused = false;
+            }
+        } else {
+            int step = getStep();
+            idxCurSel = checkedUpDown(step, idxCurSel);
+            // Necessary to increment the degrees because we are controlling to it like a setpoint (IOW
+            // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
+            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
 
-        if (InputMapper.InputState.INP_ESC == inputState) {
+            // lower previous (raised current selection in updateTanks() )
+            characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
+                    down.set(0, -0.5f, 0));
 
-            GameWorld.getInstance().showScreen(newLoadingScreen("gbr.json")); // LevelOne.json
+            InputMapper.InputState inputState = stage.mapper.getInputState();
 
-        } else if (InputMapper.InputState.INP_SELECT == inputState) {
+            if (InputMapper.InputState.INP_ESC == inputState) {
+//                GameWorld.getInstance().showScreen(newLoadingScreen("gbr.json")); // LevelOne.json
+// setup a screen/file selection menu (development only)
+                if (stageNamesList.size > 0) {
+                    stage.onscreenMenuTbl.setVisible(true);
+                    isPaused = true;
+                }
+            } else if (InputMapper.InputState.INP_SELECT == inputState) {
 
-            GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
+                GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
+            }
         }
     }
 
