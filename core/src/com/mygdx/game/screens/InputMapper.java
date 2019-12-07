@@ -508,6 +508,14 @@ class InputMapper /* stageWithController extends stage ? */ {
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
             dPadAxes.setX(1); //            dPadAxes.x = 1;
         }
+
+        // special sauce for PS/AND ctrl config
+        if (2 == GameWorld.getInstance().getControllerMode()){
+
+            dPadAxes.setX((int)analogAxes.x) ;
+            dPadAxes.setY((int)analogAxes.y) ;
+        }
+
         return dPadAxes;
     }
 
@@ -589,7 +597,7 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 setAxis(axisIndex, axes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
-
+//Gdx.app.log("axis moved", "axis index = " + axisIndex + " value = " + value);
                 return false;
             }
 
