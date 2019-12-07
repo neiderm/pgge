@@ -106,6 +106,14 @@ public final class GameWorld implements Disposable {
     /*
      please don't hate the Game World globals needed to be shared between Game World and Game Screen
      */
+    private int controllerMode;
+
+    public int getControllerMode(){
+        return controllerMode;
+    }
+    public void setControllerMode(int iMode){
+        this.controllerMode = iMode;
+    }
 
     private boolean isPaused = false;
 
