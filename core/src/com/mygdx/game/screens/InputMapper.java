@@ -23,6 +23,7 @@ import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ArrayMap;
+import com.mygdx.game.GameWorld;
 
 import java.util.Arrays;
 
@@ -100,7 +101,9 @@ UD Axis2    Axis0
 
 class InputMapper /* stageWithController extends stage ? */ {
 
-    private final int MAX_BUTTONS = 10;
+    // from some gamepad i have on android
+    private final int MAX_AXES = 8;
+    private final int MAX_BUTTONS = 110;
 
     public enum InputState {
         INP_NONE,
@@ -111,8 +114,7 @@ class InputMapper /* stageWithController extends stage ? */ {
 
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
-    private float[] axes = new float[4];
-    private boolean[] buttons = new boolean[MAX_BUTTONS + 1];
+    private boolean[] buttons = new boolean[MAX_BUTTONS];
 
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
@@ -164,6 +166,11 @@ class InputMapper /* stageWithController extends stage ? */ {
         BUTTON_10
     }
 
+    // use the actual analog axis indices reported on certain controller (android)
+    private final int DEF_X_AXIS_INDEX = 6;
+    private final int DEF_Y_AXIS_INDEX = 7;
+
+
     // get the "virtual axis"
     float getAxisX(int axisIndex) {
 
@@ -185,10 +192,35 @@ class InputMapper /* stageWithController extends stage ? */ {
                             + 1.0
      */
     void setAxis(int axisIndex, float[] values) {
+        /*
+        need to filter out axes .. if hat-switch not reported , it is virtualized as an axis
+        so i have to allow multiple axes to be valid sources which are then sent
+        into the analogAxes.xy
 
-        // ie. analogAxes[axisIndex].x ....
-        analogAxes.x = values[0];
-        analogAxes.y = values[1];
+        multiple axes must be supported in order to have hat-switch (sometimes an axis)
+        hat-switch   if present reported on axis [6 7]
+         */
+        // wip whatever
+        switch (GameWorld.getInstance().getControllerMode()) {
+            default:
+            case 0: // PS
+                analogAxes.x = values[0];
+                analogAxes.y = values[1];
+                break;
+            case 1: // XB (Win?)
+                analogAxes.x = values[1];
+                analogAxes.y = values[0];
+                break;
+            case 2: // PS (And)
+                analogAxes.x = values[0];
+                analogAxes.y = values[1];
+                break;
+        }
+// pretty shaky assumption that these axes would only ever represent a hat-switch1
+        if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex) {
+            analogAxes.x = values[DEF_X_AXIS_INDEX];
+            analogAxes.y = values[DEF_Y_AXIS_INDEX];
+        }
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
@@ -279,13 +311,15 @@ class InputMapper /* stageWithController extends stage ? */ {
 
     private InputState nowInputState;
 
-    void latchInputState(){
+    void latchInputState() {
         nowInputState = getInputState();
     }
-    void unlatchInputstate(){
+
+    void unlatchInputstate() {
         nowInputState = InputState.INP_NONE;
     }
-    boolean isInputState(InputState inp){
+
+    boolean isInputState(InputState inp) {
         return (nowInputState == inp);
     }
 
@@ -345,15 +379,22 @@ class InputMapper /* stageWithController extends stage ? */ {
     }
 
 
+    private void setControlButton(int buttonIndex, boolean state) {
+        if (buttonIndex < MAX_BUTTONS) {
+
+            buttons[buttonIndex] = state;
+        }
+    }
+
     private boolean getControlButton(int buttonIndex) {
 
         boolean rv = false;
         if (null != connectedCtrl) {
 
-            if (buttonIndex <= MAX_BUTTONS) {
+            if (buttonIndex < MAX_BUTTONS) {
                 rv = buttons[buttonIndex];
             } else {
-                Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
+                Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
             }
         }
         return rv;
@@ -381,7 +422,7 @@ class InputMapper /* stageWithController extends stage ? */ {
             if (xBreak)
                 rt = this.x;
 
-            if ( 0 == this.x )
+            if (0 == this.x)
                 xBreak = true;
 
             return rt;
@@ -394,18 +435,18 @@ class InputMapper /* stageWithController extends stage ? */ {
             if (yBreak)
                 rt = this.y;
 
-            if ( 0 == this.y )
+            if (0 == this.y)
                 yBreak = true;
 
             return rt;
         }
 
-        public void setX(int x){
+        public void setX(int x) {
 
             this.x = x;
         }
 
-        public void setY(int y){
+        public void setY(int y) {
 
             this.y = y;
         }
@@ -459,13 +500,13 @@ class InputMapper /* stageWithController extends stage ? */ {
             dPadAxes.setY(-1); //            dPadAxes.y = -1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || PovDirection.south == povDir) {
-            dPadAxes.setY( 1); //            dPadAxes.y = 1;
+            dPadAxes.setY(1); //            dPadAxes.y = 1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || PovDirection.west == povDir) {
             dPadAxes.setX(-1); //            dPadAxes.x = -1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
-            dPadAxes.setX( 1); //            dPadAxes.x = 1;
+            dPadAxes.setX(1); //            dPadAxes.x = 1;
         }
         return dPadAxes;
     }
@@ -501,6 +542,8 @@ class InputMapper /* stageWithController extends stage ? */ {
          */
         Controllers.addListener(new ControllerListenerAdapter() {
 
+            private float[] axes = new float[MAX_AXES];
+
             int indexOf(Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
             }
@@ -510,10 +553,10 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                if (buttonIndex <= MAX_BUTTONS) {
-                    buttons[buttonIndex] = true;
+                if (buttonIndex < MAX_BUTTONS) {
+                    setControlButton(buttonIndex, true);// buttons[buttonIndex] = true;
                 } else {
-                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
+                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
                 }
 
                 return false;
@@ -524,48 +567,60 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
 
-                if (buttonIndex <= MAX_BUTTONS) {
-                    buttons[buttonIndex] = false;
+                if (buttonIndex < MAX_BUTTONS) {
+                    setControlButton(buttonIndex, false);//// buttons[buttonIndex] = false;
                 } else {
-                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")" );
+                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
                 }
                 return false;
             }
 
+            /*
+             * any axis moved then refresh the map i.e. read all conroller's axes
+             */
             @Override
             public boolean axisMoved(Controller controller, int axisIndex, float value) {
                 /*          -1.0
                        -1.0   +   +1.0  (0)
                             + 1.0        */
-                for (int idx = 0; idx < 4; idx++) {
+                for (int idx = 0; idx < MAX_AXES; idx++) {
                     axes[idx] = controller.getAxis(idx);
                 }
+
                 setAxis(axisIndex, axes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
 
                 return false;
             }
 
+            /*
+             * pov moved may not be reported  ... it may report the hat-switch as axes (Android)
+             */
             @Override
             public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
                 print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
                 Arrays.fill(axes, 0);
+                int index = 0;
 
                 if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    axes[0] = -1;
+                    index = DEF_X_AXIS_INDEX;
+                    axes[index] = -1;
                 }
                 if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    axes[0] = +1;
+                    index = DEF_X_AXIS_INDEX;
+                    axes[index] = +1;
                 }
                 if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    axes[1] = -1;
+                    index = DEF_Y_AXIS_INDEX;
+                    axes[index] = -1;
                 }
                 if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    axes[1] = +1;
+                    index = DEF_Y_AXIS_INDEX;
+                    axes[index] = +1;
                 }
 
-                setAxis(-1, axes);
+                setAxis(/*povIndex ... no virtualize it as axis */ index, axes);
                 print("#" + indexOf(controller) + ", axes " + axes[0] + ": " + axes[1]);
 
                 return false;
