@@ -202,10 +202,18 @@ public class LoadingScreen implements Screen {
                 GameWorld.getInstance().setIsTouchScreen(true);
             }
 
-            if (
-                    InputMapper.InputState.INP_SELECT == mapper.getInputState(true) || !shouldPause) {
-                if (0 == screenTimer) {
+            InputMapper.InputState inp = mapper.getInputState(true);
+
+            if (0 == screenTimer || !shouldPause) {
+
+                if (  InputMapper.InputState.INP_SELECT == inp ) {
                     GameWorld.getInstance().showScreen(newScreen);
+                }
+                else if (  InputMapper.InputState.INP_ESC == inp ) {
+                    if (ScreenTypes.SETUP == screenType) {
+                        GameWorld.getInstance().showScreen(new GamepadConfig()); // tmp menu screen
+//                        GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
+                    }
                 }
             }
         }
