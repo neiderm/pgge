@@ -338,10 +338,12 @@ public class GameUI extends InGameMenu {
     }
 
 
-    public void onSelectEvent() { // mt ... override it
+    @Override
+    protected void onSelectEvent() { // mt ... override it
     }
 
-    private void onPauseEvent() {
+    @Override
+    protected void onPauseEvent() {
 
         if (GameWorld.getInstance().getIsPaused()) {
 
@@ -373,8 +375,8 @@ public class GameUI extends InGameMenu {
 //        }
     }
 
-    /* can be overridden */
-    private void onEscEvent() {
+@Override
+protected void onEscEvent() {
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
                 GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
