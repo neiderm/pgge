@@ -212,7 +212,7 @@ class InGameMenu extends Stage {
             nextButton.addListener(new InputListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    mapper.setInputState(InputMapper.InputState.INP_SELECT);
+                    mapper.setInputState(InputMapper.InputState.INP_A);
                     return false;
                 }
             });

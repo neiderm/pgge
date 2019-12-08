@@ -250,7 +250,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                         controlledModel.updateControls( yyy, // mapper.getAxisY(0) - 0.75f,
                                 mapper.getAxisX(0),
-                                (mapper.isInputState(InputMapper.InputState.INP_B2)), 0); // need to use Vector2
+                                (mapper.isInputState(InputMapper.InputState.INP_B)), 0); // need to use Vector2
                 }
 
                 super.act(delta);

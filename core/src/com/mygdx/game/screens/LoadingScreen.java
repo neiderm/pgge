@@ -206,10 +206,13 @@ public class LoadingScreen implements Screen {
 
             if (0 == screenTimer || !shouldPause) {
 
-                if (  InputMapper.InputState.INP_SELECT == inp ) {
+                if (  InputMapper.InputState.INP_A == inp ) {
                     GameWorld.getInstance().showScreen(newScreen);
                 }
-                else if (  InputMapper.InputState.INP_ESC == inp ) {
+                else if (  InputMapper.InputState.INP_START == inp
+                        //   || /* !isGamePadConfigured and gamePad anyKey/button except "Select"   */
+                        || mapper.getAxisX(0) > 0.8f  // hacky hacky
+                        ) {
                     if (ScreenTypes.SETUP == screenType) {
                         GameWorld.getInstance().showScreen(new GamepadConfig()); // tmp menu screen
 //                        GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen

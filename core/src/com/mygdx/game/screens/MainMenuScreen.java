@@ -55,7 +55,7 @@ public class MainMenuScreen implements Screen {
         int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
         stage.setCheckedBox(idxCurSel);
 
-        if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()) {
+        if (InputMapper.InputState.INP_A == stage.mapper.getInputState()) {
             // pass along the local player object name
             GameFeature gf =
                     GameWorld.getInstance().getFeature( /* SceneData.LOCAL_PLAYER_FNAME */ "Player");
@@ -113,10 +113,6 @@ public class MainMenuScreen implements Screen {
         stage.addButton("Exit", "toggle");
 
         stage.addNextButton();
-
-
-        // in case INP SELECT got us here, then debounce it
-//        stage.mapper.checkInputState(InputMapper.InputState.INP_SELECT);
     }
 
     @Override

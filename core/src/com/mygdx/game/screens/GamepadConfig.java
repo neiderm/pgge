@@ -20,7 +20,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.sceneLoader.GameFeature;
 
 /**
  * Created by neiderm on 12/07/19.
@@ -53,7 +52,7 @@ public class GamepadConfig implements Screen {
         int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
         stage.setCheckedBox(idxCurSel);
 
-        if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()
+        if (InputMapper.InputState.INP_A == stage.mapper.getInputState()
                || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
                 ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);

@@ -82,12 +82,11 @@ class InputMapper {
     // so this is the control switches abstrction
     public enum InputState {
         INP_NONE,
-        INP_START, // INP_SELEct gameUI
-        INP_SELECT, //        INP_A,
-        INP_ESC, // INP_START
-        INP_B2 ;   // INP_B
+        INP_SELECT,
+        INP_START,
+        INP_A,
+        INP_B;
     }
-//    final InputState INP_SELECT = InputState.DIO_A;
 
     private VirtualButtons buttonmMapping[] = new VirtualButtons[MAX_BUTTONS];
     private boolean buttonStates[] = new boolean[VirtualButtons.values().length];
@@ -105,7 +104,7 @@ class InputMapper {
         connectedCtrl = getConnectedCtrl(0);
 
         // bah ... debounce this (bounce from key on previous screen)
-        checkInputState(InputState.INP_SELECT); // seems to be necessary and effective with game pad ;)
+        checkInputState(InputState.INP_A); // seems to be necessary and effective with game pad ;)
     }
 
 //    private class ButtonData {
@@ -187,6 +186,11 @@ class InputMapper {
             analogAxes.x = values[DEF_X_AXIS_INDEX];
             analogAxes.y = values[DEF_Y_AXIS_INDEX];
         }
+        // special sauce the gamepad with the aalog shoulder buttons
+        if (4 == axisIndex || 5 == axisIndex) {
+            analogAxes.x = values[4];
+            analogAxes.y = values[5];
+        }
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
@@ -211,25 +215,25 @@ class InputMapper {
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtons.BTN_START)
                 ) {
-            newInputState = InputState.INP_ESC;
+            newInputState = InputState.INP_START;
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
                 || getControlButton(VirtualButtons.BTN_A)
                 ) {
-            newInputState = InputState.INP_SELECT;
+            newInputState = InputState.INP_A;
 
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtons.BTN_B)
                 ) {
-            newInputState = InputState.INP_B2;
+            newInputState = InputState.INP_B;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtons.BTN_SELECT)
                 ) {
-            newInputState = InputState.INP_START;
+            newInputState = InputState.INP_SELECT;
         }
 
         return newInputState;
@@ -310,7 +314,7 @@ class InputMapper {
 
     void setPointer(float x, float y) {
 
-        setInputState(InputState.INP_SELECT);
+        setInputState(InputState.INP_A);
         pointer.set(x, y);
     }
 
@@ -486,7 +490,7 @@ class InputMapper {
     */
 
     private void print(String message) {
-        Gdx.app.log("Input", message);
+//        Gdx.app.log("Input", message);
     }
 
     private void initController() {

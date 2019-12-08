@@ -256,7 +256,7 @@ public class GameUI extends InGameMenu {
         xButton = addImageButton(
                 3f * Gdx.graphics.getWidth() / 4, 0,
                 Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4,
-                InputMapper.InputState.INP_B2);
+                InputMapper.InputState.INP_B);
     }
 
     /*
@@ -395,7 +395,7 @@ protected void onEscEvent() {
 
         mapper.latchInputState();
 
-        if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+        if (mapper.isInputState(InputMapper.InputState.INP_A)) {
 
             if (GameWorld.getInstance().getIsPaused()) {
 
@@ -410,9 +410,13 @@ protected void onEscEvent() {
                     onSelectEvent(); // so it can be overriden
                 }
             }
-        } else if (mapper.isInputState(InputMapper.InputState.INP_ESC)) {
+        } else if (mapper.isInputState(InputMapper.InputState.INP_START)) {
 
             onEscEvent();
+        }
+        else if (mapper.isInputState(InputMapper.InputState.INP_SELECT)) {
+
+            onCameraSwitch();
         }
 
         if (GameWorld.getInstance().getIsPaused()) {
