@@ -22,7 +22,6 @@ import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.GameWorld;
 
 import java.util.Arrays;
@@ -31,14 +30,6 @@ import java.util.Arrays;
  * Created by neiderm on 6/28/2018.
  */
 /*
-   Thanks to https://www.asciiart.eu/computers/joysticks
-             https://www.asciiart.eu/computers/game-consoles
-      _____________________________
-
-Learning all about Controllers ... controllers have much variation in capabilities and codes
-reported. Furthermore, any given controller may report different codes depending upon the host OS!
-
-    -----------------------------
 
 Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
 
@@ -53,11 +44,6 @@ Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
       -0 axes 0    -3 axes 3
           1            2
 
-        L1 == Input.Buttons.FORWARD
-        B4 == Input.Buttons.BACK
-        B3 == Input.Buttons.MIDDLE
-        B2 == Input.Buttons.RIGHT
-        B1 == Input.Buttons.LEFT
       ESC=8 MOUSE=9 ENTER=10
     -----------------------------
 
@@ -73,11 +59,6 @@ IPEGA PG-9076  "Microsoft X-Box 360 pad"
 LR Axis0    Axis3
 UD Axis1    Axis4
 
-       L1 == Input.Buttons.FORWARD
-        Y == Input.Buttons.BACK
-        X == Input.Buttons.MIDDLE
-        B == Input.Buttons.RIGHT
-        A == Input.Buttons.LEFT
     -----------------------------
 
 MYGT MY-C04  "MYGT Controller"
@@ -90,39 +71,32 @@ MYGT MY-C04  "MYGT Controller"
 
 LR Axis3    Axis1
 UD Axis2    Axis0
-
-       L1 == Input.Buttons.FORWARD
-        X == Input.Buttons.BACK
-        A == Input.Buttons.MIDDLE
-        B == Input.Buttons.RIGHT
-        Y == Input.Buttons.LEFT
-    -----------------------------
 */
 
-class InputMapper /* stageWithController extends stage ? */ {
+class InputMapper {
 
-    // from some gamepad i have on android
+    static int NumberControlCfgTypes;
     private final int MAX_AXES = 8;
-    private final int MAX_BUTTONS = 110;
+    private final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
+    // so this is the control switches abstrction
     public enum InputState {
         INP_NONE,
-        INP_SELECT,
-        INP_ESC,
-        INP_B2
+        INP_START, // INP_SELEct gameUI
+        INP_SELECT, //        INP_A,
+        INP_ESC, // INP_START
+        INP_B2 ;   // INP_B
     }
+//    final InputState INP_SELECT = InputState.DIO_A;
+
+    private VirtualButtons buttonmMapping[] = new VirtualButtons[MAX_BUTTONS];
+    private boolean buttonStates[] = new boolean[VirtualButtons.values().length];
 
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
-    private boolean[] buttons = new boolean[MAX_BUTTONS];
 
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
-
-
-    private ArrayMap<ButtonsEnum, ButtonData> buttonsTable = new ArrayMap<ButtonsEnum, ButtonData>();
-
-    private ButtonData buttonsData = new ButtonData();
 
 
     InputMapper() {
@@ -131,39 +105,38 @@ class InputMapper /* stageWithController extends stage ? */ {
         connectedCtrl = getConnectedCtrl(0);
 
         // bah ... debounce this (bounce from key on previous screen)
-        checkInputState(InputState.INP_SELECT); // maybe this is not that effective, race condition ...  here is too soon to consume the incoming "bouncing" keystroke ..
+        checkInputState(InputState.INP_SELECT); // seems to be necessary and effective with game pad ;)
     }
 
+//    private class ButtonData {
+//
+//        int value;
+//        boolean isRepeatable;
+//
+//        ButtonData setValue(int value, boolean isRepeatable) {
+//            this.value = value;
+//            this.isRepeatable = isRepeatable;
+//            return this;
+//        }
+//    }
 
-    private class ButtonData {
-
-        int value;
-        boolean isRepeatable;
-
-        ButtonData setValue(int value, boolean isRepeatable) {
-            this.value = value;
-            this.isRepeatable = isRepeatable;
-            return this;
-        }
-    }
-
-    private void buttonSet(ButtonsEnum key, int value, boolean isRepeated) {
-
-        buttonsTable.put(key, buttonsData.setValue(value, isRepeated));
-    }
-
-    private enum ButtonsEnum { // idfk
-        BUTTON_NONE,
-        BUTTON_1,
-        BUTTON_2,
-        BUTTON_3,
-        BUTTON_4,
-        BUTTON_5,
-        BUTTON_6,
-        BUTTON_7,
-        BUTTON_8,
-        BUTTON_9,
-        BUTTON_10
+    private enum VirtualButtons {
+        BTN_NONE,
+        BTN_ESC, // how many PC game pads have a 3rd face button?
+        BTN_SELECT, // BTN_MOUSE
+        BTN_START, // BTN_ENTER
+        BTN_A,
+        BTN_B,
+        BTN_C,
+        BTN_X,
+        BTN_Y,
+        BTN_Z,
+        BTN_L1,
+        BTN_L2,
+        BTN_L3,
+        BTN_R1,
+        BTN_R2,
+        BTN_R3
     }
 
     // use the actual analog axis indices reported on certain controller (android)
@@ -184,7 +157,7 @@ class InputMapper /* stageWithController extends stage ? */ {
     }
 
     /*
-      axisIndex: index of changed axes (only has value for a real axes?
+      axisIndex: index of changed axes (DEF AXIS for virtual axis from hatswitch)
       values[]: values of all 4 axes (only have all 4 if there are 2 analog mushrooms)
       Otherwise, virtual axes e.g. POV, WASD only have 2 axes.
                             -1.0
@@ -193,17 +166,14 @@ class InputMapper /* stageWithController extends stage ? */ {
      */
     void setAxis(int axisIndex, float[] values) {
         /*
-        need to filter out axes .. if hat-switch not reported , it is virtualized as an axis
-        so i have to allow multiple axes to be valid sources which are then sent
-        into the analogAxes.xy
-
-        multiple axes must be supported in order to have hat-switch (sometimes an axis)
-        hat-switch   if present reported on axis [6 7]
+        multiple axes must be supported in order to have dpad (sometimes an axis)
+        dpad if present reported on axis [6 7]
          */
         // wip whatever
         switch (GameWorld.getInstance().getControllerMode()) {
             default:
             case 0: // PS
+            case 2: // PS (And)
                 analogAxes.x = values[0];
                 analogAxes.y = values[1];
                 break;
@@ -211,12 +181,8 @@ class InputMapper /* stageWithController extends stage ? */ {
                 analogAxes.x = values[1];
                 analogAxes.y = values[0];
                 break;
-            case 2: // PS (And)
-                analogAxes.x = values[0];
-                analogAxes.y = values[1];
-                break;
         }
-// pretty shaky assumption that these axes would only ever represent a hat-switch1
+// pretty shaky assumption that these axes would only ever represent a d-pad
         if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex) {
             analogAxes.x = values[DEF_X_AXIS_INDEX];
             analogAxes.y = values[DEF_Y_AXIS_INDEX];
@@ -236,46 +202,34 @@ class InputMapper /* stageWithController extends stage ? */ {
         return connectedCtrl;
     }
 
-/*
-    public class InputStateSt    {
-        private InputState inputAction;
-        private float x;
-        private float y;
-        private Vector2 xy = new Vector2();
-        public InputState getInputAction() {
-            return inputAction;
-        }
-        public void setInputAction(InputState inputAction) {
-            this.inputAction = inputAction;
-        }
-        public Vector2 getXY() {
-            return xy;
-        }
-        private void setXy(float x, float y) {
-            xy.set(x, y);
-        }
-    }
-    */
-
 
     private InputState evalNewInputState(boolean checkIsTouched) {
 
         InputState newInputState = incomingInputState;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) || Gdx.input.isKeyPressed(Input.Keys.BACK)
-                || getControlButton(Input.Buttons.FORWARD)) {
-
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
+                || Gdx.input.isKeyPressed(Input.Keys.BACK)
+                || getControlButton(VirtualButtons.BTN_START)
+                ) {
             newInputState = InputState.INP_ESC;
 
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE) || getControlButton(Input.Buttons.LEFT)
-                || (Gdx.input.justTouched() && checkIsTouched)) {
-
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
+                || (Gdx.input.justTouched() && checkIsTouched)
+                || getControlButton(VirtualButtons.BTN_A)
+                ) {
             newInputState = InputState.INP_SELECT;
+
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
-        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT) || getControlButton(Input.Buttons.RIGHT)) {
-
+        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
+                || getControlButton(VirtualButtons.BTN_B)
+                ) {
             newInputState = InputState.INP_B2;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
+                || getControlButton(VirtualButtons.BTN_SELECT)
+                ) {
+            newInputState = InputState.INP_START;
         }
 
         return newInputState;
@@ -380,24 +334,25 @@ class InputMapper /* stageWithController extends stage ? */ {
 
 
     private void setControlButton(int buttonIndex, boolean state) {
-        if (buttonIndex < MAX_BUTTONS) {
 
-            buttons[buttonIndex] = state;
+        if (buttonIndex < MAX_BUTTONS) {
+            // lookup the virtual button id
+            VirtualButtons bb = buttonmMapping[buttonIndex];
+
+            if (null != bb) {
+                buttonStates[bb.ordinal()] = state;
+            }
         }
     }
 
-    private boolean getControlButton(int buttonIndex) {
+    private boolean getControlButton(VirtualButtons wantedInputState) {
 
-        boolean rv = false;
-        if (null != connectedCtrl) {
-
-            if (buttonIndex < MAX_BUTTONS) {
-                rv = buttons[buttonIndex];
-            } else {
-                Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
-            }
-        }
-        return rv;
+        int index = wantedInputState.ordinal();
+        if (index > buttonStates.length) {
+//    System.out.print("wtf");
+            return false;
+        } else
+            return buttonStates[index];
     }
 
     public class DpadAxis {
@@ -510,12 +465,18 @@ class InputMapper /* stageWithController extends stage ? */ {
         }
 
         // special sauce for PS/AND ctrl config
-        if (2 == GameWorld.getInstance().getControllerMode()){
-
-            dPadAxes.setX((int)analogAxes.x) ;
-            dPadAxes.setY((int)analogAxes.y) ;
+        int mode = GameWorld.getInstance().getControllerMode();
+        switch (mode) {
+            default:
+            case 0: // PS
+            case 1: // XB
+            case 3: // PC
+                break;
+            case 2: // PS/AND
+                dPadAxes.setX((int) analogAxes.x);
+                dPadAxes.setY((int) analogAxes.y);
+                break;
         }
-
         return dPadAxes;
     }
 
@@ -525,7 +486,7 @@ class InputMapper /* stageWithController extends stage ? */ {
     */
 
     private void print(String message) {
-//        Gdx.app.log("Input", message);
+        Gdx.app.log("Input", message);
     }
 
     private void initController() {
@@ -536,18 +497,32 @@ class InputMapper /* stageWithController extends stage ? */ {
         for (Controller controller : Controllers.getControllers()) {
             print("#" + i++ + ": " + controller.getName());
         }
-        if (Controllers.getControllers().size == 0)
-            print("No controllers attached");
 
-// hmmmmm when can I clearListeners?
-        /*
-         * keep the reference so the listener can be removed at dispose()    ?????????????
-         *
-         * This class doesn't have a 'dispose()' interface to put
-         *         Controllers.removeListener(controllerListener);
-         *
-         *         but if it ends up being a base class of GameUI ...........
-         */
+        int mode = GameWorld.getInstance().getControllerMode();
+        switch (mode) {
+            default:
+            case 0: // PS
+            case 1: // XB
+                buttonmMapping[0] = VirtualButtons.BTN_A;
+                buttonmMapping[1] = VirtualButtons.BTN_B;
+                buttonmMapping[6] = VirtualButtons.BTN_SELECT;
+                buttonmMapping[7] = VirtualButtons.BTN_START;
+                break;
+            case 2: // PS/AND
+                buttonmMapping[96] = VirtualButtons.BTN_A;
+                buttonmMapping[97] = VirtualButtons.BTN_B;
+                buttonmMapping[109] = VirtualButtons.BTN_SELECT;
+                buttonmMapping[108] = VirtualButtons.BTN_START;
+                break;
+            case 3: // PCb
+                buttonmMapping[0] = VirtualButtons.BTN_A;
+                buttonmMapping[1] = VirtualButtons.BTN_B;
+                buttonmMapping[8] = VirtualButtons.BTN_ESC; // how many "PC" game pads have a 3rd face-button?
+                buttonmMapping[9] = VirtualButtons.BTN_SELECT;
+                buttonmMapping[10] = VirtualButtons.BTN_START;
+                break;
+        }
+
         Controllers.addListener(new ControllerListenerAdapter() {
 
             private float[] axes = new float[MAX_AXES];
@@ -561,12 +536,7 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                if (buttonIndex < MAX_BUTTONS) {
-                    setControlButton(buttonIndex, true);// buttons[buttonIndex] = true;
-                } else {
-                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
-                }
-
+                setControlButton(buttonIndex, true);// buttons[buttonIndex] = true;
                 return false;
             }
 
@@ -575,11 +545,7 @@ class InputMapper /* stageWithController extends stage ? */ {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
 
-                if (buttonIndex < MAX_BUTTONS) {
-                    setControlButton(buttonIndex, false);//// buttons[buttonIndex] = false;
-                } else {
-                    Gdx.app.log("InputMapper", "buttonIndex > MAX_BUTTONS (" + buttonIndex + ")");
-                }
+                setControlButton(buttonIndex, false);//// buttons[buttonIndex] = false;
                 return false;
             }
 

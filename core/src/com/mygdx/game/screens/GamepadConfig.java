@@ -53,11 +53,13 @@ public class GamepadConfig implements Screen {
         int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
         stage.setCheckedBox(idxCurSel);
 
-        if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()) {
-
+        if (InputMapper.InputState.INP_SELECT == stage.mapper.getInputState()
+               || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
+                ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
 
             GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
+
             GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
                     new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
         }
@@ -85,9 +87,10 @@ public class GamepadConfig implements Screen {
         stage = new InGameMenu("skin/uiskin.json", null);
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("PS type", "toggle");
-        stage.addButton("XB type", "toggle");
-        stage.addButton("Android? (PS)", "toggle");
+        stage.addButton("PS type", "toggle"); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("XB type", "toggle"); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("Android? (PS)", "toggle"); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("PC(B)", "toggle"); InputMapper.NumberControlCfgTypes++;
         stage.addNextButton();
     }
 
