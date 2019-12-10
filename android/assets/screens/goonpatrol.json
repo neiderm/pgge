@@ -12,9 +12,9 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 0,
-							"y": 11,
-							"z": -5
+							"x": -60,
+							"y": 1,
+							"z": 70
 						}
 					}
 				]
@@ -26,9 +26,9 @@
 			{
 				"objectName": "skySphere",
 				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
+					"x": 300,
+					"y": 300,
+					"z": 300
 				},
 				"isShadowed": false
 			}
@@ -37,22 +37,6 @@
 	},
 	"UserModelStaticGroup": {
 		"elements": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": -14
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 40,
-					"y": 2,
-					"z": 40
-				},
-				"meshShape": "btBoxShape"
-			},
 			{
 				"instanceData": [
 					{
@@ -134,7 +118,7 @@
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
 							"vT": {
-								"x": -2,
+								"x": -4,
 								"y": 8,
 								"z": 0
 							},
@@ -233,11 +217,11 @@
 				"instanceData": [
 					{
 						"rotation": {
-							"x": 0.17364818,
-							"w": 0.9848077
+							"x": 0,
+							"w": 0
 						},
 						"translation": {
-							"y": -10
+							"y": 0
 						}
 					}
 				],
@@ -257,7 +241,7 @@
 		"fileName": "data/crate.png"
 	},
 	"skySphere": {
-		"fileName": "data/cloudsky.png"
+		"fileName": "data/redsky.png"
 	},
 	"ship": {
 		"fileName": "tanks/ship.g3db"
@@ -269,7 +253,7 @@
 		"fileName": "tanks/panzerwagen.g3db"
 	},
 	"landscape": {
-		"fileName": "data/landscape.g3db"
+		"fileName": "areeners/goonpatrol.g3db"
 	}
 }
 }
