@@ -30,6 +30,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.BulletWorld;
@@ -174,6 +175,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             // working variables
             Matrix4 tmpM = new Matrix4();
+            Vector2 axis0 = new Vector2();
+            Vector2 axis1 = new Vector2();
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
 
@@ -248,8 +251,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 //        yyy = -0.54f;
                         }
 
-                        controlledModel.updateControls( yyy, // mapper.getAxisY(0) - 0.75f,
-                                mapper.getAxisX(0),
+                        controlledModel.updateControls( axis0.set(yyy, mapper.getAxisX(0)), axis1,
+//                                yyy, // mapper.getAxisY(0) - 0.75f,
+//                                mapper.getAxisX(0),
                                 (mapper.isInputState(InputMapper.InputState.INP_B)), 0); // need to use Vector2
                 }
 

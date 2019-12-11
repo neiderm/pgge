@@ -8,6 +8,7 @@ import com.badlogic.gdx.ai.steer.limiters.NullLimiter;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
@@ -25,6 +26,7 @@ import static java.lang.Math.abs;
 public class SteeringTankController extends SteeringBulletEntity {
 
     private SimpleVehicleModel tc;
+    Vector2 v2 = new Vector2();
 
     public SteeringTankController(SimpleVehicleModel tc, btRigidBody body, SteeringEntity target) {
 
@@ -114,6 +116,6 @@ public class SteeringTankController extends SteeringBulletEntity {
         /*
          update the "VehicleModel" wiht he new virtual controller inputs
          */
-        tc.updateControls(direction, angular,false, 0);
+        tc.updateControls(v2.set(direction, angular), null,false, 0);
     }
 }
