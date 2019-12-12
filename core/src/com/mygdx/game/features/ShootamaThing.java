@@ -40,7 +40,7 @@ public class ShootamaThing extends VectorSensor {
     private final int CAN_SHOOOT_INTERVAL = 64;
     private int canShootTimer = 0;
 
-    int prev; // bah
+    private int prev; // bah
 
     @Override
     public void init(Object target) {
@@ -169,7 +169,6 @@ public class ShootamaThing extends VectorSensor {
     }
 
 
-    private Matrix4 tmpM = new Matrix4();
     private Vector3 trans = new Vector3();
     private Vector3 tmpV = new Vector3();
 
@@ -179,28 +178,28 @@ public class ShootamaThing extends VectorSensor {
         ModelComponent mc = source.getComponent(ModelComponent.class);
 
         if (null != mc && null != mc.modelInst) {
-            tmpM = mc.modelInst.transform;
-        }
 
-        tmpM.getRotation(orientation);
+            Matrix4 tmpM = mc.modelInst.transform;
+            tmpM.getRotation(orientation);
 
-        // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
-        // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
-        tmpV.set(0, +0.001f, 0); // using +y for up vector ...
+            // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
+            // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
+            tmpV.set(0, +0.001f, 0); // using +y for up vector ...
 
-        ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
-        tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
+            ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
+            tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
-        // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-        //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+            // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
+            //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
 //                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
-        /*
-         * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
-         */
-        CompCommon.spawnNewGameObject(
-                new Vector3(0.2f, 0.2f, 0.2f),
-                trans,
-                new Projectile(target, tmpM),
-                "sphere");
+            /*
+             * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
+             */
+            CompCommon.spawnNewGameObject(
+                    new Vector3(0.2f, 0.2f, 0.2f),
+                    trans,
+                    new Projectile(target, tmpM),
+                    "sphere");
+        }
     }
 }
