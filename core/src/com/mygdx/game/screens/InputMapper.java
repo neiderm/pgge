@@ -40,44 +40,50 @@ Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
  | [L]  + [R]                   B4[3]      |
  |    [D]     [8][9][10]   B3[2]    B2[1]  |
  |                              B1[0]      |
-         -1           -2
-      -0 axes 0    -3 axes 3
-          1            2
+         1-           2-
+      0- axes 0+   3- axes 3+
+         1+           2+
 
       ESC=8 MOUSE=9 ENTER=10
     -----------------------------
 
 
-IPEGA PG-9076  "Microsoft X-Box 360 pad"
+IPEGA PG-9076  "Microsoft X-Box 360 pad" (looks like a PS control)
 
- Axis==2       Axis==5
-       4==L1         5==R1
+   ?==L1      ?==R1
+ Ax4==L2    Ax5==R2
+
                 Y[3]
  6==Select   X[2]   B[1]
  7==Start       A[0]
 
-LR Axis0    Axis3
-UD Axis1    Axis4
+  LR Axis0    Axis2
+  UD Axis1    Axis3
 
+Buttons are different on Android
+    -----------------------------
+Dpad is Axis 6 (L-R+) & 7 (U+/D-)
     -----------------------------
 
-MYGT MY-C04  "MYGT Controller"
 
- 6==L1      7==R1
- 4==L1      5==R1
-                Y[0]
- 8==Back     X[3]   B[1]
- 9==Select      A[2]
+MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
 
-LR Axis3    Axis1
-UD Axis2    Axis0
+   4==L1       5==R1
+ Ax4==L2     Ax4==R2
+
+                Y[3]
+ 6==Back     X[2]   B[1]
+ 7==Start       A[0]
+
+ LR  Axis1    Axis3
+ UD  Axis0    Axis2
 */
 
 class InputMapper {
 
     static int NumberControlCfgTypes;
-    private final int MAX_AXES = 8;
-    private final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
+    private static final int MAX_AXES = 8;
+    private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
     // so this is the control switches abstrction
     public enum InputState {
@@ -88,8 +94,8 @@ class InputMapper {
         INP_B;
     }
 
-    private VirtualButtons buttonmMapping[] = new VirtualButtons[MAX_BUTTONS];
-    private boolean buttonStates[] = new boolean[VirtualButtons.values().length];
+    private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
+    private boolean[] buttonStates = new boolean[VirtualButtons.values().length];
 
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
@@ -139,22 +145,38 @@ class InputMapper {
     }
 
     // use the actual analog axis indices reported on certain controller (android)
-    private final int DEF_X_AXIS_INDEX = 6;
-    private final int DEF_Y_AXIS_INDEX = 7;
+    private static final int DEF_X_AXIS_INDEX = 6;
+    private static final int DEF_Y_AXIS_INDEX = 7;
 
 
     // get the "virtual axis"
     float getAxisX(int axisIndex) {
 
-        return analogAxes.x;
+        return analogAxes0.x;
+//        return analogAxes[0];
     }
 
     // get the "virtual axis"
     float getAxisY(int axisIndex) {
 
-        return analogAxes.y;
+        return analogAxes0.y;
+//        return analogAxes[1];
     }
 
+    void setAxis(int axisIndex, float axisValue){
+
+        if (axisIndex < MAX_AXES){
+            analogAxes[axisIndex] = axisValue;
+        }
+
+        // special sauce temp " old" ....
+        if (axisIndex == 0 || axisIndex == DEF_X_AXIS_INDEX){
+            analogAxes0.x = axisValue;
+        }
+        if (axisIndex == 1 || axisIndex == DEF_Y_AXIS_INDEX){
+            analogAxes0.y = axisValue;
+        }
+    }
     /*
       axisIndex: index of changed axes (DEF AXIS for virtual axis from hatswitch)
       values[]: values of all 4 axes (only have all 4 if there are 2 analog mushrooms)
@@ -163,7 +185,7 @@ class InputMapper {
                        -1.0   +   +1.0
                             + 1.0
      */
-    void setAxis(int axisIndex, float[] values) {
+    private void setAxis(int axisIndex, float[] values) {
         /*
         multiple axes must be supported in order to have dpad (sometimes an axis)
         dpad if present reported on axis [6 7]
@@ -173,24 +195,26 @@ class InputMapper {
             default:
             case 0: // PS
             case 2: // PS (And)
-                analogAxes.x = values[0];
-                analogAxes.y = values[1];
+                analogAxes0.x = values[0];
+                analogAxes0.y = values[1];
                 break;
             case 1: // XB (Win?)
-                analogAxes.x = values[1];
-                analogAxes.y = values[0];
+                analogAxes0.x = values[1];
+                analogAxes0.y = values[0];
                 break;
         }
 // pretty shaky assumption that these axes would only ever represent a d-pad
         if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex) {
-            analogAxes.x = values[DEF_X_AXIS_INDEX];
-            analogAxes.y = values[DEF_Y_AXIS_INDEX];
+            analogAxes0.x = values[DEF_X_AXIS_INDEX];
+            analogAxes0.y = values[DEF_Y_AXIS_INDEX];
         }
         // special sauce the gamepad with the aalog shoulder buttons
         if (4 == axisIndex || 5 == axisIndex) {
-            analogAxes.x = values[4];
-            analogAxes.y = values[5];
+            analogAxes0.x = values[4];
+            analogAxes0.y = values[5];
         }
+
+        analogAxes[axisIndex] = values[axisIndex];
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
@@ -214,25 +238,25 @@ class InputMapper {
         if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtons.BTN_START)
-                ) {
+        ) {
             newInputState = InputState.INP_START;
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
                 || getControlButton(VirtualButtons.BTN_A)
-                ) {
+        ) {
             newInputState = InputState.INP_A;
 
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtons.BTN_B)
-                ) {
+        ) {
             newInputState = InputState.INP_B;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtons.BTN_SELECT)
-                ) {
+        ) {
             newInputState = InputState.INP_SELECT;
         }
 
@@ -353,7 +377,6 @@ class InputMapper {
 
         int index = wantedInputState.ordinal();
         if (index > buttonStates.length) {
-//    System.out.print("wtf");
             return false;
         } else
             return buttonStates[index];
@@ -431,7 +454,9 @@ class InputMapper {
     }
 
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
-    private AnalogAxis analogAxes = new AnalogAxis(); // would need array of max analog axes, for now just use one
+    private AnalogAxis analogAxes0 = new AnalogAxis(); // would need array of max analog axes, for now just use one
+
+    private float[] analogAxes = new float[MAX_AXES];
 
     /*
      * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
@@ -456,16 +481,16 @@ class InputMapper {
                    ( previousPovDirection.north == povDir && ( PovDirection.northEast == povDir || PovDirection.northWest == povDir  ) )  )
          */
         if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir) {
-            dPadAxes.setY(-1); //            dPadAxes.y = -1;
+            dPadAxes.setY(-1);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || PovDirection.south == povDir) {
-            dPadAxes.setY(1); //            dPadAxes.y = 1;
+            dPadAxes.setY(1);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || PovDirection.west == povDir) {
-            dPadAxes.setX(-1); //            dPadAxes.x = -1;
+            dPadAxes.setX(-1);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
-            dPadAxes.setX(1); //            dPadAxes.x = 1;
+            dPadAxes.setX(1);
         }
 
         // special sauce for PS/AND ctrl config
@@ -477,8 +502,8 @@ class InputMapper {
             case 3: // PC
                 break;
             case 2: // PS/AND
-                dPadAxes.setX((int) analogAxes.x);
-                dPadAxes.setY((int) analogAxes.y);
+                dPadAxes.setX((int) analogAxes0.x);
+                dPadAxes.setY((int) analogAxes0.y);
                 break;
         }
         return dPadAxes;
@@ -490,7 +515,7 @@ class InputMapper {
     */
 
     private void print(String message) {
-//        Gdx.app.log("Input", message);
+        Gdx.app.log("Input", message);
     }
 
     private void initController() {
@@ -540,7 +565,7 @@ class InputMapper {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
 
-                setControlButton(buttonIndex, true);// buttons[buttonIndex] = true;
+                setControlButton(buttonIndex, true);
                 return false;
             }
 
@@ -549,7 +574,7 @@ class InputMapper {
 
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
 
-                setControlButton(buttonIndex, false);//// buttons[buttonIndex] = false;
+                setControlButton(buttonIndex, false);
                 return false;
             }
 
@@ -567,7 +592,6 @@ class InputMapper {
 
                 setAxis(axisIndex, axes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
-//Gdx.app.log("axis moved", "axis index = " + axisIndex + " value = " + value);
                 return false;
             }
 

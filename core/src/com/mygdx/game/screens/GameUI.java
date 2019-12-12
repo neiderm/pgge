@@ -70,7 +70,6 @@ public class GameUI extends InGameMenu {
     private Texture tpKnob;
 
 
-    private float[] axes = new float[4];
 
     private Color hudOverlayColor;
 
@@ -96,9 +95,8 @@ public class GameUI extends InGameMenu {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
 
                 Touchpad t = (Touchpad) actor;
-                axes[0] = t.getKnobPercentX();
-                axes[1] = t.getKnobPercentY() * (-1);     // negated
-                mapper.setAxis(-1, axes);
+                mapper.setAxis(0, t.getKnobPercentX());
+                mapper.setAxis(1, t.getKnobPercentY() * (-1));
             }
         });
     }
@@ -120,22 +118,18 @@ public class GameUI extends InGameMenu {
     @Override
     public boolean keyDown(int keycode) {
 
-        int axisIndex = -1; // idfk
-
         if (KEY_CODE_POV_LEFT == keycode) {
-            axes[0] = -1;
+            mapper.setAxis(0, -1);
         }
         if (KEY_CODE_POV_RIGHT == keycode) {
-            axes[0] = +1;
+            mapper.setAxis(0, +1);
         }
         if (KEY_CODE_POV_UP == keycode) {
-            axes[1] = -1;
+            mapper.setAxis(1, -1);
         }
         if (KEY_CODE_POV_DOWN == keycode) {
-            axes[1] = +1;
+            mapper.setAxis(1, +1);
         }
-
-        mapper.setAxis(255, axes);
 
         return false;
     }
@@ -143,20 +137,14 @@ public class GameUI extends InGameMenu {
     @Override
     public boolean keyUp(int keycode) {
 
-        int axisIndex = -1; // idfk
-
         if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
                 KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
-            axes[0] = 0;
-            axisIndex = 0;
+            mapper.setAxis(0, 0);
         }
         if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
                 KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
-            axes[1] = 0;
-            axisIndex = 1;
+            mapper.setAxis(1, 0);
         }
-
-        mapper.setAxis(axisIndex, axes);
 
         return false;
     }
@@ -375,8 +363,8 @@ public class GameUI extends InGameMenu {
 //        }
     }
 
-@Override
-protected void onEscEvent() {
+    @Override
+    protected void onEscEvent() {
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
                 GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
