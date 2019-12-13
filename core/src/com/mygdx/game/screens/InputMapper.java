@@ -45,31 +45,28 @@ Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
          1+           2+
 
       ESC=8 MOUSE=9 ENTER=10
-    -----------------------------
 
+-----------------------------
 
 IPEGA PG-9076  "Microsoft X-Box 360 pad" (looks like a PS control)
 
-   ?==L1      ?==R1
- Ax4==L2    Ax5==R2
+  b4==L1      b5==R1
+ Ax2==L2(+)  Ax5==R2(+)       Note on front anlg switches:  1==Down  -1==Up  (0 in the middle  ... wow)
 
                 Y[3]
  6==Select   X[2]   B[1]
  7==Start       A[0]
 
-  LR Axis0    Axis2
-  UD Axis1    Axis3
+  LR Axis0    Axis3
+  UD Axis1    Axis4
 
-Buttons are different on Android
-    -----------------------------
-Dpad is Axis 6 (L-R+) & 7 (U+/D-)
-    -----------------------------
 
+-----------------------------
 
 MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
 
    4==L1       5==R1
- Ax4==L2     Ax4==R2
+ Ax4==L2(+)  Ax4==R2(-)
 
                 Y[3]
  6==Back     X[2]   B[1]
@@ -77,6 +74,14 @@ MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
 
  LR  Axis1    Axis3
  UD  Axis0    Axis2
+
+
+-----------------------------
+Android:
+ L2->Ax5(+)  R2->Ax4(+)
+ Dpad is Axis 6 (L-/R+) & 7 (U-/D+)
+-----------------------------
+
 */
 
 class InputMapper {
@@ -148,73 +153,39 @@ class InputMapper {
     private static final int DEF_X_AXIS_INDEX = 6;
     private static final int DEF_Y_AXIS_INDEX = 7;
 
-
-    // get the "virtual axis"
-    float getAxisX(int axisIndex) {
-
-        return analogAxes0.x;
-//        return analogAxes[0];
+    @Deprecated
+        // get the "virtual axis" hardcoded to axis 0
+    float getAxisX(int notUsed) {
+        return analogAxes[0];
+    }
+    @Deprecated
+        // get the "virtual axis" hardcoded to axis 1
+    float getAxisY(int notUsed) {
+        return analogAxes[1];
     }
 
     // get the "virtual axis"
-    float getAxisY(int axisIndex) {
+    float getAxis(int axisIndex) {
 
-        return analogAxes0.y;
-//        return analogAxes[1];
+        return analogAxes[axisIndex];
     }
 
+    // allows axes to be virtualized from external source, i.e keyboard
     void setAxis(int axisIndex, float axisValue){
 
         if (axisIndex < MAX_AXES){
             analogAxes[axisIndex] = axisValue;
         }
-
-        // special sauce temp " old" ....
-        if (axisIndex == 0 || axisIndex == DEF_X_AXIS_INDEX){
-            analogAxes0.x = axisValue;
-        }
-        if (axisIndex == 1 || axisIndex == DEF_Y_AXIS_INDEX){
-            analogAxes0.y = axisValue;
-        }
     }
-    /*
-      axisIndex: index of changed axes (DEF AXIS for virtual axis from hatswitch)
-      values[]: values of all 4 axes (only have all 4 if there are 2 analog mushrooms)
-      Otherwise, virtual axes e.g. POV, WASD only have 2 axes.
-                            -1.0
-                       -1.0   +   +1.0
-                            + 1.0
-     */
-    private void setAxis(int axisIndex, float[] values) {
-        /*
-        multiple axes must be supported in order to have dpad (sometimes an axis)
-        dpad if present reported on axis [6 7]
-         */
-        // wip whatever
-        switch (GameWorld.getInstance().getControllerMode()) {
-            default:
-            case 0: // PS
-            case 2: // PS (And)
-                analogAxes0.x = values[0];
-                analogAxes0.y = values[1];
-                break;
-            case 1: // XB (Win?)
-                analogAxes0.x = values[1];
-                analogAxes0.y = values[0];
-                break;
-        }
-// pretty shaky assumption that these axes would only ever represent a d-pad
-        if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex) {
-            analogAxes0.x = values[DEF_X_AXIS_INDEX];
-            analogAxes0.y = values[DEF_Y_AXIS_INDEX];
-        }
-        // special sauce the gamepad with the aalog shoulder buttons
-        if (4 == axisIndex || 5 == axisIndex) {
-            analogAxes0.x = values[4];
-            analogAxes0.y = values[5];
-        }
 
-        analogAxes[axisIndex] = values[axisIndex];
+    private void setAxes(float[] values) {
+
+        analogAxes[0] = values[0];
+        analogAxes[1] = values[1];
+
+        for (int idx = 0; idx < MAX_AXES; idx++) {
+            analogAxes[idx] = values[idx];
+        }
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
@@ -238,25 +209,25 @@ class InputMapper {
         if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtons.BTN_START)
-        ) {
+                ) {
             newInputState = InputState.INP_START;
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
                 || getControlButton(VirtualButtons.BTN_A)
-        ) {
+                ) {
             newInputState = InputState.INP_A;
 
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtons.BTN_B)
-        ) {
+                ) {
             newInputState = InputState.INP_B;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtons.BTN_SELECT)
-        ) {
+                ) {
             newInputState = InputState.INP_SELECT;
         }
 
@@ -435,27 +406,8 @@ class InputMapper {
 
     }
 
-    private class AnalogAxis {
-        float x;
-        float y;
-
-        void clear() {
-            x = 0;
-            y = 0;
-        }
-
-        public float getX() {
-            return x;
-        }
-
-        public float getY() {
-            return y;
-        }
-    }
 
     private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
-    private AnalogAxis analogAxes0 = new AnalogAxis(); // would need array of max analog axes, for now just use one
-
     private float[] analogAxes = new float[MAX_AXES];
 
     /*
@@ -502,8 +454,8 @@ class InputMapper {
             case 3: // PC
                 break;
             case 2: // PS/AND
-                dPadAxes.setX((int) analogAxes0.x);
-                dPadAxes.setY((int) analogAxes0.y);
+                dPadAxes.setX( (int)analogAxes[0]);
+                dPadAxes.setY( (int)analogAxes[1]);
                 break;
         }
         return dPadAxes;
@@ -583,47 +535,59 @@ class InputMapper {
              */
             @Override
             public boolean axisMoved(Controller controller, int axisIndex, float value) {
-                /*          -1.0
-                       -1.0   +   +1.0  (0)
-                            + 1.0        */
+
                 for (int idx = 0; idx < MAX_AXES; idx++) {
                     axes[idx] = controller.getAxis(idx);
                 }
 
-                setAxis(axisIndex, axes);
+                float tmp;
+
+                switch (GameWorld.getInstance().getControllerMode()) {
+                    default:
+                    case 0: // PS
+                    case 2: // PS (And) ... Dpad is axis
+                        // bah crap have to do this here ?
+                        if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex){
+                            axes[0] = axes[DEF_X_AXIS_INDEX];
+                            axes[1] = axes[DEF_Y_AXIS_INDEX];
+                        }
+                        break;
+                    case 1: // XB (Win?)
+                        tmp = axes[0];
+                        axes[0] = axes[1];
+                        axes[1] = tmp;
+                        break;
+                }
+
+                setAxes(axes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
                 return false;
             }
 
             /*
-             * pov moved may not be reported  ... it may report the hat-switch as axes (Android)
+             * pov moved may not be reported  ... it may report the dpad as axes (Android)
+             * so virtualize it as an axis regardless
              */
             @Override
             public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
                 print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
 
-                Arrays.fill(axes, 0);
-                int index = 0;
+                Arrays.fill(axes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
 
                 if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    index = DEF_X_AXIS_INDEX;
-                    axes[index] = -1;
+                    axes[0] = -1;
                 }
                 if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    index = DEF_X_AXIS_INDEX;
-                    axes[index] = +1;
+                    axes[0] = +1;
                 }
                 if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    index = DEF_Y_AXIS_INDEX;
-                    axes[index] = -1;
+                    axes[1] = -1;
                 }
                 if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    index = DEF_Y_AXIS_INDEX;
-                    axes[index] = +1;
+                    axes[1] = +1;
                 }
 
-                setAxis(/*povIndex ... no virtualize it as axis */ index, axes);
-                print("#" + indexOf(controller) + ", axes " + axes[0] + ": " + axes[1]);
+                setAxes(axes);
 
                 return false;
             }
