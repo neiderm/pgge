@@ -18,7 +18,6 @@ package com.mygdx.game.controllers;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
@@ -51,13 +50,14 @@ public class TankController implements SimpleVehicleModel
 
 
     @Override
-    public void updateControls(Vector2 v0, Vector2 v1, boolean coolJump, float time) {
+    public void updateControls(float[] analogs, boolean[] switches, float time) {
 
-        float direction = v0.x;
-        float angular = v0.y;
+        float angular = (null != analogs) ?  analogs[0] : 0;
+        float direction = (null != analogs) ?  analogs[1] : 0;
+        boolean jump = (null != switches) &&  switches[0];
         final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
 
-        if (coolJump) {
+        if (jump) {         // cool jump!
             ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
             body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
         }

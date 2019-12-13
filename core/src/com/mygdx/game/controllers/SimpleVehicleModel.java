@@ -7,5 +7,5 @@ import com.badlogic.gdx.math.Vector2;
  */
 public interface SimpleVehicleModel {
 
-    void updateControls(Vector2 v0, Vector2 v1, boolean flag, float time);
+    void updateControls(float[] analogs, boolean[] switches, float time);
 }

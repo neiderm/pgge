@@ -141,6 +141,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
  (a "chaser-camera" entity - no visual but has transform and possibly AI and/or physics chaacterisitics - can be active at most time
  and camera may or may not actually be on it)
           */
+        chaserTransform = new Matrix4(); // hacky crap ... steering behavior construction will not instantiate this
+
         chaserSteerable.setSteeringBehavior(
                 new TrackerSB<Vector3>(chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
 
@@ -174,9 +176,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
             // working variables
-            Matrix4 tmpM = new Matrix4();
-            Vector2 axis0 = new Vector2();
-            Vector2 axis1 = new Vector2();
+            float[] analogs = new float[8];
+            boolean[] switches = new boolean[8];
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
 
@@ -186,27 +187,28 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 ModelComponent mc = player.getComponent(ModelComponent.class);
 
                 if (null != mc && null != mc.modelInst){
-                    tmpM = mc.modelInst.transform;
-                }
-                tmpM.getRotation(orientation);
 
-                // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
-                // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
-                tmpV.set(0, +0.7f, 0); // using +y for up vector ...
-                ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
-                tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
+                    Matrix4 tmpM = mc.modelInst.transform;
+                    tmpM.getRotation(orientation);
 
-                // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-                //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+                    // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
+                    // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
+                    tmpV.set(0, +0.7f, 0); // using +y for up vector ...
+                    ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
+                    tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
+
+                    // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
+                    //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
 //                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
-                /*
-                 * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
-                 */
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f),
-                        trans,
-                        new Projectile( target, tmpM ),
-                        "cone");
+                    /*
+                     * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
+                     */
+                    CompCommon.spawnNewGameObject(
+                            new Vector3(0.1f, 0.1f, 0.1f),
+                            trans,
+                            new Projectile( target, tmpM ),
+                            "cone");
+                }
             }
 
             @Override
@@ -236,25 +238,18 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 if (null != bc && !GameWorld.getInstance().getIsPaused()) {
 
-                        float yyy = mapper.getAxisY(0);
-
-                        if (true /* is touch screen */ ){
+                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_B);
+                    analogs[0] = mapper.getAxis(0); // angular
+                    analogs[1] = mapper.getAxis(1); // direction
 // love this hacky crap
-                            GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
-                            float xxx = pf.userData / 100.0f; // percent
-                            if (0 == yyy){
-                                // forces the forwared motion but doesn't affect the reverse, idfk
-                                yyy = (-1) * xxx;// -0.8f;
-                            }
-// can provide "bucket" of reverseing/brake power, (timed out)
-//if (yyy > 0) {
-//        yyy = -0.54f;
-                        }
+                    GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
-                        controlledModel.updateControls( axis0.set(yyy, mapper.getAxisX(0)), axis1,
-//                                yyy, // mapper.getAxisY(0) - 0.75f,
-//                                mapper.getAxisX(0),
-                                (mapper.isInputState(InputMapper.InputState.INP_B)), 0); // need to use Vector2
+                    if (Math.abs(analogs[1]) < 0.4f) {
+                        // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
+                        analogs[1] = (-1) * pf.userData / 100.0f; // percent
+                    }
+
+                    controlledModel.updateControls(analogs, switches, 0);
                 }
 
                 super.act(delta);
@@ -374,7 +369,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private Vector3 tmpV = new Vector3();
     private Vector3 tmpPos = new Vector3();
     private GfxUtil camDbgLineInstance = new GfxUtil();
-    private Matrix4 chaserTransform = new Matrix4();
+    private Matrix4 chaserTransform;
     private SteeringEntity chaserSteerable = new SteeringEntity();
     private Color color = new Color(Color.CYAN);
 

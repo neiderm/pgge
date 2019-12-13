@@ -68,8 +68,9 @@ public class SteeringTankController extends SteeringBulletEntity {
     }
 
     // working variables
+    private float[] analogInputs = new float[8];
     private Matrix4 tmpM = new Matrix4();
-    private Vector3 tmpV = new Vector3();
+//    private Vector3 tmpV = new Vector3();
     private Quaternion rotation = new Quaternion();
 
     /*
@@ -82,7 +83,7 @@ public class SteeringTankController extends SteeringBulletEntity {
 
         // need our present position and rotation no matter what
         body.getWorldTransform(tmpM);
-        tmpM.getTranslation(tmpV);
+//        tmpM.getTranslation(tmpV);
         tmpM.getRotation(rotation);
 
         // right now we only go full-bore in 1 direction!
@@ -116,6 +117,8 @@ public class SteeringTankController extends SteeringBulletEntity {
         /*
          update the "VehicleModel" wiht he new virtual controller inputs
          */
-        tc.updateControls(v2.set(direction, angular), null,false, 0);
+        analogInputs[0] = angular;
+        analogInputs[1] = direction;
+        tc.updateControls(analogInputs, null, 0);
     }
 }
