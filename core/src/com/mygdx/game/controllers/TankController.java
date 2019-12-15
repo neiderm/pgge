@@ -28,6 +28,13 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class TankController implements SimpleVehicleModel
 {
+    public enum InputChannels {
+        AD_AXIS,
+        WS_AXIS,
+        L2_AXIS, // virtual axis for front button "left 2" (if used)
+        R2_AXIS, // virtual axis for front button "right 2" (if used)
+    }
+
     private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
     private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!;
 
@@ -52,9 +59,11 @@ public class TankController implements SimpleVehicleModel
     @Override
     public void updateControls(float[] analogs, boolean[] switches, float time) {
 
-        float angular = (null != analogs) ?  analogs[0] : 0;
-        float direction = (null != analogs) ?  analogs[1] : 0;
+        float angular = (null != analogs) ?  analogs[InputChannels.AD_AXIS.ordinal()] : 0;
+        float direction = (null != analogs) ?  analogs[InputChannels.WS_AXIS.ordinal()] : 0;
+
         boolean jump = (null != switches) &&  switches[0];
+
         final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
 
         if (jump) {         // cool jump!

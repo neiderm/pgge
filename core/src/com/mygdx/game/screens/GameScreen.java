@@ -176,7 +176,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
             // working variables
-            float[] analogs = new float[8];
+            float[] analogs = new float[ TankController.InputChannels.values().length ];
             boolean[] switches = new boolean[8];
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
@@ -238,16 +238,27 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 if (null != bc && !GameWorld.getInstance().getIsPaused()) {
 
-                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_B);
-                    analogs[0] = mapper.getAxis(0); // angular
-                    analogs[1] = mapper.getAxis(1); // direction
-// love this hacky crap
+                    final int idxX = TankController.InputChannels.AD_AXIS.ordinal();
+                    final int idxY = TankController.InputChannels.WS_AXIS.ordinal();
+
+                    // route the signal domain of the input device to that of the model
+                    analogs[idxX] = mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS);
+                    analogs[idxY] = mapper.getAxis(InputMapper.VIRTUAL_WS_AXIS);
+
+                    analogs[TankController.InputChannels.L2_AXIS.ordinal()] =
+                            mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
+                    analogs[TankController.InputChannels.R2_AXIS.ordinal()] =
+                            mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
+
+                    // love this hacky crap
                     GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
                     if (Math.abs(analogs[1]) < 0.4f) {
                         // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
                         analogs[1] = (-1) * pf.userData / 100.0f; // percent
                     }
+
+                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_B);
 
                     controlledModel.updateControls(analogs, switches, 0);
                 }

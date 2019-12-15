@@ -90,10 +90,13 @@ public class InputMapper {
     private static final int MAX_AXES = 8;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
-    // WASD axes
-    public static final int VIRTUAL_AD_AXIS = 0;
-    public static final int VIRTUAL_WS_AXIS = 1;
-
+    // virtual axis assignments
+    public static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
+    public static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
+    public static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
+    public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
+    public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
+    public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
     // so this is the control switches abstrction
     public enum InputState {
@@ -154,7 +157,7 @@ public class InputMapper {
         BTN_R3
     }
 
-    // android dpad analog axis indices
+    // android dpad analog axes
     private static final int DPAD_X_AXIS = 6;
     private static final int DPAD_Y_AXIS = 7;
 
