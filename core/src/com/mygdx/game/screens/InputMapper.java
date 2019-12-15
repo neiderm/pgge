@@ -84,11 +84,16 @@ Android:
 
 */
 
-class InputMapper {
+public class InputMapper {
 
     static int NumberControlCfgTypes;
     private static final int MAX_AXES = 8;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
+
+    // WASD axes
+    public static final int VIRTUAL_AD_AXIS = 0;
+    public static final int VIRTUAL_WS_AXIS = 1;
+
 
     // so this is the control switches abstrction
     public enum InputState {
@@ -149,19 +154,19 @@ class InputMapper {
         BTN_R3
     }
 
-    // use the actual analog axis indices reported on certain controller (android)
-    private static final int DEF_X_AXIS_INDEX = 6;
-    private static final int DEF_Y_AXIS_INDEX = 7;
+    // android dpad analog axis indices
+    private static final int DPAD_X_AXIS = 6;
+    private static final int DPAD_Y_AXIS = 7;
 
     @Deprecated
         // get the "virtual axis" hardcoded to axis 0
     float getAxisX(int notUsed) {
-        return analogAxes[0];
+        return analogAxes[VIRTUAL_AD_AXIS];
     }
     @Deprecated
         // get the "virtual axis" hardcoded to axis 1
     float getAxisY(int notUsed) {
-        return analogAxes[1];
+        return analogAxes[VIRTUAL_WS_AXIS];
     }
 
     // get the "virtual axis"
@@ -179,9 +184,6 @@ class InputMapper {
     }
 
     private void setAxes(float[] values) {
-
-        analogAxes[0] = values[0];
-        analogAxes[1] = values[1];
 
         for (int idx = 0; idx < MAX_AXES; idx++) {
             analogAxes[idx] = values[idx];
@@ -416,7 +418,6 @@ class InputMapper {
      * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
      * But glitchy and not worth considering.
      */
-    /* Vector2 */
     DpadAxis getDpad(DpadAxis axisIndex) {
 
         dPadAxes.clear();
@@ -453,9 +454,9 @@ class InputMapper {
             case 1: // XB
             case 3: // PC
                 break;
-            case 2: // PS/AND
-                dPadAxes.setX( (int)analogAxes[0]);
-                dPadAxes.setY( (int)analogAxes[1]);
+            case 2: // android: dpad axes mapped to virtual WASD axes
+                dPadAxes.setX( (int)analogAxes[VIRTUAL_AD_AXIS]); // DPAD_X_AXIS
+                dPadAxes.setY( (int)analogAxes[VIRTUAL_WS_AXIS]); // DPAD_Y_AXIS
                 break;
         }
         return dPadAxes;
@@ -467,7 +468,7 @@ class InputMapper {
     */
 
     private void print(String message) {
-        Gdx.app.log("Input", message);
+//        Gdx.app.log("Input", message);
     }
 
     private void initController() {
@@ -507,6 +508,7 @@ class InputMapper {
         Controllers.addListener(new ControllerListenerAdapter() {
 
             private float[] axes = new float[MAX_AXES];
+            private float[] remappedAxes = new float[MAX_AXES];
 
             int indexOf(Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
@@ -538,28 +540,30 @@ class InputMapper {
 
                 for (int idx = 0; idx < MAX_AXES; idx++) {
                     axes[idx] = controller.getAxis(idx);
+                    remappedAxes[idx] = axes[idx];
                 }
-
-                float tmp;
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
                     case 0: // PS
-                    case 2: // PS (And) ... Dpad is axis
-                        // bah crap have to do this here ?
-                        if (DEF_X_AXIS_INDEX == axisIndex || DEF_Y_AXIS_INDEX == axisIndex){
-                            axes[0] = axes[DEF_X_AXIS_INDEX];
-                            axes[1] = axes[DEF_Y_AXIS_INDEX];
+                        break;
+                    case 2: // Android
+                        // Dpad is axis - remap it ONLY if has been moved
+                        if (DPAD_X_AXIS == axisIndex || DPAD_Y_AXIS == axisIndex){
+                            remappedAxes[VIRTUAL_AD_AXIS] = axes[DPAD_X_AXIS];
+                            remappedAxes[VIRTUAL_WS_AXIS] = axes[DPAD_Y_AXIS];
                         }
                         break;
-                    case 1: // XB (Win?)
-                        tmp = axes[0];
-                        axes[0] = axes[1];
-                        axes[1] = tmp;
+                    case 1: // Windows
+                        // swap the WS and AD axes
+                        remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
+                        remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
+
+//                        Ax4==L2(+)  Ax4==R2(-)
                         break;
                 }
 
-                setAxes(axes);
+                setAxes(remappedAxes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
                 return false;
             }
