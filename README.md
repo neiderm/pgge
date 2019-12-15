@@ -9,6 +9,9 @@ Present Features:
 
 
 Features TBD:
+- developer menu: SelectScreen, onESC, list availble .json from which to choose screen 
+- android/assets: ./models (g3d[bj] ./screens (.json)  ./data (shared .pngs etc) ./sounds?
+- new screen work (g*** ptrl)
 - camera auto-panning/circling when no player input
 - let camera 3rd pers. mode be also controlled by input mapper
 - for effect for polygon appearing/removing from view (put a "bubble" (opaque) around the player/camera position if this help diffuse)
@@ -23,22 +26,19 @@ Code Improvement
 - bullet world entire game lifetime ?
 
 Issues:
-- back-in-from-resume is "bumping" the player model (is there a physics body on camera?)
-
 - SelectScreen position models  needs offset to look right because models have differnt centers
 - make test objects conditional on bogus feature (on "test" Screen only)
-- more wonky keys? from "pause", "resume" when target in-site, (should not "shoot") ... check "from Exit, (key down i.e. back-up into the exit panel) and key-down goes to menu-screen (preferences already hi-lited)
-- rigs to use "nodes" model for all
+- rigs to use "nodes" model for all ...
+- ... and player rig explosion is stalling on model reload of separate nodes model- 
 - wonky camera falling (apply more filter on trackerSB ) ... should be "lazier"
    (camera flipping has to do with settingt the tracker vector when rolling from side to side
 
 
-Models Used Info
+Assets Used Info
 
 Jeep Renegade 5 doors compact SUV 2016 
 https://www.cgtrader.com/free-3d-models/car/suv/jeep-renegade-a-5-doors-compact-suv-from-2016
 credit: Jose-Bronze (Icense Note: "Royalty Free License") 
-
 Import 3DS
 - unpack the archive and image files, import .3ds 
 - import .3ds, leave default 'y forward' 'z up' 
@@ -55,9 +55,13 @@ RAM3500 by WTLion
 https://www.turbosquid.com/3d-models/ram-3ds-free/491059
 "free for personal and comercial use,requeriment only credits for author."
 Import 3DS
-s 1.5
+s 1.4
+ctrl+a s 
 r z 180
 ctrl+a r
+r x -90
+ctrl+a r
+r x 90
 Export FBX Z-Forward Y-Up Scale 0.01
 
 Tankcar
@@ -91,6 +95,9 @@ Export OBJ Z-Forward Y-Up Scale 0.35
 https://www.turbosquid.com/3d-models/3d-offroad-car-1328883
 Open offroadcar.blend
 Export OBJ Z-Forward Y-Up Scale 0.35
+
+"Red Sand Texture"
+https://www.flickr.com/photos/maleny_steve/8899498324
 
 
 Things to investigate:
