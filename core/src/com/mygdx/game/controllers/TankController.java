@@ -113,9 +113,30 @@ public class TankController implements SimpleVehicleModel
             ModelInstanceEx.rotateRad(accelV.set(0, 0, direction), orientation);
 
             accelV.scl(LINEAR_GAIN * this.mass);
-
             body.applyCentralForce(accelV);
-            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass));
+            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // "friction"
+
+
+            // controller implementation should treat as a pair of switches which are coupled together
+            // each providing a "half" of the travel of a virtual slide axis
+            float slide;
+            //slide it the left ... negatively
+            slide = (null != analogs) ? analogs[ InputChannels.L2_AXIS.ordinal() ] : 0;
+            ModelInstanceEx.rotateRad(accelV.set( ( -slide), 0, 0), orientation);
+
+            accelV.scl(LINEAR_GAIN * this.mass);
+            body.applyCentralForce(accelV);
+
+            //slide it the right
+            slide = (null != analogs) ? analogs[ InputChannels.R2_AXIS.ordinal() ] : 0;
+            ModelInstanceEx.rotateRad(accelV.set(slide, 0, 0), orientation);
+
+            accelV.scl(LINEAR_GAIN * this.mass);
+            body.applyCentralForce(accelV);
+
+//            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // friction?
+
+
             body.setWorldTransform(tmpM);
         }
 

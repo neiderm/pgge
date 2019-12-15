@@ -345,6 +345,28 @@ public class InputMapper {
 
             if (null != bb) {
                 buttonStates[bb.ordinal()] = state;
+                /*
+                 old PC game control, front buttons (not analog switches) virtualize front button pairs as
+                 a pair of axes each ranging [0:+1]
+                 */
+                int mode = GameWorld.getInstance().getControllerMode();
+                switch (mode) {
+                    default:
+                    case 0: // PS
+                    case 1: // XB
+                    case 2: // PS/AND
+                        break;
+                    case 3: // PCb
+                        int val = state ? 1 : 0;
+                        // do not make these switches mutually exclusive to the other switch of the "pair"
+                        if (VirtualButtons.BTN_L2 == bb ){
+                            analogAxes[VIRTUAL_L2_AXIS] = val;
+                        }
+                        if ( VirtualButtons.BTN_R2 == bb){
+                            analogAxes[VIRTUAL_R2_AXIS] = val;
+                        }
+                        break;
+                }
             }
         }
     }
@@ -502,6 +524,8 @@ public class InputMapper {
             case 3: // PCb
                 buttonmMapping[0] = VirtualButtons.BTN_A;
                 buttonmMapping[1] = VirtualButtons.BTN_B;
+                buttonmMapping[5] = VirtualButtons.BTN_L2;
+                buttonmMapping[7] = VirtualButtons.BTN_R2;
                 buttonmMapping[8] = VirtualButtons.BTN_ESC; // how many "PC" game pads have a 3rd face-button?
                 buttonmMapping[9] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[10] = VirtualButtons.BTN_START;
@@ -548,15 +572,24 @@ public class InputMapper {
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    case 0: // PS
+                    case 0: // PC:
+                        // L2/R2 are analog (positive-range only)
+                        remappedAxes[VIRTUAL_L2_AXIS] = axes[2];
+                        remappedAxes[VIRTUAL_R2_AXIS] = axes[5];
                         break;
+
                     case 2: // Android
                         // Dpad is axis - remap it ONLY if has been moved
                         if (DPAD_X_AXIS == axisIndex || DPAD_Y_AXIS == axisIndex){
                             remappedAxes[VIRTUAL_AD_AXIS] = axes[DPAD_X_AXIS];
                             remappedAxes[VIRTUAL_WS_AXIS] = axes[DPAD_Y_AXIS];
                         }
+
+                        // L2/R2 are analog (positive-range only)
+                        remappedAxes[VIRTUAL_L2_AXIS] = axes[5];
+                        remappedAxes[VIRTUAL_R2_AXIS] = axes[4];
                         break;
+
                     case 1: // Windows
                         // swap the WS and AD axes
                         remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
