@@ -119,7 +119,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         super.init();
 
-        SceneLoader.createTestObjects(engine); // tmp
+//        SceneLoader.createTestObjects(engine); // tmp
 
         bulletSystem = new BulletSystem();
         engine.addSystem(bulletSystem);
@@ -158,7 +158,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        pickedPlayer.add(new StatusComponent(20));            // max damage
+        final int health = 20;
+        final int score = 0;
+        pickedPlayer.add(new StatusComponent(health, score));            // max damage
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -274,8 +276,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         int lc = sc.lifeClock;
 
                         if (0 == lc){
-                            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-                            CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
@@ -461,6 +461,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             //  check for entities to be removed first ... there would bw no point in separate comps deleteion
             if (sc.deleteMe) {
+// still not ideal here but it solves problem of player rig exploding model -reloading during render pass heinousness
+                ModelComponent mc = e.getComponent(ModelComponent.class);
+                CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
+
 
                 Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
                 removeBulletComp(e);

@@ -23,12 +23,9 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.util.ModelInstanceEx;
 
 public class Projectile extends KillSensor {
@@ -40,10 +37,6 @@ public class Projectile extends KillSensor {
 
     public Projectile() { // mt
     }
-
-//    public Projectile(Vector3 vvv) {
-    //  }
-
 
     public Projectile(Object target, Matrix4 mtransform) {
 
@@ -57,7 +50,7 @@ public class Projectile extends KillSensor {
         // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
         // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
         // in order to set up the moving step vector (in term of the shooter facing orientiation)
-        vT.set( getDirectionVector( mtransform ));
+        vT.set(getDirectionVector(mtransform));
     }
 
 
@@ -87,50 +80,32 @@ public class Projectile extends KillSensor {
 
 
     @Override
-    public void update(Entity featureEnt) {
+    public void update(Entity projectile) {
 
         // update the sensor: BUT check target validity, because of omni sensor auto-player-target selection default kludgey behavior!!!!!
         if (null != target) {
 
-            super.update(featureEnt);
+            super.update(projectile);
 
+            if (isTriggered && isActivated) {
 
-            if (isTriggered) {
+                isActivated = false; // don't let it "detonate" again!
 
                 // simple obvious action is to terminate this Projectile
-                StatusComponent fsc = featureEnt.getComponent(StatusComponent.class);
-                if (null == fsc){                         // be careful not to overwrite!
-                    featureEnt.add(new StatusComponent());
+                if (null == projectile.getComponent(StatusComponent.class)) {                         // be careful not to overwrite!
+                    projectile.add(new StatusComponent());
                 }
 
 // some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
-                StatusComponent sc = target.getComponent(StatusComponent.class);
-                if (null != sc) {
+                if (null == target.getComponent(StatusComponent.class)) {
+                    target.add(new StatusComponent()); // default lifeclock should be 0
+                }
 
-                    System.out.println("already got one");
-                } else// if (null == sc )
-                {
-                    // mark dead entity for deletion        could Status Comp use "die" to time "fade-out"?
-                    //            target.getComponent(StatusComponent.class).lifeClock = 0; ... use target clock maybe idk
-                    target.add(new StatusComponent());
+                FeatureComponent fc = target.getComponent(FeatureComponent.class);
 
-                    FeatureComponent fc = target.getComponent(FeatureComponent.class);
-
-                    if (null != fc) {
-
-                        FeatureAdaptor fa = fc.featureAdpt;
-                        fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass target as arg to update()!!!
-
-                    } else {
-
-// "tANKS" etc. presenetly are hare .. there were characters before there were features so that needs figured out
-                        StatusComponent tsc = target.getComponent(StatusComponent.class);
-                        if (null != tsc){
-                            tsc.bounty = 1000; // default whatever
-                        }
-
-                        Projectile.exploducopia(target.getComponent(ModelComponent.class));
-                    }
+                if (null != fc) {
+                    FeatureAdaptor fa = fc.featureAdpt;
+                    fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass target as arg to update()!!!
                 }
             }
         }
@@ -139,7 +114,7 @@ public class Projectile extends KillSensor {
         Vector3 vF = vT;
 
         // could cache this model comp lookup?
-        ModelComponent fmc = featureEnt.getComponent(ModelComponent.class);
+        ModelComponent fmc = projectile.getComponent(ModelComponent.class);
 
         fmc.modelInst.transform.getTranslation(tmpV);
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
@@ -158,34 +133,6 @@ public class Projectile extends KillSensor {
         } else {
             // no collision imminient so keep it moving along
             fmc.modelInst.transform.trn(vF);
-        }
-    }
-
-
-    private static void exploducopia(ModelComponent tgtmc) {
-        // has local translation but also need to set in instance w/ the "parent" instance translation
-        // tmp test ... can retrieve the model name info whatever somehow embed into the new object?
-        int countIndex = 0;
-
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        String targetMdlInfoKey = null;
-
-        for (String key : sd.modelInfo.keySet()) {
-            if (tgtmc.modelInfoIndx == countIndex) {
-//                ModelInfo mi = sd.modelInfo.get(key);
-                targetMdlInfoKey = key;
-                break;
-            }
-            countIndex += 1;
-        }
-
-        if (null != targetMdlInfoKey) {
-
-            CompCommon.exploducopia(tgtmc.modelInst, targetMdlInfoKey);
-
-        } else {
-            System.out.println("no targetMdlInfoKey found");
-            CompCommon.makeBurnOut(tgtmc.modelInst, CompCommon.ImpactType.FATAL);
         }
     }
 }
