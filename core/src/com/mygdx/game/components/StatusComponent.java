@@ -28,6 +28,7 @@ public class StatusComponent implements Component {
 
     public StatusComponent(int count, int bounty) {
 
+        this.lifeClock = count;
         this.bounty = bounty;
     }
 }
