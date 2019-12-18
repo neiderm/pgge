@@ -1,8 +1,6 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Component;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.mygdx.game.screens.GameUI;
 
 /**
  * Created by neiderm on 7/5/2018.
@@ -10,7 +8,6 @@ import com.mygdx.game.screens.GameUI;
 
 public class StatusComponent implements Component {
 
-    //    private static final int FPS = 60;
     private static final int LIFECLOCKDEFAULT = 0;
 
     public int lifeClock = LIFECLOCKDEFAULT;
@@ -27,5 +24,10 @@ public class StatusComponent implements Component {
     public StatusComponent(int count) {
 
         this.lifeClock = count;
+    }
+
+    public StatusComponent(int count, int bounty) {
+
+        this.bounty = bounty;
     }
 }
