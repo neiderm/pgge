@@ -49,16 +49,16 @@ public class KillSensor extends OmniSensor {
                 // clock target probly for player, other wise probly no status comp
                 StatusComponent sc = target.getComponent(StatusComponent.class);
                 if (null != sc) {
+
                     int lc = target.getComponent(StatusComponent.class).lifeClock;
-                    lc -= 10;
-                    if (lc > 0){ // don't Burn Out on final hit (explodacopia)
+                    if (lc > 0){
+                        lc -= 10;
 
                         CompCommon.makeBurnOut(
                                 target.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.DAMAGING);
-                    }else{
-                        lc = 0;
+
+                        target.getComponent(StatusComponent.class).lifeClock = lc;
                     }
-                    target.getComponent(StatusComponent.class).lifeClock = lc;
                 }
             }
 
