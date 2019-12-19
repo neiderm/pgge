@@ -46,20 +46,25 @@ public class KillSensor extends OmniSensor {
         if (isTriggered) {
 
             if (bucket < 1) {
-                // clock target probly for player, other wise probly no status comp
+
                 StatusComponent sc = target.getComponent(StatusComponent.class);
-                if (null != sc) {
 
-                    int lc = target.getComponent(StatusComponent.class).lifeClock;
-                    if (lc > 0){
-                        lc -= 10;
-
-                        CompCommon.makeBurnOut(
-                                target.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.DAMAGING);
-
-                        target.getComponent(StatusComponent.class).lifeClock = lc;
-                    }
+                if (null == sc) {
+                    sc = new StatusComponent();
+                    target.add(sc); // default lifeclock should be 0
                 }
+
+                CompCommon.ImpactType impactType;
+                if (sc.lifeClock > 0) {
+
+                    sc.lifeClock  -= 10;
+                    impactType = CompCommon.ImpactType.DAMAGING;
+
+                } else {
+                    impactType = CompCommon.ImpactType.FATAL;
+                }
+                CompCommon.makeBurnOut(
+                        target.getComponent(ModelComponent.class).modelInst, impactType);
             }
 
             bucket += 1;

@@ -121,9 +121,6 @@ public class ShootamaThing extends VectorSensor {
                 if (0 == prev++) { // bah crap
 
                     sc.bounty = 1200;
-                    // uses the Model Compont .transform translation so
-                    CompCommon.makeBurnOut( // Fatal, kills itself
-                            sensor.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.FATAL);
                 }
             }
             // else System.out.println();
