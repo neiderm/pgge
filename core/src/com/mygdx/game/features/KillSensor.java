@@ -54,17 +54,21 @@ public class KillSensor extends OmniSensor {
                     target.add(sc); // default lifeclock should be 0
                 }
 
-                CompCommon.ImpactType impactType;
+                CompCommon.ImpactType impactType = CompCommon.ImpactType.DAMAGING;
+
                 if (sc.lifeClock > 0) {
-
                     sc.lifeClock  -= 10;
-                    impactType = CompCommon.ImpactType.DAMAGING;
-
-                } else {
+                }
+                if (sc.lifeClock <= 0) {
                     impactType = CompCommon.ImpactType.FATAL;
                 }
-                CompCommon.makeBurnOut(
-                        target.getComponent(ModelComponent.class).modelInst, impactType);
+
+                if (!sc.deleteMe) { // deleted entity may not have been removed from engine yet
+                    CompCommon.makeBurnOut(
+                            target.getComponent(ModelComponent.class).modelInst, impactType);
+                }
+                else
+                    System.out.println("target entity already deleted");
             }
 
             bucket += 1;
