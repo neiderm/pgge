@@ -76,6 +76,8 @@ public class CompCommon {
     */
     public static void makeBurnOut(ModelInstance mi, ImpactType useFlags) {
 
+        mi.userData = null; //  null forces default color
+
         if (ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
             mi.userData = new Color(Color.SKY); // hacky hackhackster
         } else if (ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
