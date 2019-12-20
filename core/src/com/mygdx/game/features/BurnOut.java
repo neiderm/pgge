@@ -59,7 +59,8 @@ public class BurnOut extends FeatureAdaptor {
                 ModelInstance modelInstance = (ModelInstance)object;
 
                 if (modelInstance.userData != null){
-                    cc = (Color)modelInstance.userData; // hackity hack don't hack back
+                    Color c = (Color)modelInstance.userData; // hackity hack don't hack back
+                    cc = new Color(c);
                 }
 
                 Material saveMat = modelInstance.materials.get(0);
@@ -79,7 +80,6 @@ public class BurnOut extends FeatureAdaptor {
             }
         }
     }
-
 
     @Override
     public void update(Entity ee) {
