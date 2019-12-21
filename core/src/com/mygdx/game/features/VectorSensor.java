@@ -53,7 +53,7 @@ public class VectorSensor extends SensorAdaptor {
     public VectorSensor() {/*mt*/}
 
     @Override
-    public void init(Object target){
+    public void init(Object target) {
 
         super.init(target);
 
@@ -80,36 +80,38 @@ public class VectorSensor extends SensorAdaptor {
                 target = playerFeature.getEntity();
             }
         } else {
+            ModelComponent mc = target.getComponent(ModelComponent.class);
+            if (null != mc) {
+                Matrix4 plyrTransform = mc.modelInst.transform;
+                targetPos = plyrTransform.getTranslation(targetPos);
 
-            Matrix4 plyrTransform = target.getComponent(ModelComponent.class).modelInst.transform;
-            targetPos = plyrTransform.getTranslation(targetPos);
+                Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
+                myPos = sensTransform.getTranslation(myPos);
 
-            Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
-            myPos = sensTransform.getTranslation(myPos);
+                lookRay.set(sensTransform.getTranslation(myPos), // myPos
+                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
-            lookRay.set(sensTransform.getTranslation(myPos), // myPos
-                    ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
-
-            /* add scaled look-ray-unit-vector to sensor position */
-            myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
+                /* add scaled look-ray-unit-vector to sensor position */
+                myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
 
 // the Feature Adapter will be populated in the "out.json" file but don't want the debug line instance
 // spewing all it's crap in there, so allow the debug line graphic to be instantantiated late
 ///*
-            if (null == lineInstance) {
-                lineInstance = new GfxUtil();
-            }
-            RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                    sensTransform.getTranslation(trans),
-                    myPos,
-                    Color.SALMON));
+                if (null == lineInstance) {
+                    lineInstance = new GfxUtil();
+                }
+                RenderSystem.debugGraphics.add(lineInstance.lineTo(
+                        sensTransform.getTranslation(trans),
+                        myPos,
+                        Color.SALMON));
 //*/
-            // take differnece from  center-of-sense-zone-sphere to target.
-            // If that distance fall within the sense radius.
-            myPos.sub(targetPos);
+                // take differnece from  center-of-sense-zone-sphere to target.
+                // If that distance fall within the sense radius.
+                myPos.sub(targetPos);
 
-            if (Math.abs(myPos.x) < senseZoneRadius && Math.abs(myPos.z) < senseZoneRadius) {
-                isTriggered = true;
+                if (Math.abs(myPos.x) < senseZoneRadius && Math.abs(myPos.z) < senseZoneRadius) {
+                    isTriggered = true;
+                }
             }
         }
     }

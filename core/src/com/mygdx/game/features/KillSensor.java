@@ -50,7 +50,7 @@ public class KillSensor extends OmniSensor {
                 StatusComponent sc = target.getComponent(StatusComponent.class);
 
                 if (null == sc) {
-                    sc = new StatusComponent();
+                    sc = new StatusComponent(0);
                     target.add(sc); // default lifeclock should be 0
                 }
 

@@ -8,7 +8,7 @@ import com.badlogic.ashley.core.Component;
 
 public class StatusComponent implements Component {
 
-    private static final int LIFECLOCKDEFAULT = 0;
+    private static final int LIFECLOCKDEFAULT = 1;
 
     public int lifeClock = LIFECLOCKDEFAULT;
     public int prizeCount;
@@ -24,11 +24,5 @@ public class StatusComponent implements Component {
     public StatusComponent(int count) {
 
         this.lifeClock = count;
-    }
-
-    public StatusComponent(int count, int bounty) {
-
-        this.lifeClock = count;
-        this.bounty = bounty;
     }
 }

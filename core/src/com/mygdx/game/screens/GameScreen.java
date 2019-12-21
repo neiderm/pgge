@@ -30,7 +30,6 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.BulletWorld;
@@ -50,7 +49,6 @@ import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
@@ -159,8 +157,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         playerUI = initPlayerUI();
         final int health = 20;
-        final int score = 0;
-        pickedPlayer.add(new StatusComponent(health, score));            // max damage
+        pickedPlayer.add(new StatusComponent(health));            // max damage
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -273,9 +270,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     case ROUND_ACTIVE:
                     case ROUND_COMPLETE_WAIT:
                         StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
-                        int lc = sc.lifeClock;
 
-                        if (0 == lc){
+                        if (0 == sc.lifeClock){
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
@@ -304,17 +300,19 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             Quaternion rotation = new Quaternion();
             Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
 
-            void updateRays(){
+            void updateRays() {
 
-                Matrix4 transform = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+                ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+                if (null != mc) {
+                    Matrix4 transform = mc.modelInst.transform;
 
-                lookRay.set(transform.getTranslation(tmpV3),
-                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
+                    lookRay.set(transform.getTranslation(tmpV3),
+                            ModelInstanceEx.rotateRad(direction.set(0, 0, -1), transform.getRotation(rotation)));
 
-                //                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
-                gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-                gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
-
+                    //                gameEventSignal.dispatch( gameEvent.set(RAY_PICK, cam.getPickRay(mapper.getPointerX(), mapper.getPointerY()), 0)); // touch screen mapper
+                    gameEventSignal.dispatch(hitDetectEvent.set(EVT_HIT_DETECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+                    gameEventSignal.dispatch(seeObjectEvent.set(EVT_SEE_OBJECT, lookRay, 0)); // maybe pass transform and invoke lookRay there
+                }
             }
         };
     }
@@ -367,12 +365,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             if (EVT_SEE_OBJECT == eventType && null != picked) {
 
                 //  picked.onSelect();  // I know you're lookin at me ...
-///*
+                ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+
+                if (null != mc){
                 RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                        pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(posV),
+                        mc.modelInst.transform.getTranslation(posV),
                         picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                         Color.LIME));
-//*/
+                }
             }
         }
     };
@@ -400,9 +400,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         // put in any debug graphics to the render pipeline
         chaserSteerable.update(delta);
 
-        RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
-                pickedPlayer.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpPos),
-                chaserTransform.getTranslation(tmpV), Color.PURPLE));
+        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class); //hack your way into ti
+
+        if (null != mc) {
+            RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
+                    mc.modelInst.transform.getTranslation(tmpPos),
+                    chaserTransform.getTranslation(tmpV), Color.PURPLE));
+        }
 
         camController.update(); // this can probaly be pause as well
 
@@ -417,7 +421,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         font.draw(batch, s, 10, font.getLineHeight());
         batch.end();
 */
-        debugPrint("**" + pickedPlayer.getComponent(StatusComponent.class).lifeClock, color, 0, 0);
+// hackage
+        StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
+        int lc = 0;
+        if (null != sc) {
+            lc = sc.lifeClock;
+        }
+        debugPrint("**" + lc, color, 0, 0);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -460,22 +470,29 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
             //  check for entities to be removed first ... there would bw no point in separate comps deleteion
+//            if (0 == sc.lifeClock/*sc.deleteMe*/) {
             if (sc.deleteMe) {
+
+                sc.deleteMe = true; // for some reason
+//                e.remove(StatusComponent.class); // if local player being removed, make sure no more updates to it are allowed
+
 // still not ideal here but it solves problem of player rig exploding model -reloading during render pass heinousness
                 ModelComponent mc = e.getComponent(ModelComponent.class);
                 CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
 
+                e.remove(ModelComponent.class);
 
                 Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
                 removeBulletComp(e);
                 engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
 
                 StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-                if (sc.bounty > 0) // tmp for debug
-                    psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
+                if (null != psc) {
+                    if (sc.bounty > 0) // tmp for debug
+                        psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
+                }
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
-
                     removeBulletComp(e);
                 }
             }

@@ -121,7 +121,7 @@ public class BurnOut extends FeatureAdaptor {
                 // kill me  - most of the time not having to protect against re-adding the Status Comp, but this one would't stay dead :(
                 StatusComponent sc = ee.getComponent((StatusComponent.class));
                 if (null == sc) {
-                    ee.add(new StatusComponent());
+                    ee.add(new StatusComponent(0));
                 }
 
                 // check if we we're  using a "local" Texture  ( ??? wtfe )     and if so dispose()

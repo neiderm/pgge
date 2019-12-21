@@ -96,7 +96,7 @@ public class FeatureAdaptor implements FeatureIntrf {
                 this,  // pass-thru
                 tmpObjectName);
 
-        ee.add(new StatusComponent()); // delete me!
+        ee.add(new StatusComponent(0)); // delete me!
     }
 
 

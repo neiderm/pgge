@@ -93,12 +93,12 @@ public class Projectile extends KillSensor {
 
                 // simple obvious action is to terminate this Projectile
                 if (null == projectile.getComponent(StatusComponent.class)) {                         // be careful not to overwrite!
-                    projectile.add(new StatusComponent());
+                    projectile.add(new StatusComponent(0));
                 }
 
 // some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
                 if (null == target.getComponent(StatusComponent.class)) {
-                    target.add(new StatusComponent()); // default lifeclock should be 0
+                    target.add(new StatusComponent(0)); // default lifeclock should be 0
                 }
 
                 FeatureComponent fc = target.getComponent(FeatureComponent.class);

@@ -68,8 +68,8 @@ seems useless right now ....
 
 ////        sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
 
-        ModelComponent mc = sensor.getComponent(ModelComponent.class);
-        Matrix4 transform = mc.modelInst.transform;
+        ModelComponent _mc = sensor.getComponent(ModelComponent.class);
+        Matrix4 transform = _mc.modelInst.transform;
         vvv = transform.getTranslation(vvv);
         sensorOrigin.set(vvv);               ///   blah
 
@@ -88,21 +88,24 @@ seems useless right now ....
                 target = playerFeature.getEntity();
             }
         } else {
-            Matrix4 tgtTransform = target.getComponent(ModelComponent.class).modelInst.transform;
+            ModelComponent mc = target.getComponent(ModelComponent.class);
+            if (null != mc) {
+                Matrix4 tgtTransform = mc.modelInst.transform;
 
-            if (null != tgtTransform)
-                tgtPosition = tgtTransform.getTranslation(tgtPosition);
+                if (null != tgtTransform)
+                    tgtPosition = tgtTransform.getTranslation(tgtPosition);
 
 
-            isTriggered = false; // hmmm should be "non-latching? "
+                isTriggered = false; // hmmm should be "non-latching? "
 
-            if (inverted) {
-                if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
-                    isTriggered = true;
-                }
-            } else {
-                if (tgtPosition.dst2(sensorOrigin) < boundsDst2) {
-                    isTriggered = true;
+                if (inverted) {
+                    if (tgtPosition.dst2(sensorOrigin) > boundsDst2) {
+                        isTriggered = true;
+                    }
+                } else {
+                    if (tgtPosition.dst2(sensorOrigin) < boundsDst2) {
+                        isTriggered = true;
+                    }
                 }
             }
         }
