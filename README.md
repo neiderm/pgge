@@ -64,16 +64,16 @@ ctrl+a r
 r x 90
 Export FBX Z-Forward Y-Up Scale 0.01
 
+
 Tankcar
 Author: atze
 https://opengameart.org/content/tankcar
 license for model "panzerwagen" is CC0.
 License(s): CC0
-s .5 Ctrl+a s
-r z 180 Ctrl+a r
-- or - ??
-s .5 r z 180 Ctrl+a o  (saves rotation & scale)
+s .5 r z 180 r x -90 Ctrl+a o  (saves rotation & scale)
+r x 90
 Export FBX Z-Forward Y-Up Scale 0.01
+
 
 APC Tank
 Submitted by gabrielsdj (Personal Use License)
