@@ -237,7 +237,7 @@ public class GameUI extends InGameMenu {
         final int gsBTNy = 0;
 
         picButton = addImageButton(
-                gsBTNx + 0, gsBTNy - 0,
+                gsBTNx + 0f, gsBTNy - 0f,
                 gsBTNwidth, gsBTNheight,
                 InputMapper.InputState.INP_NONE);
 
@@ -311,6 +311,9 @@ public class GameUI extends InGameMenu {
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
+    void addScore(int points) {
+        score += points;
+    }
 
     void setScore(int points) {
         score = points;
