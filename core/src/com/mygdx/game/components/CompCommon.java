@@ -20,7 +20,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -47,28 +46,6 @@ public class CompCommon {
     }
 
     /*
-         note: caller decides if/how to dispose of its target
-     this is still wonky and need generalized more
-
-     can designate what hierarchy "level" is the root node at which to load?
-     kludgey  loading being done for exploding model
-     */
-    public static void exploducopia(ModelInstance modelInst, String targetMdlInfoKey) {
-//        if (null != targetMdlInfoKey)
-        {
-            Vector3 translation = new Vector3();
-            modelInst.transform.getTranslation(translation);
-
-            Quaternion rotation = new Quaternion();
-            rotation = modelInst.transform.getRotation(rotation);
-
-// note * .... need to inform the level !!!!!!
-            spawnNewGameObject(
-                    translation, rotation, "*", targetMdlInfoKey);
-        }
-    }
-
-    /*
     The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
     (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
 
@@ -83,63 +60,20 @@ public class CompCommon {
         } else if (ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
             mi.userData = new Color(Color.YELLOW);
         }
-
         Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
-
-        InstanceData id = new InstanceData(mi.transform.getTranslation(translation));
-
-        id.adaptr = new BurnOut(mi); // there it is
-
-        final String tmpObjectName = "sphere";
-        GameObject gameObject = new GameObject(tmpObjectName);
-        gameObject.getInstanceData().add(id);
-
-        // insert a newly created game OBject into the "spawning" model group
-        GameWorld.getInstance().addSpawner(gameObject);
-    }
-
-    /*
-     * Object creator for dynamic spawning
-     * Caller can specify the Feature Adapter, mesh shape and material to use, (or let defaults) thus
-     * allowing the  type of explosion or whatever effect to be per-caller.
-     * Game Object is made but not the entity yet, as delayed-queued for spawnning.
-     */
-    private static void spawnNewGameObject(
-            Vector3 translation, Quaternion rotation,
-            String objectName, String modelInfoKey) {
-
-        // insert a newly created game OBject into the "spawning" model group
-        GameObject gameObject = new GameObject(objectName);
-
-// fixed for now ;
-        gameObject.mass = 1f;
-        gameObject.meshShape = "convexHullShape";
-
-        InstanceData id = new InstanceData(translation);
-
-        id.rotation = new Quaternion();// tmp should not need to new it here!
-        id.rotation.set(rotation);
-
-        //        gameObject.mass = 1; // let it be stationary
-        gameObject.getInstanceData().add(id);
-
-// any sense for Game Object have its own static addspawner() method ?  (need the Game World import/reference here ?)
-        GameWorld.getInstance().addSpawner(gameObject, modelInfoKey); //  is added "kinematic" ???
+        spawnNewGameObject(
+                null, mi.transform.getTranslation(translation), new BurnOut(mi), "sphere");
     }
 
     public static void spawnNewGameObject(
             Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
         InstanceData id = new InstanceData(translation);
-//        if (null != fa)
-        {
-            id.adaptr = fa;
-        }
+        id.adaptr = fa;
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject(objectName);
         gameObject.scale = scale;
-
         gameObject.getInstanceData().add(id);
 
 // any sense for Game Object have its own static addspawner() method ?  (need the Game World import/reference here ?)
@@ -162,8 +96,10 @@ public class CompCommon {
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
-        StatusComponent sc = new StatusComponent();
-        sc.lifeClock = 9999;
+        StatusComponent sc = ee.getComponent(StatusComponent.class);
+        if (null == sc) {
+            sc = new StatusComponent(1);
+        }
         sc.deleteFlag = 2;         // flag bullet Comp for deletion
         ee.add(sc);
     }
