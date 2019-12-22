@@ -16,6 +16,7 @@
 
 package com.mygdx.game.screens;
 
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
@@ -26,6 +27,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -47,6 +49,8 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.systems.BulletSystem;
@@ -122,7 +126,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         bulletSystem = new BulletSystem();
         engine.addSystem(bulletSystem);
         engine.addSystem(new PickRaySystem(gameEventSignal));
-        engine.addSystem(new StatusSystem());
         engine.addSystem(new CharacterSystem());
         engine.addSystem(new FeatureSystem());
 
@@ -463,22 +466,21 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
+    /*
+      sweep entities queued for deletion (needs to be done outside of engine/simulation step)
+     */
     private void cleaner() {
-        // update entities queued for deletion (needs to be done outside of engine/simulation step)
+
         for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
-//            if (null != e)
+
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
-            //  check for entities to be removed first ... there would bw no point in separate comps deleteion
-//            if (0 == sc.lifeClock/*sc.deleteMe*/) {
-            if (sc.deleteMe) {
+            if (0 == sc.lifeClock) {
 
-                sc.deleteMe = true; // for some reason
-//                e.remove(StatusComponent.class); // if local player being removed, make sure no more updates to it are allowed
-
-// still not ideal here but it solves problem of player rig exploding model -reloading during render pass heinousness
                 ModelComponent mc = e.getComponent(ModelComponent.class);
-                CompCommon.exploducopia(mc.modelInst, mc.strObjectName);
+                if (null != mc){
+                    exploducopia(engine, mc.modelInst, mc.strObjectName);
+                }
 
                 e.remove(ModelComponent.class);
 
@@ -519,6 +521,29 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             bc.body = null; // idfk ... is this useful?
         } // if
     }
+
+    /*
+     try to blow up a dead thing
+     */
+    private static void exploducopia(Engine engine, ModelInstance modelInst, String targetMdlInfoKey) {
+//        if (null != targetMdlInfoKey)
+        Vector3 translation = new Vector3();
+        Quaternion rotation = new Quaternion();
+
+        GameObject gameObject = new GameObject("*");
+        gameObject.mass = 1f;
+        gameObject.meshShape = "convexHullShape";
+
+        InstanceData id = new InstanceData(modelInst.transform.getTranslation(translation));
+        id.rotation = new Quaternion();// tmp should not need to new it here!
+        id.rotation.set(modelInst.transform.getRotation(rotation));
+        gameObject.getInstanceData().add(id);
+
+        ModelGroup mg = new ModelGroup(targetMdlInfoKey);
+        mg.addElement(gameObject);
+        mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
+    }
+
 
     private  SpriteBatch batch = new SpriteBatch();
     private  BitmapFont font;
