@@ -31,16 +31,16 @@ import com.mygdx.game.util.PrimitivesBuilder;
 /**
  * Created by neiderm on 2/28/2018.
  * Reference for "ScreenManager" arch. pattern:
- *  http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
+ * http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
  * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object parameter (extends Stage implements Screen ???? )
- *  http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
- *
- *  intented as singleton, keep this thin.
+ * http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
+ * <p>
+ * intented as singleton, keep this thin.
  */
 
 public final class GameWorld implements Disposable {
 
-    public static final int VIRTUAL_WIDTH =  Gdx.graphics.getWidth(); //tmp ..  640;
+    public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth(); //tmp ..  640;
     public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight(); // tmp .. 480;
 
 
@@ -57,19 +57,20 @@ public final class GameWorld implements Disposable {
 
     private SceneData sceneData;
     private SceneData sceneSaveData; // keeping certain info betw. screens kdlugey whatever
+    private String sceneDataFile;
     private Game game;
 
     private static GameWorld instance;
 
     // created lazily and cached for later usage.
-    public static GameWorld getInstance(){
-        if (null == instance){
+    public static GameWorld getInstance() {
+        if (null == instance) {
             instance = new GameWorld();
         }
         return instance;
     }
 
-    void initialize(Game game){
+    void initialize(Game game) {
 
         this.game = game;
 
@@ -77,13 +78,13 @@ public final class GameWorld implements Disposable {
         Bullet.init();
         PrimitivesBuilder.init();            // one time only .. for now i guess
 
-        game.setScreen(new SplashScreen()); // can be done here or by caller ?
+        game.setScreen(new SplashScreen());
     }
 
     /*
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
-    public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */ ) {
+    public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */) {
 
         if (null == game)
             return;
@@ -108,10 +109,11 @@ public final class GameWorld implements Disposable {
      */
     private int controllerMode;
 
-    public int getControllerMode(){
+    public int getControllerMode() {
         return controllerMode;
     }
-    public void setControllerMode(int iMode){
+
+    public void setControllerMode(int iMode) {
         this.controllerMode = iMode;
     }
 
@@ -136,7 +138,7 @@ public final class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
-    private GAME_STATE_T roundActiveState =  GAME_STATE_T.ROUND_NONE; // for better or worse ... ;)  gameScreenState ??
+    private GAME_STATE_T roundActiveState = GAME_STATE_T.ROUND_NONE; // for better or worse ... ;)  gameScreenState ??
 
     public GAME_STATE_T getRoundActiveState() {
         return roundActiveState;
@@ -147,18 +149,12 @@ public final class GameWorld implements Disposable {
     }
 
 
-    public void setSceneData(String path, String playerObjectName) {
+    private void loadSceneData(String path, String playerObjectName) {
 
         ModelInfo selectedModelInfo = null;
 
-        // if player object name not null, set up new info
-        if (null != playerObjectName ) {
-
-            if (null == sceneSaveData) {
-                // get the present screen's Scene Data first time the player object name is encountered  (theoretically from Select Screen)
-                sceneSaveData = this.sceneData;                 // reset saved pointer to new instance
-            }
-            // get the local player model info
+        if (null != playerObjectName) {
+            // get the  player model info from previous scene data
             selectedModelInfo = sceneSaveData.modelInfo.get(playerObjectName);
         }
 
@@ -175,14 +171,10 @@ public final class GameWorld implements Disposable {
         ModelGroup tmg = this.sceneData.modelGroups.get(ModelGroup.LOCAL_PLAYER_MGRP);
 
         if (null == tmg) {  // select screen doesnt define a player group
-
-            tmg = new ModelGroup( /* playerObjectName */ );
+            tmg = new ModelGroup( /* playerObjectName */);
             tmg.addElement(new GameObject(playerObjectName));
             this.sceneData.modelGroups.put(ModelGroup.LOCAL_PLAYER_MGRP, tmg);
         }
-//            else
-//                System.out.println("model group found " + ModelGroup.LOCAL_PLAYER_MGRP);
-
 //            tmg.setModelName(playerObjectName); // nope can't do this ... see "modelFromNodes()"
     }
 
@@ -203,21 +195,41 @@ public final class GameWorld implements Disposable {
         setSceneData(path, playerObjectName);
     }
 
+    public void setSceneData(String path, String playerObjectName) {
+
+        sceneDataFile = path; // keep this for screen restart reloading
+        sceneSaveData = this.sceneData; // save reference to previous loaded data for player info retrieval
+
+        loadSceneData(path, playerObjectName);
+    }
+
+    /*
+     * for screen reload/restart only .. assume data file is already set by previous caller
+     */
+    public void setSceneData() {
+
+        GameFeature localplyaer = this.sceneData.features.get(SceneData.LOCAL_PLAYER_FNAME);
+
+        if (null != localplyaer) {
+            loadSceneData(sceneDataFile, localplyaer.getObjectName());
+        }
+    }
+
     public SceneData getSceneData() {
         return sceneData;
     }
 
-    public GameFeature getFeature(String featureName){
+    public GameFeature getFeature(String featureName) {
 
         return sceneData.features.get(featureName);
     }
 
-    public void addSpawner(GameObject object){
+    public void addSpawner(GameObject object) {
 
         addSpawner(object, ModelGroup.MGRP_DEFAULT_MDL_NAME);
     }
 
-    public void addSpawner(GameObject object, String modelName){
+    private void addSpawner(GameObject object, String modelName) {
 
         ModelGroup mg = sceneData.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
         /*
@@ -230,15 +242,13 @@ public final class GameWorld implements Disposable {
 
             // model Name is used for e.g. "tank" and similiar models - loading entire model and globbing it toether (game object is literally "*" )
             if (
-                    /* mg.modelName.equals(modelName)  && */
+                /* mg.modelName.equals(modelName)  && */
                     mg.getModelName().isEmpty()  // idfk
                             || mg.getModelName().equals(ModelGroup.MGRP_DEFAULT_MDL_NAME)
-            )
-            {
+            ) {
                 System.out.println("mg.modelName.isEmpty(), ok to add another Game object to this model Group ... ?");
             }
-        }
-        else{
+        } else {
             mg = new ModelGroup(modelName);
             sceneData.modelGroups.put(ModelGroup.SPAWNERS_MGRP_KEY, mg);
         }
@@ -247,7 +257,7 @@ public final class GameWorld implements Disposable {
     }
 
     /* I don't think we see a dispose event on Android */
-@Override
+    @Override
     public void dispose() {
 
         game.getScreen().dispose();

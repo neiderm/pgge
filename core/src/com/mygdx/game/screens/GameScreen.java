@@ -53,12 +53,12 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
 import com.mygdx.game.systems.PickRaySystem;
 import com.mygdx.game.systems.RenderSystem;
-import com.mygdx.game.systems.StatusSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -86,7 +86,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
 
-@Override
+    @Override
     public void init(){
 
         batch = new SpriteBatch();
@@ -287,10 +287,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         break;
 
                     case ROUND_OVER_RESTART:
-                        screenTeardown();
-                        init();
-                        break;
-
+                        // handled at end of render pass
                     default:
                         break;
                 }
@@ -371,10 +368,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
                 if (null != mc){
-                RenderSystem.debugGraphics.add(lineInstance.lineTo(
-                        mc.modelInst.transform.getTranslation(posV),
-                        picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
-                        Color.LIME));
+                    RenderSystem.debugGraphics.add(lineInstance.lineTo(
+                            mc.modelInst.transform.getTranslation(posV),
+                            picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
+                            Color.LIME));
                 }
             }
         }
@@ -451,6 +448,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         // update entities queued for spawning
         spawner();
+
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART ==
+                GameWorld.getInstance().getRoundActiveState()){
+
+            screenTeardown();
+            GameWorld.getInstance().setSceneData();
+            SceneLoader.doneLoading();
+            init();
+        }
     }
 
     private void spawner(){
