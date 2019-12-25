@@ -27,6 +27,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -52,6 +53,7 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
@@ -87,7 +89,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private Entity pickedPlayer;
 
     @Override
-    public void init(){
+    public void init() {
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -166,7 +168,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     }
 
 
-    private GameUI initPlayerUI(){
+    private GameUI initPlayerUI() {
         /*
          * here is where all the controller and model stuff comes together
          */
@@ -178,17 +180,17 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
             // working variables
-            float[] analogs = new float[ TankController.InputChannels.values().length ];
+            float[] analogs = new float[TankController.InputChannels.values().length];
             boolean[] switches = new boolean[8];
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
 
             // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
-            void gunSight( Entity target, Entity player ){
+            void gunSight(Entity target, Entity player) {
 
                 ModelComponent mc = player.getComponent(ModelComponent.class);
 
-                if (null != mc && null != mc.modelInst){
+                if (null != mc && null != mc.modelInst) {
 
                     Matrix4 tmpM = mc.modelInst.transform;
                     tmpM.getRotation(orientation);
@@ -208,7 +210,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     CompCommon.spawnNewGameObject(
                             new Vector3(0.1f, 0.1f, 0.1f),
                             trans,
-                            new Projectile( target, tmpM ),
+                            new Projectile(target, tmpM),
                             "cone");
                 }
             }
@@ -222,7 +224,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             @Override
-            public void onCameraSwitch(){
+            public void onCameraSwitch() {
 
                 if (cameraMan.nextOpMode())
                     multiplexer.addProcessor(camController);
@@ -231,7 +233,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             @Override
-            public void act (float delta) {
+            public void act(float delta) {
 
 // get the controller to model update out of the way before start messing with any screen transitions/disposals
 
@@ -274,7 +276,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     case ROUND_COMPLETE_WAIT:
                         StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
 
-                        if (0 == sc.lifeClock){
+                        if (0 == sc.lifeClock) {
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
@@ -367,7 +369,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 //  picked.onSelect();  // I know you're lookin at me ...
                 ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
-                if (null != mc){
+                if (null != mc) {
                     RenderSystem.debugGraphics.add(lineInstance.lineTo(
                             mc.modelInst.transform.getTranslation(posV),
                             picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
@@ -450,7 +452,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         spawner();
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART ==
-                GameWorld.getInstance().getRoundActiveState()){
+                GameWorld.getInstance().getRoundActiveState()) {
 
             screenTeardown();
             GameWorld.getInstance().setSceneData();
@@ -459,12 +461,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    private void spawner(){
+// cleaner .. to be static
+    private void spawner() {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
 
-        if (null != mg /* && mg.size > 0 */ ) {
+        if (null != mg /* && mg.size > 0 */) {
             mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
             sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group;
 
@@ -482,10 +485,16 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
             if (0 == sc.lifeClock) {
-
+// explode effect only available for models w/ child nodes
                 ModelComponent mc = e.getComponent(ModelComponent.class);
-                if (null != mc){
-                    exploducopia(engine, mc.modelInst, mc.strObjectName);
+                if (null != mc) {
+
+                    SceneData sd = GameWorld.getInstance().getSceneData();
+                    ModelInfo mi = sd.modelInfo.get(mc.strObjectName);
+
+                    if (null != mi && null != mi.model) {
+                        exploducopia(engine, mc.modelInst, mi.model);
+                    }
                 }
 
                 e.remove(ModelComponent.class);
@@ -509,7 +518,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    private void removeBulletComp(Entity ee){
+    private static void removeBulletComp(Entity ee) {
 
         BulletComponent bc = ee.getComponent(BulletComponent.class);
 
@@ -531,8 +540,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     /*
      try to blow up a dead thing
      */
-    private static void exploducopia(Engine engine, ModelInstance modelInst, String targetMdlInfoKey) {
-//        if (null != targetMdlInfoKey)
+    private static void exploducopia(Engine engine, ModelInstance modelInst, Model model) {
+
         Vector3 translation = new Vector3();
         Quaternion rotation = new Quaternion();
 
@@ -545,20 +554,18 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         id.rotation.set(modelInst.transform.getRotation(rotation));
         gameObject.getInstanceData().add(id);
 
-        ModelGroup mg = new ModelGroup(targetMdlInfoKey);
-        mg.addElement(gameObject);
-        mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
+        gameObject.buildNodes(engine, model);
     }
 
 
-    private  SpriteBatch batch = new SpriteBatch();
-    private  BitmapFont font;
-    private  OrthographicCamera guiCam;
+    private SpriteBatch batch = new SpriteBatch();
+    private BitmapFont font;
+    private OrthographicCamera guiCam;
 
     /*
      * debug only (betch is ended each call)
      */
-    private void debugPrint(String string, Color color, int row, int col){
+    private void debugPrint(String string, Color color, int row, int col) {
 
         int y = (int) ((float) row * font.getLineHeight() + font.getLineHeight());
         int x = (int) ((float) col * font.getLineHeight());
@@ -589,7 +596,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     /*
      * because some stuff but not all stuff done every screen (re)start
      */
-    private void screenTeardown(){
+    private void screenTeardown() {
 
         Gdx.app.log("GameScreen", "screenTearDown");
 

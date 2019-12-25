@@ -21,7 +21,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -81,7 +80,7 @@ public class GameObject {
      * However walking the model is needed for globbed object name, not
      * seeing a more efficient way right now.
      */
-    void buildNodes(Engine engine, Model model) {
+    public void buildNodes(Engine engine, Model model) {
         // default to search top level of model (allows match globbing)
         Array<Node> nodeArray = model.nodes;
         String nodeName = objectName.replaceAll("\\*$", "");
