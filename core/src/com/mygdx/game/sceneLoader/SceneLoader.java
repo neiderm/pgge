@@ -56,76 +56,22 @@ public class SceneLoader implements Disposable {
 
     public SceneLoader() {
 
-//        gameData = new SceneData();
-/*
-Get rid of this? .. originally, to seed the first gaem data file .. no longer current or useful.
-Once the creation of those objects from JSON was understodd and done conrrectly , there was never
-again a need to creat3e these directly in code
-        ModelGroup tanksGroup = new ModelGroup("tanks");
-        tanksGroup.gameObjects.add(new GameData.GameObject("ship", "mesh Shape"));
-        tanksGroup.gameObjects.add(new GameData.GameObject("tank", "mesh Shape"));
-        gameData.modelGroups.put("tanks", tanksGroup);
-
-        ModelGroup sceneGroup = new ModelGroup("scene", "scene");
-        sceneGroup.gameObjects.add(new GameData.GameObject("Cube", "none"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("Platform001", "convexHullShape"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("Plane", "triangleMeshShape"));
-        sceneGroup.gameObjects.add(new GameData.GameObject("space", "none"));
-        gameData.modelGroups.put("scene", sceneGroup);
-
-        ModelGroup objectsGroup = new ModelGroup("objects", "objects");
-        objectsGroup.gameObjects.add(new GameData.GameObject("Crate*", "btBoxShape")); // could be convexHull? (gaps?)
-        gameData.modelGroups.put("objects", objectsGroup);
-
-        ModelGroup primitivesGroup = new ModelGroup("primitives", "primitivesModel");
-        GameData.GameObject object = new GameData.GameObject("boxTex", "btBoxShape"); // could be convexHull? (gaps?)
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 4, -15), new Vector3(0, 0, 0)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 4, -15), new Vector3(0, 0, 0)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 4, -15), new Vector3(0, 0, 0)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(0, 6, -15), new Vector3(0, 0, 0)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-2, 6, -15), new Vector3(0, 0, 0)));
-        object.instanceData.add( new GameData.GameObject.InstanceData(new Vector3(-4, 6, -15), new Vector3(0, 0, 0)));
-        primitivesGroup.gameObjects.add(object);
-        gameData.modelGroups.put("primitives", primitivesGroup);
-
-        gameData.modelInfo.put("scene", new ModelInfo("scene", "data/scene.g3dj"));
-        gameData.modelInfo.put("landscape", new ModelInfo("landscape", "data/landscape.g3db"));
-        gameData.modelInfo.put("ship", new ModelInfo("ship", "tanks/ship.g3db"));
-        gameData.modelInfo.put("tank", new ModelInfo("tank", "tanks/panzerwagen.g3db"));
-        gameData.modelInfo.put("objects", new ModelInfo("objects", "data/cubetest.g3dj"));
-        gameData.modelInfo.put("primitives", new ModelInfo("primitivesModel", null));
-*/
-//        saveData(); // tmp: saving to temp file, don't overwrite what we have
-
-//        initializeGameData();
-
         SceneData sd = GameWorld.getInstance().getSceneData();
 
         assets = new AssetManager();
-/*
-        assets.load("data/cubetest.g3dj", Model.class);
-        assets.load("data/landscape.g3db", Model.class);
-        assets. load("tanks/ship.g3db", Model.class);
-        assets.load("tanks/panzerwagen.g3db", Model.class);
-        assets.load("data/scene.g3dj", Model.class);
-*/
-//        int i = gameData.modelInfo.values().size();
+
         for (String key : sd.modelInfo.keySet()) {
+
             String fn = sd.modelInfo.get(key).fileName;
-            if (null != sd.modelInfo.get(key).fileName) {
-                if (sd.modelInfo.get(key).fileName.contains(".png")){
 
-                    assets.load(sd.modelInfo.get(key).fileName, Texture.class);
-                }
-                else                 if (sd.modelInfo.get(key).fileName.contains(".g3d")){
-
-                    assets.load(sd.modelInfo.get(key).fileName, Model.class);
+            if (null != fn) {
+                if (fn.contains(".png")) {
+                    assets.load(fn, Texture.class);
+                } else if (fn.contains(".g3d")) {
+                    assets.load(fn, Model.class);
                 }
             }
         }
-///*
-        SceneData.saveData(sd); // write it out as read for comparison to tthe Scene Data loaded from JSON (I like to keep the same order as the JSON formatter writes it )
-//*/
     }
 
     public static AssetManager getAssets() {
@@ -142,18 +88,17 @@ again a need to creat3e these directly in code
         /* get references to the loaded models */
         for (String key : sd.modelInfo.keySet()) {
 
-            if (null != sd.modelInfo.get(key).fileName) {
+            String fn = sd.modelInfo.get(key).fileName;
 
-                if (sd.modelInfo.get(key).fileName.contains(".png")){
+            if (null != fn) {
+                if (fn.contains(".g3d")) {
 
-//                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
-                    Gdx.app.log("scene loaer", "load a texture");
+                    sd.modelInfo.get(key).model = assets.get(fn, Model.class);
                 }
-                else
-                if (sd.modelInfo.get(key).fileName.contains(".g3d")){
-
-                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Model.class);
-                }
+//                else if (fn.contains(".png")) {
+//// loads texture image files below with user model
+////                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
+//                }
             }
         }
 
@@ -165,7 +110,7 @@ again a need to creat3e these directly in code
 
         if (null != umg) { // may or may not be define in scene data
 
-            if (null != userModel){
+            if (null != userModel) {
                 Gdx.app.log("SceneLoader", "tex Model not been disposed properly?");
             }
             userModel = makeUserModel(umg); // stores reference to model in the dummy ModelInfo block
@@ -194,17 +139,17 @@ again a need to creat3e these directly in code
 
         String localPlayerObjectname = null;
 
-        if (null != playerFeature){
+        if (null != playerFeature) {
             localPlayerObjectname = playerFeature.getObjectName();
 
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
-            if (null != tmg){  // select screen doesnt define a player group
+            if (null != tmg) {  // select screen doesnt define a player group
 
                 GameObject gameObject = tmg.getElement(0); // snhould be only 1!
 
-                if (null == gameObject){   // new instance of model gruop, game object
-                    gameObject = new GameObject( localPlayerObjectname );
+                if (null == gameObject) {   // new instance of model gruop, game object
+                    gameObject = new GameObject(localPlayerObjectname);
                     tmg.addElement(gameObject);
                 }
 
@@ -215,7 +160,7 @@ again a need to creat3e these directly in code
         }
     }
 
-    public static void createTestObjects(Engine engine) {
+    public static void _createTestObjects(Engine engine) {
 
         Random rnd = new Random();
 
@@ -299,9 +244,8 @@ again a need to creat3e these directly in code
 
             Texture tex = null;
 
-            if (null != mi){
-                if (null != mi.fileName){
-
+            if (null != mi) {
+                if (null != mi.fileName) {
                     tex = assets.get(mi.fileName, Texture.class);
                 }
             }
@@ -333,8 +277,7 @@ again a need to creat3e these directly in code
 
                 mb.part("box", GL20.GL_TRIANGLES, attributes, mat).box(1f, 1f, 1f);
 
-            } else
-            if ( compString.contains("sphere")) {
+            } else if (compString.contains("sphere")) {
 
                 mb.part("sphere", GL20.GL_TRIANGLES, attributes, mat).sphere(1f, 1f, 1f, 10, 10);
             }
@@ -354,44 +297,9 @@ again a need to creat3e these directly in code
         assets.dispose();
 
         /* be careful this one isn't constructed unless defined in json */
-        if (null != userModel){
+        if (null != userModel) {
             userModel.dispose();
             userModel = null;
         }
-
-// new test file writer
-        SceneData cpGameData = new SceneData();
-        SceneData sd = GameWorld.getInstance().getSceneData();
-
-        for (String key : sd.features.keySet()) {
-
-            GameFeature gf = new GameFeature(/*key*/);
-//            gf.featureAdaptor = new OmniSensor();
-//            gf.featureAdaptor.vR = new Vector3(1, 2, 3);
-
-            cpGameData.features.put(key, gf);
-        }
-
-        for (String key : sd.modelGroups.keySet()) {
-
-            ModelGroup mg = new ModelGroup(key /* sd.modelGroups.get(key).groupName */);
-
-//            for (GameObject o : sd.modelGroups.get(key).gameObjects) {
-//
-//                GameObject cpObject = new GameObject(o.objectName, o.meshShape);
-//
-//                InstanceData i = new InstanceData();
-//                i.adaptr = new MovingPlatform();
-//                i.adaptr.vT = new Vector3(0.4f, 0.5f, 0.6f);
-//                cpObject.getInstanceData().add(i);
-//
-//                mg.gameObjects.add(cpObject);
-//            }
-//
-//            cpGameData.modelGroups.put(key /* sd.modelGroups.get(key).groupName */, mg);
-        }
-      /*
-        saveData(cpGameData); // this is to capture new Classes at runtime (e.g. need help getting the format of new Class being added to the SceneData)
-      */
     }
 }

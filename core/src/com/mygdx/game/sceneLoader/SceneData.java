@@ -36,7 +36,7 @@ public class SceneData {
     public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
 
-    public static void saveData(SceneData data) {
+    private static void saveData(SceneData data) {
         Json json = new Json();
         json.setOutputType(JsonWriter.OutputType.json); // see "https://github.com/libgdx/libgdx/wiki/Reading-and-writing-JSON"
         FileHandle fileHandle = Gdx.files.local("GameData_out.json");
@@ -48,7 +48,7 @@ public class SceneData {
     }
 
 
-    public static SceneData loadData(String path,  String playerObjectName){
+    public static SceneData loadData(String path, String playerObjectName){
 
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.internal(path);
@@ -60,6 +60,8 @@ public class SceneData {
         // magik name to get reference to the entity.
         GameFeature gf = sd.features.get(LOCAL_PLAYER_FNAME);
 
+        saveData(sd);  // test ... write out the data in order to verify order and format
+
         if (null != gf) {
             // Allow local player game feature to be defined in JSON (user Data)
             gf.setObjectName(playerObjectName);
@@ -70,10 +72,5 @@ public class SceneData {
         }
 
         return sd;
-    }
-
-    public static SceneData loadData(String path) {
-
-        return loadData(path, null);
     }
 }
