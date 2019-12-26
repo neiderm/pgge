@@ -41,6 +41,7 @@ import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -497,17 +498,23 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     }
                 }
 
-                e.remove(ModelComponent.class);
-
-                Gdx.app.log("GameScreen", "cleanr: remove ENTITY.");
-                removeBulletComp(e);
-                engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
-
+                int bounty = 0;
+                FeatureComponent fc = e.getComponent(FeatureComponent.class);
+                if (null != fc && null != fc.featureAdpt){
+                    bounty = fc.featureAdpt.bounty;
+                }
                 StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
                 if (null != psc) {
                     if (sc.bounty > 0) // tmp for debug
                         psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
+
+                    psc.bounty += bounty;
                 }
+
+                e.remove(ModelComponent.class);
+                removeBulletComp(e);
+                engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
+
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
                     removeBulletComp(e);

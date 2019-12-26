@@ -15,45 +15,9 @@
  */
 package com.mygdx.game.features;
 
-import com.badlogic.ashley.core.Entity;
-import com.mygdx.game.components.StatusComponent;
-
 /*
  * here is a Bad Actor
  */
 public class BadActor extends KillSensor {
 
-    private int prev;
-
-    @Override
-    public void update(Entity ee) {
-
-        super.update(ee);
-
-        /*
-         * migrate the following to Feature base class I guess ... basically then there is no need for this
-         * class .... (pretty sure we will definately have to have a "Bad Actor" class in here somewhere!
-         */
-
-// lame-o Comp lookup every update here, but presently we are not adding Status Comp to
-// the entity , the SC is  being added dynamically for "explode()" feature ...
-        /*
-         * if I am pickable, then pick handler could have invoked this update() ... having added the
-         * Status Comp + deleteMe ... why not let Status System handle it !!!!! e.g. "adapter.deactivate(Entity ee)"
-         */
-
-        StatusComponent sc = ee.getComponent(StatusComponent.class);
-
-        // check this since the SC is actaully added dynamically (so no point to caching)
-        if (null != sc) {
-
-            if (0 == sc.lifeClock) {
-
-                if (0 == prev++){ // bah crap
-
-                    sc.bounty = 1500;
-                }
-            }
-        }
-    }
 }
