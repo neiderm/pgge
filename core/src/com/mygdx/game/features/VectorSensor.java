@@ -21,9 +21,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -34,10 +32,10 @@ import com.mygdx.game.util.ModelInstanceEx;
  * sensor for close proximity in one direction to a target
  */
 
-public class VectorSensor extends SensorAdaptor {
+public class VectorSensor extends OmniSensor {
 
     private Vector3 trans = new Vector3();
-    private GfxUtil lineInstance;// = new GfxUtil();
+    private GfxUtil lineInstance = new GfxUtil();
 
     private Vector3 myPos = new Vector3();
     private Vector3 targetPos = new Vector3();
@@ -45,41 +43,15 @@ public class VectorSensor extends SensorAdaptor {
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
-    // tmp  need to be Game Data
-    private float senseZoneRadius = 2.0f;
-    private float senseZoneDistance = 5.0f;
-
-
-    public VectorSensor() {/*mt*/}
-
-    @Override
-    public void init(Object target) {
-
-        super.init(target);
-
-// we'll see
-        senseZoneRadius = vS.x;
-        senseZoneDistance = vT.x;
-    }
-
+//    private float senseZoneDistance = 5.0f;
 
     @Override
     public void update(Entity sensor) {
 
-        //        super.update(me);
+        super.update(sensor);
 
-        /*
-         * note duplicate the target-getting as from omni sensor
-         */
-        if (null == target) {
+        if (null != target) {
 
-            GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
-            if (null != playerFeature) {
-
-                //// ha ha hackit hgacktity
-                target = playerFeature.getEntity();
-            }
-        } else {
             ModelComponent mc = target.getComponent(ModelComponent.class);
             if (null != mc) {
                 Matrix4 plyrTransform = mc.modelInst.transform;
@@ -94,24 +66,10 @@ public class VectorSensor extends SensorAdaptor {
                 /* add scaled look-ray-unit-vector to sensor position */
                 myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
 
-// the Feature Adapter will be populated in the "out.json" file but don't want the debug line instance
-// spewing all it's crap in there, so allow the debug line graphic to be instantantiated late
-///*
-                if (null == lineInstance) {
-                    lineInstance = new GfxUtil();
-                }
                 RenderSystem.debugGraphics.add(lineInstance.lineTo(
                         sensTransform.getTranslation(trans),
                         myPos,
                         Color.SALMON));
-//*/
-                // take differnece from  center-of-sense-zone-sphere to target.
-                // If that distance fall within the sense radius.
-                myPos.sub(targetPos);
-
-                if (Math.abs(myPos.x) < senseZoneRadius && Math.abs(myPos.z) < senseZoneRadius) {
-                    isTriggered = true;
-                }
             }
         }
     }
