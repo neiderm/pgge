@@ -164,18 +164,6 @@ public final class GameWorld implements Disposable {
             // set the player object model info in new scene data isntance
             sceneData.modelInfo.put(playerObjectName, new ModelInfo(selectedModelInfo.fileName));
         }
-
-        /*
-         * create the player Model group if not  defined in json
-         */
-        ModelGroup tmg = this.sceneData.modelGroups.get(ModelGroup.LOCAL_PLAYER_MGRP);
-
-        if (null == tmg) {  // select screen doesnt define a player group
-            tmg = new ModelGroup( /* playerObjectName */);
-            tmg.addElement(new GameObject(playerObjectName));
-            this.sceneData.modelGroups.put(ModelGroup.LOCAL_PLAYER_MGRP, tmg);
-        }
-//            tmg.setModelName(playerObjectName); // nope can't do this ... see "modelFromNodes()"
     }
 
     public void setSceneData(String path) {
