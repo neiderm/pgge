@@ -1,0 +1,98 @@
+{
+	"modelGroups": {
+		"LocalPlayer": {
+			"elements": [
+				{
+					"objectName": "LocalPlayerObjectName",
+					"instanceData": [
+						{
+							"translation": {
+								"x": 0,
+								"y": 11,
+								"z": -6.5
+							}
+						}
+					]
+				}
+			]
+		},
+		"GoonSquad": {
+			"elements": [
+				{
+					"instanceData": [
+						{
+							"rotation": {
+								"x": 0,
+								"y": -0.9238795,
+								"w": 0.3826834
+							},
+							"translation": {
+								"y": 2,
+								"z": -15
+							},
+							"adaptr": {
+								"class": "com.mygdx.game.features.ShootamaThing",
+								"vS": {
+									"x": 1.4
+								},
+								"vR": {
+									"x": 8
+								}
+							}
+						}
+					],
+					"objectName": "Tank",
+					"meshShape": "convexHullShape",
+					"isKinematic": true,
+					"isPickable": true
+				}
+			]
+		},
+		"SceneObjects": {
+			"elements": [
+				{
+					"objectName": "mushroom*",
+					"meshShape": "convexHullShape",
+					"isKinematic": true
+				},
+				{
+					"objectName": "Platform.001",
+					"meshShape": "btBoxShape",
+					"isKinematic": true
+				}
+			],
+			"modelName": "Scene"
+		},
+		"UserModelPartsNodes": {
+			"elements": [
+				{
+					"objectName": "skySphere",
+					"iSWhatever": true
+				},
+				{
+					"objectName": "boxTex"
+				}
+			]
+		}
+	},
+	"modelInfo": {
+		"boxTex": {
+			"fileName": "data/crate.png"
+		},
+		"skySphere": {
+			"fileName": "data/moonsky.png"
+		},
+		"StaticObjects": {
+			"fileName": "data/cubetest.g3dj"
+		},
+		"UserMeshesModel": {
+			"fileName": "DummyForModelReferecne"
+		},
+		"Tank": {
+			"fileName": "tanks/panzerwagen.g3db"
+		},
+		"Scene": {
+			"fileName": "data/scene.g3dj"
+		}
+	}
+}
