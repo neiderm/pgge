@@ -56,7 +56,6 @@ public final class GameWorld implements Disposable {
     }
 
     private SceneData sceneData;
-    private SceneData sceneSaveData; // keeping certain info betw. screens kdlugey whatever
     private String sceneDataFile;
     private Game game;
 
@@ -149,13 +148,15 @@ public final class GameWorld implements Disposable {
     }
 
 
-    private void loadSceneData(String path, String playerObjectName) {
+    public void loadSceneData(String path, String playerObjectName) {
+
+        this.sceneDataFile = path; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
-
+// BEFORE the scene data is reloaded, ....
         if (null != playerObjectName) {
             // get the  player model info from previous scene data
-            selectedModelInfo = sceneSaveData.modelInfo.get(playerObjectName);
+            selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
         }
 
         this.sceneData = SceneData.loadData(path, playerObjectName);
@@ -166,27 +167,15 @@ public final class GameWorld implements Disposable {
         }
     }
 
+    /*
+     * set Select Screen data
+     */
     public void setSceneData(String path) {
 
-        String playerObjectName = null;
-
-        if (null != sceneSaveData) {
-
-            GameFeature localplyaer = sceneSaveData.features.get(SceneData.LOCAL_PLAYER_FNAME);
-
-            if (null != localplyaer) {
-
-                playerObjectName = localplyaer.getObjectName();
-            }
-        }
-
-        setSceneData(path, playerObjectName);
+        loadSceneData(path, null);
     }
-
+    @Deprecated
     public void setSceneData(String path, String playerObjectName) {
-
-        sceneDataFile = path; // keep this for screen restart reloading
-        sceneSaveData = this.sceneData; // save reference to previous loaded data for player info retrieval
 
         loadSceneData(path, playerObjectName);
     }
@@ -194,13 +183,9 @@ public final class GameWorld implements Disposable {
     /*
      * for screen reload/restart only .. assume data file is already set by previous caller
      */
-    public void setSceneData() {
+    public void reloadSceneData(String modelName) {
 
-        GameFeature localplyaer = this.sceneData.features.get(SceneData.LOCAL_PLAYER_FNAME);
-
-        if (null != localplyaer) {
-            loadSceneData(sceneDataFile, localplyaer.getObjectName());
-        }
+        loadSceneData(sceneDataFile, modelName);
     }
 
     public SceneData getSceneData() {

@@ -162,7 +162,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        final int health = 20;
+        final int health = 30;
         pickedPlayer.add(new StatusComponent(health));            // max damage
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
@@ -456,7 +456,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 GameWorld.getInstance().getRoundActiveState()) {
 
             screenTeardown();
-            GameWorld.getInstance().setSceneData();
+
+            GameFeature localplyaer = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
+            if (null != localplyaer) {
+                GameWorld.getInstance().reloadSceneData(localplyaer.getObjectName());
+            }
+
             SceneLoader.doneLoading();
             init();
         }
@@ -470,7 +475,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         if (null != mg /* && mg.size > 0 */) {
             mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
-            sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group;
+            sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group
 
 //            System.out.println("Built model group (model name = " + mg.modelName   );
         }
