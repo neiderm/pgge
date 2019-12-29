@@ -45,7 +45,7 @@ public class OmniSensor extends SensorAdaptor {
     private Vector3 direction = new Vector3();// new Vector3(0, 0, -1); // vehicle forward ... whatever, just another working vector instance
     private Quaternion rotation = new Quaternion();
 
-    protected float senseZoneDistance = 5.0f;
+    float senseZoneDistance = 5.0f;
 
 
     public OmniSensor() {/* no-arg constructor */
@@ -61,7 +61,7 @@ public class OmniSensor extends SensorAdaptor {
         this.omniRadius.set(vS);
 
         // vector sensor offset
-        senseZoneDistance = vT.x;
+        senseZoneDistance = vR.x;
     }
 
 
