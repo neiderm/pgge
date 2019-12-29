@@ -31,7 +31,11 @@ import com.mygdx.game.util.ModelInstanceEx;
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
 
-public class OmniSensor extends SensorAdaptor {
+public class OmniSensor extends FeatureAdaptor {
+
+protected    Entity target;
+boolean inverted;
+boolean isTriggered;
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
@@ -56,7 +60,8 @@ public class OmniSensor extends SensorAdaptor {
     @Override
     public void init(Object target) {
 
-        super.init(target); // not much there, just sets the target,
+//        super.init(target); // not much there, just sets the target,
+        this.target = (Entity)target;
 
         this.omniRadius.set(vS);
 
