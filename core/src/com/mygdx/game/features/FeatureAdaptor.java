@@ -98,16 +98,17 @@ public class FeatureAdaptor implements FeatureIntrf {
 
     @Override
     public void onActivate(Entity ee) {
-
+/*
         if (null != collisionProcessor) // .... hmmm let's see
             CompCommon.entityAddPhysicsBody(ee, vT0);
+*/
     }
 
 
     /*
      * leftover from hackage
      */
-    public FeatureAdaptor makeFeatureAdapter(Vector3 position, Entity unused_i_guess) {
+    public FeatureAdaptor makeFeatureAdapter(Vector3 position) {
 
         if (null == activateOnState) {
             isActivated = true; // default to "activated" if no activation trigger is specified

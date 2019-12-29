@@ -179,13 +179,6 @@ public class GameObject {
         InstanceData id = new InstanceData();
         int n = 0;
 
-        Entity playerFeatureEntity = null;
-
-        GameFeature playerFeature = GameWorld.getInstance().getFeature("Player"); // local player
-
-        if (null != playerFeature) {
-            playerFeatureEntity = playerFeature.getEntity();
-        }
 
         int countIndex = 0;
         int keyIndex = 0xffff;
@@ -234,7 +227,7 @@ public class GameObject {
 
             if (null != id.adaptr) {
 
-                adapter = id.adaptr.makeFeatureAdapter(position, playerFeatureEntity); // needs the origin location ... might as well send in the entire instance transform
+                adapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
             }
 
             // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
@@ -261,6 +254,8 @@ public class GameObject {
             }
 
             if (isPlayer) {
+                GameFeature playerFeature = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+//if (null != playerFeature)
                 playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
             }
 
