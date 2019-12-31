@@ -78,9 +78,6 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
     private final String SCREENS_DIR = "screens/";
     private boolean isPaused;
 
-    SelectScreen(){
-        sceneLoader = new SceneLoader();
-    }
 
     @Override
     public void show() {
