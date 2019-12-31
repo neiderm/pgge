@@ -30,6 +30,8 @@ import com.mygdx.game.systems.RenderSystem;
 
 abstract class BaseScreenWithAssetsEngine implements Screen {
 
+    private GfxBatch gfxBatch;
+
     protected SceneLoader sceneLoader;
     protected Engine engine;
 
@@ -38,7 +40,8 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
     private DirectionalShadowLight shadowLight;
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
 
-    protected PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+    // The human field of view is roughly around 60 to 70 degrees, so 67 provides a pretty normal perspective (libgdx/wiki/Projection,-viewport,-&-camera)
+    PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 
 
     BaseScreenWithAssetsEngine(){
@@ -70,6 +73,10 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         renderSystem = new RenderSystem(shadowLight, environment, cam);
         engine.addSystem(renderSystem);
 
+
+        gfxBatch = new GfxBatch(environment, cam);
+
+
         SceneLoader.buildScene(engine);
 
         // point the camera to platform
@@ -84,11 +91,19 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         cam.update();
   }
 
+@Override
+    public void render(float deltaTime) {
+
+        gfxBatch.update(deltaTime);
+    }
 
     /** Called when this screen should release all resources. */
+    @Override
     public void dispose (){
 
         engine.removeSystem(renderSystem); // make the system dispose its stuff
+
+        gfxBatch.dispose();
 
         //  screens that load assets must calls assetLoader.dispose() !
         if (null != sceneLoader) {

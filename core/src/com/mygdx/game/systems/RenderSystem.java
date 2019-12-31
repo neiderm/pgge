@@ -37,8 +37,6 @@ public class RenderSystem extends EntitySystem {
 
     private Vector3 position = new Vector3();
 
-// going around the entity system by stashing references to model instances of graphics that are supposed to be debugging only,
-    public static final Array<ModelInstance> debugGraphics = new Array<ModelInstance>();
 
     private ImmutableArray<Entity> entities;
 
@@ -106,11 +104,6 @@ public class RenderSystem extends EntitySystem {
 //        super.update(deltaTime);
         for (Entity e : entities)
             processEntity(e, deltaTime);
-
-        for (ModelInstance modelInst : debugGraphics) {
-            modelBatch.render(modelInst, environment);
-        }
-        debugGraphics.clear();
 
         modelBatch.end();
 

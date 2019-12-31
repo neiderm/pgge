@@ -22,7 +22,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.systems.RenderSystem;
+import com.mygdx.game.screens.GfxBatch;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -140,10 +140,8 @@ public class TankController implements SimpleVehicleModel
             body.setWorldTransform(tmpM);
         }
 
-        RenderSystem.debugGraphics.add(gfxLine.line(trans,
+        GfxBatch.draw(gfxLine.line(trans,
                 ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), tmpM.getRotation(orientation)),
                 Color.RED));
-
-//Gdx.app.log(this.getClass().getName(), String.format("GfxUtil.line x = %f y = %f, z = %f", trans.x, trans. y, trans.z));
     }
 }

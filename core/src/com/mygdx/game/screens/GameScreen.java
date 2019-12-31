@@ -61,7 +61,6 @@ import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
 import com.mygdx.game.systems.PickRaySystem;
-import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.GameEvent;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -104,12 +103,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
-//        this.cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-////        cam.position.set(3f, 7f, 10f);
-////        cam.lookAt(0, 4, 0);
-//        cam.near = 1f;
-//        cam.far = 300f;
-//        cam.update();
 
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
@@ -371,7 +364,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
 
                 if (null != mc) {
-                    RenderSystem.debugGraphics.add(lineInstance.lineTo(
+                    GfxBatch.draw(lineInstance.lineTo(
                             mc.modelInst.transform.getTranslation(posV),
                             picked.getComponent(ModelComponent.class).modelInst.transform.getTranslation(tmpV),
                             Color.LIME));
@@ -406,7 +399,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class); //hack your way into ti
 
         if (null != mc) {
-            RenderSystem.debugGraphics.add(camDbgLineInstance.lineTo(
+            GfxBatch.draw(camDbgLineInstance.lineTo(
                     mc.modelInst.transform.getTranslation(tmpPos),
                     chaserTransform.getTranslation(tmpV), Color.PURPLE));
         }
@@ -414,6 +407,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         camController.update(); // this can probaly be pause as well
 
         engine.update(delta);
+
+        // plots debug graphics
+        super.render(delta);
 
         BulletWorld.getInstance().update(delta);
 
@@ -625,7 +621,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         // other Systems may have run after last Render System update, so be sure clear this queue
         // of model instances first before ....
-        RenderSystem.debugGraphics.clear();
         GfxUtil.clearRefs();                 // ... invalidating the underlying models!
     }
 
