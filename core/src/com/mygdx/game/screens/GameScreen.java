@@ -405,11 +405,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     @Override
     public void render(float delta) {
 
-        // game box viewport
-        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
         // plots debug graphics
         super.render(delta);
 
@@ -425,8 +420,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
 
         camController.update(); // this can probaly be pause as well
-
-        engine.update(delta);
 
         BulletWorld.getInstance().update(delta, cam);
 

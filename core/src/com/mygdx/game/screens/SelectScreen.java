@@ -301,12 +301,9 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         updateTanks(degreesInst);
         updatePlatform(degreesInst);
 
-        // game box viewport
-        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+        // plots debug graphics
+        super.render(delta);
 
-        engine.update(delta);
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();

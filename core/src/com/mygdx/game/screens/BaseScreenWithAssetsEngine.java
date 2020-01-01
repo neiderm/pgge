@@ -17,7 +17,9 @@ package com.mygdx.game.screens;
 
 
 import com.badlogic.ashley.core.Engine;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -32,7 +34,7 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
 
     private GfxBatch gfxBatch;
 
-    protected SceneLoader sceneLoader;
+    private SceneLoader sceneLoader;
     protected Engine engine;
 
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
@@ -41,11 +43,12 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
     private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
 
     // The human field of view is roughly around 60 to 70 degrees, so 67 provides a pretty normal perspective (libgdx/wiki/Projection,-viewport,-&-camera)
-    PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+    PerspectiveCamera cam =
+            new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 
 
     BaseScreenWithAssetsEngine(){
-
+// scene loader construction right away because it kicks off new asset manager (background) loading process
         this.sceneLoader = new SceneLoader();
     }
 
@@ -93,6 +96,12 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
 
 @Override
     public void render(float deltaTime) {
+
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+        Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        engine.update(deltaTime);
 
         gfxBatch.update(deltaTime);
     }
