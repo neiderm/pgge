@@ -19,15 +19,14 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -54,57 +53,40 @@ public class Crapium extends OmniSensor {
 
         super.update(sensor);
 
-        if (isActivated) {
+        ModelComponent mc = sensor.getComponent(ModelComponent.class);
+        ModelInstance modelInst = mc.modelInst;
 
-            ModelComponent mc = sensor.getComponent(ModelComponent.class);
+        updatePlatformRotation(modelInst.transform);
 
-            updatePlatformRotation(mc.modelInst.transform);
-
-            Material mat = null;
-            if (mc.modelInst.materials.size > 0) {
-                mat = mc.modelInst.materials.get(0);
+        Material mat = null;
+        if (modelInst.materials.size > 0) {
+            mat = modelInst.materials.get(0);
 
 //        if (null == mat)
 //            return; // throw new GdxRuntimeException("not found");
-                //else
-//    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
+        }
+
+        if (isTriggered) {
+
+            if (null == saveAttribute) {
+
+                if (null != mat) {
+                    // grab the color attribute
+                    saveAttribute = mat.get(ColorAttribute.Diffuse);
+                }
             }
 
-            if (isTriggered) {
+            ModelInstanceEx.setColorAttribute(
+                    modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
 
-                if (null == saveAttribute) {
+            sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
 
-                    if (null != mat) {
-                        // grab the color attribute
-                        saveAttribute = mat.get(ColorAttribute.Diffuse);
-                    }
-                }
+            CompCommon.makeBurnOut(modelInst, CompCommon.ImpactType.ACQUIRE);
 
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
+            StatusComponent sc = target.getComponent(StatusComponent.class);
 
-                sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
-                CompCommon.makeBurnOut(
-                        sensor.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.ACQUIRE);
-
-
-                isActivated = false;
-
-//                GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
-//                if (null != playerFeature)
-                {
-                    Entity lclPlayer = target; // playerFeature.getEntity();
-                    StatusComponent sc = lclPlayer.getComponent(StatusComponent.class);
-
-                    if (null != sc) {
-                        sc.prizeCount += 1;
-                    }
-                }
-            } else {
-
-                if (null != mat && null != saveAttribute) {
-
-                    mat.set(saveAttribute);
-                }
+            if (null != sc) {
+                sc.prizeCount += 1;
             }
         }
     }
@@ -122,22 +104,15 @@ public class Crapium extends OmniSensor {
 
         myxfm.getRotation(orientation);
         tmpV.set(0, 0, 1); // todo: get the actual "down" vector e.g. in case on inclined sfc.
-//        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
-
         float orientationAngle = orientation.getAngleAround(tmpV);
-//        System.out.println("orientationAngle = " + orientationAngle);
 
         if (orientationAngle > rotationMax) {
-//            System.out.println("shootamathing ...  angle > rotationMax " + orientationAngle + " " + this.vT.x);
             rotationStep = -ROTATION_STEP_DEGREES;
 
         } else if (orientationAngle < rotationMin) {
-//            System.out.println("shootamathing ... angle < rotationMIN " + orientationAngle + " " + this.vT.x);
             rotationStep = ROTATION_STEP_DEGREES;
         }
 
         myxfm.rotate(tmpV, rotationStep);
-
-//        myxfm.getRotation(orientation); // tmp test
     }
 }
