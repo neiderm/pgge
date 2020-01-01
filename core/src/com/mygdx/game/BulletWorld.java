@@ -55,16 +55,16 @@ public class BulletWorld implements Disposable {
     private static BulletWorld instance = null;
 
     public static boolean USE_DDBUG_DRAW = false;
+
     private DebugDrawer debugDrawer;
     private btCollisionConfiguration collisionConfiguration;
     private btCollisionDispatcher dispatcher;
     private btBroadphaseInterface broadphase;
     private btConstraintSolver solver;
     private btDynamicsWorld collisionWorld;
-    private Camera camera; // for debug drawing
 
-    public Array<Object> userToEntityLUT;
-    private static Array<btTriangleInfoMap> savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
+    private Array<Object> userToEntityLUT;
+    private Array<btTriangleInfoMap> savedTriangleInfoMapRefs;
 
     private MyContactListener mcl;         // don't delete me!~!!!!!!
 
@@ -195,7 +195,7 @@ I sure am glad other people figured out the thing with collision normals and edg
         return instance;
     }
 
-    public void initialize(Camera camera) {
+    public void initialize() {
 
         if (null != collisionWorld) {
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
@@ -223,7 +223,6 @@ I sure am glad other people figured out the thing with collision normals and edg
         if (USE_DDBUG_DRAW) {
             collisionWorld.setDebugDrawer(debugDrawer);
         }
-        instance.camera = camera;
     }
 
 
@@ -267,8 +266,14 @@ I sure am glad other people figured out the thing with collision normals and edg
 
             collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
         }
+    }
+
+    public void update(float deltaTime, Camera camera) {
+
+        update(deltaTime);
+
         // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
-        debugDrawer.begin(this.camera);
+        debugDrawer.begin(camera);
         collisionWorld.debugDrawWorld();
         debugDrawer.end();
     }

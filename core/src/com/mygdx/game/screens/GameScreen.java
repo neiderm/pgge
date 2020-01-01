@@ -77,9 +77,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
     private CameraInputController camController; // FirstPersonCameraController camController;
-    //    private BitmapFont font;
-//    private OrthographicCamera guiCam;
-//    private SpriteBatch batch = new SpriteBatch();
+
+    private BitmapFont font;
+    private OrthographicCamera guiCam;
+    private SpriteBatch batch = new SpriteBatch();
+
     private ShapeRenderer shapeRenderer = new ShapeRenderer();
     private GameUI playerUI;
     private InputMultiplexer multiplexer;
@@ -90,6 +92,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
     @Override
     public void init() {
+
+        // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
+        BulletWorld.getInstance().initialize();
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -107,8 +112,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         camController = new CameraInputController(cam);
 //        camController = new FirstPersonCameraController(cam);
 
-        // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
-        BulletWorld.getInstance().initialize(cam);              //  screen could inherit from e.g. "ScreenWithBulletWorld" ???
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -131,6 +134,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
         pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
+        final int health = 30;
+        pickedPlayer.add(new StatusComponent(health));            // max damage
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
@@ -155,8 +160,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
-        final int health = 30;
-        pickedPlayer.add(new StatusComponent(health));            // max damage
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
     }
@@ -226,15 +229,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     multiplexer.removeProcessor(camController);
             }
 
-            @Override
-            public void act(float delta) {
 
-// get the controller to model update out of the way before start messing with any screen transitions/disposals
+            void updateControls(){
 
                 // how expensive are these get Comps ???   could be cached
                 BulletComponent bc = pickedPlayer.getComponent(BulletComponent.class);
 
-                if (null != bc && !GameWorld.getInstance().getIsPaused()) {
+                if (!GameWorld.getInstance().getIsPaused()) {
 
                     final int idxX = TankController.InputChannels.AD_AXIS.ordinal();
                     final int idxY = TankController.InputChannels.WS_AXIS.ordinal();
@@ -258,8 +259,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                     switches[0] = mapper.isInputState(InputMapper.InputState.INP_B);
 
-                    controlledModel.updateControls(analogs, switches, 0);
+//                    if (null != bc)  should assert this but reordered it to ensure not null
+                    {
+                        controlledModel.updateControls(analogs, switches, 0);
+                    }
                 }
+            }
+
+            @Override
+            public void act(float delta) {
 
                 super.act(delta);
 
@@ -269,8 +277,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     case ROUND_ACTIVE:
                     case ROUND_COMPLETE_WAIT:
                         StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
+                        int lc = 0;
+                        if (null != sc) {
+                            lc = sc.lifeClock;
+                        }
+                        debugPrint("**" + lc, color, 0, 0);
 
-                        if (0 == sc.lifeClock) {
+                        if (0 == lc) {
 
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
@@ -280,6 +293,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         canExit = sc.canExit;
                         prizeCount = sc.prizeCount;
                         setScore(sc.bounty); // spare me your judgement ... at least do it with a setter ..
+
+                        // do controller to model update  only if in an appropriate valid game state
+                        updateControls();
+
                         break;
 
                     case ROUND_OVER_RESTART:
@@ -411,22 +428,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         // plots debug graphics
         super.render(delta);
 
-        BulletWorld.getInstance().update(delta);
+        BulletWorld.getInstance().update(delta, cam);
 
-/*
-        batch.setProjectionMatrix(guiCam.combined);
-        batch.begin();
-        String s = String.format(Locale.ENGLISH, "%s", "*");
-        font.draw(batch, s, 10, font.getLineHeight());
-        batch.end();
-*/
-// hackage
-        StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
-        int lc = 0;
-        if (null != sc) {
-            lc = sc.lifeClock;
-        }
-        debugPrint("**" + lc, color, 0, 0);
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -564,11 +567,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         gameObject.buildNodes(engine, model);
     }
-
-
-    private SpriteBatch batch = new SpriteBatch();
-    private BitmapFont font;
-    private OrthographicCamera guiCam;
 
     /*
      * debug only (betch is ended each call)

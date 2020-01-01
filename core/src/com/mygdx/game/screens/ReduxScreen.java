@@ -67,6 +67,7 @@ class ReduxScreen implements Screen {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
+    private PerspectiveCamera cam; // has to be sent to bullet world for update debug draw
     private CameraInputController camController; // FirstPersonCameraController camController;
     private AssetManager assets;
     private Model landscapeModel;
@@ -90,13 +91,12 @@ class ReduxScreen implements Screen {
 
         engine.update(delta);
 
-        BulletWorld.getInstance().update(delta);
+        BulletWorld.getInstance().update(delta, cam);
     }
 
 
     @Override
     public void show() {
-
 
         Environment environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
@@ -108,7 +108,7 @@ class ReduxScreen implements Screen {
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
 
-        PerspectiveCamera cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+        cam = new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         cam.up.set(0, 1, 0);
         cam.position.set(10f, 10f, 40f);
         cam.lookAt(0, 0, 0);
@@ -116,14 +116,13 @@ class ReduxScreen implements Screen {
         cam.far = 300f;
         cam.update();
 
-        BulletWorld.getInstance().initialize(cam);              //  screen could inherit from e.g. "ScreenWithBulletWorld" ???
+        BulletWorld.getInstance().initialize();              //  screen could inherit from e.g. "ScreenWithBulletWorld" ???
 
         engine = new Engine();
         renderSystem = new RenderSystem(shadowLight, environment, cam);
         bulletSystem = new BulletSystem();
         engine.addSystem(renderSystem);
         engine.addSystem(bulletSystem);
-
 
         assets = new AssetManager();
         assets.load("data/landscape.g3db", Model.class);
@@ -230,7 +229,6 @@ class ReduxScreen implements Screen {
                 engine.addEntity(
                         PrimitivesBuilder.load(
                                 new ModelInstance(cube),
-//                                PrimitivesBuilder.getModel(), "boxTex",
                                 shape, size, size.x, translation));
 
             } else {
@@ -238,7 +236,6 @@ class ReduxScreen implements Screen {
                 engine.addEntity(
                         PrimitivesBuilder.load(
                                 new ModelInstance(ball),
-//                                PrimitivesBuilder.getModel(), "sphereTex",
                                 shape, new Vector3(size.x, size.x, size.x), size.x, translation));
             }
         }
@@ -312,5 +309,4 @@ class ReduxScreen implements Screen {
             transform.set(worldTrans);
         }
     }
-
 }
