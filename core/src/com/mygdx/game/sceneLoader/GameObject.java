@@ -67,6 +67,7 @@ public class GameObject {
     public boolean iSWhatever;
     boolean isCharacter;
     boolean isPlayer; // i guess
+//    int lifetime = 1;
 
     public Array<InstanceData> getInstanceData() {
 
@@ -182,7 +183,7 @@ public class GameObject {
 
         int countIndex = 0;
         int keyIndex = 0xffff;
-        String strObjNameModelInfoKey = new String();
+        String strObjNameModelInfoKey;
         SceneData sd = GameWorld.getInstance().getSceneData();
         for (String key : sd.modelInfo.keySet()) {
 
@@ -208,56 +209,15 @@ public class GameObject {
 
             Entity e = buildObjectInstance(modelInst.copy(), shape, id);
             engine.addEntity(e);
+//e.add(new StatusComponent(1)); // maybe
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-
             mc.model = model;  // bah
 
             if (0xffff == keyIndex) {
                 System.out.println("keyindex?");
             }
             mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
-// grab the game object name string anyway
-            mc.strObjectName = this.objectName; // could be invalid ?
-
-            Vector3 position = new Vector3();
-            position = mc.modelInst.transform.getTranslation(position);
-
-            FeatureAdaptor adapter = null;
-
-            if (null != id.adaptr) {
-
-                adapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
-            }
-
-            // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
-            if (isKinematic   // if (0 == mass) ??
-                    || isPlayer             // make sure gound contact colllision filtering works with player character!
-                    || null != id.adaptr) {
-//
-                // tmp hac, crap
-                if (isKinematic) {
-                    // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
-                    BulletWorld.getInstance().addBodyWithCollisionNotif(
-                            e, // needs the Entity to add to the table BLAH
-                            BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
-                } else {
-                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
-                    BulletWorld.getInstance().addBodyWithCollisionNotif(
-                            e, // needs the Entity to add to the table BLAH
-                            BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
-                }
-            }
-
-            if (null != adapter) {
-                e.add(new FeatureComponent(adapter));
-            }
-
-            if (isPlayer) {
-                GameFeature playerFeature = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
-//if (null != playerFeature)
-                playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-            }
 
         } while (/*null != id && */ n < instanceData.size);
     }
@@ -268,7 +228,10 @@ public class GameObject {
     private Entity buildObjectInstance(
             ModelInstance instance, btCollisionShape shape, InstanceData id) {
 
+        FeatureAdaptor instanceFeatureAdapter = null; // note ... use below for collision handling setup .. hackage
+
         Entity e = new Entity();
+//e.add(new StatusComponent(1)); // maybe
 
         if (null != id) {
 
@@ -287,11 +250,22 @@ public class GameObject {
             if (null != id.color) {
                 ModelInstanceEx.setColorAttribute(instance, id.color, id.color.a); // kind of a hack ;)
             }
+
+            if (null != id.adaptr) {
+// translation can now be passed in to feature adapter
+                Vector3 position = new Vector3();
+                position = instance.transform.getTranslation(position);
+
+                instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
+                e.add(new FeatureComponent(instanceFeatureAdapter));
+            }
         }
 
         ModelComponent mc = new ModelComponent(instance);
         mc.isShadowed = isShadowed; // disable shadowing of skybox)
         e.add(mc);
+// grab the game object name string anyway
+        mc.strObjectName = objectName; // could be invalid ?
 
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -309,6 +283,25 @@ public class GameObject {
 
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
             }
+
+            // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
+            if (isKinematic   // if (0 == mass) ??
+                    || isPlayer             // make sure gound contact colllision filtering works with player character!
+                    || null != instanceFeatureAdapter) {
+//
+                // tmp hac, crap
+                if (isKinematic) {
+                    // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
+                    BulletWorld.getInstance().addBodyWithCollisionNotif(
+                            e, // needs the Entity to add to the table BLAH
+                            BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
+                } else {
+                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
+                    BulletWorld.getInstance().addBodyWithCollisionNotif(
+                            e, // needs the Entity to add to the table BLAH
+                            BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
+                }
+            }
         }
 
         if (isCharacter) {
@@ -317,6 +310,13 @@ public class GameObject {
 
         if (isPickable) {
             e.add(new PickRayComponent());
+        }
+
+        if (isPlayer) {
+            GameFeature playerFeature =
+                    GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+//if (null != playerFeature)
+            playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
         }
 
         return e;
