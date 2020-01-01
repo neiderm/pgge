@@ -23,24 +23,20 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 public class ShootamaThing extends VectorSensor {
 
     private Quaternion orientation = new Quaternion();
-    private Vector3 down = new Vector3();
-    private Vector3 xlation = new Vector3();
     private float orientationAngle = -1;  // dumb ;)
     private final float ROTATION_STEP_DEGREES = 0.25f;
     private float rotationStep = ROTATION_STEP_DEGREES;
     private final float ROTATION_RANGE_DEGREES = 90.0f;
     private float rotationMin = 0;
     private float rotationMax = 0;
-    private final int CAN_SHOOOT_INTERVAL = 64;
-    private int canShootTimer = 0;
+    private final int SHOT_RECYCLE_TIME = 64;
+    private int shotRecycleTimer = 0;
 
-    private int prev; // bah
 
     @Override
     public void init(Object target) {
@@ -53,14 +49,12 @@ public class ShootamaThing extends VectorSensor {
 
         super.update(sensor);
 
+        ModelComponent mc = sensor.getComponent(ModelComponent.class);
+
         if (orientationAngle < 0) { // so dumb
             // one time init to rotation params
-            ModelComponent mymc = sensor.getComponent(ModelComponent.class);
-            Matrix4 myxfm = mymc.modelInst.transform;
+            mc.modelInst.transform.getRotation(orientation);
 
-            myxfm.getRotation(orientation);
-
-//            ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
             tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
             orientationAngle = orientation.getAngleAround(tmpV);
 
@@ -70,109 +64,83 @@ public class ShootamaThing extends VectorSensor {
             System.out.println("shootamathing ... origin angle = " + orientationAngle + " " + this.vT.x);
         }
 
-        if (isActivated) {
 
-            ModelComponent mc = sensor.getComponent(ModelComponent.class); // can this be cached?
-// if (null != mc)
+// if (null != mc) {
+        if (mc.modelInst.materials.size > 0) {
+
+            if (0 == shotRecycleTimer) {
+
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.RED));
+            } else {
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.ROYAL));
+            }
+        }
+// }
+//else //    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
+
+        if (isTriggered ||
+                shotRecycleTimer > 0) {
+
+            if (shotRecycleTimer > 0) {
+                shotRecycleTimer -= 1;
+
+            } else {
+                shotRecycleTimer = SHOT_RECYCLE_TIME;
+
+                gunSight(mc.modelInst.transform, target);
+            }
+
             if (mc.modelInst.materials.size > 0) {
-
-                if (0 == canShootTimer) {
-
-                    // well this is dumb its getting the insta.material anyway
-                    ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.RED));
-
-                } else {
-
-                    // well this is dumb its getting the insta.material anyway
-                    ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.ROYAL));
-                }
-            }
-//else
-//    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
-
-            if (isTriggered ||
-                    canShootTimer > 0) {
-
-                if (canShootTimer > 0) {
-                    canShootTimer -= 1;
-
-                } else {
-                    canShootTimer = CAN_SHOOOT_INTERVAL;
-                    gunSight(sensor, target);
-                }
-
-                if (mc.modelInst.materials.size > 0) {
 // well this is dumb its getting the insta.material anyway
-                    ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
-                }
-
-                isTriggered = false; // need to unlatch it !
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
             }
 
-            /*
-             * if I am pickable, then pick handler could have invoked this update() ... having added the
-             * Status Comp + deleteMe ... why not let Status System handle it !!!!!
-             */
-            StatusComponent sc = sensor.getComponent(StatusComponent.class);
-
-            // check this since the SC is actaully added dynamically (so no point to caching)
-            if (null != sc && 0 == sc.lifeClock) {
-
-                if (0 == prev++) { // bah crap
-
-                    sc.bounty = 1200;
-                }
-            }
-            // else System.out.println();
+            isTriggered = false; // need to unlatch it !
         }
 
-        updatePlatformRotation(sensor);
+        updatePlatformRotation(mc.modelInst.transform);
+
+        BulletComponent bc = sensor.getComponent(BulletComponent.class);
+
+        if (null != bc) {
+            bc.body.setWorldTransform(mc.modelInst.transform);
+        }
+
     }
 
     /*
     toodoo use raycast to determine dx to stop of cast and if target comes within x degrees of
     whatever direction it happens to be pointing, then it begins rotating to track target
      */
-    private void updatePlatformRotation(Entity sensor ) {
-
-        ModelComponent mymc = sensor.getComponent(ModelComponent.class);
-        Matrix4 myxfm = mymc.modelInst.transform;
+    private void updatePlatformRotation(Matrix4 myxfm) {
 
         myxfm.getRotation(orientation);
-        tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
-//        ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
+        trans = myxfm.getTranslation(trans); // note: sets identity so trans & scale lost!
 
-//        System.out.println("orientationAngle = " + orientationAngle);
+        tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
+
         orientationAngle += rotationStep;
 
         if (orientationAngle > rotationMax) {
-//            System.out.println("shootamathing ...  angle > rotationMax " + orientationAngle + " " + this.vT.x);
             rotationStep = -ROTATION_STEP_DEGREES;
-            canShootTimer = 0;
+            shotRecycleTimer = 0;
 // snap it to its endpoint
             orientationAngle = rotationMax;
-            trans = myxfm.getTranslation(trans);
+
             myxfm.setToRotation(tmpV, orientationAngle); // note: sets identity so trans & scale lost!
             myxfm.setTranslation(trans);
 
         } else if (orientationAngle < rotationMin) {
-//            System.out.println("shootamathing ... angle < rotationMIN " + orientationAngle + " " + this.vT.x);
             rotationStep = ROTATION_STEP_DEGREES;
-            canShootTimer = 0;
+            shotRecycleTimer = 0;
 // snap it to its endpoint
             orientationAngle = rotationMin;
-            trans = myxfm.getTranslation(trans);
+
             myxfm.setToRotation(tmpV, orientationAngle); // note: sets identity so trans & scale lost!
             myxfm.setTranslation(trans);
         }
 
         myxfm.rotate(tmpV, rotationStep);
-
-        BulletComponent bc = sensor.getComponent(BulletComponent.class);
-
-        if (null != bc) {
-            bc.body.setWorldTransform(myxfm);
-        }
     }
 
 
@@ -180,21 +148,16 @@ public class ShootamaThing extends VectorSensor {
     private Vector3 tmpV = new Vector3();
 
     // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
-    private void gunSight(Entity source, Entity target) {
+    private void gunSight(Matrix4 sourceM, Entity target) {
 
-        ModelComponent mc = source.getComponent(ModelComponent.class);
-
-        if (null != mc && null != mc.modelInst) {
-
-            Matrix4 tmpM = mc.modelInst.transform;
-            tmpM.getRotation(orientation);
+            sourceM.getRotation(orientation);
 
             // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
             // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
             tmpV.set(0, +0.001f, 0); // using +y for up vector ...
 
             ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
-            tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
+            sourceM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
             //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
@@ -205,8 +168,7 @@ public class ShootamaThing extends VectorSensor {
             CompCommon.spawnNewGameObject(
                     new Vector3(0.2f, 0.2f, 0.2f),
                     trans,
-                    new Projectile(target, tmpM),
+                    new Projectile(target, sourceM),
                     "sphere");
-        }
     }
 }
