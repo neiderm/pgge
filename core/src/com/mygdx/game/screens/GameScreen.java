@@ -90,11 +90,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
 
-    @Override
-    public void init() {
+
+    public void setup() {
 
         // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
         BulletWorld.getInstance().initialize();
+
+        super.init();
+
 
         batch = new SpriteBatch();
         font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
@@ -118,7 +121,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
-        super.init();
 
 //        SceneLoader.createTestObjects(engine); // tmp
 
@@ -231,9 +233,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
 
             void updateControls(){
-
-                // how expensive are these get Comps ???   could be cached
-                BulletComponent bc = pickedPlayer.getComponent(BulletComponent.class);
 
                 if (!GameWorld.getInstance().getIsPaused()) {
 
@@ -405,10 +404,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      */
     @Override
     public void render(float delta) {
+
         // game box viewport
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+        // plots debug graphics
+        super.render(delta);
+
 
         // put in any debug graphics to the render pipeline
         chaserSteerable.update(delta);
@@ -416,17 +420,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class); //hack your way into ti
 
         if (null != mc) {
-            GfxBatch.draw(camDbgLineInstance.lineTo(
-                    mc.modelInst.transform.getTranslation(tmpPos),
-                    chaserTransform.getTranslation(tmpV), Color.PURPLE));
+            GfxBatch.draw(
+                    camDbgLineInstance.lineTo( mc.modelInst.transform.getTranslation(tmpPos), chaserTransform.getTranslation(tmpV), Color.PURPLE));
         }
 
         camController.update(); // this can probaly be pause as well
 
         engine.update(delta);
-
-        // plots debug graphics
-        super.render(delta);
 
         BulletWorld.getInstance().update(delta, cam);
 
@@ -462,7 +462,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             SceneLoader.doneLoading();
-            init();
+            setup();
         }
     }
 
@@ -586,7 +586,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     @Override
     public void show() {
 
-        init();
+        setup();
     }
 
     @Override
