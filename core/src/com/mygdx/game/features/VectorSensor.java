@@ -36,7 +36,6 @@ public class VectorSensor extends OmniSensor {
     private Vector3 trans = new Vector3();
     private GfxUtil lineInstance = new GfxUtil();
     private Vector3 myPos = new Vector3();
-    private Vector3 targetPos = new Vector3();
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
@@ -46,24 +45,15 @@ public class VectorSensor extends OmniSensor {
 
         super.update(sensor);
 
-        if (null != target) {
-
-            ModelComponent mc = target.getComponent(ModelComponent.class);
-            if (null != mc) {
-                Matrix4 plyrTransform = mc.modelInst.transform;
-                targetPos = plyrTransform.getTranslation(targetPos);
-
                 Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
                 myPos.set(sensTransform.getTranslation(trans));
 
-                lookRay.set(sensTransform.getTranslation(myPos), // myPos
+                lookRay.set(myPos,
                         ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
                 /* add scaled look-ray-unit-vector to sensor position */
                 myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
 
                 GfxBatch.draw(lineInstance.lineTo(trans, myPos, Color.SALMON));
-            }
-        }
     }
 }
