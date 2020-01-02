@@ -28,6 +28,7 @@ public class FeatureAdaptor implements FeatureIntrf {
     public int bounty;
 
     private GameWorld.GAME_STATE_T activateOnState;
+    protected CompCommon.ImpactType impactType;
     boolean isActivated;
 
     public CollisionProcessorIntrf collisionProcessor;

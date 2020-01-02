@@ -26,8 +26,10 @@
 							"a": 1
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.BadActor"
-						}
+							"class": "com.mygdx.game.features.BadActor",
+							"bounty": 1100,
+							"impactType": "DAMAGING"
+                        }
 					}
 				],
 				"objectName": "sphereCharacter",
@@ -175,6 +177,7 @@
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
+							"impactType": "DAMAGING",
 							"vS": {
 								"x": 0.75,
 								"y": 0.75,
@@ -242,6 +245,7 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE",
 							"vS": {
 								"x": 0.95,
 								"y": 0.95,
@@ -263,6 +267,7 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE",
 							"vS": {
 								"x": 0.95,
 								"y": 0.95,
@@ -303,7 +308,8 @@
 							},
 							"vR": {
 								"x": 8
-							}
+							},
+							"bounty": 800
 						}
 					}
 				],
@@ -342,7 +348,8 @@
 							},
 							"vR": {
 								"x": 8
-							}
+							},
+							"bounty": 900
 						}
 					}
 				],
@@ -381,7 +388,9 @@
 							},
 							"vR": {
 								"x": 6
-							}
+							},
+							"bounty": 500,
+							"impactType": "DAMAGING"
 						}
 					}
 				],
