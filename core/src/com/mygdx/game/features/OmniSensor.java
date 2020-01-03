@@ -21,7 +21,9 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -33,9 +35,9 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 public class OmniSensor extends FeatureAdaptor {
 
-protected    Entity target;
-boolean inverted;
-boolean isTriggered;
+    protected Entity target;
+    boolean inverted;
+    boolean isTriggered;
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
@@ -61,7 +63,7 @@ boolean isTriggered;
     public void init(Object target) {
 
 //        super.init(target); // not much there, just sets the target,
-        this.target = (Entity)target;
+        this.target = (Entity) target;
 
         this.omniRadius.set(vS);
 
@@ -83,6 +85,19 @@ boolean isTriggered;
         Matrix4 sensTransform = mymc.modelInst.transform;
         sensorOrigin = sensTransform.getTranslation(sensorOrigin);
 
+//        if (mymc.boundingRadius > 0 && vS.x == 0) {
+//            // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions
+//            // of extents (box) so in many cases will look not close enuff ... but brute force
+//            // collsision detect based on center-to-center dx of objects so that about as good as it
+//            // gets (troubel detect collision w/  "longer" object )
+//            omniRadius.set(mymc.boundingRadius, 0, 0);
+//        }
+/*
+ default bounding radius determined from mesh dimensions (if there is mesh geometry assoc. w/
+this sensor feature)... optional specify  vS  to be added to br such that allowing the effective
+radius to be any arbitryariy sized irrespective of mesh size
+*/
+        omniRadius.set(mymc.boundingRadius, 0, 0).add(vS.x, 0, 0);
 
         /*
 The distance between two points in a three dimensional - 3D - coordinate system can be calculated as
@@ -137,6 +152,72 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                     if (tgtPosition.dst2(sensorOrigin) < boundsDst2) {
                         isTriggered = true;
                     }
+                }
+            }
+
+            updateTriggered(sensor, isTriggered);
+        }
+    }
+
+
+    private int bucket;
+
+    public void updateTriggered(Entity sensor, boolean triggered) {
+
+        KillSensor.ImpactType impactType = this.impactType;
+
+//        if (null != impactType)
+        {
+            if (isTriggered) {
+                if (bucket < 1) {
+
+                    if (null != impactType) {
+
+                        // clock target probly for player, other wise probly no status comp
+                        StatusComponent sc = target.getComponent(StatusComponent.class);
+
+                        if (KillSensor.ImpactType.ACQUIRE == impactType) {
+
+                            if (null != sc) {
+                                sc.prizeCount += 1;
+                            }
+                            // use sensor model instance texture etc. idfk
+                            KillSensor.makeBurnOut(
+                                    sensor.getComponent(ModelComponent.class).modelInst,
+                                    KillSensor.ImpactType.ACQUIRE // impactType
+                            );
+
+                            sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
+
+                        } else {
+
+                            int lc = 0;
+                            if (null != sc) {
+
+                                if (sc.lifeClock > 0) {
+                                    sc.lifeClock -= 10;
+                                }
+                                if (KillSensor.ImpactType.FATAL == impactType) {
+                                    sc.lifeClock = 0;
+                                }
+                                lc = sc.lifeClock;
+                            }
+
+                            if (lc <= 0) {
+                                impactType = KillSensor.ImpactType.FATAL;
+                            }
+                            // use the target model instance texture etc.
+                            KillSensor.makeBurnOut(
+                                    target.getComponent(ModelComponent.class).modelInst, impactType);
+                        }
+                    }
+                }
+                bucket += 1;
+
+            } else {
+                bucket -= 2;
+                if (bucket < 0) {
+                    bucket = 0;
                 }
             }
         }

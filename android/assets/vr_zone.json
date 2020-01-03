@@ -28,7 +28,10 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.BadActor",
 							"bounty": 1100,
-							"impactType": "DAMAGING"
+							"impactType": "DAMAGING",
+							"vS": {
+								"x": 0.5
+							}
                         }
 					}
 				],
@@ -145,9 +148,7 @@
 							"class": "com.mygdx.game.features.ExitSensor",
 							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vS": {
-								"x": 1.5,
-								"y": 1.5,
-								"z": 1.5
+								"x": 1.5
 							}
 						}
 					}
@@ -174,14 +175,12 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.KillThing",
+							"impactType": "DAMAGING",
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
-							"impactType": "DAMAGING",
 							"vS": {
-								"x": 0.75,
-								"y": 0.75,
-								"z": 0.75
+								"x": 0.75
 							}
 						}
 					}
@@ -212,9 +211,7 @@
 							"class": "com.mygdx.game.features.ExitSensor",
 							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vS": {
-								"x": 0.75,
-								"y": 0.75,
-								"z": 0.75
+								"x": 1
 							}
 						}
 					}
@@ -247,9 +244,7 @@
 							"class": "com.mygdx.game.features.Crapium",
 							"impactType": "ACQUIRE",
 							"vS": {
-								"x": 0.95,
-								"y": 0.95,
-								"z": 0.95
+								"x": 0.5
 							}
 						}
 					},
@@ -269,9 +264,7 @@
 							"class": "com.mygdx.game.features.Crapium",
 							"impactType": "ACQUIRE",
 							"vS": {
-								"x": 0.95,
-								"y": 0.95,
-								"z": 0.95
+								"x": 0.5
 							}
 						}
 					}
@@ -303,13 +296,13 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.ShootamaThing",
-							"vS": {
-								"x": 1.4
-							},
+							"bounty": 800,
 							"vR": {
 								"x": 8
 							},
-							"bounty": 800
+							"vS": {
+								"x": 1.4
+							}
 						}
 					}
 				],
@@ -343,13 +336,13 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.ShootamaThing",
-							"vS": {
-								"x": 1
-							},
+							"bounty": 900,
 							"vR": {
 								"x": 8
 							},
-							"bounty": 900
+							"vS": {
+								"x": 1
+							}
 						}
 					}
 				],
@@ -383,14 +376,14 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.ElectricEye",
-							"vS": {
-								"x": 2
-							},
+							"bounty": 500,
+							"impactType": "DAMAGING",
 							"vR": {
 								"x": 6
 							},
-							"bounty": 500,
-							"impactType": "DAMAGING"
+							"vS": {
+								"x": 2
+							}
 						}
 					}
 				],
@@ -420,8 +413,9 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.OOBSensor",
+							"impactType": "FATAL",
 							"vS": {
-								"x": 25
+								"x": 0.1
 							}
 						}
 					}

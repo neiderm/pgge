@@ -17,87 +17,35 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
  * original prototype for killin things
  */
-public class ElectricEye extends  VectorSensor {
-
-    int prev; // hack crap
-    int bucket;
+public class ElectricEye extends VectorSensor {
 
     @Override
     public void update(Entity sensor) {
 
         super.update(sensor);
 
-        if (isActivated) {
 
-            ModelComponent mc = sensor.getComponent(ModelComponent.class); // can this be cached?
+        ModelComponent mc = sensor.getComponent(ModelComponent.class); // can this be cached?
 // if (null != mc)
-            if (mc.modelInst.materials.size > 0) {
-// well this is dumb its getting the insta.material anyway
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.ROYAL)); // tmp test code
-            }
+        if (mc.modelInst.materials.size > 0) {
+
+            ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.ROYAL)); // tmp test code
+        }
 //else
 //    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
 
-            if (isTriggered) {
+        if (isTriggered) {
 
-                if (mc.modelInst.materials.size > 0) {
-// well this is dumb its getting the insta.material anyway
-                    ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
-                }
+            if (mc.modelInst.materials.size > 0) {
 
-                isTriggered = false; // VectorSensor not unlatching itself!
-
-                if (bucket < 1) {
-                    // clock target probly for player, other wise probly no status comp
-                    StatusComponent sc = target.getComponent(StatusComponent.class);
-
-                    if (null != sc) {
-                        int lc = target.getComponent(StatusComponent.class).lifeClock;
-                        lc -= 10;
-                        if (lc > 0){ // don't Burn Out on final hit (explodacopia)
-                            // use the target model instance texture etc.
-                            CompCommon.makeBurnOut(
-                                    target.getComponent(ModelComponent.class).modelInst, CompCommon.ImpactType.DAMAGING);
-                        }else{
-                            lc = 0;
-                        }
-                        target.getComponent(StatusComponent.class).lifeClock = lc;
-                    }
-                }
-                bucket += 1;
-
-            } else {
-                bucket -= 2;
-                if (bucket < 0) {
-                    bucket = 0;
-                }
+                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
             }
-
-            /*
-             * kill me
-             */
-            StatusComponent sc = sensor.getComponent(StatusComponent.class);
-
-            // check this since the SC is actaully added dynamically (so no point to caching)
-            if (null != sc) {
-
-                if (0 == sc.lifeClock) {
-
-                    if (0 == prev++) {// bah crap
-
-                        sc.bounty = 1000;
-                    }
-                }
-            }
-            // else System.out.println();
         }
     }
 }

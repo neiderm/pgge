@@ -18,6 +18,6 @@ package com.mygdx.game.features;
 /*
  * here is a Bad Actor
  */
-public class BadActor extends KillSensor {
+public class BadActor extends OmniSensor {
 
 }

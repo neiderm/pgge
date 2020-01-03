@@ -23,28 +23,32 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
-public class Projectile extends KillSensor {
+public class Projectile extends OmniSensor {
 
     // working variables
     private Vector3 tmpV = new Vector3();
     private Quaternion orientation = new Quaternion();
 
 
-    public Projectile() { // mt
+    public Projectile() {
+
+        impactType = KillSensor.ImpactType.DAMAGING; // can be set in scene file
     }
 
     public Projectile(Object target, Matrix4 mtransform) {
 
+        this();
+
         this.userData = target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
 
 // proj. sense radius (provde constructor arg)
-// TODO: generaly this would be radius or half-extent of projectile geometry!
-        this.vS.set(0.76f, .76f, .76f); // radiys of the kill sensor
+        this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
 
         // i believe sensor was intended to be able to exist w/o a model instance, thus sensor origin
         // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of

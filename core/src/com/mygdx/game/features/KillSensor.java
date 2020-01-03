@@ -15,69 +15,41 @@
  */
 package com.mygdx.game.features;
 
-import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
-import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 
 /**
  * Created by neiderm on 7/5/2019.
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
-public class KillSensor extends OmniSensor {
+public class KillSensor {
 
-    int bucket; // debounce bucket
+    public enum ImpactType {
+        FATAL,
+        DAMAGING,
+        ACQUIRE
+    }
 
-    @Override
-    public void update(Entity sensor) {
+    /*
+    The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
+    (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
 
-        ModelComponent mc = sensor.getComponent(ModelComponent.class);
+     IN: points : because floating signboarded  points
+    */
+    public static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
 
-        // default bounding radius determined from mesh dimensions unless specified overridden in vS (tmp ... should be done in  base-class )
-        if (mc.boundingRadius > 0 && vS.x == 0) {
-            float adjRadius = mc.boundingRadius; // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions of extents (box) so in many cases will look not close enuff ... but brute force collsision detect based on center-to-center dx of objects so that about as good as it gets (troubel detect collision w/  "longer" object e.g. the APC tank)
-            this.omniRadius.set(adjRadius, adjRadius, adjRadius);
+        mi.userData = null; //  null forces default color
+
+        if (KillSensor.ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
+            mi.userData = new Color(Color.SKY); // hacky hackhackster
+        } else if (KillSensor.ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
+            mi.userData = new Color(Color.YELLOW);
         }
-
-
-        super.update(sensor);
-
-        if (isTriggered) {
-
-            if (bucket < 1) {
-
-                StatusComponent sc = target.getComponent(StatusComponent.class);
-
-                if (null == sc) {
-                    sc = new StatusComponent(0);
-                    target.add(sc); // default lifeclock should be 0
-                }
-
-                CompCommon.ImpactType impactType = CompCommon.ImpactType.DAMAGING;
-
-                if (sc.lifeClock > 0) {
-                    sc.lifeClock  -= 10;
-                }
-                if (sc.lifeClock <= 0) {
-                    impactType = CompCommon.ImpactType.FATAL;
-                }
-
-                if (!sc.deleteMe) { // deleted entity may not have been removed from engine yet
-                    CompCommon.makeBurnOut(
-                            target.getComponent(ModelComponent.class).modelInst, impactType);
-                }
-                else
-                    System.out.println("target entity already deleted");
-            }
-
-            bucket += 1;
-
-        } else {
-            bucket -= 2;
-            if (bucket < 0) {
-                bucket = 0;
-            }
-        }
+        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
+        CompCommon.spawnNewGameObject(
+                null, mi.transform.getTranslation(translation), new BurnOut(mi), "sphere");
     }
 }

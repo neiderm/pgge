@@ -34,26 +34,35 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class VectorSensor extends OmniSensor {
 
     private Vector3 trans = new Vector3();
-    private GfxUtil lineInstance = new GfxUtil();
+    private GfxUtil lineInstance;
     private Vector3 myPos = new Vector3();
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
 
     @Override
+    public void init(Object userData) {
+
+        super.init(userData);
+
+        // don't construct Gfx Util in the constructor if wanting to check the json file writer ... all the line model instance stuff shows up in a model group
+        this.lineInstance = new GfxUtil();
+    }
+
+    @Override
     public void update(Entity sensor) {
 
         super.update(sensor);
 
-                Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
-                myPos.set(sensTransform.getTranslation(trans));
+        Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
+        myPos.set(sensTransform.getTranslation(trans));
 
-                lookRay.set(myPos,
-                        ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+        lookRay.set(myPos,
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
-                /* add scaled look-ray-unit-vector to sensor position */
-                myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
+        /* add scaled look-ray-unit-vector to sensor position */
+        myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
 
-                GfxBatch.draw(lineInstance.lineTo(trans, myPos, Color.SALMON));
+        GfxBatch.draw(lineInstance.lineTo(trans, myPos, Color.SALMON));
     }
 }

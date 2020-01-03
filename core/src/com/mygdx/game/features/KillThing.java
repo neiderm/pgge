@@ -11,7 +11,7 @@ import com.mygdx.game.util.ModelInstanceEx;
  * ....Feature  "DroppedBody" ..  .......... becomes un-dynamic
  * Presently, this one  strips off the physics body, it does NOT respawn as a new entity.
  */
-public class KillThing extends KillSensor {
+public class KillThing extends OmniSensor {
 
     @Override
     public void onProcessedCollision(Entity ee){

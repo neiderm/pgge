@@ -78,16 +78,6 @@ public class Crapium extends OmniSensor {
 
             ModelInstanceEx.setColorAttribute(
                     modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
-
-            sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
-
-            CompCommon.makeBurnOut(modelInst, CompCommon.ImpactType.ACQUIRE);
-
-            StatusComponent sc = target.getComponent(StatusComponent.class);
-
-            if (null != sc) {
-                sc.prizeCount += 1;
-            }
         }
     }
 

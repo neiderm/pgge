@@ -17,15 +17,12 @@ package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.features.BurnOut;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -37,32 +34,6 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public class CompCommon {
 
     CompCommon() { // mt
-    }
-
-    public enum ImpactType {
-        FATAL,
-        DAMAGING,
-        ACQUIRE
-    }
-
-    /*
-    The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
-    (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
-
-     IN: points : because floating signboarded  points
-    */
-    public static void makeBurnOut(ModelInstance mi, ImpactType useFlags) {
-
-        mi.userData = null; //  null forces default color
-
-        if (ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
-            mi.userData = new Color(Color.SKY); // hacky hackhackster
-        } else if (ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
-            mi.userData = new Color(Color.YELLOW);
-        }
-        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
-        spawnNewGameObject(
-                null, mi.transform.getTranslation(translation), new BurnOut(mi), "sphere");
     }
 
     public static void spawnNewGameObject(
@@ -92,16 +63,18 @@ public class CompCommon {
             Gdx.app.log("collisionHdlr", "BulletComponent bc =  === NULLLL");
             return; // bah processing object that should already be "at rest" ???? .....................................................
         }
+        if (null != bc) {
 
-        bc.body.setCollisionFlags(
-                bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+            bc.body.setCollisionFlags(
+                    bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
 
-        StatusComponent sc = ee.getComponent(StatusComponent.class);
-        if (null == sc) {
-            sc = new StatusComponent(1);
+            StatusComponent sc = ee.getComponent(StatusComponent.class);
+            if (null == sc) {
+                sc = new StatusComponent(1);
+            }
+            sc.deleteFlag = 2;         // flag bullet Comp for deletion
+            ee.add(sc);
         }
-        sc.deleteFlag = 2;         // flag bullet Comp for deletion
-        ee.add(sc);
     }
 
     /*
@@ -110,18 +83,15 @@ public class CompCommon {
      */
     public static void entityAddPhysicsBody(Entity ee, Vector3 translation) {
 
-
         // tooooo dooo how to handle shape?
         btCollisionShape shape = PrimitivesBuilder.getShape("box", new Vector3(1, 1, 1));
-
 
 //            add BulletComponent and link to the model comp xform
         ModelComponent mc = ee.getComponent(ModelComponent.class);
         Matrix4 transform = mc.modelInst.transform;
         transform.setTranslation(translation);
-        BulletComponent
-                bc = new BulletComponent(shape, transform, 1f); // how to set mass?
-        ee.add(bc);
+
+        ee.add(new BulletComponent(shape, transform, 1f)); // how to set mass?
 
         /* add body to bullet world  default adds as 'OBJECT FLAG'*/
         BulletWorld.getInstance().addBodyWithCollisionNotif(
