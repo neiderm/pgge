@@ -27,7 +27,9 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
@@ -281,6 +283,44 @@ public class PrimitivesBuilder /* implements Disposable */ {
         }
 
         return saveShapeRef(shape);
+    }
+
+    public static btCollisionShape getShape(Model model) {
+
+        btCollisionShape shape;
+
+        Mesh mesh = singleMesh(model) ;
+
+        shape = getShape(mesh);
+
+        if (null != mesh) {
+    mesh.dispose();
+}
+
+        return shape;
+    }
+
+    /*
+     * combine nodes into single mesh for generating convex hull shape
+     */
+    private static Mesh singleMesh(Model model){
+
+        // "demodularize" model - combine modelParts into single Node for generating the physics shape
+        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
+        MeshBuilder meshBuilder = new MeshBuilder();
+        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
+
+        for (Node node : model.nodes) {
+
+            if (node.parts.size > 0) {
+
+                MeshPart meshPart = node.parts.get(0).meshPart;
+                meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
+                meshBuilder.addMesh(meshPart);
+            }
+        }
+
+        return meshBuilder.end();
     }
 
 

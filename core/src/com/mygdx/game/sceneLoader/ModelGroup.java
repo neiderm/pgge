@@ -23,7 +23,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
@@ -143,22 +142,19 @@ public class ModelGroup {
                 if (null != mdlInfo) {
 
                     model = mdlInfo.model;
-                    Model loadModel;
 
                     if (model.nodes.size > 1) { // multi-node model
-// vehicle models are made to explode to each is in own g3db subdivided into meshparts/nodes. Since I don't know anybetter
-// since the Model is created outside of asset Loader GfxUtil is there to track the new Model()
-                        // "demodularize" model - combine modelParts into single Node for generating the physics shape
-                        loadModel = GfxUtil.modelFromNodes(model); // TODO // model reference for unloading!!! need to use multi-node model and eliminate this kludgey crap!
-                        rootNodeId = DEFAULT_MODEL_NODE_ID;
-                    } else {
-                        loadModel = model;
-                        rootNodeId = model.nodes.get(0).id;
-                    }
 
-                    shape = PrimitivesBuilder.getShape(loadModel.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
-//gameObject.objectName = rootNodeId;
-                    instance = new ModelInstance(loadModel, rootNodeId);
+                        instance = new ModelInstance(model);
+                        // creates the cvx hull shape from multi-node model
+                        shape = PrimitivesBuilder.getShape(model);
+
+                    } else {
+                        rootNodeId = model.nodes.get(0).id;
+                        instance = new ModelInstance(model, rootNodeId);
+
+                        shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
+                    }
                 }
                 else {
                     model = PrimitivesBuilder.getModel();
