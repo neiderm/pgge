@@ -141,7 +141,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
         int n = 0;
         for (btCollisionShape shape : savedShapeRefs){
             n += 1;
-            shape.dispose();
+
+            if (null != shape ){
+                shape.dispose();
+            }
         }
         Gdx.app.log("Primtive:clearShapeRefs", "Removed shapes ct = " + n);
     }
@@ -319,8 +322,11 @@ bullet compound shape of convex hulls (do NOT dispose it? but the children shape
 
          for (Node node : nodeArray) {
 // adds a convex hull shape for each child
-             compoundShape.addChildShape(
-                     new Matrix4(node.localTransform), PrimitivesBuilder.getShape(node));
+             if (node.parts.size > 0){
+// avoid non-graphic nodes (lamps etc)
+                 compoundShape.addChildShape(
+                         new Matrix4(node.localTransform), PrimitivesBuilder.getShape(node));
+             }
          }
          return compoundShape;
      }
