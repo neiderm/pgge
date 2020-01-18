@@ -31,6 +31,7 @@ import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -38,6 +39,7 @@ import com.badlogic.gdx.physics.bullet.collision.btBoxShape;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCapsuleShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.physics.bullet.collision.btConeShape;
 import com.badlogic.gdx.physics.bullet.collision.btConvexHullShape;
 import com.badlogic.gdx.physics.bullet.collision.btCylinderShape;
@@ -301,6 +303,27 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         return shape;
     }
+
+     /*
+bullet compound shape of convex hulls (do NOT dispose it? but the children shape must be disposed)
+ */
+     public static btCollisionShape getShape(Model model, boolean compound) {
+
+         btCompoundShape compoundShape = new btCompoundShape();
+
+         Array<Node> nodeArray = model.nodes;
+
+         if (model.nodes.get(0).hasChildren()) {
+             nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+         }
+
+         for (Node node : nodeArray) {
+// adds a convex hull shape for each child
+             compoundShape.addChildShape(
+                     new Matrix4(node.localTransform), PrimitivesBuilder.getShape(node));
+         }
+         return compoundShape;
+     }
 
     /*
      * combine nodes into single mesh for generating convex hull shape

@@ -116,7 +116,7 @@ public class ModelGroup {
 
         for (GameObject gameObject : elements) {
 
-            if (null == this.modelName && null == gameObject.objectName){ // one of these has to be true in order to get model info !
+            if (null == this.modelName && null == gameObject.objectName) { // one of these has to be true in order to get model info !
                 System.out.println("null == this.modelName && null == gameObject.objectName");
                 continue; // break on localPlayer modelGroup as it is a "dummy"
             }
@@ -133,10 +133,11 @@ public class ModelGroup {
             if (null == groupModel) {
 
                 String rootNodeId;
-                btCollisionShape shape;
+                btCollisionShape shape = null;
                 ModelInstance instance;
 
-                // look for model Info name matching object name
+                // look for model Info name matching object name ... seems only reason is so a model
+                // group of objects can be grouped together and set common attribute ... ischaractrer
                 ModelInfo mdlInfo = sd.modelInfo.get(gameObject.objectName);
 
                 if (null != mdlInfo) {
@@ -146,37 +147,40 @@ public class ModelGroup {
                     if (model.nodes.size > 1) { // multi-node model
 
                         instance = new ModelInstance(model);
-                        // creates the cvx hull shape from multi-node model
-                        shape = PrimitivesBuilder.getShape(model);
+                        // creates the cvx hull shape by combining into single mesh from multi-node model
+//  TRY_COMP                      shape = PrimitivesBuilder.getShape(model);
 
                     } else {
                         rootNodeId = model.nodes.get(0).id;
                         instance = new ModelInstance(model, rootNodeId);
-
-                        shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
+//  TRY_COMP                      shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
                     }
-                }
-                else {
+
+                    if ( true/*TRY_COMP*/) {
+                        if (0 != gameObject.mass  ) { // gets a compound bullet shape
+                            shape = PrimitivesBuilder.getShape(model, true);
+                        }
+                    }
+                } else {
                     model = PrimitivesBuilder.getModel();
                     rootNodeId = gameObject.objectName;
 
                     Vector3 v3scale = gameObject.scale;
 
-                    if (null != rootNodeId){
+                    if (null != rootNodeId) {
 // doesn't protect itself again null node name
-                        instance  = new ModelInstance(model, rootNodeId);
-                    }
-                    else{
+                        instance = new ModelInstance(model, rootNodeId);
+                    } else {
                         instance = new ModelInstance(model); // probably no good!!!!!!!
                     }
 
-                    if (null != v3scale && null != instance ) {
+                    if (null != v3scale && null != instance) {
                         instance.nodes.get(0).scale.set(v3scale);
                         instance.calculateTransforms();
                     }
 
                     // note does not use the gamObject.meshSHape name
-                    shape = PrimitivesBuilder.getShape(rootNodeId, v3scale); // note: 1 shape re-used
+                    shape = PrimitivesBuilder.getShape(rootNodeId, v3scale);
                 }
 
                 gameObject.buildGameObject(model, engine, instance, shape);
