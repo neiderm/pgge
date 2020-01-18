@@ -83,34 +83,45 @@ public class GameObject {
         Array<Node> nodeArray = model.nodes;
         String nodeName = objectName.replaceAll("\\*$", "");
 
+        // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
+        if (model.nodes.get(0).hasChildren()) {
+            //  e.g. landscape,goonpatrol models end up here, howerver its only the exploding rig that needs
+            // special sauce:  if object name was '*' than ressuling nodename length would be 0
+            if (nodeName.length() < 1) {
+
+                nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+                nodeName = null;
+            }
+        }
+
         for (Node node : nodeArray) {
             ModelInstance mi = null;
-//            if (null == nodeName) {  // if (model.nodes.get(0).hasChildren())
-//// special sauce asssumes  loading from single parent-node Recursively searches the mode for the specified node
-//                mi = new ModelInstance(model, node.id, false, false);
-//            } else
-                if (node.id.contains(nodeName)) {
-                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic
-                    // node of my landscape models are being names (by fbx export ) e.g. "filename_root" landscape.root etc. which also works as object name
+
+            if (null != nodeName && node.id.contains(nodeName)) {
+                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
                 mi = getModelInstance(model, node.id, scale);
 
-                    if (null != mi) {
+            } else if (null == nodeName) {
+// special sauce asssumes  loading from single parent-node, requires recursive search to find the specified _node.id_ in the model hierarchy
+                mi = new ModelInstance(model, node.id, true, false, false);
+            }
 
-                        btCollisionShape shape = null;
-                        // TODO find another way to get shape - depends on the instance which is bass-ackwards
-                        // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
-                        if (null != meshShape) {
-                            BoundingBox boundingBox = new BoundingBox();
-                            Vector3 dimensions = new Vector3();
-                            mi.calculateBoundingBox(boundingBox);
+            if (null != mi) {
 
-                            shape = PrimitivesBuilder.getShape(
-                                    meshShape, boundingBox.getDimensions(dimensions), node);
-                        }
+                btCollisionShape shape = null;
+                // TODO find another way to get shape - depends on the instance which is bass-ackwards
+                // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
+                if (null != meshShape) {
+                    BoundingBox boundingBox = new BoundingBox();
+                    Vector3 dimensions = new Vector3();
+                    mi.calculateBoundingBox(boundingBox);
 
-                        buildGameObject(model, engine, mi, shape);
-                    } // else  ... bail out if matched an un-globbed name ?
+                    shape = PrimitivesBuilder.getShape(
+                            meshShape, boundingBox.getDimensions(dimensions), node);
                 }
+
+                buildGameObject(model, engine, mi, shape);
+            } // else  ... bail out if matched an un-globbed name ?
         }
     }
 
@@ -200,7 +211,6 @@ public class GameObject {
 //e.add(new StatusComponent(1)); // maybe
 
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            mc.model = model;  // bah
 
             if (0xffff == keyIndex) {
                 //System.out.println("keyindex?");
