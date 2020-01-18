@@ -225,7 +225,7 @@
 						}
 					}
 				],
-				"objectName": "landscape",
+				"objectName": "goonpatrol",
 				"meshShape": "triangleMeshShape",
 				"isKinematic": true
 			}

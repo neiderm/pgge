@@ -76,53 +76,41 @@ public class GameObject {
 
 
     /*
-     * searching the group model for the given gameObject.objectName* ...
-     * may not be super efficient and  ... increasing number of model nodes ???
-     * However walking the model is needed for globbed object name, not
-     * seeing a more efficient way right now.
+     * searching the group model for the given gameObject.objectName*
      */
     public void buildNodes(Engine engine, Model model) {
         // default to search top level of model (allows match globbing)
         Array<Node> nodeArray = model.nodes;
         String nodeName = objectName.replaceAll("\\*$", "");
 
-// big hack special sausce, nodes are children ..
-        if (model.nodes.get(0).hasChildren()) {
-            nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
-            nodeName = null;
-        }
-
         for (Node node : nodeArray) {
             ModelInstance mi = null;
-
-            if (null == nodeName) {
-// special sauce asssumes  loading from single parent-node Recursively searches the mode for the specified node
-                mi = new ModelInstance(model, node.id, false, false);
-
-            } else if (node.id.contains(nodeName)) {
-                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic )
+//            if (null == nodeName) {  // if (model.nodes.get(0).hasChildren())
+//// special sauce asssumes  loading from single parent-node Recursively searches the mode for the specified node
+//                mi = new ModelInstance(model, node.id, false, false);
+//            } else
+                if (node.id.contains(nodeName)) {
+                // specified node ID means this object is loaded from mondo scene model (where everything should be either static or kinematic
+                    // node of my landscape models are being names (by fbx export ) e.g. "filename_root" landscape.root etc. which also works as object name
                 mi = getModelInstance(model, node.id, scale);
-            }
 
-            if (null != mi) {
+                    if (null != mi) {
 
-                btCollisionShape shape = null;
-                // TODO find another way to get shape - depends on the instance which is bass-ackwards
-                // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
-                if (null != meshShape) {
-                    BoundingBox boundingBox = new BoundingBox();
-                    Vector3 dimensions = new Vector3();
-                    mi.calculateBoundingBox(boundingBox);
+                        btCollisionShape shape = null;
+                        // TODO find another way to get shape - depends on the instance which is bass-ackwards
+                        // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
+                        if (null != meshShape) {
+                            BoundingBox boundingBox = new BoundingBox();
+                            Vector3 dimensions = new Vector3();
+                            mi.calculateBoundingBox(boundingBox);
 
-                    shape = PrimitivesBuilder.getShape(
-                            meshShape, boundingBox.getDimensions(dimensions), node);
+                            shape = PrimitivesBuilder.getShape(
+                                    meshShape, boundingBox.getDimensions(dimensions), node);
+                        }
+
+                        buildGameObject(model, engine, mi, shape);
+                    } // else  ... bail out if matched an un-globbed name ?
                 }
-        /*
-        scale is in parent object (not instances) because object should be able to share same bullet shape!
-        HOWEVER ... seeing below that bullet comp is made with mesh, we still have duplicated meshes ;... :(
-         */
-                buildGameObject(model, engine, mi, shape);
-            } // else  ... bail out if matched an un-globbed name ?
         }
     }
 
@@ -177,7 +165,7 @@ public class GameObject {
             return;
         }
 
-        InstanceData id = new InstanceData();
+        InstanceData id = null;
         int n = 0;
 
 
@@ -204,7 +192,7 @@ public class GameObject {
             btCollisionShape shape = null;
             if (isKinematic || mass > 0) { // note does not use the gamObject.meshSHape name
 
-                shape = btcs; // note: 1 shape re-used
+                shape = btcs;
             }
 
             Entity e = buildObjectInstance(modelInst.copy(), shape, id);
@@ -215,7 +203,7 @@ public class GameObject {
             mc.model = model;  // bah
 
             if (0xffff == keyIndex) {
-                System.out.println("keyindex?");
+                //System.out.println("keyindex?");
             }
             mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
 
