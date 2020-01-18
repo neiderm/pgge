@@ -224,15 +224,15 @@ public class PrimitivesBuilder /* implements Disposable */ {
         if (shapeName.equals("convexHullShape")) {
 
 //                if (null != node) { // assert
-                    shape = getShape(node);
+            shape = getShape(node); // saves the shape ref, shouldn't hurt anything if gets saved again
 
-                    if (null == shape){
-                        Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
-                    }
-                    else {
-                        Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
-                                + ((btConvexHullShape) shape).getNumPoints() );
-                    }
+            if (null == shape){
+                Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
+            }
+            else {
+                Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
+                        + ((btConvexHullShape) shape).getNumPoints() );
+            }
 
         } else if (shapeName.equals("triangleMeshShape")) {
 
@@ -266,12 +266,14 @@ public class PrimitivesBuilder /* implements Disposable */ {
         if (null != node) {
             if (node.parts.size > 0) {
                 shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
-//            int n = ((btConvexHullShape) shape).getNumPoints(); // GN: optimizes to 8 points for platform cube
+/*
+ there is some problem here  with parent+child[n] models (commanche, military jeeP) ... but only on "shootme" test screen ?? !!!!!!
+                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart.mesh);
+                */
             }
-            else
-                Gdx.app.log("pbuilder", "node.parts.size <= 0");
         }
-        return shape;
+
+        return saveShapeRef(shape);
     }
 
     public static btCollisionShape getShape(Mesh mesh) {
@@ -294,8 +296,8 @@ public class PrimitivesBuilder /* implements Disposable */ {
         shape = getShape(mesh);
 
         if (null != mesh) {
-    mesh.dispose();
-}
+            mesh.dispose();
+        }
 
         return shape;
     }
