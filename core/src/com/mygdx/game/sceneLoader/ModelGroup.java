@@ -148,16 +148,19 @@ public class ModelGroup {
 
                         instance = new ModelInstance(model);
                         // creates the cvx hull shape by combining into single mesh from multi-node model
-//  TRY_COMP                      shape = PrimitivesBuilder.getShape(model);
+//  TRY_COMP
+//                      shape = PrimitivesBuilder.getShape(model);
 
                     } else {
                         rootNodeId = model.nodes.get(0).id;
                         instance = new ModelInstance(model, rootNodeId);
-//  TRY_COMP                      shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
+//  TRY_COMP
+  //                    shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
                     }
 
                     if ( true/*TRY_COMP*/) {
-                        if (0 != gameObject.mass  ) { // gets a compound bullet shape
+//                        if (0 != gameObject.mass  )
+                        { // gets a compound bullet shape
                             shape = PrimitivesBuilder.getShape(model, true);
                         }
                     }
