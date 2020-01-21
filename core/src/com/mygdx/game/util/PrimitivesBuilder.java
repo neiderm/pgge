@@ -320,15 +320,20 @@ bullet compound shape of convex hulls (do NOT dispose it? but the children shape
              nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
          }
 
+         int index = 0;
          for (Node node : nodeArray) {
-// adds a convex hull shape for each child
-             if (node.parts.size > 0){
-// avoid non-graphic nodes (lamps etc)
-                 compoundShape.addChildShape(
-                         new Matrix4(node.localTransform), PrimitivesBuilder.getShape(node));
+// adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
+// shape user index isn't needed to get child shape for a given node - but set the index anyway just because ;)
+             if (node.parts.size > 0){ // avoid non-graphic nodes (lamps etc)
+                 // index the child shape to the node for later retrieval
+                 btCollisionShape comp = PrimitivesBuilder.getShape(node);
+                 comp.setUserIndex(index++);
+
+                 compoundShape.addChildShape( new Matrix4(node.localTransform), comp);
              }
          }
-         return compoundShape;
+
+         return saveShapeRef(compoundShape); // comp shapes have to be disposed as well
      }
 
     /*
