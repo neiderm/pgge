@@ -55,6 +55,10 @@ public final class GameWorld implements Disposable {
         ROUND_COMPLETE_NEXT  // transition to next screen after arena complete
     }
 
+    // arbitrary character string to make sure locally added player model info  doesn't bump into
+    // the user-designated model info sections in the screen json files
+    private final String PLAYER_OBJECT_TAG = "P0_";
+
     private SceneData sceneData;
     private String sceneDataFile;
     private Game game;
@@ -148,7 +152,7 @@ public final class GameWorld implements Disposable {
     }
 
 
-    public void loadSceneData(String path, String playerObjectName) {
+    public void setSceneData(String path, String playerObjectName) {
 
         this.sceneDataFile = path; // keep this for screen restart reloading
 
@@ -172,12 +176,29 @@ public final class GameWorld implements Disposable {
      */
     public void setSceneData(String path) {
 
-        loadSceneData(path, null);
+        setSceneData(path, null);
     }
-    @Deprecated
-    public void setSceneData(String path, String playerObjectName) {
 
-        loadSceneData(path, playerObjectName);
+    public void loadSceneData(String path, String playerObjectName) {
+
+        this.sceneDataFile = path; // keep this for screen restart reloading
+
+        ModelInfo selectedModelInfo = null;
+// BEFORE the scene data is reloaded, ....
+        if (null != playerObjectName) {
+            // get the  player model info from previous scene data
+            selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
+        }
+
+// when loading from Select Screen, need to distinguish the name of the selected player object
+        String adjPlayerObjectName = PLAYER_OBJECT_TAG + playerObjectName;
+
+        this.sceneData = SceneData.loadData(path, adjPlayerObjectName);
+
+        if (null != selectedModelInfo) {
+            // set the player object model info in new scene data isntance
+            sceneData.modelInfo.put(adjPlayerObjectName, new ModelInfo(selectedModelInfo.fileName));
+        }
     }
 
     /*
@@ -185,7 +206,7 @@ public final class GameWorld implements Disposable {
      */
     public void reloadSceneData(String modelName) {
 
-        loadSceneData(sceneDataFile, modelName);
+        setSceneData(sceneDataFile, modelName);
     }
 
     public SceneData getSceneData() {

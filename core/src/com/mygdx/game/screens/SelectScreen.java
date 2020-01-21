@@ -23,7 +23,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -39,7 +38,6 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.sceneLoader.SceneLoader;
 
 
 /*
@@ -284,7 +282,7 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         ModelGroup mg = sd.modelGroups.get("Characters");        // Magik string
         GameObject go = mg.getElement(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
 
-        GameWorld.getInstance().setSceneData(path, go.objectName);
+        GameWorld.getInstance().loadSceneData(path, go.objectName);
 
         return new LoadingScreen();
     }
