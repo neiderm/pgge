@@ -151,7 +151,17 @@ public final class GameWorld implements Disposable {
         roundActiveState = state;
     }
 
+    /*
+     * set Select Screen data
+     */
+    public void setSceneData(String path) {
 
+        setSceneData(path, null);
+    }
+
+    /*
+     passes along the player object name and path to next screen json
+     */
     public void setSceneData(String path, String playerObjectName) {
 
         this.sceneDataFile = path; // keep this for screen restart reloading
@@ -167,18 +177,14 @@ public final class GameWorld implements Disposable {
 
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
-            sceneData.modelInfo.put(playerObjectName, new ModelInfo(selectedModelInfo.fileName));
+            sceneData.modelInfo.put(playerObjectName,         selectedModelInfo );
         }
     }
 
     /*
-     * set Select Screen data
+     * this is only for Select Screen, to set the "tag" on the player object name
+     * bah duplicated code
      */
-    public void setSceneData(String path) {
-
-        setSceneData(path, null);
-    }
-
     public void loadSceneData(String path, String playerObjectName) {
 
         this.sceneDataFile = path; // keep this for screen restart reloading
