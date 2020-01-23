@@ -31,7 +31,6 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ModelGroup {
 
-    public static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
     public static final String SPAWNERS_MGRP_KEY = "Spawners";
     public static final String MGRP_DEFAULT_MDL_NAME = ""; // if MG key is "empty", then multiple gsme Objectca
 
@@ -177,16 +176,23 @@ public class ModelGroup {
                         instance = new ModelInstance(model); // probably no good!!!!!!!
                     }
 
-                    if (null != v3scale && null != instance) {
-                        instance.nodes.get(0).scale.set(v3scale);
-                        instance.calculateTransforms();
-                    }
+                    // if model instance invalid (0 nodes) then make it a non graphical entity
+                    if ((instance.nodes.size > 0)) {
 
-                    // note does not use the gamObject.meshSHape name
-                    shape = PrimitivesBuilder.getShape(rootNodeId, v3scale);
+                        if (null != v3scale && null != instance) {
+                            instance.nodes.get(0).scale.set(v3scale);
+                            instance.calculateTransforms();
+                        }
+
+                        // note does not use the gamObject.meshSHape name
+                        shape = PrimitivesBuilder.getShape(rootNodeId, v3scale);
+
+                    } else {
+                        instance = null; // don't use the invalid instance and a non graphical or physics  entity is created
+                    }
                 }
 
-                gameObject.buildGameObject(model, engine, instance, shape);
+                gameObject.buildGameObject( engine, instance, shape);
 
             } else {
                 /* load all nodes from model that match /objectName.*/

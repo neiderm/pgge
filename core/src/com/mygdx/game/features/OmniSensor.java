@@ -21,7 +21,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
@@ -43,7 +42,7 @@ public class OmniSensor extends FeatureAdaptor {
     private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
 
-    Vector3 omniRadius = new Vector3();
+    private Vector3 omniRadius = new Vector3();
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
 
@@ -80,10 +79,12 @@ public class OmniSensor extends FeatureAdaptor {
 ////        sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
 // hmmmm ...  it could have been spawned "up there" and now falling to the floor ... so vT0 as handed by GameObject constructor is not the origin we're looking for!
 
-
         ModelComponent mymc = sensor.getComponent(ModelComponent.class);
-        Matrix4 sensTransform = mymc.modelInst.transform;
-        sensorOrigin = sensTransform.getTranslation(sensorOrigin);
+
+        if (null != mymc) {
+
+            Matrix4 sensTransform = mymc.modelInst.transform;
+            sensorOrigin = sensTransform.getTranslation(sensorOrigin);
 
 //        if (mymc.boundingRadius > 0 && vS.x == 0) {
 //            // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions
@@ -97,7 +98,24 @@ public class OmniSensor extends FeatureAdaptor {
 this sensor feature)... optional specify  vS  to be added to br such that allowing the effective
 radius to be any arbitryariy sized irrespective of mesh size
 */
-        omniRadius.set(mymc.boundingRadius, 0, 0).add(vS.x, 0, 0);
+            omniRadius.set(mymc.boundingRadius, 0, 0).add(vS.x, 0, 0);
+
+            // sensor origin is offset on a vector ray cast in relative forward facing direction
+
+            lookRay.set(sensTransform.getTranslation(sensorOrigin), // myPos
+                    ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+
+        } else {
+// hack for a non-graphical sensor
+            sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
+
+            omniRadius.set(vS.x, 0, 0);
+
+            // sensor origin is offset on a vector ray cast in relative forward facing direction
+//            rotation = new Quaternion();
+            lookRay.set(sensorOrigin,
+                    ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation.set(0, 0, 0, 1)));
+        }
 
         /*
 The distance between two points in a three dimensional - 3D - coordinate system can be calculated as
@@ -111,11 +129,6 @@ from point of sensor origin to a any point lying on the sphere of given radius
 omni radius not being used consistently (sometimes just x given, some times xyz ... doesn't matter, it
  ends up just an (essentially arbitrary ) scalar float anyway
  */
-
-        // sensor origin is offset on a vector ray cast in relative forward facing direction
-
-        lookRay.set(sensTransform.getTranslation(sensorOrigin), // myPos
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
         /* add scaled look-ray-unit-vector to sensor position */
         sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
@@ -162,13 +175,13 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
 
     private int bucket;
 
-    public void updateTriggered(Entity sensor, boolean triggered) {
+    private void updateTriggered(Entity sensor, boolean triggered) {
 
         KillSensor.ImpactType impactType = this.impactType;
 
 //        if (null != impactType)
         {
-            if (isTriggered) {
+            if (triggered) {
                 if (bucket < 1) {
 
                     if (null != impactType) {
