@@ -5,12 +5,15 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.mygdx.game.animations.AnimAdapter;
 
 /**
  * Created by neiderm on 12/21/17.
  */
 
 public class ModelComponent implements Component {
+
+    public AnimAdapter animAdapter;
 
     public Model model; // reference to model for dynamically reloading/reconfiguring meshes
     public ModelInstance modelInst;

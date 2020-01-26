@@ -91,6 +91,10 @@ public class RenderSystem extends EntitySystem {
             visibleCount += 1;
             modelBatch.render(modelInst, environment);
         }
+
+        if (null != mc.animAdapter){
+            mc.animAdapter.update(entity   );
+        }
     }
 
     @Override

@@ -17,6 +17,7 @@
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.mygdx.game.animations.AnimAdapter;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ModelInfo {
@@ -31,5 +32,6 @@ public class ModelInfo {
     }
 
     public String fileName;
+    public AnimAdapter animAdapter;
     public Model model;
 }

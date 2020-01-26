@@ -29,6 +29,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.animations.AnimAdapter;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
@@ -265,6 +266,19 @@ public class GameObject {
         }
 
         ModelComponent mc = new ModelComponent(instance);
+
+        ModelInfo mi = GameWorld.getInstance().getSceneData().modelInfo.get(this.objectName);
+        if (null != mi){
+            if (null != mi.animAdapter){
+//new instance (manually copy) of mi.animAdator - it will be type of subclass !
+                mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
+// manually copy needed fields, but only those of the mi.animAdapter base class can be known so they need to be kind of generaic
+                mc.animAdapter.strMdlNode = new String(mi.animAdapter.strMdlNode);
+
+// pass along the entity of the model instance ^H^H^H^H^ no ?????
+//                        mc.animAdapter.init(null);
+            }
+        }
         mc.isShadowed = isShadowed; // disable shadowing of skybox)
         e.add(mc);
 // grab the game object name string anyway
