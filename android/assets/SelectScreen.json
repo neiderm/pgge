@@ -52,7 +52,7 @@
 },
 "modelInfo": {
 	"guntruck": {
-		"fileName": "tanks/bradleygtank.g3db"
+		"fileName": "tanks/bradleygtank.g3db",
 		"animAdapter": {
 			"class": "com.mygdx.game.animations.RigAnimation",
 			"strMdlNode": "Tank_01.radar"

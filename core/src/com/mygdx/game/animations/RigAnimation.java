@@ -88,8 +88,11 @@ public class RigAnimation extends AnimAdapter {
              */
             if (null != mc){
 
-//                fadeIn(mc.modelInst);
-
+     mc.isShadowed = false; // disable shadowing until fadeIn is done ... does that eliminate with crashes?
+    boolean isFinishedFadeIn = fadeIn(mc.modelInst);
+    if (isFinishedFadeIn){
+        mc.isShadowed = true;
+    }
 
                 if (null != featureNode ) {
 
@@ -131,7 +134,10 @@ public class RigAnimation extends AnimAdapter {
     private final float FADE_TIME = (0.6f) * ONE_SEC; // component fade time slightlty lesss than 1 frame
     private final float alphaIncrement = 100f / FADE_TIME; // 100 %cnt in 60frames (1 sec)
 
-    private void fadeIn(ModelInstance mInstance){
+    private boolean fadeIn(ModelInstance mInstance){
+
+        boolean isFinishedFadein;
+
         // nodes array defaults to top level of nodes in the model, but if everything is under node[0]
         // then set the array to node[0] children instead
         Array<Node> nodeArray = mInstance.nodes;
@@ -173,6 +179,8 @@ public class RigAnimation extends AnimAdapter {
 
         if (faderNodeIndex < nodeArray.size){
 
+            isFinishedFadein = false;
+
             Node node = nodeArray.get(faderNodeIndex);
 
             if (node.parts.size > 0){
@@ -184,6 +192,9 @@ public class RigAnimation extends AnimAdapter {
 
                 mat.set(blendingAttribute);
             }
+        } else {
+            isFinishedFadein = true;
         }
+        return isFinishedFadein;
     }
 }
