@@ -15,7 +15,6 @@
  */
 package com.mygdx.game.features;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
@@ -41,15 +40,8 @@ public class KillSensor {
     */
     public static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
 
-        mi.userData = null; //  null forces default color
-
-        if (KillSensor.ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
-            mi.userData = new Color(Color.SKY); // hacky hackhackster
-        } else if (KillSensor.ImpactType.DAMAGING == useFlags) { // marker for hit/collision w/ damage
-            mi.userData = new Color(Color.YELLOW);
-        }
         Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
         CompCommon.spawnNewGameObject(
-                null, mi.transform.getTranslation(translation), new BurnOut(mi), "sphere");
+                null, mi.transform.getTranslation(translation), new BurnOut(mi, useFlags), "sphere");
     }
 }

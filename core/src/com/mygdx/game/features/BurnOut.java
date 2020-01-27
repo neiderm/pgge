@@ -33,34 +33,33 @@ public class BurnOut extends FeatureAdaptor {
 
     private int clock = 128;
     private Vector3 scale = new Vector3(1, 1, 1);
-    private final Color cc0 = new Color(Color.FIREBRICK);
-    private Color cc = cc0;
+    private Color cc;
 
     // save original model material attributes ? big hack!@
     private TextureAttribute fxTextureAttrib;
-    private Texture myTexture; // may not use this
-
+//    private Texture myTexture; // may not use this
 
     public BurnOut() { // mt
     }
 
-    public BurnOut(ModelInstance mi) {
+    public BurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
 
-        userData =  mi;
+        setColorTex(mi, useFlags);
     }
 
-    @Override
-    public void init(Object object) {
+    private void setColorTex(ModelInstance modelInstance, KillSensor.ImpactType useFlags) {
 
-        if (null != object) {
+        if (null != modelInstance) {
 //            Class c = object.getClass();
 //            if (c.toString().contains("g3d.Material"))  // lazy , discard the full class path
             {
-                ModelInstance modelInstance = (ModelInstance)object;
+                cc = new Color(Color.FIREBRICK);
 
-                if (modelInstance.userData != null){
-                    Color c = (Color)modelInstance.userData; // hackity hack don't hack back
-                    cc = new Color(c);
+                if (KillSensor.ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
+                    cc = new Color(Color.SKY); // hacky hackhackster
+                } else  if (KillSensor.ImpactType.DAMAGING == useFlags)
+                { // marker for hit/collision w/ damage
+                    cc = new Color(Color.YELLOW);
                 }
 
                 Material saveMat = modelInstance.materials.get(0);
@@ -124,10 +123,10 @@ public class BurnOut extends FeatureAdaptor {
                     ee.add(new StatusComponent(0));
                 }
 
-                // check if we we're  using a "local" Texture  ( ??? wtfe )     and if so dispose()
-                if (null != myTexture) {
-                    myTexture.dispose(); // idfk
-                }
+//                // check if we we're  using a "local" Texture  ( ??? wtfe )     and if so dispose()
+//                if (null != myTexture) {
+//                    myTexture.dispose(); // idfk
+//                }
             }
         }
     }
