@@ -31,7 +31,7 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class BurnOut extends FeatureAdaptor {
 
-    private int clock = 128;
+    private int clock = 88;  // using as percent alphA
     private Vector3 scale = new Vector3(1, 1, 1);
     private Color cc;
 
@@ -113,7 +113,8 @@ public class BurnOut extends FeatureAdaptor {
                         mat.clear();
                     }
                     // and for the icing on this bitcake ... fade it out!!! whoooh ooo
-                    cc.a -= d_ALPHA;
+                    cc.a = clock / 100.0f;
+
                     ModelInstanceEx.setColorAttribute(mi, cc); // this one sets the blending attribute .. doesn't matter
                 }
             } else {
