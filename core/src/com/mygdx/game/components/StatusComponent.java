@@ -15,8 +15,8 @@ public class StatusComponent implements Component {
     public int bounty; // is both the players points loot as well as point value of a prize or
     //  killed-thing (added to players loot of course)
     public boolean canExit;
-    public boolean deleteMe;
     public int deleteFlag;
+    public int[] damage = new int[4];
 
     public StatusComponent() {
     }
