@@ -205,7 +205,6 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
 
                         if (null == tsc){
                             tsc = new StatusComponent(); // entity doesn't have an SC .. just make a dummy one to keep below logic cleaner
-                            //target.add(new StatusComponent(0));
                         }
 //                        if (null != tsc)
                         {
@@ -220,16 +219,16 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
 
                                 sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
 
-                            } else {
+                            } else { // damaging or fatal
                                 // use the target model instance texture etc.
                                 ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
 
-//                                if (tsc.lifeClock > 0) {
-////                                    sc.lifeClock -= 10;
-//                                }
-//                                if (KillSensor.ImpactType.FATAL == impactType) {
-////                                    sc.lifeClock = 0;
-//                                }
+                                if (tsc.lifeClock > 0) {
+                                    tsc.lifeClock -= 1;
+                                }
+                                if (tsc.lifeClock <= 0){
+                                    impactType = KillSensor.ImpactType.FATAL;
+                                }
 // if (null != tmi
                                 tmi.transform.getRotation(rotation); // reuse tmp rotation variable
                                 tmpV.set(0, -1, 0); //  2.5d simplification
@@ -244,14 +243,6 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                                 }
                                 tsc.damage[n] += 100 / 5; // damage/shield levels are 0-100
 
-//                                System.out.println( "orientationAngle  = " + orientationAngle + " hitAngle= " + hitAngle );
-
-//if (impactType == KillSensor.ImpactType.FATAL){
-//    System.out.println();//tmp test anything use this ? no
-//}
-//                            if (lc <= 0) {
-//                                impactType = KillSensor.ImpactType.FATAL; //anything use this ? no
-//                            }
                                 KillSensor.makeBurnOut(tmi, impactType);
                             }
                         }
