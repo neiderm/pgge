@@ -29,12 +29,16 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -136,7 +140,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
         pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
-        final int health = 1;
+        final int health = 999; // should not go to 0
         pickedPlayer.add(new StatusComponent(health));            // max damage
 
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
@@ -543,7 +547,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
             if (0 == sc.lifeClock) {
-// explode effect only available for models w/ child nodes
+// explode effect only available for models w/ child nodes .... or e.g. rig animations ???
                 ModelComponent mc = e.getComponent(ModelComponent.class);
                 if (null != mc) {
 
@@ -551,7 +555,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     ModelInfo mi = sd.modelInfo.get(mc.strObjectName);
 
                     if (null != mi && null != mi.model) {
-                        exploducopia(engine, mc.modelInst, mi.model);
+
+                        BulletComponent bc = e.getComponent(BulletComponent.class);
+                        if (null != bc && null != bc.shape && null != mc.modelInst) {
+                            // this could possibly be invoked as a rig animation "entity.modelComp.animiation.exploda()"
+                            exploducopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
+                        }
                     }
                 }
 
@@ -602,23 +611,87 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     }
 
     /*
-     try to blow up a dead thing
+     * pretty much copy cat of GameOBject:buildNodes()
      */
-    private static void exploducopia(Engine engine, ModelInstance modelInst, Model model) {
+    private static void buildChildNodes(Engine engine, Model model, btCompoundShape compShape, GameObject gameObject) {
+        // default to search top level of model (allows match globbing)
+        Array<Node> nodeArray = model.nodes;
+        // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
+        if (model.nodes.get(0).hasChildren()) {
+            nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+        }
+
+        int index = 0;
+        // have to iterate each node, can't assume that all nodes in array are valid and associated
+        // with a child-shape (careful of non-graphical nodes!)
+        for (Node node : nodeArray) {
+            ModelInstance instance;
+
+            if (node.parts.size > 0) {   // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
+//                if (node.translation.x!=0 || node.translation.y!=0 || node.translation.z!=0)
+//                    System.out.println(); // tmp
+
+//                    mi = GameObject.getModelInstance(model, node.id, gameObject.scale);
+                instance = new ModelInstance(
+                        model, node.id, true, false, false);
+
+                //        if (null != instance)
+                {
+                    Node modelNode = instance.getNode(node.id);
+
+                    if (null != modelNode){
+                        // seems only the "panzerwagen" because it's nodes are not central to the rig model which makes it handled like scenery
+                        instance.transform.set(modelNode.globalTransform);
+                        modelNode.translation.set(0, 0, 0);
+                        modelNode.scale.set(1, 1, 1);
+                        modelNode.rotation.idt();
+//                            if (null != gameObject.scale) {
+//                                instance.nodes.get(0).scale.set(gameObject.scale);
+//                            }
+//                            instance.calculateTransforms();
+                    }
+                }
+                /*if (null != instance) */{
+                    if (index < compShape.getNumChildShapes()) {
+
+                        btCollisionShape shape = compShape.getChildShape(index); // this might be squirrly
+
+                        if (shape.getUserIndex() == index) {
+                            gameObject.buildGameObject(engine, instance, shape);
+                        }
+                    }
+//                    else {
+//                        System.out.println("index = !!!! " + index + "  compShape.getNumChildShapes() " + compShape.getNumChildShapes());
+//                    }
+                }
+                index += 1;
+            }
+        }
+    }
+
+    /*
+ try to blow up a dead thing
+ */
+    private static void exploducopia(Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
 
         Vector3 translation = new Vector3();
         Quaternion rotation = new Quaternion();
 
         GameObject gameObject = new GameObject("*");
         gameObject.mass = 1f;
-        gameObject.meshShape = "convexHullShape";
+//        gameObject.meshShape = "convexHullShape";
 
-        InstanceData id = new InstanceData(modelInst.transform.getTranslation(translation));
-        id.rotation = new Quaternion();// tmp should not need to new it here!
-        id.rotation.set(modelInst.transform.getRotation(rotation));
-        gameObject.getInstanceData().add(id);
+        gameObject.getInstanceData().add(
+                new InstanceData(
+                        modelInst.transform.getTranslation(translation), modelInst.transform.getRotation(rotation))
+        );
 
-        gameObject.buildNodes(engine, model);
+        if (shape.className.equals("btCompoundShape")) {
+
+            buildChildNodes(engine, model, (btCompoundShape) shape, gameObject);
+        } else {
+            System.out.println("wtf");
+        }
     }
 
     /*

@@ -31,6 +31,12 @@ public class InstanceData {
         this.translation = new Vector3(translation);
     }
 
+    public InstanceData(Vector3 translation, Quaternion rotation) {
+
+        this(translation);
+        this.rotation = new Quaternion(rotation);
+    }
+
     public Quaternion rotation;
     public Vector3 translation;
     public Color color;

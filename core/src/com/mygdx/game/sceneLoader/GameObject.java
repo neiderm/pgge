@@ -68,7 +68,7 @@ public class GameObject {
     public boolean iSWhatever;
     boolean isCharacter;
     boolean isPlayer; // i guess
-//    int lifetime = 1;
+
 
     public Array<InstanceData> getInstanceData() {
 
@@ -79,7 +79,7 @@ public class GameObject {
     /*
      * searching the group model for the given gameObject.objectName*
      */
-    public void buildNodes(Engine engine, Model model) {
+    void buildNodes(Engine engine, Model model) {
         // default to search top level of model (allows match globbing)
         Array<Node> nodeArray = model.nodes;
         String nodeName = objectName.replaceAll("\\*$", "");
@@ -143,13 +143,12 @@ public class GameObject {
         }
         ModelInstance instance = new ModelInstance(model, strNodeName);
 
-        if (null != instance)
+//        if (null != instance)
         {
             Node modelNode = instance.getNode(strNodeName);
 
-            if (null == modelNode){
-                instance = null; // evidently the Node Name is not valid!
-            } else {
+            if (null != modelNode){
+
                 instance.transform.set(modelNode.globalTransform);
                 modelNode.translation.set(0, 0, 0);
                 modelNode.scale.set(1, 1, 1);
@@ -168,31 +167,23 @@ public class GameObject {
     /*
      * NOTE : copies the passed "instance" ... so caller should discard the reference
      */
-    void buildGameObject( Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
-
-        if (null == modelInst) {
-            System.out.println(
-                    "GameObject:buildgameObject()" + "  modelInst==null, probably bad GameObject or ModelGroup definiation");
-//            return;
-        }
-
+    public void buildGameObject( Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
+//        int countIndex = 0;
+//        int keyIndex = 0xffff;
+//        String strObjNameModelInfoKey;
+//        SceneData sd = GameWorld.getInstance().getSceneData();
+//
+//        for (String key : sd.modelInfo.keySet()) {
+//
+//            if (key.equals(this.objectName)) {
+//                keyIndex = countIndex;
+//                strObjNameModelInfoKey = new String(this.objectName);
+//                break;
+//            }
+//            countIndex += 1;
+//        }
         InstanceData id = null;
         int n = 0;
-
-
-        int countIndex = 0;
-        int keyIndex = 0xffff;
-        String strObjNameModelInfoKey;
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        for (String key : sd.modelInfo.keySet()) {
-
-            if (key.equals(this.objectName)) {
-                keyIndex = countIndex;
-                strObjNameModelInfoKey = new String(this.objectName);
-                break;
-            }
-            countIndex += 1;
-        }
 
         do {
             // game objects may have no instance data
@@ -215,14 +206,14 @@ public class GameObject {
 
             engine.addEntity(e);
 
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            if (null != mc) {
-
-                if (0xffff == keyIndex) {
-                    //System.out.println("keyindex?");
-                }
-                mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
-            }
+//            ModelComponent mc = e.getComponent(ModelComponent.class);
+//            if (null != mc) {
+//
+//                if (0xffff == keyIndex) {
+//                    //System.out.println("keyindex?");
+//                }
+//                mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
+//            }
         } while (/*null != id && */ n < instanceData.size);
     }
 
