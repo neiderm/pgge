@@ -107,7 +107,6 @@ public class ModelGroup {
             groupModel = mi.model; // should maybe check model valid ;)
 
             if (null == mi.model && null != mi.fileName) {
-
                 Gdx.app.log("ModelGroup", "Not a valid model! (null == mi.model && null != mi.fileName)");
                 return; // for now ... ?
             }
@@ -115,19 +114,12 @@ public class ModelGroup {
 
         for (GameObject gameObject : elements) {
 
-            if (null == this.modelName && null == gameObject.objectName) { // one of these has to be true in order to get model info !
-                System.out.println("null == this.modelName && null == gameObject.objectName");
-                continue; // break on localPlayer modelGroup as it is a "dummy"
-            }
-
             if (this.isKinematic) {
                 gameObject.isKinematic = this.isKinematic;
             }
             if (this.isCharacter) {
                 gameObject.isCharacter = this.isCharacter;
             }
-
-            Model model;
 
             if (null == groupModel) {
 
@@ -141,30 +133,13 @@ public class ModelGroup {
 
                 if (null != mdlInfo) {
 
-                    model = mdlInfo.model;
+                    Model model = mdlInfo.model;
+                    instance = new ModelInstance(model);
+                    // recursively gets a compound bullet shape
+                    shape = PrimitivesBuilder.getCompShape(  model );
 
-                    if (model.nodes.size > 1) { // multi-node model
-
-                        instance = new ModelInstance(model);
-                        // creates the cvx hull shape by combining into single mesh from multi-node model
-//  TRY_COMP
-//                      shape = PrimitivesBuilder.getShape(model);
-
-                    } else {
-                        rootNodeId = model.nodes.get(0).id;
-                        instance = new ModelInstance(model, rootNodeId);
-//  TRY_COMP
-  //                    shape = PrimitivesBuilder.getShape(model.meshes.get(0)); // createConvexHullShape and saves the mesh Shape ref
-                    }
-
-                    if ( true/*TRY_COMP*/) {
-//                        if (0 != gameObject.mass  )
-                        { // gets a compound bullet shape
-                            shape = PrimitivesBuilder.getShape(model, true);
-                        }
-                    }
                 } else {
-                    model = PrimitivesBuilder.getModel();
+                    Model  model = PrimitivesBuilder.getModel();
                     rootNodeId = gameObject.objectName;
 
                     Vector3 v3scale = gameObject.scale;
@@ -179,7 +154,7 @@ public class ModelGroup {
                     // if model instance invalid (0 nodes) then make it a non graphical entity
                     if ((instance.nodes.size > 0)) {
 
-                        if (null != v3scale && null != instance) {
+                        if (null != v3scale) {
                             instance.nodes.get(0).scale.set(v3scale);
                             instance.calculateTransforms();
                         }

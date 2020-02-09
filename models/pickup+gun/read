@@ -5,10 +5,49 @@ https://www.turbosquid.com/FullPreview/Index.cfm/ID/919676
 
 Royalty Free License - All Extended Uses
 
+pcikup.3DS  3D Studio  - 322 KB
+Textures:  car01.jpg - 169 KB
+Optional:
+pcikup.obj  OBJ  - 996 KB
 
-imported .obj to blender ( not from 3ds. 3ds is "exploded", i don't know how to unexplode in Blender).
 
-scale to 0.5 and apply. ^H^H^H^H 0.45 ..  left-rear tire falling thru !!??!!
+Import pcikup.3DS to blender
 
-export to .fbx (at .01 scale)
+For each Tire02, Tire04:
+ Object mode, select e.g. Tire02
+ Edit mode:
+  Mesh -> Normals -> Flip Normals
 
+Save as blender
+
+Select and omit lamp, camera:
+ - right click "Mainframe" (top node level, choose "Select Hierarchy"
+
+Object mode:
+ Choose "Object -> Clear" ... translation, rotation (Alt G, Alt R)
+ Unselect all, select "gun" (Cylinder02)
+   Choose "Object -> Clear" ... scale (Alt S)
+
+ s .5 enter
+ r x -90 ctrl a <rotation and scale>
+ r x 90
+Export to .fbx (at .01 scale)
+
+
+OLD instructions for .obj import:
+
+Import .obj to blender ( not from 3ds. 3ds is "exploded", i don't know how to unexplode in Blender).
+
+Scale to 0.5 and apply. ^H^H^H^H 0.45 ..  left-rear tire falling thru !!??!!
+
+"Re-associate" textures in car01.jpg  in UV image editor (have to do chassis, wheels etc. separately
+ but DO NOT need to regenerate UV maps.
+Similar thing for material - one material linked to 10 nodes, just need to remake the texture linked to car01.jpg image.
+
+Export to .fbx (at .01 scale)
+
+
+
+
+ref:
+ https://stackoverflow.com/questions/37772095/blender-model-is-incorrectly-rendered-in-libgdx

@@ -613,13 +613,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     /*
      * pretty much copy cat of GameOBject:buildNodes()
      */
-    private static void buildChildNodes(Engine engine, Model model, btCompoundShape compShape, GameObject gameObject) {
-        // default to search top level of model (allows match globbing)
-        Array<Node> nodeArray = model.nodes;
-        // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
-        if (model.nodes.get(0).hasChildren()) {
-            nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
-        }
+    private static void buildChildNodes(Engine engine, Array<Node> nodeArray, Model model, btCompoundShape compShape, GameObject gameObject) {
 
         int index = 0;
         // have to iterate each node, can't assume that all nodes in array are valid and associated
@@ -628,10 +622,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             ModelInstance instance;
 
             if (node.parts.size > 0) {   // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
-//                if (node.translation.x!=0 || node.translation.y!=0 || node.translation.z!=0)
-//                    System.out.println(); // tmp
-
-//                    mi = GameObject.getModelInstance(model, node.id, gameObject.scale);
+// recursive
                 instance = new ModelInstance(
                         model, node.id, true, false, false);
 
@@ -670,25 +661,55 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     }
 
     /*
+    recursively get a flat array of node  from the model
+     */
+    private static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray ){
+
+        for (Node childNode :  srcNodeArray) {
+            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
+            if (childNode.parts.size > 0) {
+
+                destNodeArray.add(childNode );
+            }
+
+            if (childNode.hasChildren()){
+                getNodeArray( (Array<Node>)childNode.getChildren(), destNodeArray);
+            }
+        }
+    }
+
+    /*
  try to blow up a dead thing
  */
     private static void exploducopia(Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
 
-        Vector3 translation = new Vector3();
-        Quaternion rotation = new Quaternion();
-
-        GameObject gameObject = new GameObject("*");
-        gameObject.mass = 1f;
-//        gameObject.meshShape = "convexHullShape";
-
-        gameObject.getInstanceData().add(
-                new InstanceData(
-                        modelInst.transform.getTranslation(translation), modelInst.transform.getRotation(rotation))
-        );
-
         if (shape.className.equals("btCompoundShape")) {
 
-            buildChildNodes(engine, model, (btCompoundShape) shape, gameObject);
+            Vector3 translation = new Vector3();
+            Quaternion rotation = new Quaternion();
+
+            GameObject gameObject = new GameObject(1);
+
+            gameObject.getInstanceData().add(
+                    new InstanceData(
+                            modelInst.transform.getTranslation(translation), modelInst.transform.getRotation(rotation))
+            );
+
+//            Array<Node> nodeArray = model.nodes;
+//
+//            // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
+//            if (model.nodes.get(0).hasChildren()) {
+//                nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+//            }
+//
+//            buildChildNodes(engine, nodeArray, model, (btCompoundShape) shape, gameObject);
+
+            Array<Node> nodeFlatArray = new Array<Node>();
+            getNodeArray(model.nodes, nodeFlatArray);
+
+            // build nodes by iterating the node id list, which hopefullly is in same index order as when the comp shape was builtup
+            buildChildNodes(engine, nodeFlatArray, model, (btCompoundShape) shape, gameObject);
+
         } else {
             System.out.println("wtf");
         }

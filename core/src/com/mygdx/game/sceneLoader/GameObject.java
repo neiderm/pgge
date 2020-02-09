@@ -46,6 +46,12 @@ public class GameObject {
         this.isShadowed = true;
     }
 
+    public GameObject(float mass) {
+
+        this();
+        this.mass = mass;
+    }
+
     public GameObject(String objectName) {
 
         this();

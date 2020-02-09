@@ -264,7 +264,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return saveShapeRef(shape);
     }
 
-    public static btCollisionShape getShape(Node node) {
+    private static btCollisionShape getShape(Node node) {
 
         btCollisionShape shape = null;
 
@@ -281,7 +281,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return saveShapeRef(shape);
     }
 
-    public static btCollisionShape getShape(Mesh mesh) {
+    private static btCollisionShape getShape(Mesh mesh) {
 
         btCollisionShape shape = null;
 
@@ -292,7 +292,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return saveShapeRef(shape);
     }
 
-    public static btCollisionShape getShape(Model model) {
+    public static btCollisionShape getsingleMeshShape(Model model) {
 
         btCollisionShape shape;
 
@@ -307,33 +307,37 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return shape;
     }
 
-     /*
-bullet compound shape of convex hulls (do NOT dispose it? but the children shape must be disposed)
- */
-     public static btCollisionShape getShape(Model model, boolean compound) {
 
-         btCompoundShape compoundShape = new btCompoundShape();
+     public static btCollisionShape getCompShape(Model model) {
 
-         Array<Node> nodeArray = model.nodes;
+         btCollisionShape compShape = getCompShape(new btCompoundShape(), model.nodes);
+         return saveShapeRef(compShape ); // comp shapes have to be disposed as well
+     }
 
-         if (model.nodes.get(0).hasChildren()) {
-             nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
-         }
+     private static btCollisionShape getCompShape(btCompoundShape compoundShape, Array<Node> nodeArray) {
 
-         int index = 0;
          for (Node node : nodeArray) {
-// adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
-// shape user index isn't needed to get child shape for a given node - but set the index anyway just because ;)
+             // adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
+// shape user index isn't absolutely necessary  - but set the index anyway just because ;)
              if (node.parts.size > 0){ // avoid non-graphic nodes (lamps etc)
-                 // index the child shape to the node for later retrieval
-                 btCollisionShape comp = PrimitivesBuilder.getShape(node);
-                 comp.setUserIndex(index++);
 
-                 compoundShape.addChildShape( new Matrix4(node.localTransform), comp);
+                 btCollisionShape comp = PrimitivesBuilder.getShape(node);
+
+                 if (null != comp) {
+                     // buildChildNodes() can follow the same (recursive as necessary) order of iterating the nodes, so by
+                     // setting this index can be checked to assert that the order is matched
+                     comp.setUserIndex( compoundShape.getNumChildShapes() );
+                     compoundShape.addChildShape(new Matrix4(node.localTransform), comp);
+                 }
+             }
+//  recursive
+             if (node.hasChildren()) {
+                 nodeArray = (Array<Node>)node.getChildren();
+                 getCompShape(compoundShape, nodeArray);
              }
          }
 
-         return saveShapeRef(compoundShape); // comp shapes have to be disposed as well
+         return compoundShape;//saveShapeRef(compoundShape); // comp shapes have to be disposed as well
      }
 
     /*
