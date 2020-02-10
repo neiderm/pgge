@@ -28,7 +28,6 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class ShootamaThing extends VectorSensor {
 
     private Quaternion orientation = new Quaternion();
-    private float orientationAngle = -1;  // dumb ;)
     private final float ROTATION_STEP_DEGREES = 0.25f;
     private float rotationStep = ROTATION_STEP_DEGREES;
     private final float ROTATION_RANGE_DEGREES = 90.0f;
@@ -36,111 +35,110 @@ public class ShootamaThing extends VectorSensor {
     private float rotationMax = 0;
     private final int SHOT_RECYCLE_TIME = 64;
     private int shotRecycleTimer = 0;
+    private ModelComponent mc;
+    private Color gcolor = new Color();
 
-
-    @Override
-    public void init(Object target) {
-
-        super.init(target);
-    }
+//    @Override
+//    public void init(Object target) {
+//
+//        super.init(target);
+//    }
 
     @Override
     public void update(Entity sensor) {
 
         super.update(sensor);
 
-        ModelComponent mc = sensor.getComponent(ModelComponent.class);
-
-        if (orientationAngle < 0) { // so dumb
-            // one time init to rotation params
+        if (null == mc) {
+            // one time inits
+            mc = sensor.getComponent(ModelComponent.class);
             mc.modelInst.transform.getRotation(orientation);
 
-            tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
-            orientationAngle = orientation.getAngleAround(tmpV);
-
+            //  for simplicity, min is always set to starting angle, i.e. max equal (min + Range)
+            float orientationAngle = orientation.getAngleAround(tmpV.set(0, -1, 0)); // todo: get the actual "down" vector e.g. in case on inclined sfc.
             rotationMin = orientationAngle;
             rotationMax = orientationAngle + ROTATION_RANGE_DEGREES;
 
-            System.out.println("shootamathing ... origin angle = " + orientationAngle + " " + this.vT.x);
-        }
-
-
-// if (null != mc) {
-        if (mc.modelInst.materials.size > 0) {
-
-            if (0 == shotRecycleTimer) {
-
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.RED));
-            } else {
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.ROYAL));
+            if (rotationStep > 0){
+                // if initial value of RotationStep is negative, "pre-rotate" to i.e. Max and commence rotation from there?
             }
         }
-// }
-//else //    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
 
-        if (isTriggered ||
-                shotRecycleTimer > 0) {
-
-            if (shotRecycleTimer > 0) {
-                shotRecycleTimer -= 1;
-
-            } else {
-                shotRecycleTimer = SHOT_RECYCLE_TIME;
-
-                gunSight(mc.modelInst.transform, target);
+        if (null != mc) {
+            // tmp test code
+            if (/*null != mc &&*/ mc.modelInst.materials.size > 0) {
+                gcolor.set(Color.RED);
+                if (0 == shotRecycleTimer) {
+                    gcolor.set(Color.GOLD);
+                }
+                ModelInstanceEx.setColorAttribute(mc.modelInst, gcolor); // tmp test code
             }
 
-            if (mc.modelInst.materials.size > 0) {
-// well this is dumb its getting the insta.material anyway
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.GOLD)); // tmp test code
+            if (isTriggered ||
+                    shotRecycleTimer > 0) {
+
+                if (shotRecycleTimer > 0) {
+                    shotRecycleTimer -= 1;
+                } else {
+                    shotRecycleTimer = SHOT_RECYCLE_TIME;
+
+                    gunSight(mc.modelInst.transform, target);
+                }
+
+                isTriggered = false; // need to unlatch it !
             }
 
-            isTriggered = false; // need to unlatch it !
+            // update the rotating platform and re-sync bullet shape with model instance that we've been rotating/moving
+            rotationStep =
+                    updatePlatformRotation(rotationStep, rotationMin, rotationMax, mc.modelInst.transform);
+
+            BulletComponent bc = sensor.getComponent(BulletComponent.class);
+
+            if (null != bc) {
+                bc.body.setWorldTransform(mc.modelInst.transform);
+            }
         }
-
-        updatePlatformRotation(mc.modelInst.transform);
-
-        BulletComponent bc = sensor.getComponent(BulletComponent.class);
-
-        if (null != bc) {
-            bc.body.setWorldTransform(mc.modelInst.transform);
-        }
-
     }
 
     /*
     toodoo use raycast to determine dx to stop of cast and if target comes within x degrees of
     whatever direction it happens to be pointing, then it begins rotating to track target
      */
-    private void updatePlatformRotation(Matrix4 myxfm) {
+    private float updatePlatformRotation(float rStep, float rMin, float rMax, Matrix4 myxfm) {
 
-        myxfm.getRotation(orientation);
+        Vector3 down = tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
         trans = myxfm.getTranslation(trans); // note: sets identity so trans & scale lost!
+        myxfm.rotate(down, rStep); // take the step (up here, down there, shouldn't make any diff)
 
-        tmpV.set(0, -1, 0); // todo: get the actual "down" vector e.g. in case on inclined sfc.
+        /*
+         * Min  and Max are setup such that ...
+         *   0 < rotMin < rotMax
+         * ... and  rotMax may be > 360
+         */
+        myxfm.getRotation(orientation);
+        float fAngle = orientation.getAngleAround(down);
+        if (rStep > 0 && (fAngle < rMin)) {
+            fAngle += 360;
+        }
 
-        orientationAngle += rotationStep;
-
-        if (orientationAngle > rotationMax) {
-            rotationStep = -ROTATION_STEP_DEGREES;
-            shotRecycleTimer = 0;
+        if (fAngle > rMax) {
+            rStep = (-1) * Math.abs(rStep);// -ROTATION_STEP_DEGREES;
+//            shotRecycleTimer = 0;                  // how to signify to caller that endpoint has been hit?
 // snap it to its endpoint
-            orientationAngle = rotationMax;
-
-            myxfm.setToRotation(tmpV, orientationAngle); // note: sets identity so trans & scale lost!
+            myxfm.setToRotation(down, rMax); // note: sets identity so trans & scale lost!
             myxfm.setTranslation(trans);
 
-        } else if (orientationAngle < rotationMin) {
-            rotationStep = ROTATION_STEP_DEGREES;
-            shotRecycleTimer = 0;
+        } else if (fAngle < rMin) {
+            rStep = (+1) * Math.abs(rStep);// ROTATION_STEP_DEGREES;
+//            shotRecycleTimer = 0;                  // how to signify to caller that endpoint has been hit?
 // snap it to its endpoint
-            orientationAngle = rotationMin;
-
-            myxfm.setToRotation(tmpV, orientationAngle); // note: sets identity so trans & scale lost!
+            myxfm.setToRotation(down, rMin); // note: sets identity so trans & scale lost!
             myxfm.setTranslation(trans);
         }
 
-        myxfm.rotate(tmpV, rotationStep);
+//        myxfm.rotate(down, rStep); // take the step (up there, down here, shouldn't make any diff)
+
+        return rStep;
     }
 
 
