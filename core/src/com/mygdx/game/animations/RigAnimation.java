@@ -28,14 +28,15 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.util.PrimitivesBuilder;
 
 public class RigAnimation extends AnimAdapter {
 
-    private Quaternion turretRotation = new Quaternion();
-    private Vector3 down = new Vector3(0, 1, 0);
-    private Vector3 trans = new Vector3();
+    private final Quaternion turretRotation = new Quaternion();
+    private final Vector3 down = new Vector3(0, -1, 0);
+    private final Vector3 trans = new Vector3();
     private Node featureNode;
-    private int turretIndex;
+    private int featureIndex = -1;
     private ModelComponent mc;
     private BulletComponent bc;
 
@@ -59,24 +60,21 @@ public class RigAnimation extends AnimAdapter {
 
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == gameState ||
-                GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == gameState){
+                GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == gameState) {
         /*
          should be one-time init
          */
             if (null == featureNode) {
 
                 mc = sensor.getComponent(ModelComponent.class);
+                ModelInstance mi = mc.modelInst;
 
-                if (null != mc) {
-                    for (int index = 0; index < mc.modelInst.nodes.size; index++) {
+// "unroll" the nodes list so that the index to the bullet child shape will be consistent
+                int index = PrimitivesBuilder.getNodeIndex(mi.nodes, strMdlNode);
 
-                        Node nnnn = mc.modelInst.nodes.get(index);
-                        if (nnnn.id.equals(strMdlNode)) {
-                            featureNode = nnnn;
-                            turretIndex = index;
-                            break;
-                        }
-                    }
+                if (index >= 0) { // index != -1
+                    featureNode = mi.getNode(strMdlNode, true);  // recursive
+                    featureIndex = index;
                 }
 
                 bc = sensor.getComponent(BulletComponent.class);
@@ -86,15 +84,16 @@ public class RigAnimation extends AnimAdapter {
             /*
              * update
              */
-            if (null != mc){
+            if (null != mc) {
 
-     mc.isShadowed = false; // disable shadowing until fadeIn is done ... does that eliminate with crashes?
-    boolean isFinishedFadeIn = fadeIn(mc.modelInst);
-    if (isFinishedFadeIn){
-        mc.isShadowed = true;
-    }
+                mc.isShadowed = false; // disable shadowing until fadeIn is done ... does that eliminate with crashes?
+                boolean isFinishedFadeIn = fadeIn(mc.modelInst);
 
-                if (null != featureNode ) {
+                if (isFinishedFadeIn) {
+                    mc.isShadowed = true;
+                }
+
+                if (null != featureNode) {
 
                     trans.set(featureNode.translation);
 //        trans.y += .01f; // test
@@ -116,7 +115,7 @@ public class RigAnimation extends AnimAdapter {
                         btCompoundShape btcs = (btCompoundShape) bc.shape;
 
                         if (null != btcs && bc.shape.isCompound()) {
-                            btcs.updateChildTransform(turretIndex, featureNode.globalTransform);
+                            btcs.updateChildTransform(featureIndex, featureNode.globalTransform);
                         }
 
 // Apparently this is NOT needed here (for static/kinematic bodies, YES) conflicting with BUllet
@@ -134,33 +133,25 @@ public class RigAnimation extends AnimAdapter {
     private final float FADE_TIME = (0.6f) * ONE_SEC; // component fade time slightlty lesss than 1 frame
     private final float alphaIncrement = 100f / FADE_TIME; // 100 %cnt in 60frames (1 sec)
 
-    private boolean fadeIn(ModelInstance mInstance){
+    private boolean fadeIn(ModelInstance mInstance) {
 
         boolean isFinishedFadein;
 
-        // nodes array defaults to top level of nodes in the model, but if everything is under node[0]
-        // then set the array to node[0] children instead
-        Array<Node> nodeArray = mInstance.nodes;
-
-
-            if (faderNodeIndex < 0){
 // initialize the node array according to the model structure
-            if (mInstance.nodes.get(0).hasChildren()){
+        Array<Node> nodeArray = new Array<Node>(); // mInstance.nodes;
+        PrimitivesBuilder.getNodeArray(mInstance.nodes, nodeArray);
 
-                nodeArray = (Array<Node>) mInstance.nodes.get(0).getChildren();
-            }
-
+        if (faderNodeIndex < 0) {
             // first time iterate thru node array and set each alpha to 0
-            for (Node node : nodeArray){
+            for (Node node : nodeArray) {
 
-                Material mat  = null;
-                if (node.parts.size > 0){
+                if (node.parts.size > 0) {
                     // be careful of non-mesh nodes (e.g. lights cameras from model)
-                    mat = node.parts.get(0).material;
+                    Material mat = node.parts.get(0).material;
 
                     final float zerAlpha = 0;
                     BlendingAttribute blendingAttribute =
-                            new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, zerAlpha  );
+                            new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, zerAlpha);
 
                     mat.set(blendingAttribute);
                 }
@@ -168,27 +159,26 @@ public class RigAnimation extends AnimAdapter {
             faderNodeIndex = 0;
         }
 
-        if (alphaPcnt < 100){
+        if (alphaPcnt < 100) {
             alphaPcnt += alphaIncrement;
-        }
-        else{
+        } else {
             alphaPcnt = 0;
             faderNodeIndex += 1;
         }
 
 
-        if (faderNodeIndex < nodeArray.size){
+        if (faderNodeIndex < nodeArray.size) {
 
             isFinishedFadein = false;
 
             Node node = nodeArray.get(faderNodeIndex);
 
-            if (node.parts.size > 0){
+            if (node.parts.size > 0) {
                 // be careful of non-mesh nodes (e.g. lights cameras from model)  need to be careful of null materials as well ;)
                 Material mat = node.parts.get(0).material;
 
                 BlendingAttribute blendingAttribute =
-                        new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alphaPcnt/100 );
+                        new BlendingAttribute(true, GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA, alphaPcnt / 100);
 
                 mat.set(blendingAttribute);
             }

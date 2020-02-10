@@ -307,8 +307,47 @@ public class PrimitivesBuilder /* implements Disposable */ {
         return shape;
     }
 
+    /*
+recursively get a flat array of node  from the model
+ */
+    public static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray ){
 
-     public static btCollisionShape getCompShape(Model model) {
+        for (Node childNode :  srcNodeArray) {
+            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
+            if (childNode.parts.size > 0) {
+
+                destNodeArray.add(childNode );
+            }
+
+            if (childNode.hasChildren()){
+                getNodeArray( (Array<Node>)childNode.getChildren(), destNodeArray);
+            }
+        }
+    }
+
+    public static int getNodeIndex(Array<Node> srcNodeArray, String strMdlNode){
+
+        int rVal = -1;
+
+        // "unroll" the nodes list so that the index to the bullet child shape will be consisten
+        Array<Node> nodeFlatArray = new Array<Node>();
+        getNodeArray(srcNodeArray, nodeFlatArray);
+//                if (null != mc)
+        {
+            int index = 0;
+
+            for (Node node : nodeFlatArray){
+                if (node.id.equals(strMdlNode)) {
+                    rVal = index;
+                    break;
+                }
+                index += 1;
+            }
+        }
+        return rVal;
+    }
+
+    public static btCollisionShape getCompShape(Model model) {
 
          btCollisionShape compShape = getCompShape(new btCompoundShape(), model.nodes);
          return saveShapeRef(compShape ); // comp shapes have to be disposed as well

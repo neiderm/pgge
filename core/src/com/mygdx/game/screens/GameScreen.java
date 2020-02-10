@@ -661,24 +661,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     }
 
     /*
-    recursively get a flat array of node  from the model
-     */
-    private static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray ){
-
-        for (Node childNode :  srcNodeArray) {
-            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
-            if (childNode.parts.size > 0) {
-
-                destNodeArray.add(childNode );
-            }
-
-            if (childNode.hasChildren()){
-                getNodeArray( (Array<Node>)childNode.getChildren(), destNodeArray);
-            }
-        }
-    }
-
-    /*
  try to blow up a dead thing
  */
     private static void exploducopia(Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
@@ -705,7 +687,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 //            buildChildNodes(engine, nodeArray, model, (btCompoundShape) shape, gameObject);
 
             Array<Node> nodeFlatArray = new Array<Node>();
-            getNodeArray(model.nodes, nodeFlatArray);
+            PrimitivesBuilder.getNodeArray(model.nodes, nodeFlatArray);
 
             // build nodes by iterating the node id list, which hopefullly is in same index order as when the comp shape was builtup
             buildChildNodes(engine, nodeFlatArray, model, (btCompoundShape) shape, gameObject);
