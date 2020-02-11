@@ -20,6 +20,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -79,27 +80,33 @@ public class PrimitivesBuilder /* implements Disposable */ {
         long attributes =
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
 
+// hackaround to make sure attributes are consistent between "simple" (color only) vs textured shapes see below
+// null pointer exception thrown in render shadow batch due to texture attribute but invalid texture
+// didn't exactly pin down what was happening, must be  a race condition lets the material work most of the time, not much to go on ...
+//  https://github.com/libgdx/libgdx/issues/4166
         attributes |= VertexAttributes.Usage.TextureCoordinates;
-
-        Texture tex;
+        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.WHITE);
+        pixmap.fill();
+        Texture tex = new Texture(pixmap);
 
         mb.begin();
 
         mb.node().id = "sphere";
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN))).sphere(1f, 1f, 1f, 10, 10);
+                new Material(ColorAttribute.createDiffuse(Color.GREEN), TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
         mb.node().id = "box";
         mb.part("box", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.BLUE))).box(1f, 1f, 1f);
+                new Material(ColorAttribute.createDiffuse(Color.BLUE),TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
         mb.node().id = "cone";
         mb.part("cone", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW))).cone(1f, 1f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW),TextureAttribute.createDiffuse(tex))).cone(1f, 1f, 1f, 10);
         mb.node().id = "capsule";
         mb.part("capsule", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
+                new Material(ColorAttribute.createDiffuse(Color.CYAN),TextureAttribute.createDiffuse(tex))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
         mb.node().id = "cylinder";
         mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.MAGENTA))).cylinder(1f, 1f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.MAGENTA),TextureAttribute.createDiffuse(tex))).cylinder(1f, 1f, 1f, 10);
 
         /*
          * these shuold be going away ;)
