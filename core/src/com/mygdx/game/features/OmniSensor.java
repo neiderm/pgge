@@ -51,6 +51,8 @@ public class OmniSensor extends FeatureAdaptor {
     private Vector3 direction = new Vector3();// new Vector3(0, 0, -1); // vehicle forward ... whatever, just another working vector instance
     private Quaternion rotation = new Quaternion();
 
+    private ModelComponent mymc;
+
     float senseZoneDistance = 5.0f;
 
 
@@ -65,10 +67,13 @@ public class OmniSensor extends FeatureAdaptor {
 //        super.init(target); // not much there, just sets the target,
         this.target = (Entity) target;
 
-        this.omniRadius.set(vS);
+//        this.omniRadius.set(vS);
 
         // vector sensor offset
         senseZoneDistance = vR.x;
+
+        // grab the starting Origin (translation) of the entity (vT0 set from instance data)
+        sensorOrigin.set(vT0);
     }
 
 
@@ -77,15 +82,20 @@ public class OmniSensor extends FeatureAdaptor {
 
         super.update(sensor);
 
-////        sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
-// hmmmm ...  it could have been spawned "up there" and now falling to the floor ... so vT0 as handed by GameObject constructor is not the origin we're looking for!
+        omniRadius.set(vS.x, 0, 0); // if this is model-based entity, bounding radius is added to omni radius below
 
-        ModelComponent mymc = sensor.getComponent(ModelComponent.class);
+        if (null == mymc) {
 
-        if (null != mymc) {
+            mymc = sensor.getComponent(ModelComponent.class);
+
+            // grab the starting Origin (translation) of the entity (vT0 set from instance data)
+//            sensorOrigin.set(vT0);
+        } else {
 
             Matrix4 sensTransform = mymc.modelInst.transform;
-            sensorOrigin = sensTransform.getTranslation(sensorOrigin);
+
+            // if it has a valid model comp and transform, then update the vT0 position from the model instance
+            vT0.set(sensTransform.getTranslation(vT0));
 
 //        if (mymc.boundingRadius > 0 && vS.x == 0) {
 //            // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions
@@ -99,23 +109,16 @@ public class OmniSensor extends FeatureAdaptor {
 this sensor feature)... optional specify  vS  to be added to br such that allowing the effective
 radius to be any arbitryariy sized irrespective of mesh size
 */
-            omniRadius.set(mymc.boundingRadius, 0, 0).add(vS.x, 0, 0);
+            omniRadius.add(mymc.boundingRadius, 0, 0);
 
             // sensor origin is offset on a vector ray cast in relative forward facing direction
-
-            lookRay.set(sensTransform.getTranslation(sensorOrigin), // myPos
+            lookRay.set(sensTransform.getTranslation(sensorOrigin),
                     ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
 
-        } else {
-// hack for a non-graphical sensor
-            sensorOrigin.set(vT0);  // grab the starting Origin (translation) of the entity from the instance data
-
-            omniRadius.set(vS.x, 0, 0);
-
-            // sensor origin is offset on a vector ray cast in relative forward facing direction
-//            rotation = new Quaternion();
-            lookRay.set(sensorOrigin,
-                    ModelInstanceEx.rotateRad(direction.set(0, 0, -1), rotation.set(0, 0, 0, 1)));
+            if (senseZoneDistance > 0) {
+                /* add scaled look-ray-unit-vector to sensor position */
+                sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
+            }
         }
 
         /*
@@ -130,10 +133,6 @@ from point of sensor origin to a any point lying on the sphere of given radius
 omni radius not being used consistently (sometimes just x given, some times xyz ... doesn't matter, it
  ends up just an (essentially arbitrary ) scalar float anyway
  */
-
-        /* add scaled look-ray-unit-vector to sensor position */
-        sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
-
 
         bounds.set(sensorOrigin);
         bounds.add(omniRadius);
@@ -203,7 +202,7 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                         // clock target probly for player, other wise probly no status comp
                         StatusComponent tsc = target.getComponent(StatusComponent.class);
 
-                        if (null == tsc){
+                        if (null == tsc) {
                             tsc = new StatusComponent(); // entity doesn't have an SC .. just make a dummy one to keep below logic cleaner
                         }
 //                        if (null != tsc)
@@ -226,7 +225,7 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                                 if (tsc.lifeClock > 0) {
                                     tsc.lifeClock -= 1;
                                 }
-                                if (tsc.lifeClock <= 0){
+                                if (tsc.lifeClock <= 0) {
                                     impactType = KillSensor.ImpactType.FATAL;
                                 }
 // if (null != tmi
