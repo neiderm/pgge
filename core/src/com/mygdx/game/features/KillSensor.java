@@ -15,7 +15,10 @@
  */
 package com.mygdx.game.features;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
 
@@ -24,7 +27,7 @@ import com.mygdx.game.components.CompCommon;
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
-public class KillSensor {
+class KillSensor {
 
     public enum ImpactType {
         FATAL,
@@ -38,10 +41,24 @@ public class KillSensor {
 
      IN: points : because floating signboarded  points
     */
-    public static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
+    static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
+
+        Material saveMat = mi.materials.get(0);
+
+        TextureAttribute tmpTa = (TextureAttribute) saveMat.get(TextureAttribute.Diffuse);
+        TextureAttribute fxTextureAttrib = null;
+
+        if (null != tmpTa) {
+            Texture tt = tmpTa.textureDescription.texture;
+            fxTextureAttrib = TextureAttribute.createDiffuse(tt);
+
+//            fxTextureAttrib = (TextureAttribute)tmpTa.copy(); // idfk maybe toodo
+        }
 
         Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
+
         CompCommon.spawnNewGameObject(
-                null, mi.transform.getTranslation(translation), new BurnOut(mi, useFlags), "sphere");
+                null, mi.transform.getTranslation(translation),
+                new BurnOut(fxTextureAttrib, useFlags), "sphere");
     }
 }

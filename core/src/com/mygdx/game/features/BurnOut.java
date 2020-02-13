@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -34,6 +35,7 @@ public class BurnOut extends FeatureAdaptor {
     private int clock = 88;  // using as percent alphA
     private Vector3 scale = new Vector3(1, 1, 1);
     private Color cc;
+    private KillSensor.ImpactType impactTypeColor; // impact type set by constructor, for settting texture color
 
     // save original model material attributes ? big hack!@
     private TextureAttribute fxTextureAttrib;
@@ -42,48 +44,17 @@ public class BurnOut extends FeatureAdaptor {
     public BurnOut() { // mt
     }
 
-    public BurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
+    public BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType useFlags) {
 
-        setColorTex(mi, useFlags);
-    }
-
-    private void setColorTex(ModelInstance modelInstance, KillSensor.ImpactType useFlags) {
-
-        if (null != modelInstance) {
-//            Class c = object.getClass();
-//            if (c.toString().contains("g3d.Material"))  // lazy , discard the full class path
-            {
-                cc = new Color(Color.FIREBRICK);
-
-                if (KillSensor.ImpactType.ACQUIRE == useFlags) { // marker for prize pickup
-                    cc = new Color(Color.SKY); // hacky hackhackster
-                } else  if (KillSensor.ImpactType.DAMAGING == useFlags)
-                { // marker for hit/collision w/ damage
-                    cc = new Color(Color.YELLOW);
-                }
-
-                Material saveMat = modelInstance.materials.get(0);
-
-                TextureAttribute tmpTa = (TextureAttribute) saveMat.get(TextureAttribute.Diffuse);
-
-                if (null != tmpTa) {
-
-                    Texture tt = tmpTa.textureDescription.texture;
-                    fxTextureAttrib = TextureAttribute.createDiffuse(tt);
-                } else {
-/*
-                    myTexture = new Texture("data/crate.png"); // tmp test
-                        ta = TextureAttribute.createDiffuse(myTexture);
-*/
-                }
-            }
-        }
+        this.fxTextureAttrib = fxTextureAttrib;
+        this.impactTypeColor  = useFlags;
+        this.activateOnState = GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL;
     }
 
     @Override
     public void update(Entity ee) {
 
-//        super.update(sensor);
+        super.update(ee);
 
 //        if (isActivated)
         {
@@ -104,8 +75,7 @@ public class BurnOut extends FeatureAdaptor {
                     Material mat = mi.materials.get(0);
 
                     // make sure Material is valid  i.e. should have at least 1 Attribute
-                    if (null != mat && mat.size() > 0
-                            && null != fxTextureAttrib) {
+                    if (null != mat && mat.size() > 0 && null != fxTextureAttrib) {
 
                         mat.set(fxTextureAttrib); // idfk i guess don't care what tex coords are just smearing it around the shape anyway
                     } else {
@@ -123,12 +93,23 @@ public class BurnOut extends FeatureAdaptor {
                 if (null == sc) {
                     ee.add(new StatusComponent(0));
                 }
-
-//                // check if we we're  using a "local" Texture  ( ??? wtfe )     and if so dispose()
-//                if (null != myTexture) {
-//                    myTexture.dispose(); // idfk
-//                }
             }
+        }
+    }
+
+    @Override
+    public void onActivate(Entity ee) {
+
+        super.onActivate(ee);
+
+        cc = new Color(Color.FIREBRICK);
+
+        if (KillSensor.ImpactType.ACQUIRE == impactTypeColor) {
+            // marker for prize pickup
+            cc = new Color(Color.SKY);
+        } else  if (KillSensor.ImpactType.DAMAGING == impactTypeColor)
+        { // hit/collision w/ damage
+            cc = new Color(Color.YELLOW);
         }
     }
 }
