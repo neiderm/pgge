@@ -38,6 +38,7 @@ public class OmniSensor extends FeatureAdaptor {
     protected Entity target;
     boolean inverted;
     boolean isTriggered;
+    KillSensor.ImpactType impactType;
 
     private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
@@ -196,7 +197,7 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                         ModelComponent smc = sensor.getComponent(ModelComponent.class);
                         if (null != smc) {
                             senorModelInst = smc.modelInst;
-                            sensorPos = smc.modelInst.transform.getTranslation(sensorPos);
+//                            sensorPos = smc.modelInst.transform.getTranslation(sensorPos);
                         }
 
                         // clock target probly for player, other wise probly no status comp
@@ -221,13 +222,6 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                             } else { // damaging or fatal
                                 // use the target model instance texture etc.
                                 ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
-
-                                if (tsc.lifeClock > 0) {
-                                    tsc.lifeClock -= 1;
-                                }
-                                if (tsc.lifeClock <= 0) {
-                                    impactType = KillSensor.ImpactType.FATAL;
-                                }
 // if (null != tmi
                                 tmi.transform.getRotation(rotation); // reuse tmp rotation variable
                                 tmpV.set(0, -1, 0); //  2.5d simplification
@@ -242,7 +236,18 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                                 }
                                 tsc.damage[n] += 100 / 5; // damage/shield levels are 0-100
 
-                                KillSensor.makeBurnOut(tmi, impactType);
+                                // if the shield damage @ 100%, then set impact type to Fatal
+                                if (tsc.damage[n] >= 100){
+                                    tsc.lifeClock = 0;
+                                }
+                                if (tsc.lifeClock > 0) {
+                                    tsc.lifeClock -= 1;
+                                }
+                                if (tsc.lifeClock <= 0) {
+                                    impactType = KillSensor.ImpactType.FATAL;
+                                }
+
+                                KillSensor.makeBurnOut(tmi, impactType); // use target model instance for burn out texture
                             }
                         }
                     }

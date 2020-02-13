@@ -27,21 +27,29 @@ public class FeatureAdaptor implements FeatureIntrf {
     Object userData; // lefttover  hackage
     public int bounty;
 
-    private GameWorld.GAME_STATE_T activateOnState;
-    protected KillSensor.ImpactType impactType;
+    GameWorld.GAME_STATE_T activateOnState;
     boolean isActivated;
 
     public CollisionProcessorIntrf collisionProcessor;
 
     // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
-    public Vector3 vR = new Vector3(); // x = offset of omnisensor sense zone from body origin 
-    public Vector3 vS = new Vector3();// x = radius of omnisensor
-    public Vector3 vT = new Vector3(); // sensor location thing, or projectile movement step  
+    Vector3 vR = new Vector3(); // x = offset of omnisensor sense zone from body origin
+    Vector3 vS = new Vector3();// x = radius of omnisensor
+    Vector3 vT = new Vector3(); // sensor location thing, or projectile movement step
 
     // origins or other gameObject.instance specific data - position, scale etc.
 //    public Vector3 vR0 = new Vector3();
 //    public Vector3 vS0 = new Vector3();
-    public Vector3 vT0 = new Vector3();     // starting Origin (translation) of the entity from the instance data
+    Vector3 vT0 = new Vector3();     // starting Origin (translation) of the entity from the instance data
+
+
+    public enum F_SUB_TYPE_T {
+        F_TYPE_0,
+        F_TYPE_1;
+    };
+
+
+    public F_SUB_TYPE_T fSubType;
 
 
     @Override
@@ -54,7 +62,9 @@ public class FeatureAdaptor implements FeatureIntrf {
 
         // allow not defined in json to be implicitly ignoired,
         if (!isActivated &&
-                activateOnState == GameWorld.getInstance().getRoundActiveState()) {
+                (activateOnState == GameWorld.getInstance().getRoundActiveState() ||
+                        activateOnState == GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL)
+        ) {
 
             isActivated = true;
             onActivate(ee);

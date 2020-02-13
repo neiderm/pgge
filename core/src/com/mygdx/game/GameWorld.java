@@ -52,7 +52,8 @@ public final class GameWorld implements Disposable {
         ROUND_OVER_TIMEOUT,
         ROUND_OVER_MORTE,    // out of time or dead ... continue?
         ROUND_COMPLETE_WAIT, // @ completing the goal .. short pause (for effect)
-        ROUND_COMPLETE_NEXT  // transition to next screen after arena complete
+        ROUND_COMPLETE_NEXT, // transition to next screen after arena complete
+        ROUND_ACTIVATE_ON_ALL // dummy state for "unconditionally" activating features
     }
 
     // arbitrary character string to make sure locally added player model info  doesn't bump into
