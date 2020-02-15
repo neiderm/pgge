@@ -17,7 +17,6 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
@@ -35,7 +34,6 @@ public class BurnOut extends FeatureAdaptor {
     private int clock = 88;  // using as percent alphA
     private Vector3 scale = new Vector3(1, 1, 1);
     private Color cc;
-    private KillSensor.ImpactType impactTypeColor; // impact type set by constructor, for settting texture color
 
     // save original model material attributes ? big hack!@
     private TextureAttribute fxTextureAttrib;
@@ -44,12 +42,22 @@ public class BurnOut extends FeatureAdaptor {
     public BurnOut() { // mt
     }
 
-    public BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType useFlags) {
+    public BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType impt) {
 
         this.fxTextureAttrib = fxTextureAttrib;
-        this.impactTypeColor  = useFlags;
         this.activateOnState = GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL;
+
+        if (KillSensor.ImpactType.ACQUIRE == impt) {
+            // marker for prize pickup
+            cc = new Color(Color.SKY);
+        } else  if (KillSensor.ImpactType.DAMAGING == impt)
+        { // hit/collision w/ damage
+            cc = new Color(Color.YELLOW);
+        } else {
+            cc = new Color(Color.FIREBRICK);
+        }
     }
+
 
     @Override
     public void update(Entity ee) {
@@ -94,22 +102,6 @@ public class BurnOut extends FeatureAdaptor {
                     ee.add(new StatusComponent(0));
                 }
             }
-        }
-    }
-
-    @Override
-    public void onActivate(Entity ee) {
-
-        super.onActivate(ee);
-
-        cc = new Color(Color.FIREBRICK);
-
-        if (KillSensor.ImpactType.ACQUIRE == impactTypeColor) {
-            // marker for prize pickup
-            cc = new Color(Color.SKY);
-        } else  if (KillSensor.ImpactType.DAMAGING == impactTypeColor)
-        { // hit/collision w/ damage
-            cc = new Color(Color.YELLOW);
         }
     }
 }
