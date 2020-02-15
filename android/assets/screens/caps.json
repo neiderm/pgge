@@ -35,6 +35,26 @@
 			{
 				"instanceData": [
 					{
+						"adaptr": {
+							"class": "com.mygdx.game.features.ExitSensor",
+							"activateOnState": "ROUND_COMPLETE_WAIT",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
+							"vT": {
+								"x": -3,
+								"y": 20,
+								"z": -3
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "DroppingExitSensor"
+			},
+			{
+				"instanceData": [
+					{
 						"translation": {
 							"x": -10,
 							"y": 4,
@@ -56,6 +76,34 @@
 				],
 				"objectName": "OutOfBounds_no_shape",
 				"featureName": "OutOfBounds_no_graphic"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 2,
+							"y": 2.5,
+							"z": -5
+						},
+						"color": {
+							"r": 0.471,
+							"g": 0.318,
+							"b": 0.663,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
 			},
 			{
 				"instanceData": [

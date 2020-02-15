@@ -148,7 +148,7 @@
 							"class": "com.mygdx.game.features.ExitSensor",
 							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vS": {
-								"x": 1.5
+								"x": 2.7
 							}
 						}
 					}
@@ -242,10 +242,7 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.Crapium",
-							"impactType": "ACQUIRE",
-							"vS": {
-								"x": 0.5
-							}
+							"impactType": "ACQUIRE"
 						}
 					},
 					{
@@ -262,10 +259,7 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.Crapium",
-							"impactType": "ACQUIRE",
-							"vS": {
-								"x": 0.5
-							}
+							"impactType": "ACQUIRE"
 						}
 					}
 				],
@@ -413,10 +407,7 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.OOBSensor",
-							"impactType": "FATAL",
-							"vS": {
-								"x": 0.1
-							}
+							"impactType": "FATAL"
 						}
 					}
 				],
