@@ -169,17 +169,18 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                 }
             }
 
-            updateTriggered(sensor, isTriggered);
+            Vector3 sensorPos = vT0;
+
+            updateTriggered(sensor, isTriggered, sensorPos);
         }
     }
 
 
     private Vector3 tmpV = new Vector3();
-    private Vector3 sensorPos = new Vector3();
     private Vector3 targetPos = new Vector3();
     private int bucket;
 
-    private void updateTriggered(Entity sensor, boolean triggered) {
+    private void updateTriggered(Entity sensor, boolean triggered, Vector3 sensorPos) {
 
         KillSensor.ImpactType impactType = this.impactType;
 
@@ -190,14 +191,11 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
 
                     if (null != impactType) {
 
-                        sensorPos.set(vT0); // fallback for sensor position if no model instance
-
                         ModelInstance senorModelInst = null;
 
                         ModelComponent smc = sensor.getComponent(ModelComponent.class);
                         if (null != smc) {
                             senorModelInst = smc.modelInst;
-//                            sensorPos = smc.modelInst.transform.getTranslation(sensorPos);
                         }
 
                         // clock target probly for player, other wise probly no status comp
