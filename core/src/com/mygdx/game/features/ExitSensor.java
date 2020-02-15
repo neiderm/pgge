@@ -65,7 +65,7 @@ public class ExitSensor extends OmniSensor {
         final String tmpObjectName = "cone";
 
         CompCommon.spawnNewGameObject(
-                new Vector3(1, 1, 1), vT0, // translation,
+                new Vector3(1, 1, 1), sensorOrigin,
                 new ExitSensor(),
                 tmpObjectName);
 

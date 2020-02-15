@@ -39,11 +39,10 @@ public class OmniSensor extends FeatureAdaptor {
     boolean inverted;
     boolean isTriggered;
     KillSensor.ImpactType impactType;
+    Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
 
-    private Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
     private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
-
     private Vector3 omniRadius = new Vector3();
 
     private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
@@ -51,8 +50,9 @@ public class OmniSensor extends FeatureAdaptor {
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3();// new Vector3(0, 0, -1); // vehicle forward ... whatever, just another working vector instance
     private Quaternion rotation = new Quaternion();
-
     private ModelComponent mymc;
+    private Matrix4 sensTransform = new Matrix4();
+
 
     float senseZoneDistance = 5.0f;
 
@@ -68,13 +68,14 @@ public class OmniSensor extends FeatureAdaptor {
 //        super.init(target); // not much there, just sets the target,
         this.target = (Entity) target;
 
-//        this.omniRadius.set(vS);
-
         // vector sensor offset
         senseZoneDistance = vR.x;
 
         // grab the starting Origin (translation) of the entity (vT0 set from instance data)
         sensorOrigin.set(vT0);
+
+        // in case this is a non-model entity, set transform translation at least initialize to vT0
+        sensTransform.setTranslation(sensorOrigin);
     }
 
 
@@ -89,14 +90,9 @@ public class OmniSensor extends FeatureAdaptor {
 
             mymc = sensor.getComponent(ModelComponent.class);
 
-            // grab the starting Origin (translation) of the entity (vT0 set from instance data)
-//            sensorOrigin.set(vT0);
         } else {
 
-            Matrix4 sensTransform = mymc.modelInst.transform;
-
-            // if it has a valid model comp and transform, then update the vT0 position from the model instance
-            vT0.set(sensTransform.getTranslation(vT0));
+            sensTransform = mymc.modelInst.transform;
 
 //        if (mymc.boundingRadius > 0 && vS.x == 0) {
 //            // calc bound radius e.g. sphere will be larger than actual as it is based on dimensions
@@ -111,16 +107,20 @@ this sensor feature)... optional specify  vS  to be added to br such that allowi
 radius to be any arbitryariy sized irrespective of mesh size
 */
             omniRadius.add(mymc.boundingRadius, 0, 0);
-
-            // sensor origin is offset on a vector ray cast in relative forward facing direction
-            lookRay.set(sensTransform.getTranslation(sensorOrigin),
-                    ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
-
-            if (senseZoneDistance > 0) {
-                /* add scaled look-ray-unit-vector to sensor position */
-                sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
-            }
         }
+
+        // if it has a valid model comp and transform, then update the vT0 position from the model instance
+        sensTransform.getTranslation(sensorOrigin);
+
+        // sensor origin is offset on a vector ray cast in relative forward facing direction
+        lookRay.set(sensorOrigin,
+                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+
+        if (senseZoneDistance > 0) {
+            /* add scaled look-ray-unit-vector to sensor position */
+            sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
+        }
+
 
         /*
 The distance between two points in a three dimensional - 3D - coordinate system can be calculated as
@@ -169,9 +169,7 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                 }
             }
 
-            Vector3 sensorPos = vT0;
-
-            updateTriggered(sensor, isTriggered, sensorPos);
+            updateTriggered(sensor, isTriggered, sensorOrigin);
         }
     }
 
