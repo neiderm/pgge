@@ -18,9 +18,6 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.CompCommon;
-import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
@@ -79,40 +76,12 @@ public class FeatureAdaptor implements FeatureIntrf {
         }
     }
 
-    /*
-     * default collision processing handler
-     * Spawns a new static mesh shape (and triggers itself for deletion)
-     * most subs should override as this is probably NOT what is desired for most situations!
-     */
-    public void onProcessedCollision(Entity ee) {
-
-// the passed FA is obviously self-reference 'this' ... but note that when the object is built, Nothing
-// of this FA attributes is persisted! // Just the way it is ;)
-// ... what the so-called User Data is for.
-
-// userData = ?  ... is a java object, cast to anything ... so  is there any sensible default ?
-
-        final String tmpObjectName = "sphere";
-
-        Vector3 translation = new Vector3(); // tmp for new vector instance .. only need to feed the GC relavitvely few of thsesei guess
-        ee.getComponent(ModelComponent.class).modelInst.transform.getTranslation(translation);
-
-        CompCommon.spawnNewGameObject(
-                new Vector3(1, 1, 1),
-                translation,
-                this,  // pass-thru
-                tmpObjectName);
-
-        ee.add(new StatusComponent(0)); // delete me!
+    public void onProcessedCollision(Entity ee) { // mt
     }
 
 
     @Override
-    public void onActivate(Entity ee) {
-/*
-        if (null != collisionProcessor) // .... hmmm let's see
-            CompCommon.entityAddPhysicsBody(ee, vT0);
-*/
+    public void onActivate(Entity ee) { // mt
     }
 
 

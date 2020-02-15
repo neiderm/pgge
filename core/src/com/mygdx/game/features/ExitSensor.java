@@ -2,6 +2,7 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -15,13 +16,6 @@ public class ExitSensor extends OmniSensor {
         super.update(sensor);
 
         if (isActivated) {
-
-            ModelComponent mc = sensor.getComponent(ModelComponent.class);
-
-            if (mc.modelInst.materials.size > 0)
-                ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.TEAL)); // tmp test code
-//else
-//    Gdx.app.log("sdf", "sdf"); //  doesn't necessarily have a material
 
             if (isTriggered) {
 
@@ -44,24 +38,37 @@ public class ExitSensor extends OmniSensor {
      * default onProcessedCollision() is in featureAdaptor  and simply spawns a new object defaulty body "sphere"
      *
      */
-///*
     @Override
-    public void onActivate(Entity ee) {
+    public void onActivate(Entity sensor) {
 
-//        super.onActivate(ee);
-//        Vector3 translation = new Vector3();
-//
-//        ModelComponent mc = target.getComponent(ModelComponent.class);
-//        translation = mc.modelInst.transform.getTranslation(translation);
-//
-//        /* position vector offsets by user value from json, to be loaded by super method */
-//        vT0.set(vT).add(translation);
-//        vT0.set(vT);             //          vT0.add(vT);    ????????????
         vT0.add(vT); // vT0 is set to a body position if one was given (otherwise 0'd) otherwise vT may be set
         // so by adding 3rd possibility is vT0 of a body is offset by vT on activation ... fwr
 
-        if (null != collisionProcessor) // .... hmmm let's see, apparently this should involve collisions
-            CompCommon.entityAddPhysicsBody(ee, vT0); // rioght now this is only a boring old box shape!
+        if (null != collisionProcessor) {// .... hmmm let's see, apparently this should involve collisions
+            CompCommon.entityAddPhysicsBody(sensor, vT0); // rioght now this is only a boring old box shape!
+        }
+
+        ModelComponent mc = sensor.getComponent(ModelComponent.class);
+
+        if (null != mc && null != mc.modelInst && mc.modelInst.materials.size > 0) {
+            ModelInstanceEx.setColorAttribute(mc.modelInst, new Color(Color.OLIVE)); // tmp test code
+        }
     }
-//*/
+
+    /*
+     * if it has a physics body, it can be called on collision handler
+     * Spawns a new static mesh shape (and triggers itself for deletion)
+     */
+    @Override
+    public void onProcessedCollision(Entity sensor) {
+
+        final String tmpObjectName = "cone";
+
+        CompCommon.spawnNewGameObject(
+                new Vector3(1, 1, 1), vT0, // translation,
+                new ExitSensor(),
+                tmpObjectName);
+
+        sensor.add(new StatusComponent(0)); // delete me!
+    }
 }
