@@ -311,14 +311,14 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
             stage.setCheckedBox(idxCurSel);
 
             InputMapper.InputState inp = stage.mapper.getInputState();
-            if (InputMapper.InputState.INP_A == inp) {
+            if (InputMapper.InputState.INP_FIRE1 == inp) {
 
                 if (stageNamesList.size > 0){
                     String stagename = stageNamesList.get(idxCurSel);
                     GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
                 }
             }
-            else if (InputMapper.InputState.INP_START == inp) {
+            else if (InputMapper.InputState.INP_MENU == inp) {
 
                 stage.onscreenMenuTbl.setVisible( false );
                 isPaused = false;
@@ -336,14 +336,14 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
             InputMapper.InputState inputState = stage.mapper.getInputState();
 
-            if (InputMapper.InputState.INP_START == inputState) {
+            if (InputMapper.InputState.INP_MENU == inputState) {
 //                GameWorld.getInstance().showScreen(newLoadingScreen("gbr.json")); // LevelOne.json
 // setup a screen/file selection menu (development only)
                 if (stageNamesList.size > 0) {
                     stage.onscreenMenuTbl.setVisible(true);
                     isPaused = true;
                 }
-            } else if (InputMapper.InputState.INP_A == inputState) {
+            } else if (InputMapper.InputState.INP_FIRE1 == inputState) {
 
                 GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
             }

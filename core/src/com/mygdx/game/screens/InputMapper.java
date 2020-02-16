@@ -101,10 +101,10 @@ public class InputMapper {
     // so this is the control switches abstrction
     public enum InputState {
         INP_NONE,
-        INP_SELECT,
-        INP_START,
-        INP_A,
-        INP_B;
+        INP_VIEW,
+        INP_MENU,
+        INP_FIRE1,
+        INP_FIRE2;
     }
 
     private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
@@ -123,7 +123,7 @@ public class InputMapper {
         connectedCtrl = getConnectedCtrl(0);
 
         // bah ... debounce this (bounce from key on previous screen)
-        checkInputState(InputState.INP_A); // seems to be necessary and effective with game pad ;)
+        checkInputState(InputState.INP_FIRE1); // seems to be necessary and effective with game pad ;)
     }
 
 //    private class ButtonData {
@@ -215,25 +215,25 @@ public class InputMapper {
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtons.BTN_START)
                 ) {
-            newInputState = InputState.INP_START;
+            newInputState = InputState.INP_MENU;
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
                 || getControlButton(VirtualButtons.BTN_A)
                 ) {
-            newInputState = InputState.INP_A;
+            newInputState = InputState.INP_FIRE1;
 
             pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtons.BTN_B)
                 ) {
-            newInputState = InputState.INP_B;
+            newInputState = InputState.INP_FIRE2;
         }
         else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtons.BTN_SELECT)
                 ) {
-            newInputState = InputState.INP_SELECT;
+            newInputState = InputState.INP_VIEW;
         }
 
         return newInputState;
@@ -314,7 +314,7 @@ public class InputMapper {
 
     void setPointer(float x, float y) {
 
-        setInputState(InputState.INP_A);
+        setInputState(InputState.INP_FIRE1);
         pointer.set(x, y);
     }
 

@@ -52,7 +52,7 @@ public class GamepadConfig implements Screen {
         int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
         stage.setCheckedBox(idxCurSel);
 
-        if (InputMapper.InputState.INP_A == stage.mapper.getInputState()
+        if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()
                || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
                 ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);

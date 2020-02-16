@@ -58,7 +58,6 @@ import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
@@ -218,6 +217,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 }
             }
 
+            // why this got referred to as "select", some earlier abstraction idea
             @Override
             public void onSelectEvent() {
 
@@ -242,15 +242,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                     final int idxX = TankController.InputChannels.AD_AXIS.ordinal();
                     final int idxY = TankController.InputChannels.WS_AXIS.ordinal();
+                    final int idxL2 = TankController.InputChannels.L2_AXIS.ordinal();
+                    final int idxR2 = TankController.InputChannels.R2_AXIS.ordinal();
 
                     // route the signal domain of the input device to that of the model
                     analogs[idxX] = mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS);
                     analogs[idxY] = mapper.getAxis(InputMapper.VIRTUAL_WS_AXIS);
-
-                    analogs[TankController.InputChannels.L2_AXIS.ordinal()] =
-                            mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
-                    analogs[TankController.InputChannels.R2_AXIS.ordinal()] =
-                            mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
+                    analogs[idxL2] = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
+                    analogs[idxR2] = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
 
                     // love this hacky crap
                     GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
@@ -260,12 +259,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         analogs[1] = (-1) * pf.userData / 100.0f; // percent
                     }
 
-                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_B);
+
+                    //  control driving rig
+                         switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 
 //                    if (null != bc)  should assert this but reordered it to ensure not null
-                    {
-                        controlledModel.updateControls(analogs, switches, 0);
-                    }
+                         {
+                             controlledModel.updateControls(analogs, switches, 0);
+                         }
+
                 }
             }
 
@@ -551,16 +553,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 ModelComponent mc = e.getComponent(ModelComponent.class);
                 if (null != mc) {
 
-                    SceneData sd = GameWorld.getInstance().getSceneData();
-                    ModelInfo mi = sd.modelInfo.get(mc.strObjectName);
-
-                    if (null != mi && null != mi.model) {
-
-                        BulletComponent bc = e.getComponent(BulletComponent.class);
-                        if (null != bc && null != bc.shape && null != mc.modelInst) {
-                            // this could possibly be invoked as a rig animation "entity.modelComp.animiation.exploda()"
-                            exploducopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
-                        }
+                    BulletComponent bc = e.getComponent(BulletComponent.class);
+                    if (null != bc && null != bc.shape && null != mc.modelInst) {
+                        // this could possibly be invoked as a rig animation "entity.modelComp.animiation.exploda()"
+                        exploducopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
                     }
                 }
 
