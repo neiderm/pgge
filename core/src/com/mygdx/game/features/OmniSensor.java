@@ -51,7 +51,8 @@ public class OmniSensor extends FeatureAdaptor {
     private Vector3 direction = new Vector3();// new Vector3(0, 0, -1); // vehicle forward ... whatever, just another working vector instance
     private Quaternion rotation = new Quaternion();
     private ModelComponent mymc;
-    private Matrix4 sensTransform = new Matrix4();
+
+    protected Matrix4 sensTransform = new Matrix4();
 
 
     float senseZoneDistance = 5.0f;

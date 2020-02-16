@@ -17,11 +17,9 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.screens.GfxBatch;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -33,12 +31,14 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class VectorSensor extends OmniSensor {
 
-    private Vector3 trans = new Vector3();
-    private GfxUtil lineInstance;
-    private Vector3 myPos = new Vector3();
+    private final Vector3 forwardV = new Vector3(0, 0, -1); // vehicle forward
+
+    private Vector3 startPoint = new Vector3();
+    private Vector3 endPoint = new Vector3();
     private Ray lookRay = new Ray();
     private Vector3 direction = new Vector3(0, 0, -1); // vehicle forward
     private Quaternion rotation = new Quaternion();
+    private GfxUtil lineInstance;
 
     @Override
     public void init(Object userData) {
@@ -54,15 +54,14 @@ public class VectorSensor extends OmniSensor {
 
         super.update(sensor);
 
-        Matrix4 sensTransform = sensor.getComponent(ModelComponent.class).modelInst.transform;
-        myPos.set(sensTransform.getTranslation(trans));
+        endPoint.set(sensTransform.getTranslation(startPoint));
 
-        lookRay.set(myPos,
-                ModelInstanceEx.rotateRad(direction.set(0, 0, -1), sensTransform.getRotation(rotation)));
+        lookRay.set(endPoint,
+                ModelInstanceEx.rotateRad(direction.set(forwardV), sensTransform.getRotation(rotation)));
 
         /* add scaled look-ray-unit-vector to sensor position */
-        myPos.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
+        endPoint.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
 
-        GfxBatch.draw(lineInstance.lineTo(trans, myPos, Color.SALMON));
+        GfxBatch.draw(lineInstance.lineTo(startPoint, endPoint, Color.SALMON));
     }
 }
