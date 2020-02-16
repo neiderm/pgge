@@ -17,16 +17,13 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.util.ModelInstanceEx;
-import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ShootamaThing extends VectorSensor {
 
@@ -41,10 +38,6 @@ public class ShootamaThing extends VectorSensor {
     private ModelComponent mc;
     private Color gcolor = new Color();
 
-    private Node featureNode;
-    private final Vector3 down = new Vector3(0, -1, 0);
-    private final Quaternion turretRotation = new Quaternion();
-    private int turretIndex = -1;
 
 //    @Override
 //    public void init(Object target) {
@@ -67,21 +60,12 @@ public class ShootamaThing extends VectorSensor {
             rotationMin = orientationAngle;
             rotationMax = orientationAngle + ROTATION_RANGE_DEGREES;
 
-            if (rotationStep < 0){
+            if (rotationStep < 0) {
                 // if initial value of RotationStep is negative, "pre-rotate" to i.e. Max and commence rotation from there?
-            } else             if (rotationStep > 0){
+            } else if (rotationStep > 0) {
                 //
             }
 
-            String strMdlNode =  "Tank_01.003" ;
-
-            // "unroll" the nodes list so that the index to the bullet child shape will be consistent
-            int index = PrimitivesBuilder.getNodeIndex(mc.modelInst.nodes, strMdlNode);
-
-            if (index >= 0) { // index != -1
-                featureNode = mc.modelInst.getNode(strMdlNode, true);  // recursive
-                turretIndex = index;
-            }
         }
 //        if (null != mc)
         {
@@ -109,30 +93,9 @@ public class ShootamaThing extends VectorSensor {
             }
 
 
-            if (null != featureNode) {
-                trans.set(featureNode.translation);
-//            trans.y += .01f; // test
-//            featureNode.translation.set(trans);
-                turretRotation.set(featureNode.rotation);
-
-                float rfloat = turretRotation.getAngleAround(down);
-                rfloat += 1; // tbd
-                turretRotation.set(down, rfloat);
-                featureNode.rotation.set(turretRotation);
-
-                // how to sync gunsight and omnisensor to the turret?
-                /*
-                 is going to require separating Sensor position distinct from any sort of graphic/mesh
-                 */
-            }
-//            else
-            {
-                // just rotate the whole thing!
-                // update the rotating platform and re-sync bullet shape with model instance that we've been rotating/moving
-                rotationStep =
-                        updatePlatformRotation(rotationStep, rotationMin, rotationMax, mc.modelInst.transform);
-            }
-
+            // update the rotating platform and re-sync bullet shape with model instance that we've been rotating/moving
+            rotationStep =
+                    updatePlatformRotation(rotationStep, rotationMin, rotationMax, mc.modelInst.transform);
 
 
             mc.modelInst.calculateTransforms(); // definately need this !
@@ -141,11 +104,6 @@ public class ShootamaThing extends VectorSensor {
 
             if (null != bc) {
 
-                if (bc.shape.isCompound() && null != featureNode ){
-// update child collision shape
-                    btCompoundShape btcs = (btCompoundShape)bc.shape;
-                    btcs.updateChildTransform(turretIndex, featureNode.globalTransform);
-                }
 
                 bc.body.setWorldTransform(mc.modelInst.transform);
             }

@@ -21,6 +21,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -53,6 +54,7 @@ import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.KillSensor;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
@@ -181,6 +183,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).body,
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
+
+            KillSensor gunTurret = new KillSensor(
+                    pickedPlayer.getComponent(ModelComponent.class).modelInst,
+                    pickedPlayer.getComponent(BulletComponent.class).shape,
+                    pickedPlayer.getComponent(BulletComponent.class).body
+                    );
+
+
             // working variables
             float[] analogs = new float[TankController.InputChannels.values().length];
             boolean[] switches = new boolean[8];
@@ -259,15 +269,20 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         analogs[1] = (-1) * pf.userData / 100.0f; // percent
                     }
 
+/* hack the turret control */
+                    if ( Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) ) {
 
-                    //  control driving rig
-                         switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+                        gunTurret.updateControls( analogs, switches);
+                    }
+                    else {
+                        //  control driving rig
+                        switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 
 //                    if (null != bc)  should assert this but reordered it to ensure not null
-                         {
-                             controlledModel.updateControls(analogs, switches, 0);
-                         }
-
+                        {
+                            controlledModel.updateControls(analogs, switches, 0);
+                        }
+                    }
                 }
             }
 
