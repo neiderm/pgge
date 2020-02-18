@@ -42,10 +42,13 @@ public class KillSensor {
     }
 
 
-    private Node featureNode;
+    private Node gunNode;
+    private int gunIndex = -1;
+    private Node turretNode;
     private int turretIndex = -1;
-    private final Vector3 down = new Vector3(0, -1, 0);
-    private final Quaternion turretRotation = new Quaternion();
+    private final Vector3 yAxisN = new Vector3(0, -1, 0);
+    private final Vector3 xAxis = new Vector3(1, 0, 0);
+    private final Quaternion tmpRotation = new Quaternion();
 
     private ModelInstance mi;
     private btCompoundShape btcs;
@@ -62,41 +65,71 @@ public class KillSensor {
             this.body = body;
         }
 
-        String strMdlNode = "Tank_01.003";
+//        String strMdlNode = "Tank_01.003";
+        String strTurretNode = "tank_cabine";
 
+        int index;
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
-        int index = PrimitivesBuilder.getNodeIndex(mi.nodes, strMdlNode);
+        index = PrimitivesBuilder.getNodeIndex(mi.nodes, strTurretNode);
 
         if (index >= 0) { // index != -1
-            featureNode = mi.getNode(strMdlNode, true);  // recursive
+            turretNode = mi.getNode(strTurretNode, true);  // recursive
             turretIndex = index;
+        }
+
+        String strBarrelNode = "tenk_canhao";
+
+        // "unroll" the nodes list so that the index to the bullet child shape will be consistent
+        index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
+
+        if (index >= 0) { // index != -1
+            gunNode = mi.getNode(strBarrelNode, true);  // recursive
+            gunIndex = index;
         }
     }
 
     public void updateControls(float[] analogs, boolean[] switches) {
 //        if (null != mc)
         {
-            if (null != featureNode) {
+            if (null != turretNode) {
 //                trans.set(featureNode.translation);
 //            trans.y += .01f; // test
 //            featureNode.translation.set(trans);
-                turretRotation.set(featureNode.rotation);
+                tmpRotation.set(turretNode.rotation);
 
-                float rfloat = turretRotation.getAngleAround(down);
+                float rfloat = tmpRotation.getAngleAround(yAxisN);
 
                 rfloat += analogs[0];
 
-                turretRotation.set(down, rfloat);
-                featureNode.rotation.set(turretRotation);
+                tmpRotation.set(yAxisN, rfloat);
+                turretNode.rotation.set(tmpRotation);
+            }
+
+
+            if (null != gunNode) {
+
+                tmpRotation.set(gunNode.rotation);
+
+                float rfloat = tmpRotation.getAngleAround(xAxis);
+
+                rfloat += analogs[1];
+
+                tmpRotation.set(xAxis, rfloat);
+                gunNode.rotation.set(tmpRotation);
             }
 
 
             mi.calculateTransforms(); // definately need this !
 
 
-            if (null != btcs && null != body && null != featureNode && null != mi.transform) {
+            if (null != btcs && null != body && null != mi.transform) {
 // update child collision shape
-                btcs.updateChildTransform(turretIndex, featureNode.globalTransform);
+                if (null != turretNode) {
+                    btcs.updateChildTransform(turretIndex, turretNode.globalTransform);
+                }
+                if (null != gunNode) {
+                    btcs.updateChildTransform(gunIndex, gunNode.globalTransform);
+                }
 
                 body.setWorldTransform(mi.transform);
             }
