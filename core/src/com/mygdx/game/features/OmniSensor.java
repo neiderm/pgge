@@ -67,7 +67,9 @@ public class OmniSensor extends FeatureAdaptor {
     public void init(Object target) {
 
 //        super.init(target); // not much there, just sets the target,
-        this.target = (Entity) target;
+        if (null != target){
+            this.target = (Entity) target;
+        }
 
         // vector sensor offset
         senseZoneDistance = vR.x;

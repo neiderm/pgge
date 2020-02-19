@@ -23,7 +23,6 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -41,11 +40,12 @@ public class Projectile extends OmniSensor {
         impactType = KillSensor.ImpactType.DAMAGING; // can be set in scene file
     }
 
-    public Projectile(Object target, Matrix4 mtransform) {
+    public Projectile(Entity target, Matrix4 mtransform) {
 
         this();
 
-        this.userData = target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
+//        this.userData = (Object)target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
+        this.target = target;
 
 // proj. sense radius (provde constructor arg)
         this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
