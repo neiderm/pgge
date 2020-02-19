@@ -33,7 +33,7 @@ public class Projectile extends OmniSensor {
     // working variables
     private Vector3 tmpV = new Vector3();
     private Quaternion orientation = new Quaternion();
-
+    private Vector3 vF;
 
     public Projectile() {
 
@@ -54,7 +54,7 @@ public class Projectile extends OmniSensor {
         // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
         // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
         // in order to set up the moving step vector (in term of the shooter facing orientiation)
-        vT.set(getDirectionVector(mtransform));
+        vF = new Vector3(getDirectionVector(mtransform));
     }
 
 
@@ -115,25 +115,16 @@ public class Projectile extends OmniSensor {
         }
 
         // move the projectile by one step vector
-        Vector3 vF = vT;
-
-        // could cache this model comp lookup?
-        ModelComponent fmc = projectile.getComponent(ModelComponent.class);
+        ModelComponent fmc = projectile.getComponent(ModelComponent.class);// could cache this model comp lookup?
 
         fmc.modelInst.transform.getTranslation(tmpV);
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
         if (null != rayPickObject) {
-
+// stopped projectile
             if (fmc.modelInst.materials.size > 0) {
                 ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
             }
-/*
- now what?     tmp test ... paintball effect splatters signboarded to wall would look cool and be fun to do
- */
-// otherwise, the project feature can be stopped here
-//            featureEnt.add(new StatusComponent(true));
-
         } else {
             // no collision imminient so keep it moving along
             fmc.modelInst.transform.trn(vF);
