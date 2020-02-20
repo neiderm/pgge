@@ -32,6 +32,9 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * Created by neiderm on 7/5/2019.
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
+ *
+ * https://free3d.com/3d-model/t-55-12298.html
+ * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
 public class KillSensor {
 
@@ -66,7 +69,8 @@ public class KillSensor {
         }
 
 //        String strMdlNode = "Tank_01.003";
-        String strTurretNode = "tank_cabine";
+//        String strTurretNode = "Main_Turre"; //"tank_cabine";
+        String strTurretNode =  "tank_cabine";
 
         int index;
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
@@ -77,7 +81,8 @@ public class KillSensor {
             turretIndex = index;
         }
 
-        String strBarrelNode = "tenk_canhao";
+//        String strBarrelNode = "Main_Gun"; // https://free3d.com/3d-model/veteran-tiger-tank-38672.html
+        String strBarrelNode =  "tenk_canhao";
 
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
@@ -89,7 +94,8 @@ public class KillSensor {
     }
 
     public void updateControls(float[] analogs, boolean[] switches) {
-//        if (null != mc)
+/// hackage, turret control only enabled when left alt or something held
+        if ( switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */ )
         {
             if (null != turretNode) {
 //                trans.set(featureNode.translation);

@@ -227,14 +227,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 }
             }
 
-            // why this got referred to as "select", some earlier abstraction idea
-            @Override
-            public void onSelectEvent() {
-
-                super.onSelectEvent(); //
-
-                gunSight(hitDetectEvent.getEntity(), pickedPlayer);
-            }
+//            // why this got referred to as "select", some earlier abstraction idea
+//            @Override
+//            public void onSelectEvent() {
+//
+//                super.onSelectEvent(); //
+//
+//                gunSight(hitDetectEvent.getEntity(), pickedPlayer);
+//            }
 
             @Override
             public void onCameraSwitch() {
@@ -247,8 +247,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
 
             void updateControls(){
-
-                if (!GameWorld.getInstance().getIsPaused()) {
 
                     final int idxX = TankController.InputChannels.AD_AXIS.ordinal();
                     final int idxY = TankController.InputChannels.WS_AXIS.ordinal();
@@ -269,21 +267,42 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         analogs[1] = (-1) * pf.userData / 100.0f; // percent
                     }
 
-/* hack the turret control */
-                    if ( Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) ) {
 
-                        gunTurret.updateControls( analogs, switches);
+                    switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
+                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+
+                    if (switches[1]) { // FIRE 1
+                        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+                        // if (null != mc && null != mc.modelInst)
+                        Matrix4 tmpM = mc.modelInst.transform;
+                        tmpM.getRotation(orientation);
+
+                        tmpV.set(0, +0.7f, 0); // todoo the actual height of the gun from the model center point
+                        ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
+                        tmpM.getTranslation(trans).add(tmpV); // start coord of projectile = vehicle center + offset
+                        /*
+                         * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
+                         */
+                        CompCommon.spawnNewGameObject(
+                                new Vector3(0.1f, 0.1f, 0.1f),
+                                trans,
+                                new Projectile(
+                                        hitDetectEvent.getEntity(), tmpM), "cone");
+//                        gunSight(hitDetectEvent.getEntity(), mc.modelInst );
                     }
-                    else {
-                        //  control driving rig
-                        switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 
+                    /* hack the turret control */
+                    switches[2] = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT);
+                    gunTurret.updateControls(analogs, switches);
+
+                        //  control driving rig
 //                    if (null != bc)  should assert this but reordered it to ensure not null
                         {
-                            controlledModel.updateControls(analogs, switches, 0);
+ //  needs to have logic to exclude ALT_LEFT (switches[n] )
+                            if ( ! switches[2]) {
+                                controlledModel.updateControls(analogs, switches, 0);
+                            }
                         }
-                    }
-                }
             }
 
             @Override
@@ -320,7 +339,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                         } else {
                             // do controller to model update  only if in an appropriate valid game state
-                            updateControls();
+                            if (!GameWorld.getInstance().getIsPaused()) {
+
+                                updateControls();
+                            }
                         }
 
                         break;
