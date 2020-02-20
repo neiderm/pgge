@@ -15,17 +15,20 @@
  */
 package com.mygdx.game.features;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
@@ -143,11 +146,33 @@ public class KillSensor {
     }
 
 
-    /*
-    The thing that is going 'gaBoom' should be able to specify Material texture,  Color Attr. only)
-    (or else if no Texture Attrib. then we assign a default (fire-y!!) one! ?
+    private Vector3 trans = new Vector3();
+    private Vector3 tmpV = new Vector3();
+    private Quaternion orientation = new Quaternion();
 
-     IN: points : because floating signboarded  points
+
+    // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
+    public void fireProjectile(Entity target, ModelInstance pMI) {
+
+        if (null != pMI) {
+
+            Matrix4 tmpM = pMI.transform;
+            tmpM.getRotation(orientation);
+
+// todo: get orientation of gun barrel
+
+            tmpV.set(0, +0.7f, 0); // todoo the actual height of the gun from the model center point
+            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
+            tmpM.getTranslation(trans).add(tmpV); // start coord of projectile = vehicle center + offset
+
+            CompCommon.spawnNewGameObject(
+                    new Vector3(0.1f, 0.1f, 0.1f), trans,
+                    new Projectile(target, tmpM), "cone");
+        }
+    }
+
+
+    /*
     */
     static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
 

@@ -197,45 +197,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
 
-            // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
-            void gunSight(Entity target, Entity player) {
-
-                ModelComponent mc = player.getComponent(ModelComponent.class);
-
-                if (null != mc && null != mc.modelInst) {
-
-                    Matrix4 tmpM = mc.modelInst.transform;
-                    tmpM.getRotation(orientation);
-
-                    // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
-                    // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
-                    tmpV.set(0, +0.7f, 0); // using +y for up vector ...
-                    ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
-                    tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
-
-                    // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-                    //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
-//                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
-                    /*
-                     * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
-                     */
-                    CompCommon.spawnNewGameObject(
-                            new Vector3(0.1f, 0.1f, 0.1f),
-                            trans,
-                            new Projectile(target, tmpM),
-                            "cone");
-                }
-            }
-
-//            // why this got referred to as "select", some earlier abstraction idea
-//            @Override
-//            public void onSelectEvent() {
-//
-//                super.onSelectEvent(); //
-//
-//                gunSight(hitDetectEvent.getEntity(), pickedPlayer);
-//            }
-
             @Override
             public void onCameraSwitch() {
 
@@ -244,7 +205,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 else
                     multiplexer.removeProcessor(camController);
             }
-
 
             void updateControls(){
 
@@ -259,6 +219,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     analogs[idxL2] = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
                     analogs[idxR2] = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
 
+                    switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
+                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+
+                //  control driving rig
+                if (!switches[2]) {  // exclude ALT_LEFT
                     // love this hacky crap
                     GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
@@ -267,42 +232,18 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         analogs[1] = (-1) * pf.userData / 100.0f; // percent
                     }
 
+                    controlledModel.updateControls(analogs, switches, 0);
+                }
 
-                    switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
-                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+                /* hack the turret control */
+                switches[2] = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT);
+                gunTurret.updateControls(analogs, switches);
 
-                    if (switches[1]) { // FIRE 1
-                        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-                        // if (null != mc && null != mc.modelInst)
-                        Matrix4 tmpM = mc.modelInst.transform;
-                        tmpM.getRotation(orientation);
-
-                        tmpV.set(0, +0.7f, 0); // todoo the actual height of the gun from the model center point
-                        ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
-                        tmpM.getTranslation(trans).add(tmpV); // start coord of projectile = vehicle center + offset
-                        /*
-                         * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
-                         */
-                        CompCommon.spawnNewGameObject(
-                                new Vector3(0.1f, 0.1f, 0.1f),
-                                trans,
-                                new Projectile(
-                                        hitDetectEvent.getEntity(), tmpM), "cone");
-//                        gunSight(hitDetectEvent.getEntity(), mc.modelInst );
-                    }
-
-                    /* hack the turret control */
-                    switches[2] = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT);
-                    gunTurret.updateControls(analogs, switches);
-
-                        //  control driving rig
-//                    if (null != bc)  should assert this but reordered it to ensure not null
-                        {
- //  needs to have logic to exclude ALT_LEFT (switches[n] )
-                            if ( ! switches[2]) {
-                                controlledModel.updateControls(analogs, switches, 0);
-                            }
-                        }
+                if (switches[1]) { // FIRE 1
+                    ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+                    // if (null != mc && null != mc.modelInst)
+                    gunTurret.fireProjectile(hitDetectEvent.getEntity(), mc.modelInst);
+                }
             }
 
             @Override
@@ -433,12 +374,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
         };
     }
-//    private void sillyFontFx(Color cc){
-//        font.setColor(cc);
-//        float scaleX = font.getScaleX();
-//        float scaleY = font.getScaleY();
-//        font.getData().setScale(scaleY  * 1.5f);
-//    }
 
     /*
     game event object for signalling to pickray system
@@ -499,7 +434,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private GfxUtil camDbgLineInstance = new GfxUtil();
     private Matrix4 chaserTransform;
     private SteeringEntity chaserSteerable = new SteeringEntity();
-    private Color color = new Color(Color.CYAN);
 
     //private String s = new String(); // doesn't help ... String.format calls new Formatter()!
     /*
