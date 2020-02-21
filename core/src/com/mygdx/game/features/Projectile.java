@@ -31,48 +31,50 @@ import com.mygdx.game.util.ModelInstanceEx;
 public class Projectile extends OmniSensor {
 
     // working variables
-    private Vector3 tmpV = new Vector3();
-    private Quaternion orientation = new Quaternion();
-    private Vector3 vF;
+    private final Vector3 tmpV = new Vector3();
+    private final Quaternion orientation = new Quaternion();
+    private final Vector3 vF = new Vector3();
 
     public Projectile() {
 
         impactType = KillSensor.ImpactType.DAMAGING; // can be set in scene file
     }
 
+    public Projectile(Entity target, Vector3 vFp) {
+
+        this();
+
+        this.target = target;
+
+        // proj. sense radius (provde constructor arg)
+        this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
+
+        this.vF.set(vFp);
+    }
+
+    // probably get rid of this one
     public Projectile(Entity target, Matrix4 mtransform) {
 
         this();
 
-//        this.userData = (Object)target;// target entiy ... could use ModelComponent.class).modelInst.transform ??????
         this.target = target;
 
 // proj. sense radius (provde constructor arg)
         this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
 
-        // i believe sensor was intended to be able to exist w/o a model instance, thus sensor origin
-        // may be found stored explicitly in vT in some sensors. however, doesn't seem to need use of
-        // vT for antyhing else and instead is needed to have a 3d transform of originating "shooter"
-        // in order to set up the moving step vector (in term of the shooter facing orientiation)
-        vF = new Vector3(getDirectionVector(mtransform));
+        vF.set(getDirectionVector(mtransform));
     }
 
 
     /*
      * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector
      */
+    // probably get rid of this one
     private Vector3 getDirectionVector(Matrix4 shootersTransform) {
 
         Vector3 vvv = new Vector3();
 
         shootersTransform.getRotation(orientation);
-
-        // offset the trans  because the model origin is free to be adjusted in Blender e.g. at "surface level"
-        // depending where on the model origin is set (done intentionally for adjustmestment of decent steering/handling physics)
-//        tmpV.set(0, +0.75f, 0); // using +y for up vector ...
-//        ModelInstanceEx.rotateRad(tmpV, orientation); // ... and rotsting the vector to orientation of transform matrix
-
-//        tmpM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
         // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
         float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"

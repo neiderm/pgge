@@ -53,6 +53,7 @@ public class KillSensor {
     private Node turretNode;
     private int turretIndex = -1;
     private final Vector3 yAxisN = new Vector3(0, -1, 0);
+    private final Vector3 yAxis = new Vector3(0, 1, 0);
     private final Vector3 xAxis = new Vector3(1, 0, 0);
     private final Quaternion tmpRotation = new Quaternion();
 
@@ -97,7 +98,8 @@ public class KillSensor {
     }
 
     public void updateControls(float[] analogs, boolean[] switches) {
-/// hackage, turret control only enabled when left alt or something held
+
+        /// hackage, turret control enable needs a key
         if ( switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */ )
         {
             if (null != turretNode) {
@@ -127,7 +129,6 @@ public class KillSensor {
                 gunNode.rotation.set(tmpRotation);
             }
 
-
             mi.calculateTransforms(); // definately need this !
 
 
@@ -146,9 +147,10 @@ public class KillSensor {
     }
 
 
-    private Vector3 trans = new Vector3();
-    private Vector3 tmpV = new Vector3();
-    private Quaternion orientation = new Quaternion();
+    private final Vector3 vFprj = new Vector3();
+    private final Vector3 trans = new Vector3();
+    private final Vector3 tmpV = new Vector3();
+    private final Quaternion orientation = new Quaternion();
 
 
     // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
@@ -159,15 +161,37 @@ public class KillSensor {
             Matrix4 tmpM = pMI.transform;
             tmpM.getRotation(orientation);
 
-// todo: get orientation of gun barrel
+// wip: handle orientation of gun barrel
 
-            tmpV.set(0, +0.7f, 0); // todoo the actual height of the gun from the model center point
+//            tmpV.set(0, 0.5f, 0 + 0.5f);
+            tmpV.set(0, 0.5f, 0 - 0.5f);
             ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
+
+if (null != turretNode) {
+    orientation.set(turretNode.rotation);
+    float rTurret = orientation.getAngleAround(yAxisN);
+//            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
+}
+if (null != gunNode) {
+    orientation.set(gunNode.rotation);
+    float rBarrel = orientation.getAngleAround(xAxis);
+// gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
+//            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
+}
+
             tmpM.getTranslation(trans).add(tmpV); // start coord of projectile = vehicle center + offset
+            tmpM.getRotation(orientation);
+
+
+            // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
+            float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+            vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation));
+
 
             CompCommon.spawnNewGameObject(
                     new Vector3(0.1f, 0.1f, 0.1f), trans,
-                    new Projectile(target, tmpM), "cone");
+                    new Projectile(target, vFprj),
+                    "cone");
         }
     }
 
