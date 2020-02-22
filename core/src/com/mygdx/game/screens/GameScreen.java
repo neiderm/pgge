@@ -45,17 +45,15 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.CharacterComponent;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.controllers.GunPlatform;
 import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
-import com.mygdx.game.features.KillSensor;
-import com.mygdx.game.features.Projectile;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -184,7 +182,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
 
-            KillSensor gunTurret = new KillSensor(
+            GunPlatform gunTurret = new GunPlatform(
                     pickedPlayer.getComponent(ModelComponent.class).modelInst,
                     pickedPlayer.getComponent(BulletComponent.class).shape,
                     pickedPlayer.getComponent(BulletComponent.class).body
@@ -237,12 +235,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 /* hack the turret control */
                 switches[2] = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT);
-                gunTurret.updateControls(analogs, switches);
+                gunTurret.updateControls(analogs, switches, 0 /* unused */);
 
                 if (switches[1]) { // FIRE 1
                     ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-                    // if (null != mc && null != mc.modelInst)
-                    gunTurret.fireProjectile(hitDetectEvent.getEntity(), mc.modelInst);
+                    // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
+                    gunTurret.fireProjectile(hitDetectEvent.getEntity(), mc.modelInst.transform);
                 }
             }
 
