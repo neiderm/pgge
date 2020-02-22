@@ -150,43 +150,53 @@ public class KillSensor {
     private final Vector3 vFprj = new Vector3();
     private final Vector3 trans = new Vector3();
     private final Vector3 tmpV = new Vector3();
-    private final Quaternion orientation = new Quaternion();
+    private final Matrix4 tmpM = new Matrix4();
+    private final Quaternion qTemp = new Quaternion();
+    private final Quaternion qBody = new Quaternion();
 
 
-    // allowing this to be here so it can be basis of setting forwared vector for projectile/weaopon
+    // needs a good home
     public void fireProjectile(Entity target, ModelInstance pMI) {
 
         if (null != pMI) {
+// get model rotation & translation from instance before the Matrix gets rotated to gun/turret orientation
+            tmpM.set(pMI.transform);
+            tmpM.getRotation(qBody);
+            tmpM.getTranslation(trans); // start coord of projectile = vehicle center + offset
 
-            Matrix4 tmpM = pMI.transform;
-            tmpM.getRotation(orientation);
-
-// wip: handle orientation of gun barrel
-
-//            tmpV.set(0, 0.5f, 0 + 0.5f);
+// start point of projectile, relative to rig (tried to manually place on muzzle of gun)
             tmpV.set(0, 0.5f, 0 - 0.5f);
-            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
 
-if (null != turretNode) {
-    orientation.set(turretNode.rotation);
-    float rTurret = orientation.getAngleAround(yAxisN);
-//            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
-}
-if (null != gunNode) {
-    orientation.set(gunNode.rotation);
-    float rBarrel = orientation.getAngleAround(xAxis);
+            // wip: handle orientation of gun barrel & turret
+// can make turret work with opposite Z .. bah
+             tmpV.set(0, 0.5f, 0 + 0.5f);
+
+            if (null != turretNode) {
+                qTemp.set(turretNode.rotation);
+                ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
+
+                float rTurret = qTemp.getAngleAround(yAxisN);
+//                System.out.println("rTurret = " + rTurret);
+                tmpM.rotate(/*down*/ yAxisN, rTurret - 180);
+            }
+
+            if (null != gunNode) {
+                qTemp.set(gunNode.rotation);
 // gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
-//            ModelInstanceEx.rotateRad(tmpV, orientation); //  rotate the offset vector to orientation of vehicle
-}
+//            ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
 
-            tmpM.getTranslation(trans).add(tmpV); // start coord of projectile = vehicle center + offset
-            tmpM.getRotation(orientation);
+                float rBarrel = qTemp.getAngleAround(xAxis);
+//                System.out.println("rBarrel = " + rBarrel);
+            }
+
+
+            ModelInstanceEx.rotateRad(tmpV, qBody); //  rotate the resulting offset vector to orientation of vehicle
+            trans.add(tmpV); // start coord of projectile = vehicle center + offset
 
 
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
             float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
-            vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation));
-
+            vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
             CompCommon.spawnNewGameObject(
                     new Vector3(0.1f, 0.1f, 0.1f), trans,
