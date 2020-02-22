@@ -165,13 +165,12 @@ public class KillSensor {
             tmpM.getTranslation(trans); // start coord of projectile = vehicle center + offset
 
 // start point of projectile, relative to rig (tried to manually place on muzzle of gun)
-            tmpV.set(0, 0.5f, 0 - 0.5f);
+            // this is definately not onesizefitsall
+            tmpV.set(0, 0.5f, 0 - 0.7f);
 
             // wip: handle orientation of gun barrel & turret
-// can make turret work with opposite Z .. bah
-             tmpV.set(0, 0.5f, 0 + 0.5f);
-
             if (null != turretNode) {
+                tmpV.z *= -1;     // can make turret work with opposite Z .. bah
                 qTemp.set(turretNode.rotation);
                 ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
 
@@ -181,6 +180,7 @@ public class KillSensor {
             }
 
             if (null != gunNode) {
+                // check rotation angle for sign?
                 qTemp.set(gunNode.rotation);
 // gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
 //            ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
