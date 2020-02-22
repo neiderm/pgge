@@ -35,7 +35,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * Created by neiderm on 7/5/2019.
  * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
- *
+ * <p>
  * https://free3d.com/3d-model/t-55-12298.html
  * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
@@ -56,6 +56,11 @@ public class KillSensor {
     private final Vector3 yAxis = new Vector3(0, 1, 0);
     private final Vector3 xAxis = new Vector3(1, 0, 0);
     private final Quaternion tmpRotation = new Quaternion();
+    private final Quaternion rotTurret = new Quaternion(); // rotation
+    private final Quaternion rotBarrel = new Quaternion(); // elevation
+    private float rTurret;
+    private float rBarrel;
+    private final Vector3 prjectileS0 = new Vector3(); // projectile initial vector is body+turret+barrel orientations
 
     private ModelInstance mi;
     private btCompoundShape btcs;
@@ -74,7 +79,7 @@ public class KillSensor {
 
 //        String strMdlNode = "Tank_01.003";
 //        String strTurretNode = "Main_Turre"; //"tank_cabine";
-        String strTurretNode =  "tank_cabine";
+        String strTurretNode = "tank_cabine";
 
         int index;
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
@@ -86,7 +91,7 @@ public class KillSensor {
         }
 
 //        String strBarrelNode = "Main_Gun"; // https://free3d.com/3d-model/veteran-tiger-tank-38672.html
-        String strBarrelNode =  "tenk_canhao";
+        String strBarrelNode = "tenk_canhao";
 
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
@@ -99,50 +104,74 @@ public class KillSensor {
 
     public void updateControls(float[] analogs, boolean[] switches) {
 
-        /// hackage, turret control enable needs a key
-        if ( switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */ )
-        {
-            if (null != turretNode) {
-//                trans.set(featureNode.translation);
-//            trans.y += .01f; // test
-//            featureNode.translation.set(trans);
-                tmpRotation.set(turretNode.rotation);
+        // model may or may not have functional turrent/barrel so set default of rotation/elevation Quats
+        // to that of the owning/parent body
+        this.mi.transform.getRotation(rotTurret);
+        this.mi.transform.getRotation(rotBarrel);
 
-                float rfloat = tmpRotation.getAngleAround(yAxisN);
+        // start point of projectile, relative to rig (tried to manually place on muzzle of gun)
+        tmpV.set(0, 0.5f, 0 - 1.3f);             // this is definately not onesizefitsall
 
+
+        if (null != turretNode) {
+            rotTurret.set(turretNode.rotation);
+            /// hackage, turret control enable needs a key
+            if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
+                float rfloat = rotTurret.getAngleAround(yAxisN);
                 rfloat += analogs[0];
-
                 tmpRotation.set(yAxisN, rfloat);
                 turretNode.rotation.set(tmpRotation);
+
+                updateTransforms();
+
+                rTurret = rotTurret.getAngleAround(yAxisN) - 180;
             }
 
+            tmpV.z *= -1;     // can make turret work with opposite Z .. bah
+            ModelInstanceEx.rotateRad(tmpV, rotTurret); //  rotate the offset vector to orientation of vehicle
+        }
 
-            if (null != gunNode) {
-
-                tmpRotation.set(gunNode.rotation);
-
-                float rfloat = tmpRotation.getAngleAround(xAxis);
-
+        if (null != gunNode) {
+            rotBarrel.set(gunNode.rotation);
+            /// hackage, turret control enable needs a key
+            if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
+                float rfloat = rotBarrel.getAngleAround(xAxis);
                 rfloat += analogs[1];
-
                 tmpRotation.set(xAxis, rfloat);
                 gunNode.rotation.set(tmpRotation);
+
+                updateTransforms();
+
+                // check rotation angle for sign?
+
+// gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
+//            ModelInstanceEx.rotateRad(tmpV, rotBarrel); //  rotate the offset vector to orientation of vehicle
+
+                rBarrel = rotBarrel.getAngleAround(xAxis);
+//                System.out.println("rBarrel = " + rBarrel);
             }
+        }
 
-            mi.calculateTransforms(); // definately need this !
+        prjectileS0.set(tmpV);
+    }
 
+    /*
+     * carve this out so it can be done selectively (only on control update actual i.e. enabled)
+     */
+    private void updateTransforms() {
 
-            if (null != btcs && null != body && null != mi.transform) {
+        mi.calculateTransforms(); // definately need this !
+
+        if (null != btcs && null != body && null != mi.transform) {
 // update child collision shape
-                if (null != turretNode) {
-                    btcs.updateChildTransform(turretIndex, turretNode.globalTransform);
-                }
-                if (null != gunNode) {
-                    btcs.updateChildTransform(gunIndex, gunNode.globalTransform);
-                }
-
-                body.setWorldTransform(mi.transform);
+            if (null != turretNode) {
+                btcs.updateChildTransform(turretIndex, turretNode.globalTransform);
             }
+            if (null != gunNode) {
+                btcs.updateChildTransform(gunIndex, gunNode.globalTransform);
+            }
+
+            body.setWorldTransform(mi.transform);
         }
     }
 
@@ -155,48 +184,32 @@ public class KillSensor {
     private final Quaternion qBody = new Quaternion();
 
 
-    // needs a good home
     public void fireProjectile(Entity target, ModelInstance pMI) {
 
+        Matrix4 srcTrnsfm = null;
         if (null != pMI) {
-// get model rotation & translation from instance before the Matrix gets rotated to gun/turret orientation
-            tmpM.set(pMI.transform);
+            srcTrnsfm = pMI.transform;
+        }
+        if (null != srcTrnsfm) {
+// get model rotation & translation from instance (copy) before the Matrix gets rotated to gun/turret orientation
+            tmpM.set(srcTrnsfm);
+
             tmpM.getRotation(qBody);
+
+            ModelInstanceEx.rotateRad(prjectileS0, qBody); //  rotate the resulting offset vector to orientation of vehicle
+
             tmpM.getTranslation(trans); // start coord of projectile = vehicle center + offset
 
-// start point of projectile, relative to rig (tried to manually place on muzzle of gun)
-            // this is definately not onesizefitsall
-            tmpV.set(0, 0.5f, 0 - 0.7f);
-
-            // wip: handle orientation of gun barrel & turret
-            if (null != turretNode) {
-                tmpV.z *= -1;     // can make turret work with opposite Z .. bah
-                qTemp.set(turretNode.rotation);
-                ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
-
-                float rTurret = qTemp.getAngleAround(yAxisN);
-//                System.out.println("rTurret = " + rTurret);
-                tmpM.rotate(/*down*/ yAxisN, rTurret - 180);
-            }
-
-            if (null != gunNode) {
-                // check rotation angle for sign?
-                qTemp.set(gunNode.rotation);
-// gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
-//            ModelInstanceEx.rotateRad(tmpV, qTemp); //  rotate the offset vector to orientation of vehicle
-
-                float rBarrel = qTemp.getAngleAround(xAxis);
-//                System.out.println("rBarrel = " + rBarrel);
-            }
+            trans.add(prjectileS0); // start coord of projectile = vehicle center + offset
 
 
-            ModelInstanceEx.rotateRad(tmpV, qBody); //  rotate the resulting offset vector to orientation of vehicle
-            trans.add(tmpV); // start coord of projectile = vehicle center + offset
-
+            tmpM.rotate(/*down*/ yAxisN, rTurret);
+// rBarrel ?????????????????
 
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
             float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
+
 
             CompCommon.spawnNewGameObject(
                     new Vector3(0.1f, 0.1f, 0.1f), trans,
@@ -207,7 +220,7 @@ public class KillSensor {
 
 
     /*
-    */
+     */
     static void makeBurnOut(ModelInstance mi, KillSensor.ImpactType useFlags) {
 
         Material saveMat = mi.materials.get(0);
