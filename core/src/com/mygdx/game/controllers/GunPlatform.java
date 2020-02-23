@@ -49,12 +49,10 @@ public class GunPlatform implements SimpleVehicleModel {
     private int gunIndex = -1;
     private Node turretNode;
     private int turretIndex = -1;
-    private final Vector3 yAxisN = new Vector3(0, -1, 0);
+
     private final Vector3 yAxis = new Vector3(0, 1, 0);
     private final Vector3 xAxis = new Vector3(1, 0, 0);
-    private final Quaternion tmpRotation = new Quaternion();
-    private final Quaternion rotTurret = new Quaternion(); // rotation
-    private final Quaternion rotBarrel = new Quaternion(); // elevation
+
     private float rTurret;
     private float rBarrel;
     private final Vector3 prjectileS0 = new Vector3(); // projectile initial vector is body+turret+barrel orientations
@@ -102,51 +100,55 @@ public class GunPlatform implements SimpleVehicleModel {
     @Override
     public void updateControls(float[] analogs, boolean[] switches, float time) {
 
-        // model may or may not have functional turrent/barrel so set default of rotation/elevation Quats
-        // to that of the owning/parent body
-        this.mi.transform.getRotation(rotTurret);
-        this.mi.transform.getRotation(rotBarrel);
-
         // start point of projectile, relative to rig (tried to manually place on muzzle of gun)
         tmpV.set(0, 0.5f, 0 - 1.3f);             // this is definately not onesizefitsall
 
 
         if (null != turretNode) {
-            rotTurret.set(turretNode.rotation);
+
+            Quaternion qNode = turretNode.rotation;
+
             /// hackage, turret control enable needs a key
             if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
-                float rfloat = rotTurret.getAngleAround(yAxisN);
-                rfloat += analogs[0];
-                tmpRotation.set(yAxisN, rfloat);
-                turretNode.rotation.set(tmpRotation);
+// showing that these are ...
+//                rfloat = rotTurret.getAngleAround(yAxisN)  +  analogs[0];
+//                tmpRotation.set(yAxisN, rfloat);
+// equivalent but opposite signednesss!
+                float rfloat = qNode.getAngleAround(yAxis)  -  analogs[0];
+                turretNode.rotation.set(yAxis, rfloat);
 
                 updateTransforms();
 
-                rTurret = rotTurret.getAngleAround(yAxisN) - 180;
+                rTurret = qNode.getAngleAround(yAxis) - 180;
             }
 
+            // always update
             tmpV.z *= -1;     // can make turret work with opposite Z .. bah
-            ModelInstanceEx.rotateRad(tmpV, rotTurret); //  rotate the offset vector to orientation of vehicle
+
+            ModelInstanceEx.rotateRad(tmpV, qNode); //  align the offset vector to turret rotation
         }
 
         if (null != gunNode) {
-            rotBarrel.set(gunNode.rotation);
+
+            Quaternion qNode = gunNode.rotation;
+
             /// hackage, turret control enable needs a key
             if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
-                float rfloat = rotBarrel.getAngleAround(xAxis);
-                rfloat += analogs[1];
-                tmpRotation.set(xAxis, rfloat);
-                gunNode.rotation.set(tmpRotation);
+
+                float rfloat = qNode.getAngleAround(xAxis) + analogs[1];;
+
+                gunNode.rotation.set(xAxis, rfloat);
+
+                float tfloat = analogs[1] * .05f;
+// gunNode.translation.add(0, tfloat, 0); //idfk
 
                 updateTransforms();
 
                 // check rotation angle for sign?
 
 // gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
-//            ModelInstanceEx.rotateRad(tmpV, rotBarrel); //  rotate the offset vector to orientation of vehicle
-
-                rBarrel = rotBarrel.getAngleAround(xAxis);
-//                System.out.println("rBarrel = " + rBarrel);
+//            ModelInstanceEx.rotateRad(tmpV, rotBarrel); //  align the offset vector to barrel elevation
+                rBarrel = qNode.getAngleAround(xAxis);
             }
         }
 
@@ -182,30 +184,26 @@ public class GunPlatform implements SimpleVehicleModel {
     private final Quaternion qBody = new Quaternion();
 
 
-    public void fireProjectile(Entity target, Matrix4 srcTrnsfm /*ModelInstance pMI*/) {
+    public void fireProjectile(Entity target, Matrix4 srcTrnsfm) {
 
-//        Matrix4 srcTrnsfm = null;
-//        if (null != pMI) {
-//            srcTrnsfm = pMI.transform;
-//        }
         if (null != srcTrnsfm) {
-// get model rotation & translation from instance (copy) before the Matrix gets rotated to gun/turret orientation
-            tmpM.set(srcTrnsfm);
 
-            tmpM.getRotation(qBody);
+            srcTrnsfm.getRotation(qBody);
 
             ModelInstanceEx.rotateRad(prjectileS0, qBody); //  rotate the resulting offset vector to orientation of vehicle
 
-            tmpM.getTranslation(trans); // start coord of projectile = vehicle center + offset
+            srcTrnsfm.getTranslation(trans); // start coord of projectile = vehicle center + offset
 
             trans.add(prjectileS0); // start coord of projectile = vehicle center + offset
 
+// copy src  rotation & translation into the tmp transform, then rotate to gun/turret orientation
+            tmpM.set(srcTrnsfm);
 
-            tmpM.rotate(/*down*/ yAxisN, rTurret);
+            tmpM.rotate(yAxis, rTurret ); // rotate the body transform by turrent rotation  about Y-axis (float degrees)
 // rBarrel ?????????????????
 
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-            float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+            float mag = -0.15f; // scale  accordingly for magnitifdue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
 
