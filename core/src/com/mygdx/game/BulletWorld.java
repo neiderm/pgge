@@ -226,6 +226,10 @@ I sure am glad other people figured out the thing with collision normals and edg
     }
 
 
+public Entity     getCollisionEntity(int userValue0){
+        return  (Entity) userToEntityLUT.get(userValue0);
+    }
+
     // Note:
     //            is dispose'd by BulletSystem
     @Override

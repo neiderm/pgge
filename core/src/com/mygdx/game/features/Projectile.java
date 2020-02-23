@@ -18,6 +18,7 @@ package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -44,7 +45,7 @@ public class Projectile extends OmniSensor {
 
         this();
 
-        this.target = target;
+//        this.target = target;   // this will be self-target finding (bullet ray test) once all required entityes are using the entity bullet map (as opposed to pickray system)
 
         // proj. sense radius (provde constructor arg)
         this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
@@ -57,7 +58,7 @@ public class Projectile extends OmniSensor {
 
         this();
 
-        this.target = target;
+//        this.target = target;
 
 // proj. sense radius (provde constructor arg)
         this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
@@ -88,7 +89,8 @@ public class Projectile extends OmniSensor {
     @Override
     public void update(Entity projectile) {
 
-        // update the sensor: BUT check target validity, because of omni sensor auto-player-target selection default kludgey behavior!!!!!
+        // update the sensor: BUT check target validity, because of
+        // omni sensor auto-player-target selection default kludgey behavior!!!!!
         if (null != target) {
 
             super.update(projectile);
@@ -123,6 +125,19 @@ public class Projectile extends OmniSensor {
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
         if (null != rayPickObject) {
+
+            Entity ee = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
+            if (null != ee){
+// so far, only certain entityies have been registered in the bullet pick ray map
+                ModelComponent tmc = ee.getComponent(ModelComponent.class);
+                if (null != tmc) {
+                    ModelInstance tmi = tmc.modelInst;
+                    if (null != tmi) {
+                        this.target = ee; // ha seems that this efectively works !!!!!!!!!!!!!!!!
+                    }
+                }
+            }
+
 // stopped projectile
             if (fmc.modelInst.materials.size > 0) {
                 ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
