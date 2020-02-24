@@ -103,12 +103,9 @@ public class GunPlatform implements SimpleVehicleModel {
         if (null != turretNode) {
             /// hackage, turret control enable needs a key
             if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
-// showing that these are ...
-//                rfloat = rotTurret.getAngleAround(yAxisN)  +  analogs[0];
-//                tmpRotation.set(yAxisN, rfloat);
-// equivalent but opposite signednesss!
+// turret origin would probably be center of rig model and will look screwy if it goes too far out of range
                 float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[0];
-
+// center is at 180
                 if (rfloat > 120 && rfloat < 240) {
                     rfloat -= analogs[0];
                     turretNode.rotation.set(yAxis, rfloat);
@@ -123,25 +120,22 @@ public class GunPlatform implements SimpleVehicleModel {
         if (null != gunNode) {
             /// hackage, turret control enable needs a key
             if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
-// gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
-
+// gun barrel origin would probably be center of rig model and will look screwy if it goes too far out of range
                 float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[1];
-
-                if (rfloat == 0) {
-                    rfloat = 359;
+// offset the gun angle to a range that makes sense
+                float elevation = -rfloat;
+                if (rfloat > 180) {
+                    elevation = 360 - rfloat;
                 }
-
-                if (rfloat >= 330 && rfloat <= 359) {
+// allow a small emount of negative elevation (below level)
+                if (elevation > -10 && elevation < 30 ) {
                     rfloat += analogs[1];
                     gunNode.rotation.set(xAxis, rfloat);
                 }
 
-                float tfloat = analogs[1] * .05f;
-// gunNode.translation.add(0, tfloat, 0); //idfk
-
                 updateTransforms();
 // check rotation angle for sign?
-                rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! that was on intuitiion only
+                rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! like cargo cult programming or something like that
             }
         }
 
