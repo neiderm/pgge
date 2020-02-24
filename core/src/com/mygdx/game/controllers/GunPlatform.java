@@ -107,8 +107,12 @@ public class GunPlatform implements SimpleVehicleModel {
 //                rfloat = rotTurret.getAngleAround(yAxisN)  +  analogs[0];
 //                tmpRotation.set(yAxisN, rfloat);
 // equivalent but opposite signednesss!
-                float rfloat = turretNode.rotation.getAngleAround(yAxis)  -  analogs[0];
-                turretNode.rotation.set(yAxis, rfloat);
+                float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[0];
+
+                if (rfloat > 120 && rfloat < 240) {
+                    rfloat -= analogs[0];
+                    turretNode.rotation.set(yAxis, rfloat);
+                }
 
                 updateTransforms();
 
@@ -117,21 +121,27 @@ public class GunPlatform implements SimpleVehicleModel {
         }
 
         if (null != gunNode) {
-
             /// hackage, turret control enable needs a key
             if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
 // gun barrel is screwed up and to be rotated properlyn  must be translated back to origin
-                float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[1];;
-                gunNode.rotation.set(xAxis, rfloat);
+
+                float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[1];
+
+                if (rfloat == 0) {
+                    rfloat = 359;
+                }
+
+                if (rfloat >= 330 && rfloat <= 359) {
+                    rfloat += analogs[1];
+                    gunNode.rotation.set(xAxis, rfloat);
+                }
 
                 float tfloat = analogs[1] * .05f;
 // gunNode.translation.add(0, tfloat, 0); //idfk
 
                 updateTransforms();
-
 // check rotation angle for sign?
-                //                rBarrel =  gunNode.rotation.getAngleAround(xAxis) ;
-                rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180 );  // ha! that was on intuitiion only
+                rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! that was on intuitiion only
             }
         }
 
