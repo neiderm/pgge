@@ -102,6 +102,8 @@ public class Projectile extends OmniSensor {
                 // simple obvious action is to terminate this Projectile
                 if (null == projectile.getComponent(StatusComponent.class)) {                         // be careful not to overwrite!
                     projectile.add(new StatusComponent(0));
+                }else{
+                    projectile.getComponent(StatusComponent.class).lifeClock = 0;
                 }
 
 // some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
