@@ -16,6 +16,25 @@
 			}
 		]
 	},
+	"GoonSquad": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 2,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "Tank",
+				"mass": 5.1,
+				"meshShape": "convexHullShape",
+				"isPickable": true
+			}
+		],
+		"isCharacter": true
+	},
 	"UserModelGroup": {
 		"elements": [
 			{
