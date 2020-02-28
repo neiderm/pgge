@@ -298,26 +298,23 @@ public class GameObject {
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 
                 bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
-            }
 
-            // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
-            if (isKinematic   // if (0 == mass) ??
-                    || isPlayer             // make sure gound contact colllision filtering works with player character!
-                    || null != instanceFeatureAdapter) {
-//
-                // tmp hac, crap
-                if (isKinematic) {
-                    // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
-                    BulletWorld.getInstance().addBodyWithCollisionNotif(
-                            e, // needs the Entity to add to the table BLAH
-                            BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
-                } else {
-                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
-                    BulletWorld.getInstance().addBodyWithCollisionNotif(
-                            e, // needs the Entity to add to the table BLAH
-                            BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
+                // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
+                BulletWorld.getInstance().addBodyWithCollisionNotif(
+                        e, // needs the Entity to add to the table BLAH
+                        BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
+            } else
+                // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
+                if (
+//                    isKinematic ||   // if (0 == mass) ??
+                        isPlayer             // make sure gound contact colllision filtering works with player character!
+                                || null != instanceFeatureAdapter
+                                || isCharacter) {
+                        // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
+                        BulletWorld.getInstance().addBodyWithCollisionNotif(
+                                e, // needs the Entity to add to the table BLAH
+                                BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
                 }
-            }
         }
 
         if (isCharacter) {
