@@ -35,6 +35,7 @@ import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -259,6 +260,9 @@ public class GameObject {
 
                 instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
                 e.add(new FeatureComponent(instanceFeatureAdapter));
+
+
+                e.add(new StatusComponent(1)); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
 
@@ -278,8 +282,6 @@ public class GameObject {
         }
         mc.isShadowed = isShadowed; // disable shadowing of skybox)
         e.add(mc);
-// grab the game object name string anyway
-        mc.strObjectName = objectName; // could be invalid ?
 
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -351,6 +353,8 @@ public class GameObject {
 
             instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
             e.add(new FeatureComponent(instanceFeatureAdapter));
+
+
         }
 
         return e;
