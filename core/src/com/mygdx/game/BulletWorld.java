@@ -291,6 +291,19 @@ public Entity     getCollisionEntity(int userValue0){
     private static ClosestRayResultCallback rayResultCallback;
     private static final Vector3 outV = new Vector3();
 
+    public ClosestRayResultCallback rayResultCallback(Ray ray, float length) {
+
+        rayFrom.set(ray.origin);
+        rayTo.set(ray.direction).scl(length).add(rayFrom);
+
+        // we reuse the ClosestRayResultCallback, thus we need to reset its values
+        rayResultCallback.setCollisionObject(null);
+        rayResultCallback.setClosestHitFraction(1f);
+
+        collisionWorld.rayTest(rayFrom, rayTo, rayResultCallback);
+
+            return rayResultCallback;
+    }
 
     private btCollisionObject rayTest(Ray ray, float length) {
 
@@ -300,10 +313,10 @@ public Entity     getCollisionEntity(int userValue0){
         // we reuse the ClosestRayResultCallback, thus we need to reset its values
         rayResultCallback.setCollisionObject(null);
         rayResultCallback.setClosestHitFraction(1f);
-        rayResultCallback.getRayFromWorld(outV);
-        outV.set(rayFrom.x, rayFrom.y, rayFrom.z);
-        rayResultCallback.getRayToWorld(outV);
-        outV.set(rayTo.x, rayTo.y, rayTo.z);
+//        rayResultCallback.getRayFromWorld(outV);
+//        outV.set(rayFrom.x, rayFrom.y, rayFrom.z);
+//        rayResultCallback.getRayToWorld(outV);
+//        outV.set(rayTo.x, rayTo.y, rayTo.z);
 
         collisionWorld.rayTest(rayFrom, rayTo, rayResultCallback);
 
