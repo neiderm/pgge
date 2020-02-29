@@ -101,6 +101,9 @@ public class BurnOut extends FeatureAdaptor {
                 if (null == sc) {
                     ee.add(new StatusComponent(0));
                 }
+                else{
+                    ee.getComponent(StatusComponent.class).lifeClock = 0;
+                }
             }
         }
     }
