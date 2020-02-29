@@ -176,7 +176,7 @@ public class ShootamaThing extends VectorSensor {
         CompCommon.spawnNewGameObject(
                 new Vector3(0.2f, 0.2f, 0.2f),
                 trans,
-                new Projectile(target, sourceM),
+                new KillSensor(target, sourceM),
                 "sphere");
     }
 }
