@@ -67,7 +67,7 @@ public class OmniSensor extends FeatureAdaptor {
     public void init(Object target) {
 
 //        super.init(target); // not much there, just sets the target,
-        if (null != target){
+        if (null != target) {
             this.target = (Entity) target;
         }
 
@@ -178,92 +178,86 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
 
 
     private Vector3 tmpV = new Vector3();
-    private Vector3 targetPos = new Vector3();
     private int bucket;
 
     private void updateTriggered(Entity sensor, boolean triggered, Vector3 sensorPos) {
 
-        KillSensor.ImpactType impactType = this.impactType;
-
-//        if (null != impactType)
-        {
-            if (triggered) {
-                if (bucket < 1) {
-
-                    if (null != impactType) {
-
-                        ModelInstance senorModelInst = null;
-
-                        ModelComponent smc = sensor.getComponent(ModelComponent.class);
-                        if (null != smc) {
-                            senorModelInst = smc.modelInst;
-                        }
-
-                        // clock target probly for player, other wise probly no status comp
-                        StatusComponent tsc = target.getComponent(StatusComponent.class);
-
-                        if (null == tsc) {
-                            tsc = new StatusComponent(); // entity doesn't have an SC .. just make a dummy one to keep below logic cleaner
-                        }
-//                        if (null != tsc)
-                        {
-                            if (KillSensor.ImpactType.ACQUIRE == impactType) {
-
-                                tsc.prizeCount += 1;
-
-                                // use sensor model instance texture etc. idfk
-                                if (null != senorModelInst) {
-                                    KillSensor.makeBurnOut(senorModelInst, KillSensor.ImpactType.ACQUIRE);
-                                }
-
-                                sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
-
-                            } else { // damaging or fatal
-                                // use the target model instance texture etc.
-                                ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
-// if (null != tmi
-                                tmi.transform.getRotation(rotation); // reuse tmp rotation variable
-                                tmpV.set(0, -1, 0); //  2.5d simplification
-                                float orientationAngle = rotation.getAngleAround(tmpV);
-
-                                float hitAngle = angleDetermination(
-                                        sensorPos, tmi.transform.getTranslation(targetPos), orientationAngle);
-
-                                int n = (int) (Math.round(hitAngle / 90) + 0.5f);
-                                if (n >= 4) {
-                                    n -= 4;
-                                }
-                                tsc.damage[n] += 100 / 5; // damage/shield levels are 0-100
-
-                                // if the shield damage @ 100%, then set impact type to Fatal
-                                if (tsc.damage[n] >= 100){
-                                    tsc.lifeClock = 0;
-                                }
-                                if (tsc.lifeClock > 0) {
-                                    tsc.lifeClock -= 1;
-                                }
-                                if (tsc.lifeClock <= 0) {
-                                    impactType = KillSensor.ImpactType.FATAL;
-                                }
-
-                                KillSensor.makeBurnOut(tmi, impactType); // use target model instance for burn out texture
-                            }
-                        }
-                    }
+        if (triggered) {
+            if (bucket < 1) {
+//                if (null != this.impactType) //
+                {
+                    updateImpact(this.impactType, sensor, sensorPos);
                 }
-                bucket += 1;
+            }
+            bucket += 1;
 
-            } else {
-                bucket -= 2;
-                if (bucket < 0) {
-                    bucket = 0;
-                }
+        } else {
+            bucket -= 2;
+            if (bucket < 0) {
+                bucket = 0;
             }
         }
     }
 
+    private void updateImpact(KillSensor.ImpactType impactT, Entity sensor, Vector3 sensorPos) {
 
-    private float angleDetermination(Vector3 sensorPos, Vector3 targetPos, float orientationAngle) {
+        StatusComponent tsc = target.getComponent(StatusComponent.class);
+// try not to shoot down the walls
+        if (null != tsc) {
+
+            if (KillSensor.ImpactType.ACQUIRE == impactT) {
+
+                tsc.prizeCount += 1;
+
+                ModelInstance senorModelInst = null;
+
+                ModelComponent smc = sensor.getComponent(ModelComponent.class);
+                if (null != smc) {
+                    senorModelInst = smc.modelInst;
+                }
+
+                // use sensor model instance texture etc. idfk
+                if (null != senorModelInst) {
+                    KillSensor.makeBurnOut(senorModelInst, KillSensor.ImpactType.ACQUIRE);
+                }
+
+                sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
+
+            } else if (KillSensor.ImpactType.DAMAGING == impactT
+                    || KillSensor.ImpactType.FATAL == impactT) {
+                // use the target model instance texture etc.
+                ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
+// if (null != tmi
+                tmi.transform.getRotation(rotation); // reuse tmp rotation variable
+                tmpV.set(0, -1, 0); //  2.5d simplification
+                float orientationAngle = rotation.getAngleAround(tmpV);
+
+                float hitAngle = angleDetermination(
+                        sensorPos, tmi.transform.getTranslation(tmpV), orientationAngle);
+
+                int n = (int) (Math.round(hitAngle / 90) + 0.5f);
+                if (n >= 4) {
+                    n -= 4;
+                }
+                tsc.damage[n] += 100 / 5; // damage/shield levels are 0-100
+
+                // if the shield damage @ 100%, then set impact type to Fatal
+                if (tsc.damage[n] >= 100) {
+                    tsc.lifeClock = 0;
+                }
+                if (tsc.lifeClock > 0) {
+                    tsc.lifeClock -= 1;
+                }
+                if (tsc.lifeClock <= 0) {
+                    impactT = KillSensor.ImpactType.FATAL;
+                }
+
+                KillSensor.makeBurnOut(tmi, impactT); // use target model instance for burn out texture
+            } // else impactT ?
+        }
+    }
+
+    private static float angleDetermination(Vector3 sensorPos, Vector3 targetPos, float orientationAngle) {
 
         float dX = sensorPos.x - targetPos.x;
         float dZ = sensorPos.z - targetPos.z;
