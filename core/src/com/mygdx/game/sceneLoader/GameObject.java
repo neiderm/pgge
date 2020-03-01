@@ -261,7 +261,7 @@ public class GameObject {
                 instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
                 e.add(new FeatureComponent(instanceFeatureAdapter));
 
-
+// bah this also done below for all non-static Bullet bodies
                 e.add(new StatusComponent(1)); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
@@ -314,6 +314,8 @@ public class GameObject {
                         BulletWorld.getInstance().addBodyWithCollisionNotif(
                                 e, // needs the Entity to add to the table BLAH
                                 BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
+
+                        e.add(new StatusComponent(1)); // needs an SC in order to be 'shootable'
                 }
         }
 
