@@ -168,15 +168,14 @@ public class ShootamaThing extends VectorSensor {
         sourceM.getTranslation(trans).add(tmpV); // start coord of projectile now offset "higher" wrt to vehicle body
 
         // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-        //              float mag = -0.1f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
-//                Vector3 vvv = ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation); // don't need to get Rotaion again ;)
-        /*
-         * pass "picked" thing to projectile to use as sensor target (so it's actually only sensing for the one target!
-         */
+        float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
+        ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation);
+
+
         CompCommon.spawnNewGameObject(
                 new Vector3(0.2f, 0.2f, 0.2f),
                 trans,
-                new KillSensor(target, sourceM),
+                new Projectile(tmpV),
                 "sphere");
     }
 }

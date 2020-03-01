@@ -25,7 +25,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CompCommon;
-import com.mygdx.game.features.KillSensor;
+import com.mygdx.game.features.Projectile;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -198,7 +198,7 @@ public class GunPlatform implements SimpleVehicleModel {
 
             CompCommon.spawnNewGameObject(
                     new Vector3(0.1f, 0.1f, 0.1f), trans,
-                    new KillSensor(target, vFprj),
+                    new Projectile( vFprj),
                     "cone");
         }
     }

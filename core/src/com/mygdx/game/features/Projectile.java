@@ -23,7 +23,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.FeatureComponent;
+import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -35,36 +35,11 @@ public class Projectile extends OmniSensor {
     private final Quaternion orientation = new Quaternion();
     private final Vector3 vF = new Vector3();
 
-    public Projectile() {
 
-        impactType = KillSensor.ImpactType.DAMAGING; // can be set in scene file
-    }
-
-    public Projectile(Entity target, Vector3 vFp) {
-
-        this();
-
-        this.target = target;
-
-        // proj. sense radius (provde constructor arg)
-        this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
+    public Projectile(Vector3 vFp) {
 
         this.vF.set(vFp);
     }
-
-    // probably get rid of this one
-    public Projectile(Entity target, Matrix4 mtransform) {
-
-        this();
-
-        this.target = target;
-
-// proj. sense radius (provde constructor arg)
-        this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
-
-        vF.set(getDirectionVector(mtransform));
-    }
-
 
     /*
      * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector
@@ -88,51 +63,39 @@ public class Projectile extends OmniSensor {
     @Override
     public void update(Entity projectile) {
 
-        // update the sensor: BUT check target validity, because of
-        // omni sensor auto-player-target selection default kludgey behavior!!!!!
-        if (null != target) {
-
-            super.update(projectile);
-
-            if (isTriggered && isActivated) {
-
-                isActivated = false; // don't let it "detonate" again!
-
-                // simple obvious action is to terminate this Projectile
-                if (null == projectile.getComponent(StatusComponent.class)) {                         // be careful not to overwrite!
-                    projectile.add(new StatusComponent(0));
-                }else{
-                    projectile.getComponent(StatusComponent.class).lifeClock = 0;
-                }
-
-// some problems w/ this include ... projectile still triggered but fwtfer still on the go, ... and target in-the-process-of-being-destroyed ..
-                if (null == target.getComponent(StatusComponent.class)) {
-                    target.add(new StatusComponent(0)); // default lifeclock should be 0
-                }
-
-                FeatureComponent fc = target.getComponent(FeatureComponent.class);
-
-                if (null != fc) {
-                    FeatureAdaptor fa = fc.featureAdpt;
-                    fa.update(target); // hmmm ... hadn't anticicpated this being called directly, pass target as arg to update()!!!
-                }
-            }
-        }
-
-        // move the projectile by one step vector
+        // projectile moves by one step vector if there is no collision imminent
         ModelComponent fmc = projectile.getComponent(ModelComponent.class);// could cache this model comp lookup?
-
+// if (null != fmc)
         fmc.modelInst.transform.getTranslation(tmpV);
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
-        if (null != rayPickObject) {
-// stopped projectile
+        if (null == rayPickObject) {
+            // no collision imminient so keep it moving along
+            fmc.modelInst.transform.trn(vF);
+        } else {
+            // stopped projectile
             if (fmc.modelInst.materials.size > 0) {
                 ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
             }
-        } else {
-            // no collision imminient so keep it moving along
-            fmc.modelInst.transform.trn(vF);
+
+            StatusComponent sc = projectile.getComponent(StatusComponent.class);
+            if (null != sc) {
+                sc.lifeClock = 0;    // kill off the projectile
+            } else {
+                projectile.add(new StatusComponent(0));
+            }
+
+// projectile should make a ringy thing if hit wall or should shatter into triangles if impact on a shootable
+
+            Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
+            if (null != target) {
+                // spawn the sensor to handle the outcome
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f),
+                        tmpV,   //                                mi.transform.getTranslation(trans),
+                        new KillSensor(target), // this projectile doesn't move ;)
+                        "capsule");
+            }
         }
     }
 }
