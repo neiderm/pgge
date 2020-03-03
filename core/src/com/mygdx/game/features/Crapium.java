@@ -24,18 +24,21 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
  * crap you have to pick up
  */
-public class Crapium extends OmniSensor {
+public class Crapium extends KillSensor {
 
     private Attribute saveAttribute;
+
+
+    public Crapium(){
+        this.lifeClock = 1; // because base uddate sets this, to 0
+    }
 
 
     @Override

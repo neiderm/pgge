@@ -18,6 +18,9 @@ package com.mygdx.game.features;
 /*
  * here is a Bad Actor
  */
-public class BadActor extends OmniSensor {
+public class BadActor extends KillSensor {
 
+    public BadActor(){
+        this.lifeClock = 1;  // because base uddate sets this, to 0
+    }
 }
