@@ -31,6 +31,10 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class BurnOut extends FeatureAdaptor {
 
+    private Vector3 up = new Vector3( );
+
+    private ModelComponent mc = null;
+
     private int clock = 88;  // using as percent alphA
     private Vector3 scale = new Vector3(1, 1, 1);
     private Color cc;
@@ -59,6 +63,12 @@ public class BurnOut extends FeatureAdaptor {
         } else { // FATAL etc.
             cc = new Color(Color.FIREBRICK);
         }
+
+        if (KillSensor.ImpactType.DAMAGING == impt || KillSensor.ImpactType.FATAL == impt) {
+
+// these will sloooowwly float up
+            up.set(0, 0.01f, 0);
+        }
     }
 
 
@@ -67,7 +77,13 @@ public class BurnOut extends FeatureAdaptor {
 
         super.update(ee);
 
-//        if (isActivated)
+        if (null == mc){
+            mc = ee.getComponent(ModelComponent.class);
+            ModelInstance mi = mc.modelInst;
+            scale.set( mi.nodes.get(0).scale);
+        }
+
+        //        if (isActivated)
         {
             if (clock > 0) {
 
@@ -75,10 +91,13 @@ public class BurnOut extends FeatureAdaptor {
                 final float d_ALPHA = 0.01f;
                 scale.scl(/*1.010f*/ 1.0f + d_ALPHA);
 
-                ModelComponent mc = ee.getComponent(ModelComponent.class);
                 // if (null != mc) {
                 ModelInstance mi = mc.modelInst;
                 mi.nodes.get(0).scale.set(scale);
+
+                // make'er float away
+                mi.transform.trn(up);
+
                 mi.calculateTransforms();
 
                 if (mi.materials.size > 0) {
