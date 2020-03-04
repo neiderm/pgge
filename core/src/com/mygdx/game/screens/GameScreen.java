@@ -190,7 +190,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
 
             // working variables
-            float[] analogs = new float[TankController.InputChannels.values().length];
+            float[] analogs = new float[InputMapper.VIRTUAL_AXES_SZ];
             boolean[] switches = new boolean[8];
             Vector3 trans = new Vector3();
             Quaternion orientation = new Quaternion();
@@ -204,24 +204,27 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     multiplexer.removeProcessor(camController);
             }
 
-            void updateControls(){
+            void updateControls() {
 
-                    final int idxX = TankController.InputChannels.AD_AXIS.ordinal();
-                    final int idxY = TankController.InputChannels.WS_AXIS.ordinal();
-                    final int idxL2 = TankController.InputChannels.L2_AXIS.ordinal();
-                    final int idxR2 = TankController.InputChannels.R2_AXIS.ordinal();
+                final int idxX = InputMapper.VIRTUAL_AD_AXIS;
+                final int idxY = InputMapper.VIRTUAL_WS_AXIS;
+                final int idxL2 = InputMapper.VIRTUAL_L2_AXIS;
+                final int idxR2 = InputMapper.VIRTUAL_R2_AXIS;
 
-                    // route the signal domain of the input device to that of the model
-                    analogs[idxX] = mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS);
-                    analogs[idxY] = mapper.getAxis(InputMapper.VIRTUAL_WS_AXIS);
-                    analogs[idxL2] = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
-                    analogs[idxR2] = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
+                // route the signal domain of the input device to that of the model
+                analogs[idxX] = mapper.getAxis(idxX);
+                analogs[idxY] = mapper.getAxis(idxY);
+                analogs[idxL2] = mapper.getAxis(idxL2);
+                analogs[idxR2] = mapper.getAxis(idxR2);
 
-                    switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
-                    switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+                switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
+                switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+
+                /* hack the turret control */
+                switches[2] = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
 
                 //  control driving rig
-                if (!switches[2]) {  // exclude ALT_LEFT
+                if (/**/ !switches[2]) {  // hACKITY HACK exclude  the "modifier" key (Control or whatever)
                     // love this hacky crap
                     GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
@@ -233,14 +236,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     controlledModel.updateControls(analogs, switches, 0);
                 }
 
-                /* hack the turret control */
-                switches[2] = Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT);
+
                 gunTurret.updateControls(analogs, switches, 0 /* unused */);
 
                 if (switches[1]) { // FIRE 1
                     ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
                     // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
-                    gunTurret.fireProjectile(hitDetectEvent.getEntity(), mc.modelInst.transform);
+                    gunTurret.fireProjectile(/*hitDetectEvent.getEntity()*/ null, mc.modelInst.transform);
                 }
             }
 

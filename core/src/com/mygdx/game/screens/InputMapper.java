@@ -90,21 +90,24 @@ public class InputMapper {
     private static final int MAX_AXES = 8;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
-    // virtual axis assignments
+    // virtual axis assignments, probably an enum would be better
     public static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
     public static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
     public static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
     public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
     public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
+    public static final int VIRTUAL_AXES_SZ = 6;
 
     // so this is the control switches abstrction
     public enum InputState {
         INP_NONE,
         INP_VIEW,
         INP_MENU,
-        INP_FIRE1,
-        INP_FIRE2;
+        INP_FIRE1,   // A
+        INP_FIRE2,   // B
+        INP_BROVER,  // Y
+        INP_ADJ;     // X
     }
 
     private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
@@ -512,6 +515,10 @@ public class InputMapper {
             case 1: // XB
                 buttonmMapping[0] = VirtualButtons.BTN_A;
                 buttonmMapping[1] = VirtualButtons.BTN_B;
+                buttonmMapping[2] = VirtualButtons.BTN_X;
+                buttonmMapping[3] = VirtualButtons.BTN_Y;
+                buttonmMapping[4] = VirtualButtons.BTN_L1;
+                buttonmMapping[5] = VirtualButtons.BTN_R1;
                 buttonmMapping[6] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[7] = VirtualButtons.BTN_START;
                 break;
@@ -521,14 +528,18 @@ public class InputMapper {
                 buttonmMapping[109] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[108] = VirtualButtons.BTN_START;
                 break;
-            case 3: // PCb
-                buttonmMapping[0] = VirtualButtons.BTN_A;
-                buttonmMapping[1] = VirtualButtons.BTN_B;
-                buttonmMapping[5] = VirtualButtons.BTN_L2;
-                buttonmMapping[7] = VirtualButtons.BTN_R2;
+            case 3: // PCb BELKIN NOSTROMO (old USB contrroller)
+                buttonmMapping[0] = VirtualButtons.BTN_A; // B1
+                buttonmMapping[1] = VirtualButtons.BTN_B; // B2
+                buttonmMapping[2] = VirtualButtons.BTN_X; // B3
+                buttonmMapping[3] = VirtualButtons.BTN_Y; // B4
+                buttonmMapping[4] = VirtualButtons.BTN_L1; // T3
+                buttonmMapping[6] = VirtualButtons.BTN_R1; // T1
+                buttonmMapping[5] = VirtualButtons.BTN_L2; // T4
+                buttonmMapping[7] = VirtualButtons.BTN_R2; // T2
                 buttonmMapping[8] = VirtualButtons.BTN_ESC; // how many "PC" game pads have a 3rd face-button?
-                buttonmMapping[9] = VirtualButtons.BTN_SELECT;
-                buttonmMapping[10] = VirtualButtons.BTN_START;
+                buttonmMapping[9] = VirtualButtons.BTN_SELECT; // MOUSE
+                buttonmMapping[10] = VirtualButtons.BTN_START; // ENTER
                 break;
         }
 
