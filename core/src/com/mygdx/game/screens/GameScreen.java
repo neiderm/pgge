@@ -177,7 +177,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         return new GameUI() {
 
             // setup the vehicle model so it can be referenced in the mapper
-            final SimpleVehicleModel controlledModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+            final SimpleVehicleModel chassisModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
                     pickedPlayer.getComponent(BulletComponent.class).body,
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
@@ -192,8 +192,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             // working variables
             float[] analogs = new float[InputMapper.VIRTUAL_AXES_SZ];
             boolean[] switches = new boolean[8];
-            Vector3 trans = new Vector3();
-            Quaternion orientation = new Quaternion();
 
             @Override
             public void onCameraSwitch() {
@@ -210,40 +208,31 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 final int idxY = InputMapper.VIRTUAL_WS_AXIS;
                 final int idxL2 = InputMapper.VIRTUAL_L2_AXIS;
                 final int idxR2 = InputMapper.VIRTUAL_R2_AXIS;
+                final int idxX1 = InputMapper.VIRTUAL_X1_AXIS;
+                final int idxY1 = InputMapper.VIRTUAL_Y1_AXIS;
 
                 // route the signal domain of the input device to that of the model
                 analogs[idxX] = mapper.getAxis(idxX);
                 analogs[idxY] = mapper.getAxis(idxY);
                 analogs[idxL2] = mapper.getAxis(idxL2);
                 analogs[idxR2] = mapper.getAxis(idxR2);
+                analogs[idxX1] = mapper.getAxis(idxX1);
+                analogs[idxY1] = mapper.getAxis(idxY1);
 
                 switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
                 switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 
-                /* hack the turret control */
-                switches[2] = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT);
-
-                //  control driving rig
-                if (/**/ !switches[2]) {  // hACKITY HACK exclude  the "modifier" key (Control or whatever)
-                    // love this hacky crap
-                    GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
-
-                    if (Math.abs(analogs[1]) < 0.4f) {
-                        // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
-                        analogs[1] = (-1) * pf.userData / 100.0f; // percent
-                    }
-
-                    controlledModel.updateControls(analogs, switches, 0);
-                }
-
-
                 gunTurret.updateControls(analogs, switches, 0 /* unused */);
 
-                if (switches[1]) { // FIRE 1
-                    ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-                    // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
-                    gunTurret.fireProjectile(/*hitDetectEvent.getEntity()*/ null, mc.modelInst.transform);
+                //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
+                GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+
+                if (Math.abs(analogs[1]) < 0.4f) {                     // love this hacky crap
+                    // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
+                    analogs[1] = (-1) * pf.userData / 100.0f; // percent
                 }
+
+                chassisModel.updateControls(analogs, switches, 0);
             }
 
             @Override

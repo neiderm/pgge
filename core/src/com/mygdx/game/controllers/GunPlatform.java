@@ -15,7 +15,6 @@
  */
 package com.mygdx.game.controllers;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
@@ -26,6 +25,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.features.Projectile;
+import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -37,13 +37,6 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
 public class GunPlatform implements SimpleVehicleModel {
-
-    public enum ImpactType {
-        FATAL,
-        DAMAGING,
-        ACQUIRE
-    }
-
 
     private Node gunNode;
     private int gunIndex = -1;
@@ -101,55 +94,37 @@ public class GunPlatform implements SimpleVehicleModel {
     public void updateControls(float[] analogs, boolean[] switches, float time) {
 
         if (null != turretNode) {
-            /// hackage, turret control enable needs a key
-            if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
 // turret origin would probably be center of rig model and will look screwy if it goes too far out of range
-                float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[0];
+            float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[InputMapper.VIRTUAL_X1_AXIS];
 // center is at 180
-                if (rfloat > 120 && rfloat < 240) {
-                    rfloat -= analogs[0];
-                    turretNode.rotation.set(yAxis, rfloat);
-                }
-
-                updateTransforms();
-
-                rTurret = turretNode.rotation.getAngleAround(yAxis) - 180;
+            if (rfloat > 120 && rfloat < 240) {
+                rfloat -= analogs[InputMapper.VIRTUAL_X1_AXIS];
+                turretNode.rotation.set(yAxis, rfloat);
             }
+//                updateTransforms();
+
+            rTurret = turretNode.rotation.getAngleAround(yAxis) - 180;
         }
 
         if (null != gunNode) {
-            /// hackage, turret control enable needs a key
-            if (switches[2] /*Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT) */) {
 // gun barrel origin would probably be center of rig model and will look screwy if it goes too far out of range
-                float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[1];
+            float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[InputMapper.VIRTUAL_Y1_AXIS];
 // offset the gun angle to a range that makes sense
-                float elevation = -rfloat;
-                if (rfloat > 180) {
-                    elevation = 360 - rfloat;
-                }
-// allow a small emount of negative elevation (below level)
-                if (elevation > -10 && elevation < 30 ) {
-                    rfloat += analogs[1];
-                    gunNode.rotation.set(xAxis, rfloat);
-                }
-
-                updateTransforms();
-// check rotation angle for sign?
-                rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! like cargo cult programming or something like that
+            float elevation = -rfloat;
+            if (rfloat > 180) {
+                elevation = 360 - rfloat;
             }
+// allow a small emount of negative elevation (below level)
+            if (elevation > -10 && elevation < 30) {
+                rfloat += analogs[InputMapper.VIRTUAL_Y1_AXIS];
+                gunNode.rotation.set(xAxis, rfloat);
+            }
+//                updateTransforms();
+// check rotation angle for sign?
+            rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! like cargo cult programming or something like that
         }
 
-        // set the basic gun sight vector, but  is definately not onesizefitsall
-        prjectileS0.set(0, 0.6f, 0 - 1.3f);
-        prjectileS0.rotate(xAxis, rBarrel);
-        prjectileS0.rotate(yAxis, rTurret);
-    }
-
-    /*
-     * carve this out so it can be done selectively (only on control update actual i.e. enabled)
-     */
-    private void updateTransforms() {
-
+        // update Transforms
         mi.calculateTransforms(); // definately need this !
 
         if (null != btcs && null != body && null != mi.transform) {
@@ -160,10 +135,25 @@ public class GunPlatform implements SimpleVehicleModel {
             if (null != gunNode) {
                 btcs.updateChildTransform(gunIndex, gunNode.globalTransform);
             }
+// Apparently this is NOT needed here (for static/kinematic bodies, YES) conflicting with BUllet
+// update of the body ... puts a significant load/slo-down of bullet update for this body!
+//            body.setWorldTransform(mi.transform);
+        }
 
-            body.setWorldTransform(mi.transform);
+
+        // set the basic gun sight vector, but  is definately not onesizefitsall
+        prjectileS0.set(0, 0.6f, 0 - 1.3f);
+        prjectileS0.rotate(xAxis, rBarrel);
+        prjectileS0.rotate(yAxis, rTurret);
+
+
+        if (switches[1]) { // FIRE 1
+//            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
+            // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
+            fireProjectile(mi.transform);
         }
     }
+
 
 
     private final Vector3 vFprj = new Vector3();
@@ -174,7 +164,7 @@ public class GunPlatform implements SimpleVehicleModel {
     private final Quaternion qBody = new Quaternion();
 
 
-    public void fireProjectile(Entity target, Matrix4 srcTrnsfm) {
+    public void fireProjectile(Matrix4 srcTrnsfm) {
 
         if (null != srcTrnsfm) {
 
@@ -188,8 +178,8 @@ public class GunPlatform implements SimpleVehicleModel {
 
 // copy src  rotation & translation into the tmp transform, then rotate to gun/turret orientation
             tmpM.set(srcTrnsfm);
-            tmpM.rotate(yAxis, rTurret ); // rotate the body transform by turrent rotation  about Y-axis (float degrees)
-            tmpM.rotate(xAxis, rBarrel ); //
+            tmpM.rotate(yAxis, rTurret); // rotate the body transform by turrent rotation  about Y-axis (float degrees)
+            tmpM.rotate(xAxis, rBarrel); //
 
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
             float mag = -0.15f; // scale  accordingly for magnitifdue of forward "velocity"
@@ -198,7 +188,7 @@ public class GunPlatform implements SimpleVehicleModel {
 
             CompCommon.spawnNewGameObject(
                     new Vector3(0.1f, 0.1f, 0.1f), trans,
-                    new Projectile( vFprj),
+                    new Projectile(vFprj),
                     "cone");
         }
     }
