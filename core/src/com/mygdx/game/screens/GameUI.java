@@ -118,17 +118,27 @@ public class GameUI extends InGameMenu {
     @Override
     public boolean keyDown(int keycode) {
 
+        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
+        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
+
+// hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
+
+            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
+            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
+        }
+
         if (KEY_CODE_POV_LEFT == keycode) {
-            mapper.setAxis(0, -1);
+            mapper.setAxis(axisSetIndexX, -1);
         }
         if (KEY_CODE_POV_RIGHT == keycode) {
-            mapper.setAxis(0, +1);
+            mapper.setAxis(axisSetIndexX, +1);
         }
         if (KEY_CODE_POV_UP == keycode) {
-            mapper.setAxis(1, -1);
+            mapper.setAxis(axisSetIndexY, -1);
         }
         if (KEY_CODE_POV_DOWN == keycode) {
-            mapper.setAxis(1, +1);
+            mapper.setAxis(axisSetIndexY, +1);
         }
 
         return false;
@@ -137,13 +147,25 @@ public class GameUI extends InGameMenu {
     @Override
     public boolean keyUp(int keycode) {
 
+        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
+        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
+
+// hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
+
+            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
+            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
+        }
+
         if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
                 KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
-            mapper.setAxis(0, 0);
+
+            mapper.setAxis(axisSetIndexX, 0);
         }
         if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
                 KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
-            mapper.setAxis(1, 0);
+
+            mapper.setAxis(axisSetIndexY, 0);
         }
 
         return false;
@@ -329,9 +351,9 @@ public class GameUI extends InGameMenu {
     }
 
 
-    @Override
-    protected void onSelectEvent() { // mt ... override it
-    }
+//    @Override
+//    protected void onSelectEvent() { // mt ... override it
+//    }
 
     @Override
     protected void onPauseEvent() {
