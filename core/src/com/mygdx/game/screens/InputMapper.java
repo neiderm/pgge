@@ -99,6 +99,15 @@ public class InputMapper {
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
     public static final int VIRTUAL_AXES_SZ = 6;
 
+    public enum VirtualAxes {
+        VIRTUAL_AD_AXIS, // WASD "X" axis
+        VIRTUAL_WS_AXIS, // WASD "Y" axis
+        VIRTUAL_X1_AXIS, // right anlg stick "X" (if used)
+        VIRTUAL_Y1_AXIS, // right anlg stick "Y" (if used)
+        VIRTUAL_L2_AXIS, // front button "left 2" (if used)
+        VIRTUAL_R2_AXIS // front button "right 2" (if used)
+    }
+
     // so this is the control switches abstrction
     public enum InputState {
         INP_NONE,
@@ -209,7 +218,15 @@ public class InputMapper {
         return connectedCtrl;
     }
 
+/*
+ abstractions for switch inputs (which may not be supported among all running platforms)
+ - there are gamepad controller buttons, keyboard, and also few simple functions that are implemented as
+ GUI widgets on the touch screen (FIre 1 Fire 2, and then also the "back arrow" screen-button on
+ Android devices (ESCAPE) can be used
 
+ additional states for button combos?
+  this is probably going to be a bottleneck to progress at some point
+ */
     private InputState evalNewInputState(boolean checkIsTouched) {
 
         InputState newInputState = incomingInputState;
@@ -237,6 +254,11 @@ public class InputMapper {
                 || getControlButton(VirtualButtons.BTN_SELECT)
                 ) {
             newInputState = InputState.INP_VIEW;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.GRAVE)
+                || getControlButton(VirtualButtons.BTN_Y)
+        ) {
+            newInputState = InputState.INP_BROVER;
         }
 
         return newInputState;
@@ -608,7 +630,9 @@ public class InputMapper {
                         // swap the WS and AD axes
                         remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
                         remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
-
+                        // swap the X1 and Y1 axes
+                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
 //                        Ax4==L2(+)  Ax4==R2(-)
                         break;
                     //       case 3:

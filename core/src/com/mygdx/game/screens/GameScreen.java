@@ -219,6 +219,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 analogs[idxX1] = mapper.getAxis(idxX1);
                 analogs[idxY1] = mapper.getAxis(idxY1);
 
+                switches[3] = mapper.isInputState(InputMapper.InputState.INP_ADJ);
+                switches[2] = mapper.isInputState(InputMapper.InputState.INP_BROVER);
+
                 switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
                 switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 

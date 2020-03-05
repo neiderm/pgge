@@ -66,14 +66,6 @@ public class TankController implements SimpleVehicleModel
         float angular = (null != analogs) ?  analogs[InputMapper.VIRTUAL_AD_AXIS] : 0;
         float direction = (null != analogs) ?  analogs[InputMapper.VIRTUAL_WS_AXIS] : 0;
 
-        boolean jump = (null != switches) &&  switches[0];
-
-        final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
-
-        if (jump) {         // cool jump!
-            ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
-            body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
-        }
 
         // this makes reverse steering opposite of my favorite *rigs game ;)
         if (direction < 0)
@@ -93,7 +85,15 @@ public class TankController implements SimpleVehicleModel
 
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(trans, tmpV, 1.0f);
 
-        if (null != rayPickObject) {
+
+
+        boolean jump = (null != switches) &&  (  switches[2] ); // false; ... let it jump on SomeKey for test
+
+        if (null == rayPickObject ){
+
+            jump = (null != switches) &&  (  switches[0] ); // allow roll-over function on Fire2 / B button
+
+        } else {
             /*
              * apply forces only if in surface conttact
              */
@@ -138,10 +138,20 @@ public class TankController implements SimpleVehicleModel
             accelV.scl(LINEAR_GAIN * this.mass);
             body.applyCentralForce(accelV);
 
+            // brakes ????
+//            boolean brakes = (null != switches) &&  (  switches[0] );
+
 //            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // friction?
 
+//            body.setWorldTransform(tmpM);
+        }
 
-            body.setWorldTransform(tmpM);
+        if (jump) {         // cool jump!
+
+            final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
+
+            ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
+            body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
         }
 
         GfxBatch.draw(gfxLine.line(trans,
