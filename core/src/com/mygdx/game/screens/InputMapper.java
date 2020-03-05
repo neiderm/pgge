@@ -583,10 +583,13 @@ public class InputMapper {
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    case 0: // PC:
+                    case 0: // Linux + PG-9076 PS style control (USB cable):
                         // L2/R2 are analog (positive-range only)
                         remappedAxes[VIRTUAL_L2_AXIS] = axes[2];
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[5];
+
+                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[4];
                         break;
 
                     case 2: // Android
@@ -601,13 +604,15 @@ public class InputMapper {
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[4];
                         break;
 
-                    case 1: // Windows
+                    case 1: // Windows + MYGT (Xbox style) controller (Bluetooth)
                         // swap the WS and AD axes
                         remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
                         remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
 
 //                        Ax4==L2(+)  Ax4==R2(-)
                         break;
+                    //       case 3:
+// PCb BELKIN NOSTROMO (old USB contrroller) has only axes [0,1] (left anglg stik)
                 }
 
                 setAxes(remappedAxes);
