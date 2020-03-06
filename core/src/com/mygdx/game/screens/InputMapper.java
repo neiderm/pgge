@@ -544,9 +544,13 @@ public class InputMapper {
                 buttonmMapping[6] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[7] = VirtualButtons.BTN_START;
                 break;
-            case 2: // PS/AND
+            case 2: // Andoid
                 buttonmMapping[96] = VirtualButtons.BTN_A;
                 buttonmMapping[97] = VirtualButtons.BTN_B;
+                buttonmMapping[99] = VirtualButtons.BTN_X;
+                buttonmMapping[100] = VirtualButtons.BTN_Y;
+                buttonmMapping[102] = VirtualButtons.BTN_L1;
+                buttonmMapping[103] = VirtualButtons.BTN_R1;
                 buttonmMapping[109] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[108] = VirtualButtons.BTN_START;
                 break;
@@ -557,8 +561,8 @@ public class InputMapper {
                 buttonmMapping[3] = VirtualButtons.BTN_Y; // B4
                 buttonmMapping[4] = VirtualButtons.BTN_L1; // T3
                 buttonmMapping[6] = VirtualButtons.BTN_R1; // T1
-                buttonmMapping[5] = VirtualButtons.BTN_L2; // T4
-                buttonmMapping[7] = VirtualButtons.BTN_R2; // T2
+                buttonmMapping[5] = VirtualButtons.BTN_L2; // T4  (virtualize as L2/R2 axis)
+                buttonmMapping[7] = VirtualButtons.BTN_R2; // T2  (virtualize as L2/R2 axis)
                 buttonmMapping[8] = VirtualButtons.BTN_ESC; // how many "PC" game pads have a 3rd face-button?
                 buttonmMapping[9] = VirtualButtons.BTN_SELECT; // MOUSE
                 buttonmMapping[10] = VirtualButtons.BTN_START; // ENTER
