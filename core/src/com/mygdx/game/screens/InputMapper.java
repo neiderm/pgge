@@ -676,8 +676,12 @@ public class InputMapper {
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
 //                        Ax4==L2(+)  Ax4==R2(-)
                         break;
-                    //       case 3:
-// PCb BELKIN NOSTROMO (old USB contrroller) has only axes [0,1] (left anglg stik)
+                    case 3:
+// PCb BELKIN NOSTROMO (old USB contrroller)  axes [0,1] (left anglg stik)
+                        // swap the X1 and Y1 axes
+                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
+                        break;
                 }
 
                 setAxes(remappedAxes);
