@@ -27,7 +27,7 @@ import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-public class TankController implements SimpleVehicleModel
+public class TankController implements ControllerAbstraction
 {
 //    // these will be inputmapper VIRTUAL_N_AXIS defines/enumeration whatever
 //    public enum InputChannels {
@@ -87,11 +87,11 @@ public class TankController implements SimpleVehicleModel
 
 
 
-        boolean jump = (null != switches) &&  (  switches[2] ); // false; ... let it jump on SomeKey for test
+        boolean jump = (null != switches) &&  (  switches[SW_SQUARE] ); //  let it jump on SomeKey for test
 
         if (null == rayPickObject ){
 
-            jump = (null != switches) &&  (  switches[0] ); // allow roll-over function on Fire2 / B button
+            jump = (null != switches) &&  (  switches[SW_FIRE2] ); // allow roll-over function on Fire2 / B button
 
         } else {
             /*

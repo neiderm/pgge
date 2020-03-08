@@ -25,10 +25,10 @@ import static java.lang.Math.abs;
 
 public class SteeringTankController extends SteeringBulletEntity {
 
-    private SimpleVehicleModel tc;
+    private ControllerAbstraction tc;
     Vector2 v2 = new Vector2();
 
-    public SteeringTankController(SimpleVehicleModel tc, btRigidBody body, SteeringEntity target) {
+    public SteeringTankController(ControllerAbstraction tc, btRigidBody body, SteeringEntity target) {
 
         super(body);
 

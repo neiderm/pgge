@@ -21,7 +21,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -49,8 +48,8 @@ import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.controllers.ControllerAbstraction;
 import com.mygdx.game.controllers.GunPlatform;
-import com.mygdx.game.controllers.SimpleVehicleModel;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
@@ -177,7 +176,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         return new GameUI() {
 
             // setup the vehicle model so it can be referenced in the mapper
-            final SimpleVehicleModel chassisModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+            final ControllerAbstraction chassisModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
                     pickedPlayer.getComponent(BulletComponent.class).body,
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
@@ -219,11 +218,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 analogs[idxX1] = mapper.getAxis(idxX1);
                 analogs[idxY1] = mapper.getAxis(idxY1);
 
-                switches[3] = mapper.isInputState(InputMapper.InputState.INP_ADJ);
-                switches[2] = mapper.isInputState(InputMapper.InputState.INP_BROVER);
+                switches[ControllerAbstraction.SW_TRIANGL] = mapper.isInputState(InputMapper.InputState.INP_ADJ);
+                switches[ControllerAbstraction.SW_SQUARE] = mapper.isInputState(InputMapper.InputState.INP_BROVER);
 
-                switches[1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
-                switches[0] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
+                switches[ControllerAbstraction.SW_FIRE1] = mapper.isInputState(InputMapper.InputState.INP_FIRE1);
+                switches[ControllerAbstraction.SW_FIRE2] = mapper.isInputState(InputMapper.InputState.INP_FIRE2);
 
                 gunTurret.updateControls(analogs, switches, 0 /* unused */);
 

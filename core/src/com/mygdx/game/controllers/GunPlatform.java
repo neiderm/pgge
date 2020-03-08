@@ -36,7 +36,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * https://free3d.com/3d-model/t-55-12298.html
  * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
-public class GunPlatform implements SimpleVehicleModel {
+public class GunPlatform implements ControllerAbstraction {
 
     private Node gunNode;
     private int gunIndex = -1;
@@ -147,7 +147,7 @@ public class GunPlatform implements SimpleVehicleModel {
         prjectileS0.rotate(yAxis, rTurret);
 
 
-        if (switches[1]) { // FIRE 1
+        if (switches[SW_FIRE1]) { // FIRE 1
 //            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
             // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
             fireProjectile(mi.transform);
