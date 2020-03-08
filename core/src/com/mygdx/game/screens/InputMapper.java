@@ -407,6 +407,14 @@ public class InputMapper {
     }
 
     boolean getDebouncedContrlButton(VirtualButtons vbutton){
+        return getDebouncedContrlButton(vbutton, false, 5);
+    }
+
+    boolean getDebouncedContrlButton(VirtualButtons vbutton, int repeatPeriod){
+        return getDebouncedContrlButton(vbutton, true, repeatPeriod);
+    }
+
+    private boolean getDebouncedContrlButton(VirtualButtons vbutton, boolean letRepeat, int repeatPeriod ){
 
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
@@ -419,10 +427,13 @@ public class InputMapper {
 
                 if (/*debounced*/ true ) {
                     // controller may emit several down/up events on a "single" button press/release
-                    buttonStateDebCts[switchIndex] = 5;
+                    buttonStateDebCts[switchIndex] = repeatPeriod;
                 }
             }
-        } else {
+        }  //        else
+        if ( ! getControlButton(vbutton)
+             || letRepeat
+        ) {
             buttonStateDebCts[switchIndex] -= 2;
             if (buttonStateDebCts[switchIndex] < 0) {
                 buttonStateDebCts[switchIndex] = 0;
