@@ -52,6 +52,9 @@ import com.mygdx.game.GameWorld;
 
 class InGameMenu extends Stage {
 
+    protected static final int BTN_KCODE_FIRE1 = 0;
+    protected static final int BTN_KCODE_FIRE2 = 1;
+
     private Vector2 v2 = new Vector2();
     private Array<Texture> savedTextureRefs = new Array<Texture>();
 
@@ -342,7 +345,7 @@ class InGameMenu extends Stage {
      * saves the texture ref for disposal ;)
      */
     protected ImageButton addImageButton(
-            Texture tex, float posX, float posY, final InputMapper.InputState ips) {
+            Texture tex, float posX, float posY, final InputMapper.InputState inputBinding) {
 
         savedTextureRefs.add(tex);
 
@@ -351,28 +354,47 @@ class InGameMenu extends Stage {
         newButton.addListener(
                 new InputListener() {
 
-                    final InputMapper.InputState InputStateBinding = ips;
+                    final InputMapper.InputState binding = inputBinding;
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                         // alternatively ?  e.g. toScrnCoord.x = Gdx.input.getX() etc.
-                        if (InputMapper.InputState.INP_NONE != InputStateBinding) {
-                            mapper.setInputState(InputStateBinding);
+                        if (InputMapper.InputState.INP_FIRE1 == binding) {
+
+                            mapper.setControlButton(BTN_KCODE_FIRE1, true);
                         }
-                        else{
+                        else if (InputMapper.InputState.INP_FIRE2 == binding) {
+
+                            mapper.setControlButton(BTN_KCODE_FIRE2, true);
+                        }
+                        else if (InputMapper.InputState.INP_NONE == binding) {
+
                             Vector2 toScrnCoord =
                                     newButton.localToParentCoordinates(v2.set(x, y));
 
                             mapper.setPointer(toScrnCoord.x, toScrnCoord.y); // sets INP SELECT
                         }
-                        return false;
+
+                        return true; // to also handle touchUp
+                    }
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                        if (InputMapper.InputState.INP_FIRE1 == binding) {
+
+                            mapper.setControlButton(BTN_KCODE_FIRE1, false);
+                        }
+                        else if (InputMapper.InputState.INP_FIRE2 == binding) {
+
+                            mapper.setControlButton(BTN_KCODE_FIRE2, false);
+                        }
                     }
                 }
         );
         return newButton;
     }
 
-    protected ImageButton addImageButton(Texture tex, float posX, float posY) {
+    private ImageButton addImageButton(Texture tex, float posX, float posY) {
 
         TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
         ImageButton newButton = new ImageButton(myTexRegionDrawable);

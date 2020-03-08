@@ -141,6 +141,12 @@ public class GameUI extends InGameMenu {
             mapper.setAxis(axisSetIndexY, +1);
         }
 
+        if (Input.Keys.SPACE == keycode){
+            mapper.setControlButton(BTN_KCODE_FIRE1, true);
+        }
+        if (Input.Keys.CONTROL_LEFT == keycode){
+            mapper.setControlButton(BTN_KCODE_FIRE2, true);
+        }
         return false;
     }
 
@@ -166,6 +172,13 @@ public class GameUI extends InGameMenu {
                 KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
 
             mapper.setAxis(axisSetIndexY, 0);
+        }
+
+        if (Input.Keys.SPACE == keycode){
+            mapper.setControlButton(BTN_KCODE_FIRE1, false);
+        }
+        if (Input.Keys.CONTROL_LEFT == keycode){
+            mapper.setControlButton(BTN_KCODE_FIRE2, false);
         }
 
         return false;
@@ -261,7 +274,7 @@ public class GameUI extends InGameMenu {
         picButton = addImageButton(
                 gsBTNx + 0f, gsBTNy - 0f,
                 gsBTNwidth, gsBTNheight,
-                InputMapper.InputState.INP_NONE);
+                InputMapper.InputState.INP_FIRE1);
 
         xButton = addImageButton(
                 3f * Gdx.graphics.getWidth() / 4, 0,
