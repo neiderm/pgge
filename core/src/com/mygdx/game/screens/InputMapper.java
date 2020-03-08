@@ -121,6 +121,7 @@ public class InputMapper {
 
     private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
     private boolean[] buttonStates = new boolean[VirtualButtons.values().length];
+    private int[] buttonStateDebCts = new int[VirtualButtons.values().length];
 
     private Controller connectedCtrl;
     private Vector2 pointer = new Vector2();
@@ -150,7 +151,7 @@ public class InputMapper {
 //        }
 //    }
 
-    private enum VirtualButtons {
+    public enum VirtualButtons {
         BTN_NONE,
         BTN_ESC, // how many PC game pads have a 3rd face button?
         BTN_SELECT, // BTN_MOUSE
@@ -362,7 +363,7 @@ public class InputMapper {
     }
 
 
-    private void setControlButton(int buttonIndex, boolean state) {
+    void setControlButton(int buttonIndex, boolean state) {
 
         if (buttonIndex < MAX_BUTTONS) {
             // lookup the virtual button id
@@ -403,6 +404,31 @@ public class InputMapper {
             return false;
         } else
             return buttonStates[index];
+    }
+
+    boolean getDebouncedContrlButton(VirtualButtons vbutton){
+
+        int switchIndex = vbutton.ordinal();
+        boolean rv = false;
+
+        if (getControlButton(vbutton)) {
+
+            if (0 == buttonStateDebCts[switchIndex]) {
+
+                rv = true;
+
+                if (/*debounced*/ true ) {
+                    // controller may emit several down/up events on a "single" button press/release
+                    buttonStateDebCts[switchIndex] = 5;
+                }
+            }
+        } else {
+            buttonStateDebCts[switchIndex] -= 2;
+            if (buttonStateDebCts[switchIndex] < 0) {
+                buttonStateDebCts[switchIndex] = 0;
+            }
+        }
+        return rv;
     }
 
     public class DpadAxis {
