@@ -425,15 +425,19 @@ public class InputMapper {
 
                 rv = true;
 
-                if (/*debounced*/ true ) {
                     // controller may emit several down/up events on a "single" button press/release
                     buttonStateDebCts[switchIndex] = repeatPeriod;
-                }
             }
-        }  //        else
-        if ( ! getControlButton(vbutton)
-             || letRepeat
-        ) {
+        }
+        // if user has let go of button, then reduce the countdown to the debounce time
+        if ( ! getControlButton(vbutton)   ) {
+            final int Debounce_Time = 15;
+            if (buttonStateDebCts[switchIndex] > Debounce_Time) {
+                buttonStateDebCts[switchIndex] = Debounce_Time;
+            }
+        }
+
+        if ( ! getControlButton(vbutton) || letRepeat ) {
             buttonStateDebCts[switchIndex] -= 2;
             if (buttonStateDebCts[switchIndex] < 0) {
                 buttonStateDebCts[switchIndex] = 0;
