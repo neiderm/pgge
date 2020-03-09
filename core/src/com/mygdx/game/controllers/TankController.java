@@ -86,7 +86,6 @@ public class TankController implements ControllerAbstraction
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(trans, tmpV, 1.0f);
 
 
-
         boolean jump = (null != switches) &&  (  switches[SW_SQUARE] ); //  let it jump on SomeKey for test
 
         if (null == rayPickObject ){
@@ -94,6 +93,12 @@ public class TankController implements ControllerAbstraction
             jump = (null != switches) &&  (  switches[SW_FIRE2] ); // allow roll-over function on Fire2 / B button
 
         } else {
+
+            boolean brake = (null != switches) &&  (  switches[SW_FIRE2]  );
+
+            // if touching the ground, then the jump flag can be unlatched
+//            isjump = false;
+
             /*
              * apply forces only if in surface conttact
              */
@@ -108,7 +113,11 @@ public class TankController implements ControllerAbstraction
              * passed as parameter to the friction computation .
              * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
              * velocity seems to be limited and constant ... go look up the math eventually */
-            final float MU = 0.5f;
+            float MU = 0.5f;
+
+            if ( brake){
+                MU *= 9; // emp-fudgically determined
+            }
 
             // Determine resultant pushing force by rotating the accelV direction vector (0, 0, 1 or 0, 0, -1) to
             // the body orientation, Vechicle steering uses resultant X & Y components of steeringLinear to apply
@@ -117,7 +126,10 @@ public class TankController implements ControllerAbstraction
             ModelInstanceEx.rotateRad(accelV.set(0, 0, direction), orientation);
 
             accelV.scl(LINEAR_GAIN * this.mass);
+
             body.applyCentralForce(accelV);
+
+            // this puts a "load" on the rig so that the forward velocity will (eventually) cap off at some reasonable limit
             body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // "friction"
 
 
@@ -137,16 +149,9 @@ public class TankController implements ControllerAbstraction
 
             accelV.scl(LINEAR_GAIN * this.mass);
             body.applyCentralForce(accelV);
-
-            // brakes ????
-//            boolean brakes = (null != switches) &&  (  switches[0] );
-
-//            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // friction?
-
-//            body.setWorldTransform(tmpM);
         }
 
-        if (jump) {         // cool jump!
+        if (jump /* && ! izinnaJump */ ) {         // cool jump!
 
             final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
 
