@@ -52,6 +52,8 @@ public class TankController implements ControllerAbstraction
     private Vector3 accelV = new Vector3();
     private GfxUtil gfxLine = new GfxUtil();
 
+    private boolean izinnaJump;
+
 
     public TankController(btRigidBody body, float mass) {
 
@@ -81,24 +83,26 @@ public class TankController implements ControllerAbstraction
         tmpM.getTranslation(trans);
 
         Quaternion orientation = body.getOrientation();
+        tmpV.set(0, -1, 0);
+        float angle = orientation.getAngleAround(tmpV);
+
         ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), orientation);
 
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(trans, tmpV, 1.0f);
 
 
-        boolean jump = (null != switches) &&  (  switches[SW_SQUARE] ); //  let it jump on SomeKey for test
+        // roll-over function on Fire2 / B button
+        boolean jumpSw = false ;
+        boolean jumpTrigger = false;
 
-        if (null == rayPickObject ){
+        if (null == rayPickObject /* || angle > xxxx */  ){
 
-            jump = (null != switches) &&  (  switches[SW_FIRE2] ); // allow roll-over function on Fire2 / B button
+            jumpSw = (null != switches) &&  (  switches[SW_FIRE2] );
 
+            if (jumpSw && ! izinnaJump){
+                jumpTrigger = true;
+            }
         } else {
-
-            boolean brake = (null != switches) &&  (  switches[SW_FIRE2]  );
-
-            // if touching the ground, then the jump flag can be unlatched
-//            isjump = false;
-
             /*
              * apply forces only if in surface conttact
              */
@@ -114,8 +118,9 @@ public class TankController implements ControllerAbstraction
              * Somehow, this seems to work well - the vehicle accelerates only to a point at which the
              * velocity seems to be limited and constant ... go look up the math eventually */
             float MU = 0.5f;
+            boolean brakeSw = (null != switches) &&  (  switches[SW_FIRE2]  );
 
-            if ( brake){
+            if ( brakeSw){
                 MU *= 9; // emp-fudgically determined
             }
 
@@ -149,14 +154,23 @@ public class TankController implements ControllerAbstraction
 
             accelV.scl(LINEAR_GAIN * this.mass);
             body.applyCentralForce(accelV);
+
+            // if touching the ground, and not starting a new jump, then the jump flag can be unlatched
+            {
+                // if touching the ground, and not starting a new jump, then the jump flag can be unlatched
+                izinnaJump = false;
+            }
         }
 
-        if (jump /* && ! izinnaJump */ ) {         // cool jump!
+        if (jumpTrigger ) {         // cool jump!
+//            if (! izinnaJump) // is tested above as condition to jumpTrigger
+            {
+                izinnaJump = true;
+                final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
 
-            final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
-
-            ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
-            body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
+                ModelInstanceEx.rotateRad(tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
+                body.applyImpulse(accelV.set(0, 40.0f, 0), tmpV);
+            }
         }
 
         GfxBatch.draw(gfxLine.line(trans,
