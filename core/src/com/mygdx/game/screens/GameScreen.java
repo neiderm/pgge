@@ -221,7 +221,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 switches[ControllerAbstraction.SW_TRIANGL] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_Y);
                 switches[ControllerAbstraction.SW_SQUARE] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_X);
                 switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_A, 60);
-                switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_B);
+                switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_B, 1);
 
                 gunTurret.updateControls(analogs, switches, 0 /* unused */);
 
