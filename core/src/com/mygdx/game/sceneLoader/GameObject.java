@@ -75,6 +75,7 @@ public class GameObject {
     public boolean iSWhatever;
     boolean isCharacter;
     boolean isPlayer; // i guess
+    boolean isShootable;
 
 
     public Array<InstanceData> getInstanceData() {
@@ -306,9 +307,9 @@ public class GameObject {
             } else
                 // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
                 if (
-//                    isKinematic ||   // if (0 == mass) ??
                         isPlayer             // make sure gound contact colllision filtering works with player character!
                                 || null != instanceFeatureAdapter
+                                || isShootable
                                 || isCharacter) {
                         // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
                         BulletWorld.getInstance().addBodyWithCollisionNotif(
