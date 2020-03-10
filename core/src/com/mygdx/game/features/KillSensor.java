@@ -65,7 +65,7 @@ public class KillSensor extends OmniSensor {
         this.target = target;
 
         // proj. sense radius (provde constructor arg)
-        this.vS.set(1, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
+        this.vS.set(1.5f, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
     }
 
 //    /*

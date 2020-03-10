@@ -37,7 +37,9 @@ public class Crapium extends KillSensor {
 
 
     public Crapium(){
+
         this.lifeClock = 1; // because base uddate sets this, to 0
+        this.vS.set(1.5f, 0, 0);
     }
 
 
