@@ -16,10 +16,8 @@
 package com.mygdx.game.components;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -39,11 +37,18 @@ public class CompCommon {
     public static void spawnNewGameObject(
             Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName) {
 
+        spawnNewGameObject(scale, translation, fa, objectName, 0);
+    }
+
+    public static void spawnNewGameObject(
+            Vector3 scale, Vector3 translation, FeatureAdaptor fa, String objectName, float mass) {
+
         InstanceData id = new InstanceData(translation);
         id.adaptr = fa;
 
         // insert a newly created game OBject into the "spawning" model group
         GameObject gameObject = new GameObject(objectName);
+        gameObject.mass = mass;
         gameObject.scale = scale;
         gameObject.getInstanceData().add(id);
 
@@ -51,30 +56,28 @@ public class CompCommon {
         GameWorld.getInstance().addSpawner(gameObject); // toooodllly dooodddd    object is added "kinematic" ???
     }
 
-
     /*
      * doesn't do much more than flag the comp for removal
      * set the collision flags is probably pointless
      */
     public static void physicsBodyMarkForRemoval(Entity ee) {
 
-        BulletComponent bc = ee.getComponent(BulletComponent.class);
-        if (null == bc) {
-            Gdx.app.log("collisionHdlr", "BulletComponent bc =  === NULLLL");
-            return; // bah processing object that should already be "at rest" ???? .....................................................
+        StatusComponent sc = ee.getComponent(StatusComponent.class);
+        if (null == sc) {
+            sc = new StatusComponent(1);
         }
-        if (null != bc) {
+        sc.deleteFlag = 2;         // flag bullet Comp for deletion
+        ee.add(sc);
 
-            bc.body.setCollisionFlags(
-                    bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-
-            StatusComponent sc = ee.getComponent(StatusComponent.class);
-            if (null == sc) {
-                sc = new StatusComponent(1);
-            }
-            sc.deleteFlag = 2;         // flag bullet Comp for deletion
-            ee.add(sc);
-        }
+//        BulletComponent bc = ee.getComponent(BulletComponent.class);
+//
+//        if (null != bc) {
+///*            bc.body.setCollisionFlags(
+//                    bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);*/
+//        } else {
+//            // bah processing object that should already be "at rest" ???? .....................................................
+//            Gdx.app.log("collisionHdlr", "BulletComponent bc =  === NULLLL");
+//        }
     }
 
     /*
