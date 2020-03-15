@@ -28,7 +28,7 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
-public class Projectile extends OmniSensor {
+public class Projectile extends FeatureAdaptor {
 
     // working variables
     private final Vector3 tmpV = new Vector3();
@@ -74,10 +74,6 @@ public class Projectile extends OmniSensor {
             fmc.modelInst.transform.trn(vF);
         } else {
             // stopped projectile
-            if (fmc.modelInst.materials.size > 0) {
-                ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
-            }
-
             StatusComponent sc = projectile.getComponent(StatusComponent.class);
             if (null != sc) {
                 sc.lifeClock = 0;    // kill off the projectile
@@ -85,17 +81,23 @@ public class Projectile extends OmniSensor {
                 projectile.add(new StatusComponent(0));
             }
 
-// projectile should make a ringy thing if hit wall or should shatter into triangles if impact on a shootable
-
+            // projectile should make a ringy thing if hit wall or should shatter into triangles if impact on a shootable
+// unfortunately it seems walls are reported by the getCollisnEntity  as valid target Entity   blah
             Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
+
             if (null != target) {
                 // spawn the sensor to handle the outcome
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f),
                         tmpV,   //                                mi.transform.getTranslation(trans),
-                        new KillSensor(target), // this projectile doesn't move ;)
-                        "capsule");
+                        new KillSensor(target),
+                        "capsule"); // the specified mesh-shape shown only momentairly ... could assign and use KIll Sensors' default shape-thingy here? for default  Impact "STrike"
             }
+//            else {
+//                if (fmc.modelInst.materials.size > 0) {
+//                    ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
+//                }
+//            }
         }
     }
 }
