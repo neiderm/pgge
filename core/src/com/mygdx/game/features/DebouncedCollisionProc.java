@@ -22,6 +22,15 @@ public class DebouncedCollisionProc implements CollisionProcessorIntrf {
 
     private int contactCount;
     private int contactBucket;
+    private int contactBucketFull = 60;
+
+    public DebouncedCollisionProc(){ //mt
+    }
+
+    public DebouncedCollisionProc(int contactBucketFull){
+
+        this.contactBucketFull = contactBucketFull;
+    }
 
     @Override
     public void onCollision(Entity myCollisionObject) {
@@ -29,7 +38,7 @@ public class DebouncedCollisionProc implements CollisionProcessorIntrf {
         contactCount += 1; // always increment (zero'd out when bucket is emptied)
 
         // bucket fills faster to ensure that it takes time to empty the bucket once the contacts have rung out ....
-        contactBucket = 60; // idfk ... allow at least 1 frames worth of updates to ensure object is at rest?
+        contactBucket = contactBucketFull; // idfk ... allow at least 1 frames worth of updates to ensure object is at rest?
     }
 
     @Override
