@@ -116,7 +116,9 @@ public class InputMapper {
         INP_FIRE1,   // A
         INP_FIRE2,   // B
         INP_BROVER,  // Y
-        INP_ADJ;     // X
+        INP_ADJ,     // X
+        INP_SEL1,
+        INP_SEL2;;
     }
 
     private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
@@ -228,42 +230,51 @@ public class InputMapper {
  additional states for button combos?
   this is probably going to be a bottleneck to progress at some point
  */
-    private InputState evalNewInputState(boolean checkIsTouched) {
+private InputState evalNewInputState(boolean checkIsTouched) {
 
-        InputState newInputState = incomingInputState;
+    InputState newInputState = incomingInputState;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
-                || Gdx.input.isKeyPressed(Input.Keys.BACK)
-                || getControlButton(VirtualButtons.BTN_START)
-                ) {
-            newInputState = InputState.INP_MENU;
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
-                || (Gdx.input.justTouched() && checkIsTouched)
-                || getControlButton(VirtualButtons.BTN_A)
-                ) {
-            newInputState = InputState.INP_FIRE1;
-
-            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-                || getControlButton(VirtualButtons.BTN_B)
-                ) {
-            newInputState = InputState.INP_FIRE2;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
-                || getControlButton(VirtualButtons.BTN_SELECT)
-                ) {
-            newInputState = InputState.INP_VIEW;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.GRAVE)
-                || getControlButton(VirtualButtons.BTN_Y)
-        ) {
-            newInputState = InputState.INP_BROVER;
-        }
-
-        return newInputState;
+    if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
+            || Gdx.input.isKeyPressed(Input.Keys.BACK)
+            || getControlButton(VirtualButtons.BTN_START)
+    ) {
+        newInputState = InputState.INP_MENU;
     }
+    else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
+            || (Gdx.input.justTouched() && checkIsTouched)
+            || getControlButton(VirtualButtons.BTN_A)
+    ) {
+        newInputState = InputState.INP_FIRE1;
+
+        pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
+    }
+    else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
+            || getControlButton(VirtualButtons.BTN_B)
+    ) {
+        newInputState = InputState.INP_FIRE2;
+    }
+    else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
+            || getControlButton(VirtualButtons.BTN_SELECT)
+    ) {
+        newInputState = InputState.INP_VIEW;
+    }
+    else if (Gdx.input.isKeyPressed(Input.Keys.GRAVE)
+            || getControlButton(VirtualButtons.BTN_Y)
+    ) {
+        newInputState = InputState.INP_BROVER;
+    }
+    else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)
+            || getControlButton(VirtualButtons.BTN_L1)
+    ) {
+        newInputState = InputState.INP_SEL1;
+    }
+    else if (Gdx.input.isKeyPressed(Input.Keys.BACKSPACE)
+            || getControlButton(VirtualButtons.BTN_R1)
+    ) {
+        newInputState = InputState.INP_SEL2;
+    }
+    return newInputState;
+}
 
     /*
      * Eval update and return the input state,
