@@ -72,7 +72,7 @@ public class GameUI extends InGameMenu {
     private Color hudOverlayColor;
 
     private Color clrWepnMenu = new Color(Color.ORANGE);
-    private boolean bWepnMenuActive;
+    protected boolean bWepnMenuActive;
     private int iWepnMenuSelect;
     protected int iWepnSelected;
 
@@ -459,9 +459,13 @@ public class GameUI extends InGameMenu {
                 } else {
 
                     if (bWepnMenuActive) {
-                        bWepnMenuActive = false;
-                        lblWselect.setVisible(false); // only see this when weaopon select menu active
-                        iWepnSelected = iWepnMenuSelect;
+                        if (iWepnSelected != iWepnMenuSelect){
+
+                            clrWepnMenu.a = 0.9f;
+                            iWepnSelected = iWepnMenuSelect;
+                        }
+//                        bWepnMenuActive = false;
+//                        lblWselect.setVisible(false); // only see this when weaopon select menu active
                     }
 
                     onSelectEvent(); // so it can be overriden

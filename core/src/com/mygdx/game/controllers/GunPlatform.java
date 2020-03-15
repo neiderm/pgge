@@ -24,6 +24,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -54,8 +55,12 @@ public class GunPlatform implements ControllerAbstraction {
     private btCompoundShape btcs;
     private btRigidBody body;
 
+    private int weaoponType = 0;
 
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, btRigidBody body) {
+
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, btRigidBody body, int weaoponType) {
+
+        this.weaoponType = weaoponType;
 
         this.mi = mi;
 
@@ -88,6 +93,11 @@ public class GunPlatform implements ControllerAbstraction {
             gunNode = mi.getNode(strBarrelNode, true);  // recursive
             gunIndex = index;
         }
+    }
+
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, btRigidBody body) {
+
+        this(mi, bs, body, 0);
     }
 
     @Override
@@ -140,8 +150,9 @@ public class GunPlatform implements ControllerAbstraction {
 //            body.setWorldTransform(mi.transform);
         }
 
-
-        // set the basic gun sight vector, but  is definately not onesizefitsall
+        /*
+         *set the basic gun sight vector, but  is definately not onesizefitsall
+         */
         prjectileS0.set(0, 0.6f, 0 - 1.3f);
         prjectileS0.rotate(xAxis, rBarrel);
         prjectileS0.rotate(yAxis, rTurret);
@@ -155,7 +166,6 @@ public class GunPlatform implements ControllerAbstraction {
     }
 
 
-
     private final Vector3 vFprj = new Vector3();
     private final Vector3 trans = new Vector3();
     private final Vector3 tmpV = new Vector3();
@@ -164,7 +174,7 @@ public class GunPlatform implements ControllerAbstraction {
     private final Quaternion qBody = new Quaternion();
 
 
-    public void fireProjectile(Matrix4 srcTrnsfm) {
+    protected void fireProjectile(Matrix4 srcTrnsfm) {
 
         if (null != srcTrnsfm) {
 
@@ -186,10 +196,18 @@ public class GunPlatform implements ControllerAbstraction {
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
 
-            CompCommon.spawnNewGameObject(
-                    new Vector3(0.1f, 0.1f, 0.1f), trans,
-                    new Projectile(vFprj),
-                    "cone");
+            if (0 == weaoponType) {
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        new Projectile(vFprj),
+                        "cone");
+            } else {
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.2f, 0.2f, 0.2f), trans,
+                        new PhysProjectile(vFprj),
+                        "sphere", 0.2f);
+            }
         }
     }
 }

@@ -181,12 +181,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
 
-            GunPlatform gunTurret = new GunPlatform(
+            GunPlatform gunPlatform = new GunPlatform(
                     pickedPlayer.getComponent(ModelComponent.class).modelInst,
                     pickedPlayer.getComponent(BulletComponent.class).shape,
                     pickedPlayer.getComponent(BulletComponent.class).body
                     );
 
+
+            int selectedWeapon = 0;
 
             // working variables
             float[] analogs = new float[InputMapper.VIRTUAL_AXES_SZ];
@@ -202,6 +204,20 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             void updateControls() {
+
+                if ( selectedWeapon != iWepnSelected){
+
+                    selectedWeapon = iWepnSelected;
+                    System.out.println("WEaopon changed: " + selectedWeapon );
+
+                    // create type of newly selected weaopn platform
+                    gunPlatform = new GunPlatform(
+                            pickedPlayer.getComponent(ModelComponent.class).modelInst,
+                            pickedPlayer.getComponent(BulletComponent.class).shape,
+                            pickedPlayer.getComponent(BulletComponent.class).body,
+                            selectedWeapon
+                    );
+                }
 
                 final int idxX = InputMapper.VIRTUAL_AD_AXIS;
                 final int idxY = InputMapper.VIRTUAL_WS_AXIS;
@@ -223,7 +239,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_A, 60);
                 switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_B, 1);
 
-                gunTurret.updateControls(analogs, switches, 0 /* unused */);
+
+                if ( ! bWepnMenuActive ){ // this is a hack way to make a delay on the weapon switchover, which would likely be an animation done in the gunplatform itself
+                    gunPlatform.updateControls(analogs, switches, 0 /* unused */);
+                }
 
                 //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
                 GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
@@ -235,6 +254,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 chassisModel.updateControls(analogs, switches, 0);
             }
+
+            Color dbgTextClr = new Color(Color.WHITE);
 
             @Override
             public void act(float delta) {
@@ -257,7 +278,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             prizeCount = sc.prizeCount;
                             setScore(sc.bounty); // spare me your judgement ... at least do it with a setter ..
 
-//                            debugPrint("**" + lc, color, 0, 0);
+//                            debugPrint("**" + lc, dbgTextClr , 0, 0);
                             boolean isDead = updateDamage(sc.damage);
                             if (isDead) {
                                 lc = 0;
