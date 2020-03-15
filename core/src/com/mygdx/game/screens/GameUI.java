@@ -44,8 +44,8 @@ public class GameUI extends InGameMenu {
     boolean canExit; // exit sensor is tripped
     int prizeCount;
 
-    static final int SCREEN_CONTINUE_TIME = 10 * 60 ; // FPS
-    private static final int DEFAULT_SCREEN_TIME = 60 * 60 ; // FPS
+    static final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
+    private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
 
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
@@ -69,9 +69,12 @@ public class GameUI extends InGameMenu {
     private Texture tpBackgnd;
     private Texture tpKnob;
 
-
-
     private Color hudOverlayColor;
+
+    private Color clrWepnMenu = new Color(Color.ORANGE);
+    private boolean bWepnMenuActive;
+    private int iWepnMenuSelect;
+    protected int iWepnSelected;
 
 
     public GameUI() {
@@ -101,11 +104,11 @@ public class GameUI extends InGameMenu {
         });
     }
 
-    int getScreenTimer(){
+    int getScreenTimer() {
         return screenTimer;
     }
 
-    public void onCameraSwitch(){ // mt
+    public void onCameraSwitch() { // mt
     }
 
 /*    @Override
@@ -122,7 +125,7 @@ public class GameUI extends InGameMenu {
         int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
 
 // hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
@@ -141,10 +144,10 @@ public class GameUI extends InGameMenu {
             mapper.setAxis(axisSetIndexY, +1);
         }
 
-        if (Input.Keys.SPACE == keycode){
+        if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE1, true);
         }
-        if (Input.Keys.CONTROL_LEFT == keycode){
+        if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE2, true);
         }
         return false;
@@ -157,7 +160,7 @@ public class GameUI extends InGameMenu {
         int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
 
 // hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)){
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
@@ -174,10 +177,10 @@ public class GameUI extends InGameMenu {
             mapper.setAxis(axisSetIndexY, 0);
         }
 
-        if (Input.Keys.SPACE == keycode){
+        if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE1, false);
         }
-        if (Input.Keys.CONTROL_LEFT == keycode){
+        if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE2, false);
         }
 
@@ -305,13 +308,13 @@ public class GameUI extends InGameMenu {
         int minutes = 0;
         int seconds = 0;
 
-        if ( !GameWorld.getInstance().getIsPaused() ) {
+        if (!GameWorld.getInstance().getIsPaused()) {
             screenTimer -= 1;
         }
 
         int screenTimerSecs = screenTimer / 60; // FPS
 
-        if (screenTimerSecs > 0){
+        if (screenTimerSecs > 0) {
             minutes = screenTimerSecs / 60;
             seconds = screenTimerSecs % 60;
         }
@@ -326,21 +329,21 @@ public class GameUI extends InGameMenu {
         timerLabel.setText(stringBuilder);
     }
 
-    private void fadeScreen(){
+    private void fadeScreen() {
 
         float step = -0.05f;
         float alphaStep = -step;
 
-        if (hudOverlayColor.r > 0.1f )
+        if (hudOverlayColor.r > 0.1f)
             hudOverlayColor.r += step;
 
-        if (hudOverlayColor.g > 0.1f )
+        if (hudOverlayColor.g > 0.1f)
             hudOverlayColor.g += step;
 
-        if (hudOverlayColor.b > 0.1f )
+        if (hudOverlayColor.b > 0.1f)
             hudOverlayColor.b += step;
 
-        if (hudOverlayColor.a < 1 )
+        if (hudOverlayColor.a < 1)
             hudOverlayColor.a += alphaStep;
 
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
@@ -359,7 +362,7 @@ public class GameUI extends InGameMenu {
     }
 
 
-    private int getPrizeCount(){
+    private int getPrizeCount() {
         return prizeCount;
     }
 
@@ -415,6 +418,28 @@ public class GameUI extends InGameMenu {
         }
     }
 
+    private void updateWselectLabel(){
+
+        float alpha = clrWepnMenu.a;
+
+        if (alpha > 0.8f){
+            alpha -= 0.001f;
+        }
+        else if (alpha > 0.01f){
+
+            alpha -= 0.01f;
+
+        } else {
+            // timeout , treat as is select button has been pressed
+            bWepnMenuActive = false;
+            lblWselect.setVisible(false); // only see this when weaopon select menu active
+            iWepnSelected = iWepnMenuSelect;
+        }
+
+        clrWepnMenu.a = alpha;
+        lblWselect.setColor(clrWepnMenu ); // key is struck, so halt/revert fadeout effect
+    }
+
     private void updateGetInputs() {
 
         int checkedBox = 0; // button default at top selection
@@ -433,16 +458,53 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                 } else {
 
+                    if (bWepnMenuActive) {
+                        bWepnMenuActive = false;
+                        lblWselect.setVisible(false); // only see this when weaopon select menu active
+                        iWepnSelected = iWepnMenuSelect;
+                    }
+
                     onSelectEvent(); // so it can be overriden
                 }
             }
         } else if (mapper.isInputState(InputMapper.InputState.INP_MENU)) {
 
             onEscEvent();
-        }
-        else if (mapper.isInputState(InputMapper.InputState.INP_VIEW)) {
+        } else if (mapper.isInputState(InputMapper.InputState.INP_VIEW)) {
 
             onCameraSwitch();
+        } else if (mapper.isInputState(InputMapper.InputState.INP_SEL1)) {
+
+            if (!bWepnMenuActive) {
+
+                bWepnMenuActive = true;
+                lblWselect.setVisible(true); // only see this when weaopon select menu active
+// initiate the menu at position of presently selected weaopon
+                iWepnMenuSelect = iWepnSelected;
+
+            } else {
+                // already in one, so inc the counter
+                iWepnMenuSelect += 1;
+
+                final int N_MENU_SELECTIONS = 2;
+
+                if (iWepnMenuSelect >= N_MENU_SELECTIONS) {
+                    iWepnMenuSelect = 0;
+                }
+            }
+
+            // set selected label and key is struck, so halt/revert fadeout effect
+            lblWselect.setColor(clrWepnMenu.set(Color.ORANGE) );
+
+            switch (iWepnMenuSelect) {
+                case 0:
+                    lblWselect.setText("STANDARD AMMO");
+                    break;
+                case 1:
+                    lblWselect.setText("HI IMPACT PRJ");
+                    break;
+            }
+            lblWselect.setColor(clrWepnMenu.r, clrWepnMenu.g, clrWepnMenu.b, 0.5f); // key is struck, so halt/revert fadeout effect
         }
 
         if (GameWorld.getInstance().getIsPaused()) {
@@ -464,8 +526,7 @@ public class GameUI extends InGameMenu {
                 if (getPrizeCount() >= SceneLoader.numberOfCrapiums) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
 //                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
-                }
-                else if (screenTimer <= 0){
+                } else if (screenTimer <= 0) {
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
@@ -509,9 +570,9 @@ public class GameUI extends InGameMenu {
     }
 
 
-    private void showOSC(boolean show){
+    private void showOSC(boolean show) {
 // todo: put on screen controls in a table layout
-        if  ( ! GameWorld.getInstance().getIsTouchScreen()){
+        if (!GameWorld.getInstance().getIsTouchScreen()) {
             show = false;
         }
 
@@ -520,25 +581,27 @@ public class GameUI extends InGameMenu {
         picButton.setVisible(show);
     }
 
-    private void showPauseMenu(boolean show){
+    private void showPauseMenu(boolean show) {
 // about 80% of the time, these are opposite to each other (menu goes up, on-screen-display down).
-        onscreenMenuTbl.setVisible( show );
-        playerInfoTbl.setVisible( ! show);
+        onscreenMenuTbl.setVisible(show);
+        playerInfoTbl.setVisible(!show);
     }
 
-    private void updateUI(){
+    private void updateUI() {
 
         setOverlayColor(0, 0, 0, 0);
         showOSC(false);
         showPauseMenu(false);
         mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
+
         updateTimerLbl();
+        updateWselectLabel();
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
 
             stringBuilder.setLength(0);
-            mesgLabel.setText(stringBuilder.append("Continue? ").append( (screenTimer - continueScreenTimeUp) / 60 )); // FPS
+            mesgLabel.setText(stringBuilder.append("Continue? ").append((screenTimer - continueScreenTimeUp) / 60)); // FPS
             mesgLabel.setVisible(true);
             setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
@@ -552,17 +615,17 @@ public class GameUI extends InGameMenu {
             itemsLabel.setText(stringBuilder.append("EXIT"));
 
             stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore() ));      // update score indicateor
+            scoreLabel.setText(stringBuilder.append(getScore()));      // update score indicateor
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(getPrizeCount() ).append(" / " + SceneLoader.numberOfCrapiums));
+            itemsLabel.setText(stringBuilder.append(getPrizeCount()).append(" / " + SceneLoader.numberOfCrapiums));
 
             stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore() ));      // update score indicateor
+            scoreLabel.setText(stringBuilder.append(getScore()));      // update score indicateor
 
-        } else if ( GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras){
+        } else if (GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras) {
 
             playerInfoTbl.setVisible(false);
             fadeScreen();
@@ -571,8 +634,7 @@ public class GameUI extends InGameMenu {
         if (GameWorld.getInstance().getIsPaused()) {
             setOverlayColor(0, 0, 1, 0.5f);
             showPauseMenu(true);
-        } else
-        if (GameWorld.getInstance().getIsTouchScreen()) {
+        } else if (GameWorld.getInstance().getIsTouchScreen()) {
             showOSC(true);
         }
     }

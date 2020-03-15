@@ -137,14 +137,7 @@ class InGameMenu extends Stage {
         overlayTbl.setTouchable(Touchable.disabled);
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
-/*
-        Stack stack = new Stack();
-        addActor(stack);
-        stack.setSize(Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
-        stack.add(onscreenMenuTbl);
-        stack.add(playerInfoTbl);
-        stack.add(overlayTbl);
-*/
+
         bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
@@ -167,6 +160,7 @@ class InGameMenu extends Stage {
     Label itemsLabel;
     Label timerLabel;
     Label mesgLabel;
+    Label lblWselect;
 /*
     void setVisibleUI(boolean state){
         mesgLabel.setVisible(state);
@@ -191,6 +185,12 @@ class InGameMenu extends Stage {
         mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(font, Color.WHITE));
         playerInfoTbl.add(mesgLabel).colspan(3);
         mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
+
+        playerInfoTbl.row().bottom().left();
+
+        lblWselect = new Label("STANDARD AMMO", new Label.LabelStyle(font, Color.WHITE));
+        playerInfoTbl.add(lblWselect);
+        lblWselect.setVisible(false); // only see this when weaopon select menu active
 
         playerInfoTbl.setFillParent(true);
 //        playerInfoTbl.setDebug(true);
