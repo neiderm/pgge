@@ -72,7 +72,8 @@ public class GunPlatform implements ControllerAbstraction {
 
 //        String strMdlNode = "Tank_01.003";
 //        String strTurretNode = "Main_Turre"; //"tank_cabine";
-        String strTurretNode = "tank_cabine";
+        //String strTurretNode = "tank_cabine"; // Turret
+        String strTurretNode = "Turret"; //
 
         int index;
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
@@ -83,8 +84,9 @@ public class GunPlatform implements ControllerAbstraction {
             turretIndex = index;
         }
 
-//        String strBarrelNode = "Main_Gun"; // https://free3d.com/3d-model/veteran-tiger-tank-38672.html
-        String strBarrelNode = "tenk_canhao";
+        String strBarrelNode = "Main_Gun"; // https://free3d.com/3d-model/veteran-tiger-tank-38672.html
+        //String strBarrelNode = "tenk_canhao"; // Cylinder02
+//        String strBarrelNode = "Cylinder02"; //
 
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
@@ -204,7 +206,7 @@ public class GunPlatform implements ControllerAbstraction {
                         "cone");
             } else {
                 CompCommon.spawnNewGameObject(
-                        new Vector3(0.2f, 0.2f, 0.2f), trans,
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
                         new PhysProjectile(vFprj),
                         "sphere", 0.2f);
             }

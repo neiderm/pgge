@@ -52,7 +52,7 @@
 },
 "modelInfo": {
 	"guntruck": {
-		"fileName": "tanks/bradleygtank.g3db",
+		"fileName": "tanks/guntruck.g3db",
 		"animAdapter": {
 			"class": "com.mygdx.game.animations.RigAnimation",
 			"strMdlNode": "Tank_01.radar"
@@ -62,14 +62,14 @@
 		"fileName": "data/crate.png"
 	},
 	"Jeep_Renegade_2016": {
-		"fileName": "tanks/lo_poly_tank_3dexport.g3db",
+		"fileName": "tanks/Jeep_Renegade_2016.g3db",
 		"animAdapter": {
 			"class": "com.mygdx.game.animations.RigAnimation",
 			"strMdlNode": "Tank_01.radar"
 		}
 	},
 	"truck": {
-		"fileName": "tanks/german-panzer-ww2-ausf-b.g3db",
+		"fileName": "tanks/MilitaryCombatVehicle.g3db",
 		"animAdapter": {
 			"class": "com.mygdx.game.animations.RigAnimation",
 			"strMdlNode": "Tank_01.radar"

@@ -18,20 +18,56 @@ For each Tire02, Tire04:
  Edit mode:
   Mesh -> Normals -> Flip Normals
 
-Save as blender
 
 Select and omit lamp, camera:
  - right click "Mainframe" (top node level, choose "Select Hierarchy"
 
 Object mode:
- Choose "Object -> Clear" ... translation, rotation (Alt G, Alt R)
+ Choose "Object -> Clear" ... Location, Rotation (Alt G, Alt R)
  Unselect all, select "gun" (Cylinder02)
-   Choose "Object -> Clear" ... scale (Alt S)
+   Choose "Object -> Clear" ... Scale (Alt S)
 
  s .5 enter
  r x -90 ctrl a <rotation and scale>
  r x 90
+
+Checkpoint: 
+ save as blender 
+ export to .fbx (at .01 scale)
+ convert .fbx to g3db:
+   LD_LIBRARY_PATH=~/applic/fbx-conv/ ~/applic/fbx-conv/fbx-conv-lin64  -f -o G3DB ~/untitled.fbx  android/assets/tanks/guntruck.g3db 
+
+ 
+SEPARATING GUN FROM PIVOT/TURRET
+Object mode, select the "Gun", Tab Edit mode and Face Select, Un-select all
+Orient view if needed (ortho?) and select just the very small cylinder betw. gun and roll-bar
+Still in Edit mode, 'P' Selection to break off gun-mount (https://blender.stackexchange.com/questions/6184/splitting-pieces-of-a-mesh-into-a-new-object)
+Reparenting the gun to the mount:
+ Object mode, select the gun
+ hold Shift key, select gun
+ Ctrl-P Set Parent to Object
+Gun rotates away!
+ R-x 90 enter ... because that's the obvious thing to do?
+Export and load in game ...
+Gun now fires "backwards"
+ - select turret only 
+   r z 180 ctrl-a s
+   r z 180
+Gun fires forward, but looks backwards   
+ select gun only
+  r z 180 ctrl-a s
+  r z 180
+Gun visually rotated 90-forward (but firing forward)
+ select gun only
+  r x 90, ctrl-a s
+  r x -90
+ 
+Save as blender 
 Export to .fbx (at .01 scale)
+	
+
+
+
 
 
 OLD instructions for .obj import:
