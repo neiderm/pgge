@@ -18,8 +18,10 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
@@ -32,6 +34,9 @@ public class KillThing extends KillSensor {
         this.lifeClock = 1;  // because base uddate sets this, to 0
     }
 
+    private Vector3 trans = new Vector3();
+
+
     @Override
     public void onProcessedCollision(Entity ee){
 
@@ -42,8 +47,50 @@ public class KillThing extends KillSensor {
 
         ModelComponent mc = ee.getComponent(ModelComponent.class);
         ModelInstance mi = mc.modelInst;
-        if (mi.materials.size > 0) {
-            ModelInstanceEx.setColorAttribute(mi, new Color(Color.RED), 0.9f); //tmp?
+        if (null != mi && mi.materials.size > 0) {
+            ModelInstanceEx.setColorAttribute(mi, new Color(Color.YELLOW) ); //tmp?
+
+            mi.transform.getTranslation(trans);
+        }
+    }
+
+
+    @Override
+    public void update(Entity sensor) {
+
+        super.update(sensor);
+
+        if (isActivated) {
+
+            if (isTriggered) {
+
+                sensor.add(new StatusComponent(0)); // delete me!
+
+                /*
+                 fires a projectile in each of 4 "cardinal" directions, nuthin fancy
+                 */
+                Vector3 vFprj = new Vector3();
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        new Projectile(vFprj.set(0.1f, 0, 0f)),
+                        "sphere");
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        new Projectile(vFprj.set(-0.1f, 0, 0f)),
+                        "sphere");
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        new Projectile(vFprj.set(0f, 0, 0.1f)),
+                        "sphere");
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        new Projectile(vFprj.set(0f, 0, -0.1f)),
+                        "sphere");
+            }
         }
     }
 }

@@ -16,6 +16,45 @@
 				}
 			]
 		},
+		"PrimitivesMisc": {
+			"elements": [
+				{
+					"instanceData": [
+						{
+							"translation": {
+								"x": 0,
+								"y": 10,
+								"z": -10
+							},
+							"color": {
+								"r": 1,
+								"g": 0.5,
+								"a": 0.7
+							},
+							"adaptr": {
+								"class": "com.mygdx.game.features.KillThing",
+								"impactType": "DAMAGING",
+								"collisionProcessor": {
+									"class": "com.mygdx.game.features.DebouncedCollisionProc"
+								},
+								"vS": {
+									"x": 0.75
+								}
+							}
+						}
+					],
+					"objectName": "cylinder",
+					"featureName": "MineBombThng",
+					"scale": {
+						"x": 0.65,
+						"y": 0.10,
+						"z": 0.65
+					},
+					"mass": 0.02,
+					"meshShape": "btBoxShape"
+				}
+			]
+		},
 		"GoonSquad": {
 			"elements": [
 				{
@@ -27,7 +66,7 @@
 								"w": 0.3826834
 							},
 							"translation": {
-								"y": 2,
+								"y": 1.5,
 								"z": -15
 							},
 							"adaptr": {
