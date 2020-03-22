@@ -34,7 +34,6 @@ public class KillSensor extends OmniSensor {
 
     int lifeClock = 0;         // default is terminate this Projectile immed.
 
-    //    private Vector3 tmpV = new Vector3();
     private int bucket;
 
     // working variables
@@ -42,11 +41,15 @@ public class KillSensor extends OmniSensor {
     private final Quaternion rotation = new Quaternion();
 
     public enum ImpactType {
+        NONE,
         FATAL,
         DAMAGING,
         STRIKE,
-        ACQUIRE
+        ACQUIRE,
+        POWERUP
     }
+
+    // needs to put a #of_rounds on the power-up weapon
 
     /*
      * Projectile needs to call a different constructor to inform for its explosion handling ...
@@ -185,7 +188,7 @@ public class KillSensor extends OmniSensor {
 
             else {// else impactT ?
 
-System.out.print("anybody home?");//                KillSensor.makeBurnOut(null, KillSensor.ImpactType.STRIKE);
+                System.out.print("anybody home?");//                KillSensor.makeBurnOut(null, KillSensor.ImpactType.STRIKE);
             }
         }
     }
