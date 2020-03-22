@@ -36,7 +36,7 @@ public class OmniSensor extends FeatureAdaptor {
     protected Entity target;
     boolean inverted;
     boolean isTriggered;
-    KillSensor.ImpactType impactType;
+    KillSensor.ImpactType impactType = KillSensor.ImpactType.NONE;
     Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
 
     private Vector3 bounds = new Vector3();
@@ -50,7 +50,7 @@ public class OmniSensor extends FeatureAdaptor {
     private Quaternion rotation = new Quaternion();
     private ModelComponent mymc;
 
-    protected Matrix4 sensTransform = new Matrix4();
+    protected Matrix4 sensTransform;
 
 
     float senseZoneDistance = 5.0f;
@@ -76,6 +76,7 @@ public class OmniSensor extends FeatureAdaptor {
         sensorOrigin.set(vT0);
 
         // in case this is a non-model entity, set transform translation at least initialize to vT0
+        sensTransform = new Matrix4(); // construct this here so that it doesn't get set in the .json test writer which is harmless but annoying
         sensTransform.setTranslation(sensorOrigin);
     }
 
