@@ -33,6 +33,8 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class Crapium extends KillSensor {
 
+    public Vector3 rotationAxis;
+
     private Attribute saveAttribute;
 
 
@@ -82,7 +84,7 @@ public class Crapium extends KillSensor {
             }
 
             ModelInstanceEx.setColorAttribute(
-                    modelInst, new Color(0.1f, 0.2f, 0.3f, 0.4f)); // tmp test code
+                    modelInst, new Color(0f, 1f, 0f, 0.4f)); // tmp definately test code
         }
     }
 
@@ -98,14 +100,10 @@ public class Crapium extends KillSensor {
     private void updatePlatformRotation(Matrix4 myxfm) {
 
         myxfm.getRotation(orientation);
-        tmpV.set(0, 0, 1); // todo: get the actual "down" vector e.g. in case on inclined sfc.
-        float orientationAngle = orientation.getAngleAround(tmpV);
+        tmpV.set(1, 0, 1);
 
-        if (orientationAngle > rotationMax) {
-            rotationStep = -ROTATION_STEP_DEGREES;
-
-        } else if (orientationAngle < rotationMin) {
-            rotationStep = ROTATION_STEP_DEGREES;
+        if (rotationAxis != null){
+            tmpV.set(rotationAxis);
         }
 
         myxfm.rotate(tmpV, rotationStep);
