@@ -27,9 +27,10 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
+//public class PhysProjectile extends Projectile {
 public class PhysProjectile extends FeatureAdaptor {
 
-    private final int IMPULSE_SCALE = 25;
+    private static final int IMPULSE_SCALE = 25;
 
     private final Vector3 vF = new Vector3();
 
@@ -55,7 +56,7 @@ public class PhysProjectile extends FeatureAdaptor {
             if (null == collisionProcessor){
                 collisionProcessor = new DebouncedCollisionProc(0);
             }
-//        // impart a physics force
+        // impart a physics force
             bc = ee.getComponent(BulletComponent.class);
 
             if (null != bc && null != bc.body) {
@@ -99,12 +100,8 @@ public class PhysProjectile extends FeatureAdaptor {
         fmc.modelInst.transform.getTranslation(tmpV);
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
-        if (null == rayPickObject) {
+        if (null != rayPickObject) {
 
-            // no collision imminient so keep it moving along
-//            fmc.modelInst.transform.trn(vF);
-
-        } else {
             // stopped projectile
             StatusComponent sc = projectile.getComponent(StatusComponent.class);
             if (null != sc) {
