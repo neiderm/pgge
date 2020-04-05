@@ -25,6 +25,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.util.ModelInstanceEx;
 
@@ -33,12 +34,13 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class Crapium extends KillSensor {
 
-    public Vector3 rotationAxis;
+    private Vector3 rotationAxis; // in JSON, don't delete
 
     private Attribute saveAttribute;
 
+    private StatusComponent sc;
 
-    public Crapium(){
+    public Crapium() {
 
         this.lifeClock = 1; // because base uddate sets this, to 0
         this.vS.set(1.5f, 0, 0);
@@ -50,8 +52,10 @@ public class Crapium extends KillSensor {
 
         super.init(obj);
 
-        // ha nice hackage
-        SceneLoader.numberOfCrapiums += 1;
+        if (ImpactType.ACQUIRE == impactType) {
+            // ha nice hackage
+            SceneLoader.numberOfCrapiums += 1;
+        }
     }
 
 
@@ -59,6 +63,11 @@ public class Crapium extends KillSensor {
     public void update(Entity sensor) {
 
         super.update(sensor);
+
+        // put this kludgey crap in KillSensor ... ?   copy Bounty over to StatusComp so the killSensor dispatch can get it
+        if (null == sc) {
+            sc = sensor.getComponent(StatusComponent.class);
+        }
 
         ModelComponent mc = sensor.getComponent(ModelComponent.class);
         ModelInstance modelInst = mc.modelInst;
@@ -83,8 +92,14 @@ public class Crapium extends KillSensor {
                 }
             }
 
-            ModelInstanceEx.setColorAttribute(
-                    modelInst, new Color(0f, 1f, 0f, 0.4f)); // tmp definately test code
+            if (ImpactType.POWERUP == impactType) {
+
+                if (null != sc) {
+                    sc.lifeClock = 0; // PowerUP is acquired, kill off the powerup crapium
+                }
+                ModelInstanceEx.setColorAttribute(
+                        modelInst, new Color(0f, 1f, 0f, 0.4f)); // tmp definately test code
+            }
         }
     }
 
@@ -102,7 +117,7 @@ public class Crapium extends KillSensor {
         myxfm.getRotation(orientation);
         tmpV.set(1, 0, 1);
 
-        if (rotationAxis != null){
+        if (rotationAxis != null) {
             tmpV.set(rotationAxis);
         }
 
