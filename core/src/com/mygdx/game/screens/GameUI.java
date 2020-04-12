@@ -71,10 +71,7 @@ public class GameUI extends InGameMenu {
 
     private Color hudOverlayColor;
 
-    private Color clrWepnMenu = new Color(Color.ORANGE);
-    protected boolean bWepnMenuActive;
-    private int iWepnMenuSelect;
-    protected int iWepnSelected;
+    private int msgLabelCounter;
 
 
     public GameUI() {
@@ -102,14 +99,21 @@ public class GameUI extends InGameMenu {
                 mapper.setAxis(1, t.getKnobPercentY() * (-1));
             }
         });
+
+        // anything else a sub-class needs to do can be overridden
+        init();
+    }
+
+    /*
+     * so it can be overridden
+     */
+    protected void init(){ // mt
     }
 
     int getScreenTimer() {
         return screenTimer;
     }
 
-    public void onCameraSwitch() { // mt
-    }
 
 /*    @Override
     public boolean touchDown (int screenX, int screenY, int pointer, int button) {
@@ -367,6 +371,9 @@ public class GameUI extends InGameMenu {
     }
 
 
+    public void onCameraSwitch() { // mt
+    }
+
 //    @Override
 //    protected void onSelectEvent() { // mt ... override it
 //    }
@@ -418,27 +425,16 @@ public class GameUI extends InGameMenu {
         }
     }
 
-    private void updateWselectLabel(){
-
-        float alpha = clrWepnMenu.a;
-
-        if (alpha > 0.8f){
-            alpha -= 0.001f;
-        }
-        else if (alpha > 0.01f){
-
-            alpha -= 0.01f;
-
-        } else {
-            // timeout , treat as is select button has been pressed
-            bWepnMenuActive = false;
-            lblWselect.setVisible(false); // only see this when weaopon select menu active
-            iWepnSelected = iWepnMenuSelect;
-        }
-
-        clrWepnMenu.a = alpha;
-        lblWselect.setColor(clrWepnMenu ); // key is struck, so halt/revert fadeout effect
+    protected void onMenuEvent(){ // mt
     }
+
+
+    void setMsgLabel(String message, int time){
+        msgLabelCounter = time * 60;
+        mesgLabel.setText(message);
+        mesgLabel.setVisible(true);
+    }
+
 
     private void updateGetInputs() {
 
@@ -458,57 +454,20 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                 } else {
 
-                    if (bWepnMenuActive) {
-                        if (iWepnSelected != iWepnMenuSelect){
-
-                            clrWepnMenu.a = 0.9f;
-                            iWepnSelected = iWepnMenuSelect;
-                        }
-//                        bWepnMenuActive = false;
-//                        lblWselect.setVisible(false); // only see this when weaopon select menu active
-                    }
-
                     onSelectEvent(); // so it can be overriden
                 }
             }
         } else if (mapper.isInputState(InputMapper.InputState.INP_MENU)) {
 
             onEscEvent();
+
         } else if (mapper.isInputState(InputMapper.InputState.INP_VIEW)) {
 
             onCameraSwitch();
+
         } else if (mapper.isInputState(InputMapper.InputState.INP_SEL1)) {
 
-            if (!bWepnMenuActive) {
-
-                bWepnMenuActive = true;
-                lblWselect.setVisible(true); // only see this when weaopon select menu active
-// initiate the menu at position of presently selected weaopon
-                iWepnMenuSelect = iWepnSelected;
-
-            } else {
-                // already in one, so inc the counter
-                iWepnMenuSelect += 1;
-
-                final int N_MENU_SELECTIONS = 2;
-
-                if (iWepnMenuSelect >= N_MENU_SELECTIONS) {
-                    iWepnMenuSelect = 0;
-                }
-            }
-
-            // set selected label and key is struck, so halt/revert fadeout effect
-            lblWselect.setColor(clrWepnMenu.set(Color.ORANGE) );
-
-            switch (iWepnMenuSelect) {
-                case 0:
-                    lblWselect.setText("STANDARD AMMO");
-                    break;
-                case 1:
-                    lblWselect.setText("HI IMPACT PRJ");
-                    break;
-            }
-            lblWselect.setColor(clrWepnMenu.r, clrWepnMenu.g, clrWepnMenu.b, 0.5f); // key is struck, so halt/revert fadeout effect
+            onMenuEvent();
         }
 
         if (GameWorld.getInstance().getIsPaused()) {
@@ -596,14 +555,19 @@ public class GameUI extends InGameMenu {
         setOverlayColor(0, 0, 0, 0);
         showOSC(false);
         showPauseMenu(false);
-        mesgLabel.setVisible(false);
+//        mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
         updateTimerLbl();
-        updateWselectLabel();
+
+        if (msgLabelCounter > 0){
+            msgLabelCounter -= 1;
+        } else {
+            mesgLabel.setVisible(false);
+        }
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
-
+            msgLabelCounter = 999;
             stringBuilder.setLength(0);
             mesgLabel.setText(stringBuilder.append("Continue? ").append((screenTimer - continueScreenTimeUp) / 60)); // FPS
             mesgLabel.setVisible(true);

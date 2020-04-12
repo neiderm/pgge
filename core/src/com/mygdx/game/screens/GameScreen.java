@@ -53,6 +53,7 @@ import com.mygdx.game.controllers.GunPlatform;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -91,6 +92,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private final Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
     private Entity pickedPlayer;
+    private Gunrack gunrack;
 
 
     public void setup() {
@@ -164,8 +166,23 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         engine.addEntity(cameraEntity);
 
         playerUI = initPlayerUI();
+//if (false)
+//{
+//    gunrack = new Gunrack(hitDetectEvent, font /*  this is the debug text font */);
+//    playerUI.addActor(gunrack);
+//}
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
+    }
+
+/*
+ * handle weappon pickups
+ */
+    private void onWeaponAcquired(FeatureAdaptor.F_SUB_TYPE_T fType) {
+// map  "sub-feature" type to a weapon type
+        int wtype = fType.ordinal();
+        gunrack.onWeaponAcquired(wtype);
+        playerUI.setMsgLabel( gunrack.getDescription(wtype), 2 );
     }
 
 
@@ -175,20 +192,36 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
          */
         return new GameUI() {
 
+            boolean withEnergizeDelay = true; // configures weapon to simulate energizine time on switchover
+
+            @Override
+            protected void init() { // mt
+                //super.init();
+                gunrack = new Gunrack(hitDetectEvent, font /*  this is the debug text font */) {
+                    @Override
+                    public void act(float delta) { // mt
+                        super.act(delta);
+                        // do update stuff, gun platform etc. ?
+                        if (getRoundsAvailable() <= 0) { // note to self how can be -1 ?  (it's the default in WeaponSpec class)
+                            // force phony events for weapon acquire, menu, and select std ammo
+                            onWeaponAcquired(0);// std. ammo - it flushes the spent one and forces the menu order to be rebuilt
+                            onSelectMenu(0); // forces menu selection pointer
+
+                            gunPlatform = null;
+                            withEnergizeDelay = false; // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
+                        }
+                    }
+                };
+                addActor(gunrack);
+            }
+
+
             // setup the vehicle model so it can be referenced in the mapper
             final ControllerAbstraction chassisModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
                     pickedPlayer.getComponent(BulletComponent.class).body,
                     pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
 
-
-            GunPlatform gunPlatform = new GunPlatform(
-                    pickedPlayer.getComponent(ModelComponent.class).modelInst,
-                    pickedPlayer.getComponent(BulletComponent.class).shape,
-                    pickedPlayer.getComponent(BulletComponent.class).body
-                    );
-
-
-            int selectedWeapon = 0;
+            GunPlatform gunPlatform; // doesn't need new instance here, force it to create new instance below
 
             // working variables
             float[] analogs = new float[InputMapper.VIRTUAL_AXES_SZ];
@@ -203,20 +236,42 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     multiplexer.removeProcessor(camController);
             }
 
+            @Override
+            protected void onSelectEvent() {
+// for now this menu is not a "full-fledged" actor with events fired to it  so here is not "select" event specific to the table
+// (eventually to-do table entries as  clickable/touchable buttons )
+                if (gunrack.isVisible()){
+
+                    boolean changed = gunrack.onSelectMenu();
+
+                    if (changed){
+                        gunPlatform = null;
+                    }
+                }
+            }
+
+            @Override
+            protected void onMenuEvent(){
+                gunrack.onMenuEvent();
+            }
+
             void updateControls() {
-
-                if ( selectedWeapon != iWepnSelected){
-
-                    selectedWeapon = iWepnSelected;
-                    System.out.println("WEaopon changed: " + selectedWeapon );
-
-                    // create type of newly selected weaopn platform
+//if (false){
+//    boolean withEnergizeDelay = true; // configures weapon to simulate energizine time on switchover
+//    if (gunrack.getRoundsAvailable() <= 0) { // note to self how can be -1 ?  (it's the default in WeaponSpec class)
+//        // force phony events for weapon acquire, menu, and select std ammo
+//        gunrack.onWeaponAcquired(0);// std. ammo - it flushes the spent one and forces the menu order to be rebuilt
+//        gunrack.onSelectMenu(0); // forces menu selection pointer
+//
+//        gunPlatform = null;
+//        withEnergizeDelay = false; // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
+//    }
+//}
+                if (null == gunPlatform){
                     gunPlatform = new GunPlatform(
                             pickedPlayer.getComponent(ModelComponent.class).modelInst,
                             pickedPlayer.getComponent(BulletComponent.class).shape,
-                            pickedPlayer.getComponent(BulletComponent.class).body,
-                            selectedWeapon
-                    );
+                            gunrack, withEnergizeDelay);
                 }
 
                 final int idxX = InputMapper.VIRTUAL_AD_AXIS;
@@ -239,10 +294,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_A, 60);
                 switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_B, 1);
 
-
-                if ( ! bWepnMenuActive ){ // this is a hack way to make a delay on the weapon switchover, which would likely be an animation done in the gunplatform itself
-                    gunPlatform.updateControls(analogs, switches, 0 /* unused */);
-                }
+                gunPlatform.updateControls(analogs, switches, 0 /* unused */);
 
                 //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
                 GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
@@ -278,7 +330,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             prizeCount = sc.prizeCount;
                             setScore(sc.bounty); // spare me your judgement ... at least do it with a setter ..
 
-//                            debugPrint("**" + lc, dbgTextClr , 0, 0);
+// debugPrint("**" + lc, dbgTextClr , 0, 10);
                             boolean isDead = updateDamage(sc.damage);
                             if (isDead) {
                                 lc = 0;
@@ -544,10 +596,19 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 int bounty = 0;
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
+
                 if (null != fc && null != fc.featureAdpt){
+
                     bounty = fc.featureAdpt.bounty;
+
+                    if (null != fc.featureAdpt.fSubType) {
+
+                        onWeaponAcquired(fc.featureAdpt.fSubType);
+                    }
                 }
+
                 StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
+
                 if (null != psc) {
                     if (sc.bounty > 0) // tmp for debug
                         psc.bounty += sc.bounty; //  "points value of picked or destroyed thing

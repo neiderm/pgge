@@ -50,6 +50,7 @@
 							"adaptr": {
 								"class": "com.mygdx.game.features.Crapium",
 								"impactType": "POWERUP",
+								"fSubType": "F_TYPE_1",
 								"rotationAxis": {
 									"x": 1,
 									"y": 1,

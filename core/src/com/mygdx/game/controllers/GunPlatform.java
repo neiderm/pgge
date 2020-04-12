@@ -22,10 +22,10 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
+import com.mygdx.game.screens.Gunrack;
 import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -53,21 +53,41 @@ public class GunPlatform implements ControllerAbstraction {
 
     private ModelInstance mi;
     private btCompoundShape btcs;
-    private btRigidBody body;
 
-    private int weaoponType = 0;
+    private Gunrack gunrack;
+    private int energizeTime = 70; // based on the menu timing (70 frames is just over 1 second)
 
 
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, btRigidBody body, int weaoponType) {
+    /*
+     * non-null gunrack, specifcially sets the warmup time
+     */
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, int energizeTime) {
 
-        this.weaoponType = weaoponType;
+        this(mi, bs);
+        this.gunrack = gunrack;
+        this.energizeTime = energizeTime;
+    }
+
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
+
+        this(mi, bs);
+        this.gunrack = gunrack;
+
+        if (! delay){
+            this.energizeTime = 0;
+        }
+    }
+
+    /*
+     * this constructor allows gunrack to remain null (not needed for weapon 0 aka standard ammo)
+     */
+    private GunPlatform(ModelInstance mi, btCollisionShape bs) {
 
         this.mi = mi;
 
         if (bs.isCompound()) {
 
             this.btcs = (btCompoundShape) bs;
-            this.body = body;
         }
 
 //        String strMdlNode = "Tank_01.003";
@@ -97,13 +117,14 @@ public class GunPlatform implements ControllerAbstraction {
         }
     }
 
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, btRigidBody body) {
-
-        this(mi, bs, body, 0);
-    }
 
     @Override
     public void updateControls(float[] analogs, boolean[] switches, float time) {
+
+        if (energizeTime > 0) {
+            energizeTime -= 1;
+            return;
+        }
 
         if (null != turretNode) {
 // turret origin would probably be center of rig model and will look screwy if it goes too far out of range
@@ -113,7 +134,6 @@ public class GunPlatform implements ControllerAbstraction {
                 rfloat -= analogs[InputMapper.VIRTUAL_X1_AXIS];
                 turretNode.rotation.set(yAxis, rfloat);
             }
-//                updateTransforms();
 
             rTurret = turretNode.rotation.getAngleAround(yAxis) - 180;
         }
@@ -131,7 +151,6 @@ public class GunPlatform implements ControllerAbstraction {
                 rfloat += analogs[InputMapper.VIRTUAL_Y1_AXIS];
                 gunNode.rotation.set(xAxis, rfloat);
             }
-//                updateTransforms();
 // check rotation angle for sign?
             rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! like cargo cult programming or something like that
         }
@@ -139,7 +158,7 @@ public class GunPlatform implements ControllerAbstraction {
         // update Transforms
         mi.calculateTransforms(); // definately need this !
 
-        if (null != btcs && null != body && null != mi.transform) {
+        if (null != btcs && null != mi.transform) {
 // update child collision shape
             if (null != turretNode) {
                 btcs.updateChildTransform(turretIndex, turretNode.globalTransform);
@@ -163,7 +182,18 @@ public class GunPlatform implements ControllerAbstraction {
         if (switches[SW_FIRE1]) { // FIRE 1
 //            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
             // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
-            fireProjectile(mi.transform);
+
+            if (null != gunrack && gunrack.fireWeapon() >= 0) {
+                //if (gunrack.fireWeapon() >= 0)
+                {
+                    // a shot can be fired
+                    fireProjectile(mi.transform, gunrack.getSelectedWeapon());
+                }
+            }
+            else {
+                // gunrack is null, but a standard projectile can still be fired
+                fireProjectile(mi.transform, Gunrack.WeaponType.UNDEFINED);
+            }
         }
     }
 
@@ -176,7 +206,7 @@ public class GunPlatform implements ControllerAbstraction {
     private final Quaternion qBody = new Quaternion();
 
 
-    protected void fireProjectile(Matrix4 srcTrnsfm) {
+    private void fireProjectile(Matrix4 srcTrnsfm, Gunrack.WeaponType weapon) {
 
         if (null != srcTrnsfm) {
 
@@ -197,18 +227,21 @@ public class GunPlatform implements ControllerAbstraction {
             float mag = -0.15f; // scale  accordingly for magnitifdue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
-
-            if (0 == weaoponType) {
-
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new Projectile(vFprj),
-                        "cone");
-            } else {
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new PhysProjectile(vFprj),
-                        "sphere", 0.2f);
+            switch (weapon){
+                default:
+                case UNDEFINED:
+                case STANDARD_AMMO:
+                    CompCommon.spawnNewGameObject(
+                            new Vector3(0.1f, 0.1f, 0.1f), trans,
+                            new Projectile(vFprj),
+                            "cone");
+                    break;
+                case HI_IMPACT_PRJ:
+                    CompCommon.spawnNewGameObject(
+                            new Vector3(0.1f, 0.1f, 0.1f), trans,
+                            new PhysProjectile(vFprj),
+                            "sphere", 0.2f);
+                    break;
             }
         }
     }
