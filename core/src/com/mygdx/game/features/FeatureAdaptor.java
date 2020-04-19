@@ -21,7 +21,7 @@ import com.mygdx.game.GameWorld;
 
 public class FeatureAdaptor implements FeatureIntrf {
 
-    Object userData; // lefttover  hackage
+    private Object userData; // lefttover  hackage
     public int bounty;
 
     GameWorld.GAME_STATE_T activateOnState;
@@ -41,8 +41,12 @@ public class FeatureAdaptor implements FeatureIntrf {
 
 
     public enum F_SUB_TYPE_T {
-        F_TYPE_0,
-        F_TYPE_1;
+        FT_NONE,
+        FT_RESERVED,
+        FT_PLAYER,
+        FT_ACTOR,
+        FT_WEAAPON_0,
+        FT_WEAAPON_1;
     };
 
 
@@ -74,6 +78,10 @@ public class FeatureAdaptor implements FeatureIntrf {
                 onProcessedCollision(ee);
             }
         }
+    }
+
+
+    public void onDestroyed(Entity e) { // mt
     }
 
     public void onProcessedCollision(Entity ee) { // mt

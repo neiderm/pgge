@@ -227,7 +227,12 @@ public class Gunrack extends Table {
 
     int onWeaponAcquired(int weaponType) {
 
-        WeaponSpec ws = weaponsSpecs.get(weaponType);
+        WeaponSpec ws = null;
+
+        if (weaponType < weaponsSpecs.size) {
+            ws = weaponsSpecs.get(weaponType);
+        }
+
         if (null != ws) {
             ws.reset(); // got a refill !
         }

@@ -37,6 +37,34 @@
 					"instanceData": [
 						{
 							"translation": {
+                "x": -6,
+                "y": 2.5,
+                "z": -5
+              },
+              "color": {
+                "r": 0.471,
+                "g": 0.318,
+                "b": 0.663,
+                "a": 0.9
+              },
+              "adaptr": {
+                "class": "com.mygdx.game.features.Crapium",
+                "impactType": "ACQUIRE"
+              }
+            }
+          ],
+          "objectName": "box",
+          "featureName": "Crapium1",
+          "scale": {
+            "x": 0.95,
+            "y": 0.95,
+            "z": 0.95
+          }
+        },
+        {
+          "instanceData": [
+            {
+              "translation": {
 								"x": 5,
 								"y": 2.4,
 								"z": -5
@@ -50,7 +78,7 @@
 							"adaptr": {
 								"class": "com.mygdx.game.features.Crapium",
 								"impactType": "POWERUP",
-								"fSubType": "F_TYPE_1",
+								"fSubType": "FT_WEAAPON_1",
 								"rotationAxis": {
 									"x": 1,
 									"y": 1,
