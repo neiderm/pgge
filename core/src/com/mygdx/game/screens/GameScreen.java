@@ -178,15 +178,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 /*
  * handle weappon pickups
  */
-    private void onWeaponAcquired(FeatureAdaptor.F_SUB_TYPE_T fType) {
-        // map  "sub-feature" type to a weapon type
-        FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal();
-        int wtype = fType.ordinal();
-        wtype -=  FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
-
-        gunrack.onWeaponAcquired(wtype);
-        playerUI.setMsgLabel( gunrack.getDescription(wtype), 2 );
-    }
+private void onWeaponAcquired(int wtype){
+    gunrack.onWeaponAcquired(wtype);
+    playerUI.setMsgLabel(gunrack.getDescription(wtype), 2);
+}
 
 
     private GameUI initPlayerUI() {
@@ -605,8 +600,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     bounty = fc.featureAdpt.bounty;
 
                     if (null != fc.featureAdpt.fSubType) {
+                        // map  "sub-feature" type to a weapon type
+                        FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal();
 
-                        onWeaponAcquired(fc.featureAdpt.fSubType);
+                        int wtype = fc.featureAdpt.fSubType.ordinal();
+                        wtype -=  FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
+
+                        if (wtype > 0){
+                            onWeaponAcquired(wtype);
+                        }
                     }
                 }
 
