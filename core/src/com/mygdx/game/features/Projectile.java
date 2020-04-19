@@ -15,7 +15,6 @@
  */
 package com.mygdx.game.features;
 
-
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
@@ -85,12 +84,23 @@ public class Projectile extends FeatureAdaptor {
 // unfortunately it seems walls are reported by the getCollisnEntity  as valid target Entity   blah
             Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
 
+            KillSensor ksens = new KillSensor(target);
+
+            if (F_SUB_TYPE_T.FT_PLAYER != fSubType ){
+// tmp hack crap ... KillThing mine drop projectile shouldn't register bounty to the player
+                StatusComponent tsc = target.getComponent(StatusComponent.class);
+                if (null != tsc){
+
+                    ksens.impactType = KillSensor.ImpactType.FATAL_NO_POINTS;
+                }
+            }
+
             if (null != target) {
                 // spawn the sensor to handle the outcome
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f),
                         tmpV,   //                                mi.transform.getTranslation(trans),
-                        new KillSensor(target),
+                        ksens,
                         "capsule"); // the specified mesh-shape shown only momentairly ... could assign and use KIll Sensors' default shape-thingy here? for default  Impact "STrike"
             }
 //            else {

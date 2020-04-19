@@ -30,7 +30,7 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class KillThing extends KillSensor {
 
-    public KillThing(){
+    public KillThing() {
         this.lifeClock = 1;  // because base uddate sets this, to 0
     }
 
@@ -38,7 +38,7 @@ public class KillThing extends KillSensor {
 
 
     @Override
-    public void onProcessedCollision(Entity ee){
+    public void onProcessedCollision(Entity ee) {
 
         // toooooooooodooo ... can it have option when to activate or detonate (bomb vs. mine?)
 
@@ -48,7 +48,7 @@ public class KillThing extends KillSensor {
         ModelComponent mc = ee.getComponent(ModelComponent.class);
         ModelInstance mi = mc.modelInst;
         if (null != mi && mi.materials.size > 0) {
-            ModelInstanceEx.setColorAttribute(mi, new Color(Color.YELLOW) ); //tmp?
+            ModelInstanceEx.setColorAttribute(mi, new Color(Color.YELLOW)); //tmp?
 
             mi.transform.getTranslation(trans);
         }
@@ -69,26 +69,39 @@ public class KillThing extends KillSensor {
                 /*
                  fires a projectile in each of 4 "cardinal" directions, nuthin fancy
                  */
+                Projectile prj;
                 Vector3 vFprj = new Vector3();
 
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new Projectile(vFprj.set(0.1f, 0, 0f)),
-                        "sphere");
+                prj = new Projectile(vFprj.set(0.1f, 0, 0f));
+                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
 
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new Projectile(vFprj.set(-0.1f, 0, 0f)),
+                        prj,
                         "sphere");
+
+                prj = new Projectile(vFprj.set(-0.1f, 0, 0f));
+                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
 
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new Projectile(vFprj.set(0f, 0, 0.1f)),
+                        prj,
                         "sphere");
+
+                prj = new Projectile(vFprj.set(0f, 0, 0.1f));
+                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
 
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        new Projectile(vFprj.set(0f, 0, -0.1f)),
+                        prj,
+                        "sphere");
+
+                prj = new Projectile(vFprj.set(0f, 0, -0.1f));
+                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
+
+                CompCommon.spawnNewGameObject(
+                        new Vector3(0.1f, 0.1f, 0.1f), trans,
+                        prj,
                         "sphere");
             }
         }

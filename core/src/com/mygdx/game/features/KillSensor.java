@@ -23,6 +23,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 
@@ -43,9 +44,11 @@ public class KillSensor extends OmniSensor {
     public enum ImpactType {
         NONE,
         FATAL,
+        FATAL_NO_POINTS,
         DAMAGING,
         STRIKE,
         ACQUIRE,
+        CONTAINER,
         POWERUP
     }
 
@@ -71,23 +74,6 @@ public class KillSensor extends OmniSensor {
         this.vS.set(1.5f, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
     }
 
-//    /*
-//     * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector
-//     */
-//    // probably get rid of this one
-//    private Vector3 getDirectionVector(Matrix4 shootersTransform) {
-//
-//        Vector3 vvv = new Vector3();
-//
-//        shootersTransform.getRotation(orientation);
-//
-//        // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-//        float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
-//
-//        vvv.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation));
-//
-//        return vvv;
-//    }
 
 
     @Override
@@ -101,6 +87,7 @@ public class KillSensor extends OmniSensor {
         updateTriggered(sensor, isTriggered, sensorOrigin);
 
         int lc =         sensor.getComponent(StatusComponent.class).lifeClock;
+
         if (!isTriggered && 0 == lc ){
             // kill sensor is probbly created by a e.g. a projectile and must be immediately disposed i.e. probabably not a character
 // make a Strike impact
@@ -131,9 +118,21 @@ public class KillSensor extends OmniSensor {
 
     private void updateImpact(KillSensor.ImpactType impactT, Entity sensor, Vector3 sensorPos) {
 
+        if (impactT == ImpactType.FATAL_NO_POINTS) {
+
+            FeatureComponent tfc = target.getComponent(FeatureComponent.class);
+            FeatureAdaptor fa;
+            if (null != tfc) {
+                fa = tfc.featureAdpt;
+                if (null != fa) {
+                    fa.bounty = 0; // no bounty for you
+                }
+            }
+        }
+
+
         StatusComponent tsc = target.getComponent(StatusComponent.class);
-// try not to shoot down the walls
-// etc. ... BurnOut blue hit-ring
+// shootable targets should have a status component
         if (null != tsc) {
 
             if (KillSensor.ImpactType.ACQUIRE == impactT) {
@@ -155,7 +154,8 @@ public class KillSensor extends OmniSensor {
                 sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
 
             } else if (KillSensor.ImpactType.DAMAGING == impactT
-                    || KillSensor.ImpactType.FATAL == impactT) {
+                    || KillSensor.ImpactType.FATAL == impactT
+                    || ImpactType.FATAL_NO_POINTS == impactT) {
                 // use the target model instance texture etc.
                 ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
 // if (null != tmi
@@ -184,11 +184,6 @@ public class KillSensor extends OmniSensor {
                 }
 
                 KillSensor.makeBurnOut(tmi, impactT); // use target model instance for burn out texture
-            }
-
-            else {// else impactT ?
-
-                System.out.print("anybody home?");//                KillSensor.makeBurnOut(null, KillSensor.ImpactType.STRIKE);
             }
         }
     }

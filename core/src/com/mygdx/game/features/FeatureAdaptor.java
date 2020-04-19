@@ -80,10 +80,6 @@ public class FeatureAdaptor implements FeatureIntrf {
         }
     }
 
-
-    public void onDestroyed(Entity e) { // mt
-    }
-
     public void onProcessedCollision(Entity ee) { // mt
     }
 
