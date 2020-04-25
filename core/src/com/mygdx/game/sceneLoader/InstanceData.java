@@ -26,6 +26,12 @@ public class InstanceData {
     public InstanceData() { // mt
     }
 
+    public InstanceData(FeatureAdaptor adaptr, Vector3 translation) {
+
+        this.translation = new Vector3(translation);
+        this.adaptr = adaptr;
+    }
+
     public InstanceData(Vector3 translation) {
 
         this.translation = new Vector3(translation);
