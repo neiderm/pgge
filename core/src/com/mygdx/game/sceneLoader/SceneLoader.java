@@ -148,11 +148,6 @@ public class SceneLoader implements Disposable {
 
                 GameObject gameObject = tmg.getElement(0); // snhould be only 1!
 
-                if (null == gameObject) {   // new instance of model gruop, game object
-                    gameObject = new GameObject(localPlayerObjectname);
-                    tmg.addElement(gameObject);
-                }
-
                 gameObject.mass = 5.1f;   // should be from the model or something
                 gameObject.isPlayer = true; ////////////////// bah look at me hack
                 gameObject.objectName = localPlayerObjectname;
@@ -238,6 +233,8 @@ public class SceneLoader implements Disposable {
 
         mb.begin();
 
+        int objectCountFlag = 0;
+
         for (GameObject go : mg.elements) {
 
             ModelInfo mi = sd.modelInfo.get(go.objectName);
@@ -262,8 +259,9 @@ public class SceneLoader implements Disposable {
                 mat.set(ColorAttribute.createDiffuse(Color.CYAN));// shouldn't be here?
             }
 
-            if (go.iSWhatever) { // isReverseFace
-                mat.set(IntAttribute.createCullFace(GL_FRONT)); // will reuse this Game oBject field
+//            if (go.iSWhatever) { // isReverseFace
+            if ( objectCountFlag++ == 0){             // hhhhhhaaaaaaccccccckkkkkk use item 0 for skybox
+                mat.set(IntAttribute.createCullFace(GL_FRONT)); // set reverse face culling for skybox
             }
 
             mb.node().id = go.objectName;
