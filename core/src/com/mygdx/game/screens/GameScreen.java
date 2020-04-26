@@ -53,6 +53,7 @@ import com.mygdx.game.controllers.GunPlatform;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
+import com.mygdx.game.features.Crapium;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
@@ -175,13 +176,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         Gdx.input.setInputProcessor(multiplexer);
     }
 
-/*
- * handle weappon pickups
- */
-private void onWeaponAcquired(int wtype){
-    gunrack.onWeaponAcquired(wtype);
-    playerUI.setMsgLabel(gunrack.getDescription(wtype), 2);
-}
+    /*
+     * handle weappon pickups
+     */
+    private void onWeaponAcquired(int wtype){
+        gunrack.onWeaponAcquired(wtype);
+        playerUI.setMsgLabel(gunrack.getDescription(wtype), 2);
+    }
 
 
     private GameUI initPlayerUI() {
@@ -592,33 +593,31 @@ private void onWeaponAcquired(int wtype){
                     }
                 }
 
-                int bounty = 0;
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
 
                 if (null != fc && null != fc.featureAdpt){
 
-                    bounty = fc.featureAdpt.bounty;
+                    fc.featureAdpt.onDestroyed(e);
 
-                    if (null != fc.featureAdpt.fSubType) {
-                        // map  "sub-feature" type to a weapon type
-                        FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal();
+                    int bounty = fc.featureAdpt.bounty;
+// bounty provides either points or powerups
+                    if (bounty >= Crapium.BOUNTY_POWERUP) {
 
-                        int wtype = fc.featureAdpt.fSubType.ordinal();
-                        wtype -=  FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
+                        if (null != fc.featureAdpt.fSubType) {
+                            // map  "sub-feature" type to a weapon type
+                            int wtype = fc.featureAdpt.fSubType.ordinal()
+                                    - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
 
-                        if (wtype > 0){
-                            onWeaponAcquired(wtype);
+                            if (wtype > 0) {
+                                onWeaponAcquired(wtype);
+                            }
+                        }
+                    } else if (bounty > 0) {
+                        StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
+                        if (null != psc) {
+                            psc.bounty += bounty;
                         }
                     }
-                }
-
-                StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-
-                if (null != psc) {
-                    if (sc.bounty > 0) // tmp for debug
-                        psc.bounty += sc.bounty; //  "points value of picked or destroyed thing
-
-                    psc.bounty += bounty;
                 }
 
                 e.remove(ModelComponent.class);
@@ -718,7 +717,8 @@ private void onWeaponAcquired(int wtype){
 
             gameObject.getInstanceData().add(
                     new InstanceData(
-                            modelInst.transform.getTranslation(translation), modelInst.transform.getRotation(rotation))
+                            modelInst.transform.getTranslation(translation),
+                            modelInst.transform.getRotation(rotation))
             );
 
 //            Array<Node> nodeArray = model.nodes;
