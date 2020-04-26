@@ -23,7 +23,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.CompCommon;
-import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 
@@ -44,7 +43,7 @@ public class KillSensor extends OmniSensor {
     public enum ImpactType {
         NONE,
         FATAL,
-        FATAL_NO_POINTS,
+        //        FATAL_NO_POINTS,
         DAMAGING,
         STRIKE,
         ACQUIRE,
@@ -67,19 +66,21 @@ public class KillSensor extends OmniSensor {
     public KillSensor(Entity target) {
 
         this();
-
         this.target = target;
 
         // proj. sense radius (provde constructor arg)
         this.vS.set(1.5f, 0, 0); // vS.x + projectile_radius = radiys of the kill sensor
     }
 
-
+//    public KillSensor(Entity target, KillSensor.ImpactType impactType) {
+//        this(target);
+//        this.impactType = impactType;
+//    }
 
     @Override
     public void update(Entity sensor) {
 
-        sensor.getComponent(StatusComponent.class).lifeClock = this.lifeClock;
+        sensor.getComponent(StatusComponent.class).lifeClock = this.lifeClock; // BAH hack
 
         // updates the damage status on the target
         super.update(sensor);
@@ -117,27 +118,27 @@ public class KillSensor extends OmniSensor {
     }
 
     private void updateImpact(KillSensor.ImpactType impactT, Entity sensor, Vector3 sensorPos) {
-
-        if (impactT == ImpactType.FATAL_NO_POINTS) {
-
-            FeatureComponent tfc = target.getComponent(FeatureComponent.class);
-            FeatureAdaptor fa;
-            if (null != tfc) {
-                fa = tfc.featureAdpt;
-                if (null != fa) {
-                    fa.bounty = 0; // no bounty for you
-                }
-            }
-        }
-
+//        if (impactT == ImpactType.FATAL_NO_POINTS) {
+//
+//            FeatureComponent tfc = target.getComponent(FeatureComponent.class);
+//
+//            if (null != tfc) {
+//                FeatureAdaptor fa = tfc.featureAdpt;
+//                if (null != fa) {
+//                    fa.bounty = 0; // no bounty for you
+//                }
+//            }
+//        }
 
         StatusComponent tsc = target.getComponent(StatusComponent.class);
 // shootable targets should have a status component
         if (null != tsc) {
 
-            if (KillSensor.ImpactType.ACQUIRE == impactT) {
+            if (KillSensor.ImpactType.ACQUIRE == impactT || ImpactType.POWERUP == impactT) {
 
-                tsc.prizeCount += 1;
+                if (impactT == KillSensor.ImpactType.ACQUIRE) {
+                    tsc.prizeCount += 1; // powerups should not add to prize count
+                }
 
                 ModelInstance senorModelInst = null;
 
@@ -148,14 +149,14 @@ public class KillSensor extends OmniSensor {
 
                 // use sensor model instance texture etc. idfk
                 if (null != senorModelInst) {
-                    KillSensor.makeBurnOut(senorModelInst, KillSensor.ImpactType.ACQUIRE);
+                    KillSensor.makeBurnOut(senorModelInst, impactT);
                 }
 
                 sensor.add(new StatusComponent(0)); // delete me! ... 0 points bounty
 
             } else if (KillSensor.ImpactType.DAMAGING == impactT
                     || KillSensor.ImpactType.FATAL == impactT
-                    || ImpactType.FATAL_NO_POINTS == impactT) {
+                /* || ImpactType.FATAL_NO_POINTS == impactT*/ ) {
                 // use the target model instance texture etc.
                 ModelInstance tmi = target.getComponent(ModelComponent.class).modelInst;
 // if (null != tmi
@@ -183,7 +184,10 @@ public class KillSensor extends OmniSensor {
                     impactT = KillSensor.ImpactType.FATAL;
                 }
 
-                KillSensor.makeBurnOut(tmi, impactT); // use target model instance for burn out texture
+                if (tsc.bounty >= 0){
+                    KillSensor.makeBurnOut(tmi, impactT); // use target model instance for burn out texture
+                }
+                // } else {  .......... bounty < 0 .... shot the  weapon powerup
             }
         }
     }
