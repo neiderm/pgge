@@ -15,6 +15,7 @@
  */
 package com.mygdx.game.controllers;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
@@ -25,6 +26,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
+import com.mygdx.game.features.SensProjectile;
 import com.mygdx.game.screens.Gunrack;
 import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -73,7 +75,7 @@ public class GunPlatform implements ControllerAbstraction {
         this(mi, bs);
         this.gunrack = gunrack;
 
-        if (! delay){
+        if (!delay) {
             this.energizeTime = 0;
         }
     }
@@ -189,8 +191,7 @@ public class GunPlatform implements ControllerAbstraction {
                     // a shot can be fired
                     fireProjectile(mi.transform, gunrack.getSelectedWeapon());
                 }
-            }
-            else {
+            } else {
                 // gunrack is null, but a standard projectile can still be fired
                 fireProjectile(mi.transform, Gunrack.WeaponType.UNDEFINED);
             }
@@ -227,14 +228,23 @@ public class GunPlatform implements ControllerAbstraction {
             float mag = -0.15f; // scale  accordingly for magnitifdue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
-            switch (weapon){
+            switch (weapon) {
                 default:
                 case UNDEFINED:
                 case STANDARD_AMMO:
-                    CompCommon.spawnNewGameObject(
-                            new Vector3(0.1f, 0.1f, 0.1f), trans,
-                            new Projectile(vFprj),
-                            "cone");
+                    Entity target = gunrack.getHitDectector().getEntity();
+                    // if (null != hitdetector)...
+                    if (null != target) {
+                        CompCommon.spawnNewGameObject(
+                                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                                new SensProjectile(target, vFprj),
+                                "box");
+                    } else {
+                        CompCommon.spawnNewGameObject(
+                                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                                new Projectile(vFprj),
+                                "cone");
+                    }
                     break;
                 case HI_IMPACT_PRJ:
                     CompCommon.spawnNewGameObject(
