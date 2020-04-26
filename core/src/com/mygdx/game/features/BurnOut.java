@@ -54,13 +54,20 @@ public class BurnOut extends FeatureAdaptor {
         if (KillSensor.ImpactType.ACQUIRE == impt) {
             // marker for prize pickup
             cc = new Color(Color.GOLD);
-        } else  if (KillSensor.ImpactType.DAMAGING == impt)
-        { // hit/collision w/ damage
+        }
+        else  if (KillSensor.ImpactType.POWERUP == impt)
+        {
+            cc = new Color(Color.PURPLE);
+        }
+        else  if (KillSensor.ImpactType.DAMAGING == impt)
+        {
             cc = new Color(Color.YELLOW);
-        } else  if (KillSensor.ImpactType.STRIKE == impt)
-        { // hit/collision w/ damage
+        }
+        else  if (KillSensor.ImpactType.STRIKE == impt)
+        {
             cc = new Color(Color.ROYAL);
-        } else { // FATAL etc.
+        }
+        else { // FATAL etc.
             cc = new Color(Color.FIREBRICK);
         }
 
