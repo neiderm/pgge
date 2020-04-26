@@ -16,22 +16,18 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.components.CompCommon;
+import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.util.ModelInstanceEx;
 
 public class Projectile extends FeatureAdaptor {
 
     // working variables
     private final Vector3 tmpV = new Vector3();
-    private final Quaternion orientation = new Quaternion();
     private final Vector3 vF = new Vector3();
 
 
@@ -40,33 +36,23 @@ public class Projectile extends FeatureAdaptor {
         this.vF.set(vFp);
     }
 
-    /*
-     * doesn't do much but get a vector for the shooters forwared-orientation and scale to projectile movement delta vector
-     */
-    // probably get rid of this one
-    private Vector3 getDirectionVector(Matrix4 shootersTransform) {
+    public Projectile(Vector3 vFp, F_SUB_TYPE_T fSubType) {
 
-        Vector3 vvv = new Vector3();
-
-        shootersTransform.getRotation(orientation);
-
-        // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-        float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
-
-        vvv.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation));
-
-        return vvv;
+        this(vFp);
+        this.fSubType = fSubType;
     }
 
 
     @Override
     public void update(Entity projectile) {
 
+        Vector3 position = tmpV;
+
         // projectile moves by one step vector if there is no collision imminent
         ModelComponent fmc = projectile.getComponent(ModelComponent.class);// could cache this model comp lookup?
 // if (null != fmc)
-        fmc.modelInst.transform.getTranslation(tmpV);
-        btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
+        fmc.modelInst.transform.getTranslation(position);
+        btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(position, vF, 1.0f);
 
         if (null == rayPickObject) {
             // no collision imminient so keep it moving along
@@ -84,14 +70,17 @@ public class Projectile extends FeatureAdaptor {
 // unfortunately it seems walls are reported by the getCollisnEntity  as valid target Entity   blah
             Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
 
-            KillSensor ksens = new KillSensor(target);
-
             if (F_SUB_TYPE_T.FT_PLAYER != fSubType ){
-// tmp hack crap ... KillThing mine drop projectile shouldn't register bounty to the player
-                StatusComponent tsc = target.getComponent(StatusComponent.class);
-                if (null != tsc){
+                //  KillThing mine drop projectile shouldn't register bounty to the player
+//                ksens = new KillSensor(target, KillSensor.ImpactType.FATAL_NO_POINTS);
 
-                    ksens.impactType = KillSensor.ImpactType.FATAL_NO_POINTS;
+                FeatureComponent tfc = target.getComponent(FeatureComponent.class);
+
+                if (null != tfc) {
+                    FeatureAdaptor fa = tfc.featureAdpt;
+                    if (null != fa) {
+                        fa.bounty = 0; // no bounty for you
+                    }
                 }
             }
 
@@ -99,15 +88,10 @@ public class Projectile extends FeatureAdaptor {
                 // spawn the sensor to handle the outcome
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f),
-                        tmpV,   //                                mi.transform.getTranslation(trans),
-                        ksens,
-                        "capsule"); // the specified mesh-shape shown only momentairly ... could assign and use KIll Sensors' default shape-thingy here? for default  Impact "STrike"
+                        position,   //                                mi.transform.getTranslation(trans),
+                        new KillSensor(target),
+                        "capsule"); // make this non-graphical ... the specified mesh-shape shown only momentairly
             }
-//            else {
-//                if (fmc.modelInst.materials.size > 0) {
-//                    ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
-//                }
-//            }
         }
     }
 }
