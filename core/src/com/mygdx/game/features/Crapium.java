@@ -16,7 +16,6 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Attribute;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -24,15 +23,20 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.InstanceData;
 import com.mygdx.game.sceneLoader.SceneLoader;
-import com.mygdx.game.util.ModelInstanceEx;
 
 /*
  * crap you have to pick up
  */
 public class Crapium extends KillSensor {
+
+    public static final int BOUNTY_CTAINER = 10000;
+    public static final int BOUNTY_POWERUP = 20000;
 
     private Vector3 rotationAxis; // in JSON, don't delete
 
@@ -46,6 +50,11 @@ public class Crapium extends KillSensor {
         this.vS.set(1.5f, 0, 0);
     }
 
+    private Crapium(ImpactType impactType) {
+
+        this();
+        this.impactType = impactType;
+    }
 
     @Override
     public void init(Object obj) {
@@ -77,9 +86,6 @@ public class Crapium extends KillSensor {
         Material mat = null;
         if (modelInst.materials.size > 0) {
             mat = modelInst.materials.get(0);
-
-//        if (null == mat)
-//            return; // throw new GdxRuntimeException("not found");
         }
 
         if (isTriggered) {
@@ -93,14 +99,44 @@ public class Crapium extends KillSensor {
             }
 
             if (ImpactType.POWERUP == impactType) {
+// only allow the bounty.powerup to register if this crapium has been collided-with (triggered) and not by projectile impact
+                this.bounty = (BOUNTY_POWERUP + 1); // flag this as a powerup to the post-frame cleaner
 
                 if (null != sc) {
                     sc.lifeClock = 0; // PowerUP is acquired, kill off the powerup crapium
                 }
-                ModelInstanceEx.setColorAttribute(
-                        modelInst, new Color(0f, 1f, 0f, 0.4f)); // tmp definately test code
+                // should make a purple burnout // ModelInstanceEx.setColorAttribute(modelInst, new Color(0f, 1f, 0f, 0.4f));
             }
         }
+    }
+
+    @Override
+    public void onDestroyed(Entity e) {
+
+        ModelComponent mc = e.getComponent(ModelComponent.class);// could cache this model comp lookup?
+// if (null != fmc)
+        mc.modelInst.transform.getTranslation(tmpV);
+
+        // spawn the new prize pickup
+        if (impactType == ImpactType.CONTAINER) {
+
+            Crapium powerup = new Crapium(ImpactType.POWERUP);
+            powerup.fSubType = fSubType;  // assign powerup type from the destroyed container
+
+//            //  // needs to set the powerup to pickable to make it shootable - if shot, powerup is destroyed!
+            // insert a newly created game OBject into the "spawning" model group
+            GameObject gameObject = new GameObject("cylinder", 0,
+                    new Vector3(0.98f, 0.98f, 0.98f),
+                    new InstanceData(powerup,
+                            mc.modelInst.transform.getTranslation(tmpV)));
+            // flags the entity if it does not emit a BurnOut if destroyed (powerup)
+            gameObject.isPickable = true;
+            gameObject.iSWhatever = true; // isNoBurnout
+
+            GameWorld.getInstance().addSpawner(gameObject);
+        }
+// else         if (impactType == ImpactType.POWERUP) {
+//        }
     }
 
 
