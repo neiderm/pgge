@@ -56,8 +56,15 @@ public class GameObject {
     public GameObject(String objectName) {
 
         this();
-
         this.objectName = objectName;
+    }
+
+    public GameObject(String objectName, float mass, Vector3 scale, InstanceData instanceData) {
+
+        this(objectName);
+        this.mass = mass;
+        this.scale = scale;
+        this.instanceData.add(instanceData);
     }
 
     private Array<InstanceData> instanceData = new Array<InstanceData>();
@@ -70,7 +77,7 @@ public class GameObject {
     public float mass;
     public String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
     boolean isKinematic;  //  "is Platform" ?
-    private boolean isPickable;
+    public boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
     boolean isCharacter;
@@ -333,6 +340,14 @@ public class GameObject {
                     GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 //if (null != playerFeature)
             playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
+        }
+
+        // if no burnout then flag entity by setting status component bounty to invalid
+        if (iSWhatever){
+            StatusComponent sc = e.getComponent(StatusComponent.class);
+            if (null != sc){
+                sc.bounty = -1; // temp hack flag object as no-burnout
+            }
         }
 
         return e;
