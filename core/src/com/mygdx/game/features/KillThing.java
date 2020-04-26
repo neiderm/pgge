@@ -54,7 +54,6 @@ public class KillThing extends KillSensor {
         }
     }
 
-
     @Override
     public void update(Entity sensor) {
 
@@ -65,45 +64,35 @@ public class KillThing extends KillSensor {
             if (isTriggered) {
 
                 sensor.add(new StatusComponent(0)); // delete me!
-
-                /*
-                 fires a projectile in each of 4 "cardinal" directions, nuthin fancy
-                 */
-                Projectile prj;
-                Vector3 vFprj = new Vector3();
-
-                prj = new Projectile(vFprj.set(0.1f, 0, 0f));
-                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
-
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        prj,
-                        "sphere");
-
-                prj = new Projectile(vFprj.set(-0.1f, 0, 0f));
-                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
-
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        prj,
-                        "sphere");
-
-                prj = new Projectile(vFprj.set(0f, 0, 0.1f));
-                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
-
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        prj,
-                        "sphere");
-
-                prj = new Projectile(vFprj.set(0f, 0, -0.1f));
-                prj.fSubType = F_SUB_TYPE_T.FT_ACTOR;
-
-                CompCommon.spawnNewGameObject(
-                        new Vector3(0.1f, 0.1f, 0.1f), trans,
-                        prj,
-                        "sphere");
             }
         }
+    }
+
+    @Override
+    public void onDestroyed(Entity e) {
+/*
+ fires a projectile in each of 4 "cardinal" directions, nuthin fancy
+ */
+        Vector3 vFprj = new Vector3();
+
+        CompCommon.spawnNewGameObject(
+                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                new Projectile(vFprj.set(0.1f, 0, 0f), F_SUB_TYPE_T.FT_ACTOR),
+                "sphere");
+
+        CompCommon.spawnNewGameObject(
+                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                new Projectile(vFprj.set(-0.1f, 0, 0f), F_SUB_TYPE_T.FT_ACTOR),
+                "sphere");
+
+        CompCommon.spawnNewGameObject(
+                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                new Projectile(vFprj.set(0f, 0, 0.1f), F_SUB_TYPE_T.FT_ACTOR),
+                "sphere");
+
+        CompCommon.spawnNewGameObject(
+                new Vector3(0.1f, 0.1f, 0.1f), trans,
+                new Projectile(vFprj.set(0f, 0, -0.1f), F_SUB_TYPE_T.FT_ACTOR),
+                "sphere");
     }
 }
