@@ -15,9 +15,9 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": 6,
+							"x": 10,
 							"y": 22,
-							"z": 10
+							"z": -6
 						},
 						"color": {
 							"r": 0.4,
@@ -28,11 +28,10 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.BadActor",
 							"bounty": 1100,
-							"impactType": "DAMAGING",
 							"vS": {
 								"x": 0.5
 							}
-                        }
+						}
 					}
 				],
 				"objectName": "sphereCharacter",
@@ -44,7 +43,7 @@
 				"mass": 5.1,
 				"meshShape": "btSphereShape",
 				"isPickable": true,
-				"isCharacter": true
+				"isCharacter": false
 			},
 			{
 				"instanceData": [
@@ -62,9 +61,9 @@
 					"y": 2,
 					"z": 2
 				},
-				"isShootable": "true",
 				"mass": 1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isShootable": true
 			},
 			{
 				"instanceData": [
@@ -82,9 +81,9 @@
 					"y": 2,
 					"z": 2
 				},
-				"isShootable": "true",
 				"mass": 1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isShootable": true
 			},
 			{
 				"instanceData": [
@@ -102,9 +101,9 @@
 					"y": 2,
 					"z": 2
 				},
-				"isShootable": "true",
 				"mass": 1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isShootable": true
 			},
 			{
 				"instanceData": [
@@ -122,9 +121,9 @@
 					"y": 2,
 					"z": 2
 				},
-				"isShootable": "true",
 				"mass": 1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isShootable": true
 			}
 		],
 		"modelName": "UserMeshesModel"
@@ -206,7 +205,7 @@
 					{
 						"translation": {
 							"x": -4,
-							"y": 30,
+							"y": 23,
 							"z": -10
 						},
 						"color": {
@@ -215,7 +214,6 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.KillThing",
-							"impactType": "DAMAGING",
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
@@ -233,7 +231,8 @@
 					"z": 0.5
 				},
 				"mass": 0.1,
-				"meshShape": "btBoxShape"
+				"meshShape": "btBoxShape",
+				"isPickable": true
 			},
 			{
 				"instanceData": [
@@ -411,7 +410,6 @@
 						"adaptr": {
 							"class": "com.mygdx.game.features.ElectricEye",
 							"bounty": 500,
-							"impactType": "DAMAGING",
 							"vR": {
 								"x": 6
 							},
@@ -464,8 +462,7 @@
 	"UserModelPartsNodes": {
 		"elements": [
 			{
-				"objectName": "skySphere",
-				"iSWhatever": true
+				"objectName": "skySphere"
 			},
 			{
 				"objectName": "boxTex"
@@ -486,17 +483,14 @@
 	"sphereCharacter": {
 		"fileName": "data/badlogic.png"
 	},
-	"StaticObjects": {
-		"fileName": "data/cubetest.g3dj"
-	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
 	},
-	"Tank": {
-		"fileName": "tanks/panzerwagen.g3db"
-	},
 	"Scene": {
 		"fileName": "data/vr_zone.g3db"
+	},
+	"StaticObjects": {
+		"fileName": "data/cubetest.g3dj"
 	}
 }
 }
