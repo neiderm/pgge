@@ -114,70 +114,62 @@ I sure am glad other people figured out the thing with collision normals and edg
         public void onContactStarted(
                 btCollisionObject colObj0, boolean match0, btCollisionObject colObj1, boolean match1) {
 
-            int userValue0, userValue1;
-            userValue0 = colObj0.getUserValue();
-            userValue1 = colObj1.getUserValue();
+            int userValue0 = colObj0.getUserValue();
+            int userValue1 = colObj1.getUserValue();
 
-            Entity ee;
-            int lutSize = userToEntityLUT.size;
+            Entity ee0 = null;
+            Entity ee1 = null;
 
-            if (match0 /* null != colObj0 */ /*userValue0 > 0*/) {
+            if (userValue0 < userToEntityLUT.size) {
+                ee0 = (Entity) userToEntityLUT.get(userValue0);
+            }
 
-                if (userValue0 < lutSize) {
+            if (userValue1 < userToEntityLUT.size) {
+                ee1 = (Entity) userToEntityLUT.get(userValue1);
+            }
 
-                    ee = (Entity) userToEntityLUT.get(userValue0);
+            if (match0 && null != ee0) {
 
-                    if (null != ee) {
+                BulletComponent bc = ee0.getComponent(BulletComponent.class);// tmp?
 
-                        BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
+                if (null != bc) { //  getting the bc is rather useless
 
-                        if (null != bc) { //  getting the bc is rather useless
+                    FeatureComponent comp = ee0.getComponent(FeatureComponent.class);
 
-                            FeatureComponent comp = ee.getComponent(FeatureComponent.class);
+                    if (null != comp) {
+                        FeatureAdaptor fa = comp.featureAdpt;
 
-                            if (null != comp) {
-                                FeatureAdaptor fa = comp.featureAdpt;
-
-                                if (null != fa) {
-                                    if (null != fa.collisionProcessor){
-                                        fa.collisionProcessor.onCollision(ee);
-                                    }
-                                }
+                        if (null != fa) {
+                            if (null != fa.collisionProcessor){
+                                fa.collisionProcessor.onCollision(ee1);
                             }
-                        } else { // no longer has bullet comp, can be ignored
-                            Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
                         }
                     }
+                } else { // no longer has bullet comp, can be ignored
+                    Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
                 }
             }
 
-            if (match1 /* null != colObj1 */ /*userValue1 > 0*/) {
+            if (match1 && null != ee1) {
+                // collision processors typically result in desctruction which may likely be bullet comp being removed
+                BulletComponent bc = ee1.getComponent(BulletComponent.class);// tmp?
 
-                 if (userValue1 < lutSize) {
+                if (null != bc) {
 
-                    ee = (Entity) userToEntityLUT.get(userValue1);
+                    FeatureComponent comp = ee1.getComponent(FeatureComponent.class);
 
-                    if (null != ee) {
-                        // collision processors typically result in desctruction which may likely be bullet comp being removed
-                        BulletComponent bc = ee.getComponent(BulletComponent.class);// tmp?
+                    if (null != comp) {
+                        FeatureAdaptor fa = comp.featureAdpt;
 
-                        if (null != bc) {
-
-                            FeatureComponent comp = ee.getComponent(FeatureComponent.class);
-
-                            if (null != comp) {
-                                FeatureAdaptor fa = comp.featureAdpt;
-
-                                if (null != fa) {
-                                    if (null != fa.collisionProcessor){
-                                        fa.collisionProcessor.onCollision(ee);
-                                    }
-                                }
+                        if (null != fa) {
+                            if (null != fa.collisionProcessor){
+                                fa.collisionProcessor.onCollision(ee0);
                             }
                         }
                     }
                 }
             }
+
 //            return true;
         }
     }
@@ -226,7 +218,7 @@ I sure am glad other people figured out the thing with collision normals and edg
     }
 
 
-public Entity     getCollisionEntity(int userValue0){
+    public Entity getCollisionEntity(int userValue0){
         return  (Entity) userToEntityLUT.get(userValue0);
     }
 
@@ -289,7 +281,6 @@ public Entity     getCollisionEntity(int userValue0){
     private static final Vector3 rayFrom = new Vector3();
     private static final Vector3 rayTo = new Vector3();
     private static ClosestRayResultCallback rayResultCallback;
-    private static final Vector3 outV = new Vector3();
 
     public ClosestRayResultCallback rayResultCallback(Ray ray, float length) {
 
@@ -302,7 +293,7 @@ public Entity     getCollisionEntity(int userValue0){
 
         collisionWorld.rayTest(rayFrom, rayTo, rayResultCallback);
 
-            return rayResultCallback;
+        return rayResultCallback;
     }
 
     private btCollisionObject rayTest(Ray ray, float length) {
@@ -355,9 +346,9 @@ public Entity     getCollisionEntity(int userValue0){
 
     // try collision flags
     //    https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    public final static short GROUND_FLAG = 1<<8;
-    public final static short OBJECT_FLAG = 1<<9;
-    public final static short NONE_FLAG = 0;
+    public static final short GROUND_FLAG = 1<<8;
+    public static final short OBJECT_FLAG = 1<<9;
+    public static final short NONE_FLAG = 0;
 
     /*
      * setup Bullet body to handle collision notification and map entity to lookup by userValue of collision notifcaitob
@@ -378,24 +369,24 @@ public Entity     getCollisionEntity(int userValue0){
 
             btCollisionObject body = bc.body;
             if (null != body) {
-                    // set collision flags and map entities to int index
-                    int next = userToEntityLUT.size;
-                    body.setUserValue(next);
-                    body.setCollisionFlags(
-                            body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-                    userToEntityLUT.add(ee); // what if e (body) removed?
+                // set collision flags and map entities to int index
+                int next = userToEntityLUT.size;
+                body.setUserValue(next);
+                body.setCollisionFlags(
+                        body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+                userToEntityLUT.add(ee); // what if e (body) removed?
 
 // ground ->object collision
 //                    body.setContactCallbackFlag(GROUND_FLAG);
 //                    body.setContactCallbackFilter(0);
 // object->ground collision
-                    //body.setContactCallbackFlag(OBJECT_FLAG);
-                    // body.setContactCallbackFilter(GROUND_FLAG);
+                //body.setContactCallbackFlag(OBJECT_FLAG);
+                // body.setContactCallbackFilter(GROUND_FLAG);
 
 // Developer mode flag to turn off Contact callback filtering  for debug pps????????
 ///*
-                    body.setContactCallbackFlag(flag);
-                    body.setContactCallbackFilter(filter);
+                body.setContactCallbackFlag(flag);
+                body.setContactCallbackFilter(filter);
 //*/
             }
         }
