@@ -23,22 +23,25 @@ public class DebouncedCollisionProc implements CollisionProcessorIntrf {
     private int contactCount;
     private int contactBucket;
     private int contactBucketFull = 60;
+    public Entity collisionObject;
 
-    public DebouncedCollisionProc(){ //mt
+    public DebouncedCollisionProc() { //mt
     }
 
-    public DebouncedCollisionProc(int contactBucketFull){
+    public DebouncedCollisionProc(int contactBucketFull) {
 
         this.contactBucketFull = contactBucketFull;
     }
 
     @Override
-    public void onCollision(Entity myCollisionObject) {
+    public void onCollision(Entity collisionObject) {
 
         contactCount += 1; // always increment (zero'd out when bucket is emptied)
 
         // bucket fills faster to ensure that it takes time to empty the bucket once the contacts have rung out ....
         contactBucket = contactBucketFull; // idfk ... allow at least 1 frames worth of updates to ensure object is at rest?
+
+        this.collisionObject = collisionObject;
     }
 
     @Override
@@ -50,8 +53,7 @@ public class DebouncedCollisionProc implements CollisionProcessorIntrf {
 
                 contactBucket -= 1;
 
-            } else
-            if (0 == contactBucket) {
+            } else if (0 == contactBucket) {
 
                 Gdx.app.log(" asdfdfd", "object is at rest ?? ");
                 contactCount = 0;
