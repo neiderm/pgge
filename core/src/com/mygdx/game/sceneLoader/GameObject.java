@@ -81,8 +81,8 @@ public class GameObject {
     public boolean isShadowed;
     public boolean iSWhatever;
     boolean isCharacter;
-    boolean isPlayer; // i guess
-    boolean isShootable;
+    boolean isPlayer;
+    private boolean isShootable;
 
 
     public Array<InstanceData> getInstanceData() {
@@ -241,7 +241,16 @@ public class GameObject {
         FeatureAdaptor instanceFeatureAdapter = null; // note ... use below for collision handling setup .. hackage
 
         Entity e = new Entity();
-//e.add(new StatusComponent(1)); // maybe
+        StatusComponent statusComp = new StatusComponent(1);
+
+        // if no burnout then flag entity by setting status component bounty to invalid
+        if (iSWhatever) {
+            // entity is being excluded from having a BurnOut made on it but it should not be shootable in the first place
+            statusComp.bounty = -1; // temp hack flag object as no-burnout
+
+            // quash the node tranlation for Instance object loaded from model - do this before translation is set from ID below
+            instance.transform.setTranslation(0, 0, 0); // temp hack use flag to clear model position
+        }
 
         if (null != id) {
 
@@ -270,26 +279,27 @@ public class GameObject {
                 e.add(new FeatureComponent(instanceFeatureAdapter));
 
 // bah this also done below for all non-static Bullet bodies
-                e.add(new StatusComponent(1)); // needs an SC in order to be 'shootable', and most FAs should be shootable
+                e.add(statusComp); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
 
         ModelComponent mc = new ModelComponent(instance);
 
         ModelInfo mi = GameWorld.getInstance().getSceneData().modelInfo.get(this.objectName);
-        if (null != mi){
-            if (null != mi.animAdapter){
+
+            if (null != mi && null != mi.animAdapter){
 //new instance (manually copy) of mi.animAdator - it will be type of subclass !
                 mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
 // manually copy needed fields, but only those of the mi.animAdapter base class can be known so they need to be kind of generaic
-                mc.animAdapter.strMdlNode = new String(mi.animAdapter.strMdlNode);
+                mc.animAdapter.strMdlNode = mi.animAdapter.strMdlNode;
 
 // pass along the entity of the model instance ^H^H^H^H^ no ?????
 //                        mc.animAdapter.init(null);
             }
-        }
+
         mc.isShadowed = isShadowed; // disable shadowing of skybox)
         e.add(mc);
+
 
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -300,7 +310,7 @@ public class GameObject {
             // explicit flag from json for this: need for e.g. so as not to fall thru "moving platforms" .. for
             // landscape 'disable deactivation'   wake it when "velocity of the body is below the threshold"  (character resting on it would get "stuck")
             //
-            if (isKinematic) {   // if (0 == mass) ??
+            if (isKinematic) {
 
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -323,7 +333,7 @@ public class GameObject {
                                 e, // needs the Entity to add to the table BLAH
                                 BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
 
-                        e.add(new StatusComponent(1)); // needs an SC in order to be 'shootable'
+                        e.add(statusComp); // needs an SC in order to be 'shootable'
                 }
         }
 
@@ -336,18 +346,9 @@ public class GameObject {
         }
 
         if (isPlayer) {
-            GameFeature playerFeature =
-                    GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+            GameFeature playerFeature = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 //if (null != playerFeature)
             playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
-        }
-
-        // if no burnout then flag entity by setting status component bounty to invalid
-        if (iSWhatever){
-            StatusComponent sc = e.getComponent(StatusComponent.class);
-            if (null != sc){
-                sc.bounty = -1; // temp hack flag object as no-burnout
-            }
         }
 
         return e;
@@ -358,18 +359,14 @@ public class GameObject {
      */
     private Entity buildObjectInstance(InstanceData id) {
 
-        FeatureAdaptor instanceFeatureAdapter = null; // note ... use below for collision handling setup .. hackage
-
         Entity e = new Entity();
 
-        if (null != id.adaptr) {
+        if (null != id && null != id.adaptr) {
 // translation can now be passed in to feature adapter
             Vector3 position = new Vector3(id.translation);
 
-            instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
+            FeatureAdaptor instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
             e.add(new FeatureComponent(instanceFeatureAdapter));
-
-
         }
 
         return e;
