@@ -70,21 +70,26 @@ public class Projectile extends FeatureAdaptor {
 // unfortunately it seems walls are reported by the getCollisnEntity  as valid target Entity   blah
             Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
 
-            if (F_SUB_TYPE_T.FT_PLAYER != fSubType ){
-                //  KillThing mine drop projectile shouldn't register bounty to the player
-//                ksens = new KillSensor(target, KillSensor.ImpactType.FATAL_NO_POINTS);
-
+            if (null != target) {
                 FeatureComponent tfc = target.getComponent(FeatureComponent.class);
+
+                F_SUB_TYPE_T targetType = F_SUB_TYPE_T.FT_NONE;
 
                 if (null != tfc) {
                     FeatureAdaptor fa = tfc.featureAdpt;
                     if (null != fa) {
+
                         fa.bounty = 0; // no bounty for you
+
+                        targetType = fa.fSubType;
                     }
                 }
-            }
 
-            if (null != target) {
+                if (F_SUB_TYPE_T.FT_RESERVED == targetType) {
+                    // special sauce for the SliderBOx and ExitBox - they are physics entities and get flagged as "shootable" but must definately not be!
+                    target = null; //register the impact (show blue puff) but definately don't kill the target!
+                }
+
                 // spawn the sensor to handle the outcome
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f),
