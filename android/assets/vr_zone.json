@@ -43,7 +43,7 @@
 				"mass": 5.1,
 				"meshShape": "btSphereShape",
 				"isPickable": true,
-				"isCharacter": false
+				"isCharacter": true
 			},
 			{
 				"instanceData": [
@@ -134,16 +134,16 @@
 				"instanceData": [
 					{
 						"translation": {
-							"x": -16,
+							"x": -10,
 							"y": 20,
-							"z": 5
+							"z": 15
 						}
 					},
 					{
 						"translation": {
-							"x": -16,
+							"x": -10,
 							"y": 12,
-							"z": 5
+							"z": 15
 						}
 					}
 				],
@@ -481,7 +481,7 @@
 		"fileName": "data/redsky.png"
 	},
 	"sphereCharacter": {
-		"fileName": "data/badlogic.png"
+		"fileName": "data/badlogic.jpg"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"

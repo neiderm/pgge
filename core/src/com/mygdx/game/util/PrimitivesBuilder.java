@@ -69,7 +69,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
     /* instances only access the protected reference to the model */
 //    private PrimitivesBuilder() { }
 
-    public static Model getModel(){
+    public static Model getModel() {
         return model;
     }
 
@@ -85,6 +85,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
 // didn't exactly pin down what was happening, must be  a race condition lets the material work most of the time, not much to go on ...
 //  https://github.com/libgdx/libgdx/issues/4166
         attributes |= VertexAttributes.Usage.TextureCoordinates;
+
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
@@ -97,22 +98,21 @@ public class PrimitivesBuilder /* implements Disposable */ {
                 new Material(ColorAttribute.createDiffuse(Color.GREEN), TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
         mb.node().id = "box";
         mb.part("box", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.BLUE),TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
+                new Material(ColorAttribute.createDiffuse(Color.BLUE), TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
         mb.node().id = "cone";
         mb.part("cone", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.YELLOW),TextureAttribute.createDiffuse(tex))).cone(1f, 1f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.YELLOW), TextureAttribute.createDiffuse(tex))).cone(1f, 1f, 1f, 10);
         mb.node().id = "capsule";
         mb.part("capsule", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.CYAN),TextureAttribute.createDiffuse(tex))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
+                new Material(ColorAttribute.createDiffuse(Color.CYAN), TextureAttribute.createDiffuse(tex))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
         mb.node().id = "cylinder";
         mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
-                new Material(ColorAttribute.createDiffuse(Color.MAGENTA),TextureAttribute.createDiffuse(tex))).cylinder(1f, 1f, 1f, 10);
+                new Material(ColorAttribute.createDiffuse(Color.MAGENTA), TextureAttribute.createDiffuse(tex))).cylinder(1f, 1f, 1f, 10);
 
         /*
-         * these shuold be going away ;)
+         * images used for texture test objects, which are not normally enabled so these extra PNG files bring some
+         * bloatware to mobile device, the main thing is to keep a cap on number of textures loaded into the rendering context
          */
-//        attributes |= VertexAttributes.Usage.TextureCoordinates;
-
         tex = new Texture(Gdx.files.internal("data/crate.png"), true);
         mb.node().id = "boxTex";
         mb.part("box", GL20.GL_TRIANGLES, attributes,
@@ -123,15 +123,10 @@ public class PrimitivesBuilder /* implements Disposable */ {
         mb.part("sphere", GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
-        tex = new Texture(Gdx.files.internal("data/badlogic.jpg"), true);
-        mb.node().id = "sphereCharacter";
-        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
-                new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
-
         model = mb.end();
     }
 
-    private static btCollisionShape saveShapeRef(btCollisionShape shape){
+    private static btCollisionShape saveShapeRef(btCollisionShape shape) {
         savedShapeRefs.add(shape);
         return shape;
     }
@@ -144,12 +139,12 @@ public class PrimitivesBuilder /* implements Disposable */ {
      *   persists entire app lifecycle  so that those meshses are always available for e.g. lo-level
      *   UI work etc.   This maybe rethought.
      */
-    public static void clearShapeRefs(){
+    public static void clearShapeRefs() {
         int n = 0;
-        for (btCollisionShape shape : savedShapeRefs){
+        for (btCollisionShape shape : savedShapeRefs) {
             n += 1;
 
-            if (null != shape ){
+            if (null != shape) {
                 shape.dispose();
             }
         }
@@ -164,11 +159,11 @@ public class PrimitivesBuilder /* implements Disposable */ {
     */
     public static btCollisionShape getShape(final String objectName, Vector3 size) {
 
-        if (null == objectName){
+        if (null == objectName) {
             return null; // sorry charlie
         }
 
-        if (null == size){
+        if (null == size) {
             size = new Vector3(1, 1, 1);
         }
 
@@ -200,13 +195,12 @@ public class PrimitivesBuilder /* implements Disposable */ {
         } else if (objectName.contains("cone")) {
 
             shape = new btConeShape(size.x * DIM_HE, size.y);
-        }
-        else {
+        } else {
             Gdx.app.log("Prim", "object name not found");
         }
 
         // if object name doesn't match then ... no shape
-        if (null == shape){
+        if (null == shape) {
             return null;
         }
 
@@ -225,7 +219,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         btCollisionShape shape = null;
 
-        if (null == node){
+        if (null == node) {
             Gdx.app.log("Pblder", "getShape() null == node");
             // return   .... probably
         }
@@ -238,32 +232,32 @@ public class PrimitivesBuilder /* implements Disposable */ {
 //                if (null != node) { // assert
             shape = getShape(node); // saves the shape ref, shouldn't hurt anything if gets saved again
 
-            if (null == shape){
+            if (null == shape) {
                 Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
-            }
-            else {
+            } else {
                 Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
-                        + ((btConvexHullShape) shape).getNumPoints() );
+                        + ((btConvexHullShape) shape).getNumPoints());
             }
 
         } else if (shapeName.equals("triangleMeshShape")) {
 
             btBvhTriangleMeshShape trimeshShape =
-                    (btBvhTriangleMeshShape)Bullet.obtainStaticNodeShape(node, false);
+                    (btBvhTriangleMeshShape) Bullet.obtainStaticNodeShape(node, false);
 
             shape = trimeshShape;
 
             //  btTriangleInfoMap will need to be disposed (and reference kept other wise GC will eat them!
-            btTriangleInfoMap tim = new btTriangleInfoMap();
-            Collision.btGenerateInternalEdgeInfo( trimeshShape, tim );
-            BulletWorld.getInstance().addTriangleInfoMap(tim);
-
+            if (null != trimeshShape) {
+                btTriangleInfoMap tim = new btTriangleInfoMap();
+                Collision.btGenerateInternalEdgeInfo(trimeshShape, tim);
+                BulletWorld.getInstance().addTriangleInfoMap(tim);
+            } // else ... error in model/mesh?
         } else if (shapeName.equals("btBoxShape")) {
 
             shape = new btBoxShape(dimensions.scl(0.5f));
         }
 
-        if (null == shape){ // default
+        if (null == shape) { // default
 
             shape = new btSphereShape(dimensions.scl(0.5f).x);
         }
@@ -303,7 +297,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         btCollisionShape shape;
 
-        Mesh mesh = singleMesh(model) ;
+        Mesh mesh = singleMesh(model);
 
         shape = getShape(mesh);
 
@@ -317,84 +311,83 @@ public class PrimitivesBuilder /* implements Disposable */ {
     /*
 recursively get a flat array of node  from the model
  */
-    public static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray ){
+    public static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray) {
 
-        for (Node childNode :  srcNodeArray) {
+        for (Node childNode : srcNodeArray) {
             // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
             if (childNode.parts.size > 0) {
 
-                destNodeArray.add(childNode );
+                destNodeArray.add(childNode);
             }
 
-            if (childNode.hasChildren()){
-                getNodeArray( (Array<Node>)childNode.getChildren(), destNodeArray);
+            if (childNode.hasChildren()) {
+                getNodeArray((Array<Node>) childNode.getChildren(), destNodeArray);
             }
         }
     }
 
-    public static int getNodeIndex(Array<Node> srcNodeArray, String strMdlNode){
+    public static int getNodeIndex(Array<Node> srcNodeArray, String strMdlNode) {
 
         int rVal = -1;
 
         // "unroll" the nodes list so that the index to the bullet child shape will be consisten
         Array<Node> nodeFlatArray = new Array<Node>();
         getNodeArray(srcNodeArray, nodeFlatArray);
-//                if (null != mc)
-        {
-            int index = 0;
 
-            for (Node node : nodeFlatArray){
-                if (node.id.equals(strMdlNode)) {
-                    rVal = index;
-                    break;
-                }
-                index += 1;
+        int index = 0;
+
+        for (Node node : nodeFlatArray) {
+            if (node.id.equals(strMdlNode)) {
+                rVal = index;
+                break;
             }
+            index += 1;
         }
+
         return rVal;
     }
 
     public static btCollisionShape getCompShape(Model model) {
 
-         btCollisionShape compShape = getCompShape(new btCompoundShape(), model.nodes);
-         return saveShapeRef(compShape ); // comp shapes have to be disposed as well
-     }
+        btCollisionShape compShape = getCompShape(new btCompoundShape(), model.nodes);
+        return saveShapeRef(compShape); // comp shapes have to be disposed as well
+    }
 
-     private static btCollisionShape getCompShape(btCompoundShape compoundShape, Array<Node> nodeArray) {
+    private static btCollisionShape getCompShape(btCompoundShape compoundShape, Array<Node> nodeArray) {
 
-         for (Node node : nodeArray) {
-             // adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
+        for (Node node : nodeArray) {
+            // adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
 // shape user index isn't absolutely necessary  - but set the index anyway just because ;)
-             if (node.parts.size > 0){ // avoid non-graphic nodes (lamps etc)
+            if (node.parts.size > 0) { // avoid non-graphic nodes (lamps etc)
 
-                 btCollisionShape comp = PrimitivesBuilder.getShape(node);
+                btCollisionShape comp = PrimitivesBuilder.getShape(node);
 
-                 if (null != comp) {
-                     // buildChildNodes() can follow the same (recursive as necessary) order of iterating the nodes, so by
-                     // setting this index can be checked to assert that the order is matched
-                     comp.setUserIndex( compoundShape.getNumChildShapes() );
-                     compoundShape.addChildShape(new Matrix4(node.localTransform), comp);
-                 }
-             }
+                if (null != comp) {
+                    // buildChildNodes() can follow the same (recursive as necessary) order of iterating the nodes, so by
+                    // setting this index can be checked to assert that the order is matched
+                    comp.setUserIndex(compoundShape.getNumChildShapes());
+                    compoundShape.addChildShape(new Matrix4(node.localTransform), comp);
+                }
+            }
 //  recursive
-             if (node.hasChildren()) {
-                 nodeArray = (Array<Node>)node.getChildren();
-                 getCompShape(compoundShape, nodeArray);
-             }
-         }
+            if (node.hasChildren()) {
+                nodeArray = (Array<Node>) node.getChildren();
+                getCompShape(compoundShape, nodeArray);
+            }
+        }
 
-         return compoundShape;//saveShapeRef(compoundShape); // comp shapes have to be disposed as well
-     }
+        return compoundShape;//saveShapeRef(compoundShape); // comp shapes have to be disposed as well
+    }
 
     /*
      * combine nodes into single mesh for generating convex hull shape
      */
-    private static Mesh singleMesh(Model model){
+    private static Mesh singleMesh(Model model) {
 
         // "demodularize" model - combine modelParts into single Node for generating the physics shape
         // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
         MeshBuilder meshBuilder = new MeshBuilder();
-        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES );
+        meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES);
 
         for (Node node : model.nodes) {
 
@@ -431,7 +424,9 @@ recursively get a flat array of node  from the model
         e.add(new ModelComponent(instance));
 
         if (null != size) {
-            instance.nodes.get(0).scale.set(size);
+            if (instance.nodes.size > 0) {
+                instance.nodes.get(0).scale.set(size);
+            }
             instance.calculateTransforms();
         }
         // leave translation null if using translation from the model layout
