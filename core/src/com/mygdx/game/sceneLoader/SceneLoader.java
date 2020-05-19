@@ -47,6 +47,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 public class SceneLoader implements Disposable {
 
     // Model Group name,  has to be fixed
+    private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
     private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
 
@@ -58,14 +59,14 @@ public class SceneLoader implements Disposable {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
 
-        assets = new AssetManager();
+        assets = new AssetManager(); // Assigning a value to a static field in a constructor could cause unreliable behavior at runtime since it will change the value for all instances of the class.
 
         for (String key : sd.modelInfo.keySet()) {
 
             String fn = sd.modelInfo.get(key).fileName;
 
             if (null != fn) {
-                if (fn.contains(".png")) {
+                if (fn.contains(".png") || fn.contains(".jpg")) {
                     assets.load(fn, Texture.class);
                 } else if (fn.contains(".g3d")) {
                     assets.load(fn, Model.class);
@@ -217,6 +218,10 @@ public class SceneLoader implements Disposable {
                 continue; // how to remove Model Group ?
             }
 
+            if (key.equals(STATIC_OBJECTS)) {
+                System.out.println();
+            }
+
             buildModelGroup(engine, key);
         }
     }
@@ -234,6 +239,7 @@ public class SceneLoader implements Disposable {
         mb.begin();
 
         int objectCountFlag = 0;
+        final int SKY_BOX_OBJECT = 0;
 
         for (GameObject go : mg.elements) {
 
@@ -259,8 +265,8 @@ public class SceneLoader implements Disposable {
                 mat.set(ColorAttribute.createDiffuse(Color.CYAN));// shouldn't be here?
             }
 
-//            if (go.iSWhatever) { // isReverseFace
-            if ( objectCountFlag++ == 0){             // hhhhhhaaaaaaccccccckkkkkk use item 0 for skybox
+//            if  isReverseFace ........... use item 0 for skybox - no other item needs reverse face right now
+            if (SKY_BOX_OBJECT == objectCountFlag++) {
                 mat.set(IntAttribute.createCullFace(GL_FRONT)); // set reverse face culling for skybox
             }
 
