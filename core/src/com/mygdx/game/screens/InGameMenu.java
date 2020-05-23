@@ -52,8 +52,8 @@ import com.mygdx.game.GameWorld;
 
 class InGameMenu extends Stage {
 
-    protected static final int BTN_KCODE_FIRE1 = 0;
-    protected static final int BTN_KCODE_FIRE2 = 1;
+    static final int BTN_KCODE_FIRE1 = 0;
+    static final int BTN_KCODE_FIRE2 = 1;
 
     private Vector2 v2 = new Vector2();
     private Array<Texture> savedTextureRefs = new Array<Texture>();
@@ -66,16 +66,16 @@ class InGameMenu extends Stage {
     private Array<String> buttonNames = new Array<String>();
     private ButtonGroup<TextButton> bg;
     private int count;
-// @dispsables
+    // @dispsables
     private Texture buttonTexture;
     private Texture overlayTexture;
     private Image overlayImage;
 
-    private  Skin uiSkin;
+    private Skin uiSkin;
     private BitmapFont font;
 
 
-    InGameMenu(){
+    InGameMenu() {
 
         this("skin/uiskin.json", null);
     }
@@ -86,26 +86,53 @@ class InGameMenu extends Stage {
 
         savedTextureRefs.clear();
 
-        // make suure to have a font to work with!
-        font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"), Gdx.files.internal("data/font.png"), false);
-
+        // the passed skin name (is uiskin.json) .. use it and have to add text button etc. if want to use it on Game Screen  ....
         if (null != skinName) {
+// Select Screen
+            Skin skin = new Skin(Gdx.files.internal(skinName/*"skin/uiskin.json"*/));
 
-            uiSkin = new Skin(Gdx.files.internal(skinName/*"skin/uiskin.json"*/));
-            BitmapFont bf = uiSkin.getFont("commodore-64");
+            font = skin.getFont("commodore-64");
 
-            float scale = Gdx.graphics.getDensity();
+//to use this skin on game screen, create a Labels style for up/down text button on pause menu
+            if (false){ // maybe
+                Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+                pixmap.setColor(Color.WHITE);
+                pixmap.fill();
 
-            if (scale > 1) {
-                    bf.getData().setScale(scale);
+                skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+                pixmap.dispose();
+
+                skin.add("default", new Label.LabelStyle(font, Color.WHITE));
+                // Store the default libgdx font under the name "default".
+                skin.add("default", font);
+
+                // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
+                TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+                textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
+                textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
+                textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
+                textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
+                textButtonStyle.font = skin.getFont("default");
+                skin.add("default", textButtonStyle);
             }
-        }
-        else{
-            uiSkin = setSkin();
+
+            uiSkin = skin;
+
+        } else {
+// Game Screen ........ how to make the Screens that need this to use a common font?????????????????
+            // make suure to have a font to work with!
+            font = new BitmapFont(
+                    Gdx.files.internal("data/font.fnt"), Gdx.files.internal("data/font.png"), false);
+
+            uiSkin = makeSkin();
         }
 
-        if (null != menuName){
+        float scale = Gdx.graphics.getDensity();
+        if (scale > 1) {
+            font.getData().setScale(scale);
+        }
+
+        if (null != menuName) {
             Label onScreenMenuLabel = new Label(menuName, new Label.LabelStyle(font, Color.WHITE));
             onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
         }
@@ -120,13 +147,13 @@ class InGameMenu extends Stage {
         // transparent overlay layer
         Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
-                new Pixmap(Gdx.graphics.getWidth(),Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
+                new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
-        pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(),Gdx.graphics.getHeight());
+        pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         overlayTexture = new Texture(pixmap);
         overlayImage = new Image(overlayTexture);
-        overlayImage.setPosition(0,0);
+        overlayImage.setPosition(0, 0);
         pixmap.dispose();
 
         Table overlayTbl = new Table();
@@ -146,11 +173,11 @@ class InGameMenu extends Stage {
         GameWorld.getInstance().setIsPaused(true);
     }
 
-    void setLabelColor(Label label, Color c){
+    void setLabelColor(Label label, Color c) {
         label.setStyle(new Label.LabelStyle(font, c));
     }
 
-    void setOverlayColor(float r, float g, float b, float a){
+    void setOverlayColor(float r, float g, float b, float a) {
         if (null != overlayImage) {
             overlayImage.setColor(r, g, b, a);
         }
@@ -160,16 +187,8 @@ class InGameMenu extends Stage {
     Label itemsLabel;
     Label timerLabel;
     Label mesgLabel;
-    Label lblWselect;
-/*
-    void setVisibleUI(boolean state){
-        mesgLabel.setVisible(state);
-        itemsLabel.setVisible(state);
-        timerLabel.setVisible(state);
-        scoreLabel.setVisible(state);
-    }
-*/
-    private void setupPlayerInfo(){
+
+    private void setupPlayerInfo() {
 
         scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
         playerInfoTbl.add(scoreLabel);
@@ -187,18 +206,13 @@ class InGameMenu extends Stage {
         mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
 
         playerInfoTbl.row().bottom().left();
-
-        lblWselect = new Label("STANDARD AMMO", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(lblWselect);
-        lblWselect.setVisible(false); // only see this when weaopon select menu active
-
         playerInfoTbl.setFillParent(true);
 //        playerInfoTbl.setDebug(true);
         playerInfoTbl.setVisible(false);
         addActor(playerInfoTbl);
     }
 
-    void addNextButton(){
+    void addNextButton() {
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
             Pixmap.setBlending(Pixmap.Blending.None);
@@ -224,17 +238,15 @@ class InGameMenu extends Stage {
         }
     }
 
-    private Skin setSkin(){
-/*
-        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
-*/
+    private Skin makeSkin() {
+
+        Skin skin = new Skin();
+
         //create a Labels showing the score and some credits
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
 
-        Skin skin = new Skin();
         skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
         pixmap.dispose();
 
@@ -250,12 +262,6 @@ class InGameMenu extends Stage {
         textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
         textButtonStyle.font = skin.getFont("default");
         skin.add("default", textButtonStyle);
-
-        float scale = Gdx.graphics.getDensity();
-        BitmapFont bf = skin.getFont("default");
-
-        if (scale > 1)
-            bf.getData().setScale(scale);
 
         return skin;
     }
@@ -290,15 +296,10 @@ class InGameMenu extends Stage {
         }
     }
 
-    int getCheckedIndex(){
+    int getCheckedIndex() {
         return bg.getCheckedIndex();
     }
 
-/*
-    int getCurrentSelection(){
-        return currentSelection;
-    }
-*/
     int checkedUpDown(int step) {
 
         int checkedIndex = bg.getCheckedIndex();
@@ -313,15 +314,11 @@ class InGameMenu extends Stage {
         previousIncrement = step;
 
         if (selectedIndex >= N_SELECTIONS) {
-//            selectedIndex = 0;
             selectedIndex = (N_SELECTIONS - 1);
         }
         if (selectedIndex < 0) {
-//            selectedIndex = N_SELECTIONS - 1;
             selectedIndex = 0;
         }
-
-//        setCheckedBox(selectedIndex);
 
         return selectedIndex;
     }
@@ -337,14 +334,10 @@ class InGameMenu extends Stage {
     }
 
 
-//    @Override
-//    public void act(float delta){
-//    }
-
     /*
      * saves the texture ref for disposal ;)
      */
-    protected ImageButton addImageButton(
+    ImageButton addImageButton(
             Texture tex, float posX, float posY, final InputMapper.InputState inputBinding) {
 
         savedTextureRefs.add(tex);
@@ -362,12 +355,12 @@ class InGameMenu extends Stage {
                         if (InputMapper.InputState.INP_FIRE1 == binding) {
 
                             mapper.setControlButton(BTN_KCODE_FIRE1, true);
-                        }
-                        else if (InputMapper.InputState.INP_FIRE2 == binding) {
+
+                        } else if (InputMapper.InputState.INP_FIRE2 == binding) {
 
                             mapper.setControlButton(BTN_KCODE_FIRE2, true);
-                        }
-                        else if (InputMapper.InputState.INP_NONE == binding) {
+
+                        } else if (InputMapper.InputState.INP_NONE == binding) {
 
                             Vector2 toScrnCoord =
                                     newButton.localToParentCoordinates(v2.set(x, y));
@@ -377,14 +370,15 @@ class InGameMenu extends Stage {
 
                         return true; // to also handle touchUp
                     }
+
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
 
                         if (InputMapper.InputState.INP_FIRE1 == binding) {
 
                             mapper.setControlButton(BTN_KCODE_FIRE1, false);
-                        }
-                        else if (InputMapper.InputState.INP_FIRE2 == binding) {
+
+                        } else if (InputMapper.InputState.INP_FIRE2 == binding) {
 
                             mapper.setControlButton(BTN_KCODE_FIRE2, false);
                         }
@@ -403,9 +397,9 @@ class InGameMenu extends Stage {
         return newButton;
     }
 
-    private void clearShapeRefs(){
+    private void clearShapeRefs() {
         int n = 0;
-        for (Texture tex : savedTextureRefs){
+        for (Texture tex : savedTextureRefs) {
             n += 1;
             tex.dispose();
 
@@ -413,7 +407,7 @@ class InGameMenu extends Stage {
     }
 
     @Override
-    public void dispose(){
+    public void dispose() {
 
         clearShapeRefs();
 
