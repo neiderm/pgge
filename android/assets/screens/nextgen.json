@@ -1,0 +1,192 @@
+{
+"modelGroups": {
+	"UserMeshezMdlGrupe": {
+		"elements": [
+			{
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				},
+				"isShadowed": false
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
+	"InstancedModelMeshes": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 12,
+							"z": 0
+						}
+					}
+				],
+				"objectName": "Cube",
+				"mass": 0.1,
+				"meshShape": "btBoxShape"
+			}
+		],
+		"modelName": "StaticObjects"
+	},
+	"LocalPlayer": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -0.31,
+							"y": 2,
+							"z": 7.35
+						}
+					}
+				],
+				"objectName": "LocalPlayerObjectName"
+			}
+		]
+	},
+	"SceneStaticObjects": {
+		"elements": [
+			{
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			},
+			{
+				"objectName": "Cube*"
+			}
+		],
+		"modelName": "Scene"
+	},
+	"InstancedModelMeshes": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -3,
+							"y": 1,
+							"z": -7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					},
+					{
+						"translation": {
+							"x": -1,
+							"y": 1,
+							"z": -7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					},
+					{
+						"translation": {
+							"x": 1,
+							"y": 1,
+							"z": -7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					}
+				],
+				"objectName": "Cube_SlideBox",
+				"isKinematic": true,
+				"meshShape": "btBoxShape",
+				"featureName": "SlideBox",
+				"iSWhatever": true			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -1,
+							"y": 1,
+							"z": -9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.ExitSensor",
+							"fSubType": "FT_EXIT",
+							"activateOnState": "ROUND_COMPLETE_WAIT",
+							"vS": {
+								"x": 1
+							}
+						}
+					}
+				],
+				"objectName": "Cube_Exit",
+				"isKinematic": true,
+				"meshShape": "btBoxShape",
+				"featureName": "ExitGreenBoxExitSensor",
+				"iSWhatever": true
+			}
+		],
+		"modelName": "StaticObjects"
+	},
+	"PrimitivesMisc": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -6,
+							"y": 1,
+							"z": -5
+						},
+						"color": {
+							"r": 0.471,
+							"g": 0.318,
+							"b": 0.663,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
+			}
+		]
+	},
+	"UserModelPartsNodes": {
+		"elements": [
+			{
+				"objectName": "skySphere"
+			},
+			{
+				"objectName": "boxTex"
+			}
+		]
+	}
+},
+"modelInfo": {
+	"skySphere": {
+		"fileName": "data/greensky.png"
+	},
+	"UserMeshesModel": {
+		"fileName": "DummyForModelReferecne"
+	},
+	"Scene": {
+		"fileName": "areeners/nextgen.g3db"
+	},
+	"StaticObjects": {
+		"fileName": "areeners/crapium.g3db"
+	}
+}
+}

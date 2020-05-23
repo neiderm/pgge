@@ -74,18 +74,33 @@ public class Projectile extends FeatureAdaptor {
                 FeatureComponent tfc = target.getComponent(FeatureComponent.class);
 
                 F_SUB_TYPE_T targetType = F_SUB_TYPE_T.FT_NONE;
+                FeatureAdaptor fa = null;
 
                 if (null != tfc) {
-                    FeatureAdaptor fa = tfc.featureAdpt;
+                    fa = tfc.featureAdpt;
                     if (null != fa) {
-
                         fa.bounty = 0; // no bounty for you
-
                         targetType = fa.fSubType;
                     }
                 }
 
-                if (F_SUB_TYPE_T.FT_RESERVED == targetType) {
+                if (F_SUB_TYPE_T.FT_SLIDEY_BLK == targetType) {
+/* how to exclude Exit box from this ? */
+//                    if (null != fa)
+                    {
+                        // only a slidebox target should be handled this way!
+                        SlideBox sbTarget = (SlideBox)fa;
+//                        if (null != sbTarget)
+                        {
+//                        // yep target feature adapter gets a reference to its own entity .. thats the way it works
+                            sbTarget.handleCollision(target, projectile, 1 /* transferredEnergy */); //// exception handling ?
+                    }
+                    }
+                    // special sauce for the SliderBOx and ExitBox - they are physics entities and get flagged as "shootable" but must definately not be!
+                    target = null; //register the impact (show blue puff) but definately don't kill the target!
+                }
+
+                if (F_SUB_TYPE_T.FT_EXIT == targetType) {
                     // special sauce for the SliderBOx and ExitBox - they are physics entities and get flagged as "shootable" but must definately not be!
                     target = null; //register the impact (show blue puff) but definately don't kill the target!
                 }
