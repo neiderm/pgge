@@ -43,6 +43,8 @@ public class FeatureAdaptor implements FeatureIntrf {
     public enum F_SUB_TYPE_T {
         FT_NONE,
         FT_RESERVED,
+        FT_EXIT,
+        FT_SLIDEY_BLK,
         FT_PLAYER,
         FT_ACTOR,
         FT_WEAAPON_0,
