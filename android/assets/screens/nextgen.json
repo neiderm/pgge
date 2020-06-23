@@ -14,133 +14,143 @@
 		],
 		"modelName": "UserMeshesModel"
 	},
-	"InstancedModelMeshes": {
+	"PrimitivesMisc2": {
 		"elements": [
 			{
 				"instanceData": [
 					{
 						"translation": {
-							"x": 0,
-							"y": 12,
-							"z": 0
+							"x": -33,
+							"y": 0.9,
+							"z": -7
+						},
+						"color": {
+							"r": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
 						}
 					}
 				],
-				"objectName": "Cube",
-				"mass": 0.1,
-				"meshShape": "btBoxShape"
-			}
-		],
-		"modelName": "StaticObjects"
-	},
-	"LocalPlayer": {
-		"elements": [
+				"objectName": "cone",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
+			},
 			{
 				"instanceData": [
 					{
 						"translation": {
-							"x": -0.31,
-							"y": 2,
-							"z": 7.35
+							"x": -33,
+							"y": 0.9,
+							"z": 7
+						},
+						"color": {
+							"r": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
 						}
 					}
 				],
-				"objectName": "LocalPlayerObjectName"
+				"objectName": "cone",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
 			}
 		]
 	},
-	"SceneStaticObjects": {
-		"elements": [
-			{
-				"objectName": "Plane*",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true
-			},
-			{
-				"objectName": "Cube*"
-			}
-		],
-		"modelName": "Scene"
-	},
-	"InstancedModelMeshes": {
+	"PrimitivesMisc1": {
 		"elements": [
 			{
 				"instanceData": [
 					{
-						"translation": {
-							"x": -3,
-							"y": 1,
-							"z": -7
+						"rotation": {
+							"y": 0.7071067,
+							"w": 0.7071067
 						},
-						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox",
-							"fSubType": "FT_SLIDEY_BLK"
-						}
-					},
-					{
 						"translation": {
 							"x": -1,
-							"y": 1,
-							"z": -7
+							"y": 0.75,
+							"z": -23
+						},
+						"color": {
+							"g": 1,
+							"b": 1,
+							"a": 0.9
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox",
-							"fSubType": "FT_SLIDEY_BLK"
-						}
-					},
-					{
-						"translation": {
-							"x": 1,
-							"y": 1,
-							"z": -7
-						},
-						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox",
-							"fSubType": "FT_SLIDEY_BLK"
-						}
-					}
-				],
-				"objectName": "Cube_SlideBox",
-				"isKinematic": true,
-				"meshShape": "btBoxShape",
-				"featureName": "SlideBox",
-				"iSWhatever": true			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": -1,
-							"y": 1,
-							"z": -9
-						},
-						"adaptr": {
-							"class": "com.mygdx.game.features.ExitSensor",
-							"fSubType": "FT_EXIT",
-							"activateOnState": "ROUND_COMPLETE_WAIT",
+							"class": "com.mygdx.game.features.ShootamaThing",
+							"bounty": 900,
+							"vR": {
+								"x": 8
+							},
 							"vS": {
 								"x": 1
 							}
 						}
 					}
 				],
-				"objectName": "Cube_Exit",
-				"isKinematic": true,
+				"objectName": "box",
+				"featureName": "OhNo",
+				"scale": {
+					"x": 1,
+					"y": 0.5,
+					"z": 1.5
+				},
 				"meshShape": "btBoxShape",
-				"featureName": "ExitGreenBoxExitSensor",
-				"iSWhatever": true
-			}
-		],
-		"modelName": "StaticObjects"
-	},
-	"PrimitivesMisc": {
-		"elements": [
+				"isKinematic": true,
+				"isPickable": true
+			},
 			{
 				"instanceData": [
 					{
 						"translation": {
-							"x": -6,
-							"y": 1,
-							"z": -5
+							"x": 3,
+							"y": 0.9,
+							"z": -29
+						},
+						"color": {
+							"b": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"fSubType": "FT_WEAAPON_1",
+							"impactType": "CONTAINER",
+							"rotationAxis": {
+								"x": 1,
+								"y": 1
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "WpnPowerUp",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				},
+				"isPickable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 5,
+							"y": 0.9,
+							"z": -27
 						},
 						"color": {
 							"r": 0.471,
@@ -154,7 +164,35 @@
 						}
 					}
 				],
-				"objectName": "box",
+				"objectName": "capsule",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -5,
+							"y": 0.9,
+							"z": -27
+						},
+						"color": {
+							"r": 0.471,
+							"g": 0.318,
+							"b": 0.663,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
+						}
+					}
+				],
+				"objectName": "capsule",
 				"featureName": "Crapium1",
 				"scale": {
 					"x": 0.95,
@@ -163,6 +201,369 @@
 				}
 			}
 		]
+	},
+	"PrimitivesMisc0": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 32,
+							"y": 0.9,
+							"z": -7
+						},
+						"color": {
+							"g": 1,
+							"r": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 32,
+							"y": 0.9,
+							"z": 7
+						},
+						"color": {
+							"g": 1,
+							"r": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"impactType": "ACQUIRE"
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"featureName": "Crapium1",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 25,
+							"y": 0.9,
+							"z": -1
+						},
+						"color": {
+							"b": 1,
+							"a": 0.9
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.Crapium",
+							"fSubType": "FT_WEAAPON_1",
+							"impactType": "CONTAINER",
+							"rotationAxis": {
+								"x": 1,
+								"y": 1
+							}
+						}
+					}
+				],
+				"objectName": "box",
+				"featureName": "WpnPowerUp",
+				"scale": {
+					"x": 0.95,
+					"y": 0.95,
+					"z": 0.95
+				},
+				"isPickable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 27,
+							"y": 5,
+							"z": -3
+						},
+						"color": {
+							"g": 0.5,
+							"b": 1,
+							"a": 0.7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.KillThing",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
+							"vS": {
+								"x": 0.75
+							}
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"featureName": "MineBombThng",
+				"scale": {
+					"x": 0.65,
+					"y": 0.1,
+					"z": 0.65
+				},
+				"mass": 0.02,
+				"meshShape": "btBoxShape",
+				"isPickable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 27,
+							"y": 5,
+							"z": 1
+						},
+						"color": {
+							"r": 1,
+							"g": 0.5,
+							"a": 0.7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.KillThing",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
+							"vS": {
+								"x": 0.75
+							}
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"featureName": "MineBombThng",
+				"scale": {
+					"x": 0.65,
+					"y": 0.1,
+					"z": 0.65
+				},
+				"mass": 0.02,
+				"meshShape": "btBoxShape",
+				"isPickable": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 23,
+							"y": 5,
+							"z": -1
+						},
+						"color": {
+							"r": 2,
+							"g": 0.5,
+							"a": 0.7
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.KillThing",
+							"collisionProcessor": {
+								"class": "com.mygdx.game.features.DebouncedCollisionProc"
+							},
+							"vS": {
+								"x": 0.75
+							}
+						}
+					}
+				],
+				"objectName": "cylinder",
+				"featureName": "MineBombThng",
+				"scale": {
+					"x": 0.65,
+					"y": 0.1,
+					"z": 0.65
+				},
+				"mass": 0.02,
+				"meshShape": "btBoxShape",
+				"isPickable": true
+			}
+		]
+	},
+	"SceneStaticObjects_1": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"z": -1,
+							"w": 0
+						},
+						"translation": {
+							"z": -16
+						}
+					}
+				],
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "Scene_1"
+	},
+	"SceneStaticObjects_2": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"rotation": {
+							"z": -0.7071067,
+							"w": 0.7071067
+						},
+						"translation": {
+							"x": -16
+						}
+					}
+				],
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "Scene_2"
+	},
+	"LocalPlayer": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 1,
+							"y": 2,
+							"z": -1.35
+						}
+					}
+				],
+				"objectName": "LocalPlayerObjectName"
+			}
+		]
+	},
+	"SceneStaticObjects_3": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"z": 16
+						}
+					}
+				],
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"z": 16
+						}
+					}
+				],
+				"objectName": "Cube*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "Scene_3"
+	},
+	"SceneStaticObjects": {
+		"elements": [
+			{
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "Scene"
+	},
+	"InstancedModelMeshes3": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -1,
+							"y": 1,
+							"z": 25
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					},
+					{
+						"translation": {
+							"x": 1,
+							"y": 1,
+							"z": 25
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					},
+					{
+						"translation": {
+							"x": 3,
+							"y": 1,
+							"z": 25
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
+						}
+					}
+				],
+				"objectName": "Cube_SlideBox",
+				"featureName": "SlideBox",
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"iSWhatever": true
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 1,
+							"y": 1,
+							"z": 27
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.ExitSensor",
+							"activateOnState": "ROUND_COMPLETE_WAIT",
+							"vS": {
+								"x": 1
+							},
+							"fSubType": "FT_EXIT"
+						}
+					}
+				],
+				"objectName": "Cube_Exit",
+				"featureName": "ExitGreenBoxExitSensor",
+				"meshShape": "btBoxShape",
+				"isKinematic": true,
+				"iSWhatever": true
+			}
+		],
+		"modelName": "StaticObjects"
 	},
 	"UserModelPartsNodes": {
 		"elements": [
@@ -178,6 +579,15 @@
 "modelInfo": {
 	"skySphere": {
 		"fileName": "data/greensky.png"
+	},
+	"Scene_3": {
+		"fileName": "areeners/nextgen_3.g3db"
+	},
+	"Scene_2": {
+		"fileName": "areeners/nextgen_2.g3db"
+	},
+	"Scene_1": {
+		"fileName": "areeners/nextgen_1.g3db"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
