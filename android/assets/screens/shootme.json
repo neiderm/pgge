@@ -35,6 +35,67 @@
 			{
 				"instanceData": [
 					{
+						"color": {
+							"r": 1,
+							"g": 0,
+							"b": 0,
+							"a": 0.9
+						},
+						"translation": {
+							"x": -6,
+							"y": 2.6,
+							"z": -10
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox"
+						}
+					},
+					{
+						"color": {
+							"r": 0,
+							"g": 1,
+							"b": 0,
+							"a": 0.9
+						},
+						"translation": {
+							"x": -6,
+							"y": 2.6,
+							"z": -14
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox"
+						}
+					},
+					{
+						"color": {
+							"r": 0,
+							"g": 0,
+							"b": 1,
+							"a": 0.9
+						},
+						"translation": {
+							"x": -6,
+							"y": 2.6,
+							"z": -18
+						},
+						"adaptr": {
+							"class": "com.mygdx.game.features.SlideBox"
+						}
+					}
+				],
+				"objectName": "box",
+				"scale": {
+					"x": 2,
+					"y": 2,
+					"z": 2
+				},
+				"isKinematic": true,
+				"meshShape": "btBoxShape",
+				"featureName": "ASDF"
+			},
+			{
+				"instanceData": [
+					{
 						"translation": {
 							"x": -6,
 							"y": 2.5,
@@ -148,7 +209,7 @@
 							"w": 0.3826834
 						},
 						"translation": {
-							"y": 1.5,
+							"y": 1.6,
 							"z": -15
 						},
 						"adaptr": {
@@ -182,9 +243,6 @@
 	},
 	"Scene": {
 		"fileName": "data/scene.g3dj"
-	},
-	"StaticObjects": {
-		"fileName": "data/cubetest.g3dj"
 	},
 	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
