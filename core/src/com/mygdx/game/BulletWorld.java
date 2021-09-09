@@ -184,9 +184,8 @@ public class BulletWorld implements Disposable {
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
         }
 
-        savedTriangleInfoMapRefs = new Array<>();
-
-        userToEntityLUT = new Array<>();
+        savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
+        userToEntityLUT = new Array<Object>();
         userToEntityLUT.add(null); // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
 
         rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);

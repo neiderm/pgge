@@ -46,11 +46,17 @@ import com.mygdx.game.sceneLoader.SceneData;
  */
 class SelectScreen extends BaseScreenWithAssetsEngine {
 
+    private static final Array<String> stageNamesList = new Array<String>();
     private static final int N_SELECTIONS = 3;
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-
+    // position them into equilateral triangle (sin/cos)
+    private final Vector3[] positions = new Vector3[]{
+            new Vector3(),
+            new Vector3(),
+            new Vector3()
+    };
     private ImmutableArray<Entity> characters;
     private Texture gsTexture;
     private BitmapFont font;
@@ -59,15 +65,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private int idxCurSel;
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
-
-    // position them into equilateral triangle (sin/cos)
-    private final Vector3[] positions = new Vector3[]{
-            new Vector3(),
-            new Vector3(),
-            new Vector3()
-    };
-
-    private static final Array<String> stageNamesList = new Array<>();
     private boolean isPaused;
 
     @Override

@@ -39,9 +39,7 @@ import com.mygdx.game.GameWorld;
 
 /**
  * Created by neiderm on 12/18/17.
- */
-
-/*
+ *
  * Reference:
  *  on-screen menus:
  *   https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
@@ -55,23 +53,23 @@ class InGameMenu extends Stage {
     static final int BTN_KCODE_FIRE2 = 1;
 
     private final Vector2 v2 = new Vector2();
-    private final Array<Texture> savedTextureRefs = new Array<>();
+    private final Array<Texture> savedTextureRefs = new Array<Texture>();
+    private final Array<String> buttonNames = new Array<String>();
+    private final ButtonGroup<TextButton> bg;
 
     final InputMapper mapper = new InputMapper();
     final Table onscreenMenuTbl = new Table();
     final Table playerInfoTbl = new Table();
 
-    private int previousIncrement;
-    private final Array<String> buttonNames = new Array<>();
-    private final ButtonGroup<TextButton> bg;
-    private int count;
     // @dispsables
-    private Texture buttonTexture;
     private final Texture overlayTexture;
     private final Image overlayImage;
-
     private final Skin uiSkin;
     private final BitmapFont font;
+
+    private Texture buttonTexture;
+    private int previousIncrement;
+    private int count;
 
     InGameMenu() {
         this("skin/uiskin.json", null);
@@ -140,6 +138,7 @@ class InGameMenu extends Stage {
         setupPlayerInfo();
 
         // transparent overlay layer
+        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
                 new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
@@ -159,7 +158,7 @@ class InGameMenu extends Stage {
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
 
-        bg = new ButtonGroup<>();
+        bg = new ButtonGroup<TextButton>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
 
