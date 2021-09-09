@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,47 +37,38 @@ import java.util.Locale;
 /**
  * Created by neiderm on 5/17/2018.
  */
-
 public class GameUI extends InGameMenu {
-
-    // too bad so sad package-private vars are messed w/ by gamescreeen
-    boolean canExit; // exit sensor is tripped
-    int prizeCount;
-
-    static final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
-    private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
-
-    private int screenTimer = DEFAULT_SCREEN_TIME;
-
-    int continueScreenTimeUp;
-
-    private int score; // my certain game the score resets every screen anyway so who cares
-
-    private StringBuilder stringBuilder = new StringBuilder();
-    private static final int TIME_LIMIT_WARN_SECS = 10;
 
     private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
     private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
     private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
     private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
+    private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
+    private static final int TIME_LIMIT_WARN_SECS = 10;
+
+    static final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
+    private final Color hudOverlayColor;
+    private final StringBuilder stringBuilder = new StringBuilder();
 
     private ImageButton picButton;
     private ImageButton xButton;
     private Touchpad touchpad;
+    private int msgLabelCounter;
+    private int score; // my certain game the score resets every screen anyway so who cares
+    private int screenTimer = DEFAULT_SCREEN_TIME;
+
     // @dispoable
     private Skin touchpadSkin;
     private Texture tpBackgnd;
     private Texture tpKnob;
 
-    private Color hudOverlayColor;
+    // too bad so sad package-private vars are messed w/ by gamescreeen
+    boolean canExit; // exit sensor is tripped
+    int prizeCount;
+    int continueScreenTimeUp;
 
-    private int msgLabelCounter;
-
-
-    public GameUI() {
-
+    GameUI() {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
-
         super(null, "Paused");
 
         // start with White, alpha==0 and fade to Black with alpha=1
@@ -93,7 +84,6 @@ public class GameUI extends InGameMenu {
         addTouchPad(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
                 Touchpad t = (Touchpad) actor;
                 mapper.setAxis(0, t.getKnobPercentX());
                 mapper.setAxis(1, t.getKnobPercentY() * (-1));
@@ -107,13 +97,12 @@ public class GameUI extends InGameMenu {
     /*
      * so it can be overridden
      */
-    protected void init(){ // mt
+    protected void init() { // mt
     }
 
     int getScreenTimer() {
         return screenTimer;
     }
-
 
 /*    @Override
     public boolean touchDown (int screenX, int screenY, int pointer, int button) {
@@ -128,13 +117,10 @@ public class GameUI extends InGameMenu {
         int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
         int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
 
-// hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
         }
-
         if (KEY_CODE_POV_LEFT == keycode) {
             mapper.setAxis(axisSetIndexX, -1);
         }
@@ -147,7 +133,6 @@ public class GameUI extends InGameMenu {
         if (KEY_CODE_POV_DOWN == keycode) {
             mapper.setAxis(axisSetIndexY, +1);
         }
-
         if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE1, true);
         }
@@ -163,31 +148,25 @@ public class GameUI extends InGameMenu {
         int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
         int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
 
-// hmmm keyboard could have 4 axes if WASD were actually used in addition to the "DPAD" (arrow/cursor keys)
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
         }
 
         if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
                 KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
-
             mapper.setAxis(axisSetIndexX, 0);
         }
         if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
                 KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
-
             mapper.setAxis(axisSetIndexY, 0);
         }
-
         if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE1, false);
         }
         if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(BTN_KCODE_FIRE2, false);
         }
-
         return false;
     }
 
@@ -198,7 +177,6 @@ public class GameUI extends InGameMenu {
 
         Touchpad.TouchpadStyle touchpadStyle;
 
-        // these numbers have been complete arbitrary
         int tpRadius = 100;
         int knobRadius = 36;
 
@@ -215,9 +193,7 @@ public class GameUI extends InGameMenu {
 
         //Set background image
 //        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
-
 //        Pixmap.setBlending(Pixmap.Blending.None);
-
         //Set knob image
 //        tpKnob = new Texture("data/touchKnob.png");
 //        touchpadSkin.add("touchKnob", tpKnob);
@@ -232,7 +208,7 @@ public class GameUI extends InGameMenu {
 //        Drawable touchBackground = touchpadSkin.getDrawable("touchBackground");
 
 // https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
-        Pixmap.setBlending(Pixmap.Blending.None);
+//        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap background = new Pixmap(tpRadius * 2, tpRadius * 2, Pixmap.Format.RGBA8888);
         background.setColor(1, 1, 1, .2f);
         background.fillCircle(tpRadius, tpRadius, tpRadius);
@@ -259,7 +235,6 @@ public class GameUI extends InGameMenu {
     }
 
     private void setupInGameMenu() {
-
         addButton("Resume");
         addButton("Restart");
         addButton("Quit");
@@ -295,7 +270,7 @@ public class GameUI extends InGameMenu {
     private ImageButton addImageButton(
             float btnX, float btnY, int btnWidth, int btnHeight, final InputMapper.InputState ips
     ) {
-        Pixmap.setBlending(Pixmap.Blending.None);
+//        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
@@ -365,11 +340,9 @@ public class GameUI extends InGameMenu {
         return score;
     }
 
-
     private int getPrizeCount() {
         return prizeCount;
     }
-
 
     public void onCameraSwitch() { // mt
     }
@@ -425,16 +398,14 @@ public class GameUI extends InGameMenu {
         }
     }
 
-    protected void onMenuEvent(){ // mt
+    protected void onMenuEvent() { // mt
     }
 
-
-    void setMsgLabel(String message, int time){
+    void setMsgLabel(String message, int time) {
         msgLabelCounter = time * 60;
         mesgLabel.setText(message);
         mesgLabel.setVisible(true);
     }
-
 
     private void updateGetInputs() {
 
@@ -445,35 +416,26 @@ public class GameUI extends InGameMenu {
         if (mapper.isInputState(InputMapper.InputState.INP_FIRE1)) {
 
             if (GameWorld.getInstance().getIsPaused()) {
-
                 onPauseEvent();
-
             } else {
                 if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                 } else {
-
                     onSelectEvent(); // so it can be overriden
                 }
             }
         } else if (mapper.isInputState(InputMapper.InputState.INP_MENU)) {
-
             onEscEvent();
 
         } else if (mapper.isInputState(InputMapper.InputState.INP_VIEW)) {
-
             onCameraSwitch();
 
         } else if (mapper.isInputState(InputMapper.InputState.INP_SEL1)) {
-
             onMenuEvent();
         }
-
         if (GameWorld.getInstance().getIsPaused()) {
             checkedBox = checkedUpDown(mapper.getDpad(null).getY());
         }
-
         setCheckedBox(checkedBox);
     }
 
@@ -494,13 +456,11 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 break;
-
             case ROUND_OVER_TIMEOUT:
                 if (screenTimer <= 0) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
                 }
                 break;
-
             case ROUND_COMPLETE_WAIT:
                 if (screenTimer <= 0) {
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
@@ -510,35 +470,29 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
                 }
                 break;
-
             case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
                 if (screenTimer <= continueScreenTimeUp) {
                     screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 break;
-
             case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
                 GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
                 break;
-
             case ROUND_OVER_QUIT:
                 GameWorld.getInstance().showScreen(new SplashScreen());
                 break;
-
             case ROUND_OVER_RESTART:
             default:
                 break;
         }
     }
 
-
     private void showOSC(boolean show) {
 // todo: put on screen controls in a table layout
         if (!GameWorld.getInstance().getIsTouchScreen()) {
             show = false;
         }
-
         touchpad.setVisible(show);
         xButton.setVisible(show);
         picButton.setVisible(show);
@@ -560,12 +514,11 @@ public class GameUI extends InGameMenu {
 
         updateTimerLbl();
 
-        if (msgLabelCounter > 0){
+        if (msgLabelCounter > 0) {
             msgLabelCounter -= 1;
         } else {
             mesgLabel.setVisible(false);
         }
-
         if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
             msgLabelCounter = 999;
             stringBuilder.setLength(0);
@@ -588,7 +541,7 @@ public class GameUI extends InGameMenu {
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(getPrizeCount()).append(" / " + SceneLoader.numberOfCrapiums));
+            itemsLabel.setText(stringBuilder.append(getPrizeCount()).append(" / ").append(SceneLoader.numberOfCrapiums));
 
             stringBuilder.setLength(0);
             scoreLabel.setText(stringBuilder.append(getScore()));      // update score indicateor
@@ -598,7 +551,6 @@ public class GameUI extends InGameMenu {
             playerInfoTbl.setVisible(false);
             fadeScreen();
         }
-
         if (GameWorld.getInstance().getIsPaused()) {
             setOverlayColor(0, 0, 1, 0.5f);
             showPauseMenu(true);
@@ -609,9 +561,7 @@ public class GameUI extends InGameMenu {
 
     @Override
     public void act(float delta) {
-
         super.act(delta);
-
         updateGetInputs();
         updateScreenTransition();
         updateUI();

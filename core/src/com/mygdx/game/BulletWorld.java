@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,17 +52,15 @@ import com.mygdx.game.features.FeatureAdaptor;
 
 public class BulletWorld implements Disposable {
 
-    private static BulletWorld instance = null;
-
     public static boolean USE_DDBUG_DRAW = false;
 
+    private static BulletWorld instance = null;
     private DebugDrawer debugDrawer;
     private btCollisionConfiguration collisionConfiguration;
     private btCollisionDispatcher dispatcher;
     private btBroadphaseInterface broadphase;
     private btConstraintSolver solver;
     private btDynamicsWorld collisionWorld;
-
     private Array<Object> userToEntityLUT;
     private Array<btTriangleInfoMap> savedTriangleInfoMapRefs;
 
@@ -70,43 +68,39 @@ public class BulletWorld implements Disposable {
 
 
     class MyContactListener extends ContactListener {
-
         /*
-I sure am glad other people figured out the thing with collision normals and edge contacts:
- https://hub.jmonkeyengine.org/t/physics-shapes-collide-on-flat-surfaces-triangle-boundaries/35946/2
- https://github.com/libgdx/libgdx/issues/2534
- https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
- https://stackoverflow.com/questions/25605659/avoid-ground-collision-with-bullet
-
- https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
- https://gist.github.com/FyiurAmron/3fa2d6b55fd96e50a6cce93f5859f680
- */
+          RE collision normals and edge contacts:
+           https://hub.jmonkeyengine.org/t/physics-shapes-collide-on-flat-surfaces-triangle-boundaries/35946/2
+           https://github.com/libgdx/libgdx/issues/2534
+           https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
+           https://stackoverflow.com/questions/25605659/avoid-ground-collision-with-bullet
+           https://stackoverflow.com/questions/26805651/find-a-way-of-fixing-wrong-collision-normals-in-edge-collisions
+           https://gist.github.com/FyiurAmron/3fa2d6b55fd96e50a6cce93f5859f680
+         */
         @Override
-//        public boolean onContactAdded(btManifoldPoint cp, btCollisionObjectWrapper colObj0Wrap, int partId0, int index0, btCollisionObjectWrapper colObj1Wrap, int partId1, int index1) {
         public boolean onContactAdded(btManifoldPoint cp,
                                       btCollisionObjectWrapper colObj0Wrap, int partId0, int index0, boolean match0,
                                       btCollisionObjectWrapper colObj1Wrap, int partId1, int index1, boolean match1) {
-///*
+
             btCollisionObject co0 = colObj0Wrap.getCollisionObject();
             btCollisionObject co1 = colObj1Wrap.getCollisionObject();
             int uv0 = co0.getUserValue();
             int uv1 = co1.getUserValue();
 
-            if (uv0 != 0 /* match0 */ ) {
-                if ( 0 != (OBJECT_FLAG | co1.getContactCallbackFlag())
-                        && 0 != (GROUND_FLAG | co1.getContactCallbackFilter()) ) {
+            if (uv0 != 0 /* match0 */) {
+                if (0 != (OBJECT_FLAG | co1.getContactCallbackFlag())
+                        && 0 != (GROUND_FLAG | co1.getContactCallbackFilter())) {
                     // match0, but do nothing ... collision filtering setup to notify on object->ground
                     // collision, whereas it needs to just handle the edge contact filtering for the terrain ...
                 }
             }
-// . ..... so it seems then the terrain will be found in the other side of the collision point so apparently
+//        It seems then the terrain will be found in the other side of the collision point so apparently
 //        here is all the handling that needs done for edge filtering - go ahead and check for the ground flag anyway
-            if ( /*uv1 != 0*/ 0 != (GROUND_FLAG | co1.getContactCallbackFlag()) ) {
+            if ( /*uv1 != 0*/ 0 != (GROUND_FLAG | co1.getContactCallbackFlag())) {
 //            btCollisionShape cs1 = co1.getCollisionShape();
 //                if (cs1.className.equals("btBvhTriangleMeshShape"))
                 Collision.btAdjustInternalEdgeContacts(cp, colObj1Wrap, colObj0Wrap, partId1, index1 /* int normalAdjustFlags */);
             }
-
             return true;
         }
 
@@ -140,7 +134,7 @@ I sure am glad other people figured out the thing with collision normals and edg
                         FeatureAdaptor fa = comp.featureAdpt;
 
                         if (null != fa) {
-                            if (null != fa.collisionProcessor){
+                            if (null != fa.collisionProcessor) {
                                 fa.collisionProcessor.onCollision(ee1);
                             }
                         }
@@ -162,15 +156,13 @@ I sure am glad other people figured out the thing with collision normals and edg
                         FeatureAdaptor fa = comp.featureAdpt;
 
                         if (null != fa) {
-                            if (null != fa.collisionProcessor){
+                            if (null != fa.collisionProcessor) {
                                 fa.collisionProcessor.onCollision(ee0);
                             }
                         }
                     }
                 }
             }
-
-//            return true;
         }
     }
 
@@ -181,7 +173,6 @@ I sure am glad other people figured out the thing with collision normals and edg
     public static BulletWorld getInstance() {
 
         if (null == instance) {
-//            Bullet.init();
             instance = new BulletWorld();
         }
         return instance;
@@ -193,9 +184,9 @@ I sure am glad other people figured out the thing with collision normals and edg
             Gdx.app.log("BulletWorld", "(collisionWorld != null)");
         }
 
-        savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
+        savedTriangleInfoMapRefs = new Array<>();
 
-        userToEntityLUT = new Array<Object>();
+        userToEntityLUT = new Array<>();
         userToEntityLUT.add(null); // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
 
         rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);
@@ -207,6 +198,7 @@ I sure am glad other people figured out the thing with collision normals and edg
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(new Vector3(0, -9.81f, 0));
+// GN: don't delete me
         mcl = new MyContactListener();
 
         debugDrawer = new DebugDrawer();
@@ -217,9 +209,8 @@ I sure am glad other people figured out the thing with collision normals and edg
         }
     }
 
-
-    public Entity getCollisionEntity(int userValue0){
-        return  (Entity) userToEntityLUT.get(userValue0);
+    public Entity getCollisionEntity(int userValue0) {
+        return (Entity) userToEntityLUT.get(userValue0);
     }
 
     // Note:
@@ -227,18 +218,17 @@ I sure am glad other people figured out the thing with collision normals and edg
     @Override
     public void dispose() {
 
-        for ( btTriangleInfoMap infoMap : savedTriangleInfoMapRefs){
-
+        for (btTriangleInfoMap infoMap : savedTriangleInfoMapRefs) {
             infoMap.dispose();
         }
 
         btCollisionObjectArray objs = collisionWorld.getCollisionObjectArray();
 
         for (int i = 0; i < objs.size(); i++) {
-            btCollisionObject body = objs.at(i);
-            if (body instanceof btRigidBody) {
-                Gdx.app.log("Bulletwrld:dispose()", "btRigidBody has NOT been dispose() !!!!!");
-            }
+//            btCollisionObject body = objs.at(i);
+//            if (body instanceof btRigidBody) {
+//                Gdx.app.log("Bulletwrld:dispose()", "btRigidBody has NOT been dispose() !!!!!");
+//            }
         }
         collisionWorld.dispose();
         solver.dispose();
@@ -304,11 +294,6 @@ I sure am glad other people figured out the thing with collision normals and edg
         // we reuse the ClosestRayResultCallback, thus we need to reset its values
         rayResultCallback.setCollisionObject(null);
         rayResultCallback.setClosestHitFraction(1f);
-//        rayResultCallback.getRayFromWorld(outV);
-//        outV.set(rayFrom.x, rayFrom.y, rayFrom.z);
-//        rayResultCallback.getRayToWorld(outV);
-//        outV.set(rayTo.x, rayTo.y, rayTo.z);
-
         collisionWorld.rayTest(rayFrom, rayTo, rayResultCallback);
 
         if (rayResultCallback.hasHit()) {
@@ -317,7 +302,7 @@ I sure am glad other people figured out the thing with collision normals and edg
         return null;
     }
 
-    private Ray ray = new Ray();
+    private final Ray ray = new Ray();
 
     public btCollisionObject rayTest(Vector3 origin, Vector3 direction, float length) {
 
@@ -325,29 +310,33 @@ I sure am glad other people figured out the thing with collision normals and edg
     }
 
     public void addBody(btRigidBody body) {
-
-        collisionWorld.addRigidBody(body);
+        if (null != collisionWorld) {
+            collisionWorld.addRigidBody(body);
+        } else {
+            System.out.println("collisionWorld cannot be null!");
+        }
     }
 
     public void removeBody(btRigidBody body) {
-
-        collisionWorld.removeRigidBody(body);
+        if (null != collisionWorld) {
+            collisionWorld.removeRigidBody(body);
+        } else {
+            System.out.println("collisionWorld cannot be null!");
+        }
     }
 
     /*
-     * for static "terrain" mesh only right now, should n't need to be removed "dynamicallyt"
+     * for static "terrain" mesh only right now, shouldn't need to be removed "dynamicallyt"
      */
     public void addTriangleInfoMap(btTriangleInfoMap tim) {
 
         savedTriangleInfoMapRefs.add(tim);
     }
 
-
-
     // try collision flags
     //    https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part1/
-    public static final short GROUND_FLAG = 1<<8;
-    public static final short OBJECT_FLAG = 1<<9;
+    public static final short GROUND_FLAG = 1 << 8;
+    public static final short OBJECT_FLAG = 1 << 9;
     public static final short NONE_FLAG = 0;
 
     /*
@@ -355,13 +344,13 @@ I sure am glad other people figured out the thing with collision normals and edg
      * "onContactAdded callback will only be triggered if at least one of the two colliding bodies has the CF_CUSTOM_MATERIAL_CALLBACK set"
      *  (ref https://github.com/libgdx/libgdx/wiki/Bullet-Wrapper---Contact-callbacks#contact-filtering)
      */
-    public void addBodyWithCollisionNotif(Entity ee){
+    public void addBodyWithCollisionNotif(Entity ee) {
 
         addBodyWithCollisionNotif(ee, OBJECT_FLAG, GROUND_FLAG);
     }
 
     public void addBodyWithCollisionNotif(Entity ee,
-                                          int flag, int filter){
+                                          int flag, int filter) {
 
         BulletComponent bc = ee.getComponent(BulletComponent.class);
 
@@ -384,10 +373,8 @@ I sure am glad other people figured out the thing with collision normals and edg
                 // body.setContactCallbackFilter(GROUND_FLAG);
 
 // Developer mode flag to turn off Contact callback filtering  for debug pps????????
-///*
                 body.setContactCallbackFlag(flag);
                 body.setContactCallbackFilter(filter);
-//*/
             }
         }
     }

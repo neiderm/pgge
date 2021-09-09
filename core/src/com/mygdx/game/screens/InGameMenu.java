@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
@@ -55,28 +54,26 @@ class InGameMenu extends Stage {
     static final int BTN_KCODE_FIRE1 = 0;
     static final int BTN_KCODE_FIRE2 = 1;
 
-    private Vector2 v2 = new Vector2();
-    private Array<Texture> savedTextureRefs = new Array<Texture>();
+    private final Vector2 v2 = new Vector2();
+    private final Array<Texture> savedTextureRefs = new Array<>();
 
-    InputMapper mapper = new InputMapper();
-    Table onscreenMenuTbl = new Table();
-    Table playerInfoTbl = new Table();
+    final InputMapper mapper = new InputMapper();
+    final Table onscreenMenuTbl = new Table();
+    final Table playerInfoTbl = new Table();
 
     private int previousIncrement;
-    private Array<String> buttonNames = new Array<String>();
-    private ButtonGroup<TextButton> bg;
+    private final Array<String> buttonNames = new Array<>();
+    private final ButtonGroup<TextButton> bg;
     private int count;
     // @dispsables
     private Texture buttonTexture;
-    private Texture overlayTexture;
-    private Image overlayImage;
+    private final Texture overlayTexture;
+    private final Image overlayImage;
 
-    private Skin uiSkin;
-    private BitmapFont font;
-
+    private final Skin uiSkin;
+    private final BitmapFont font;
 
     InGameMenu() {
-
         this("skin/uiskin.json", null);
     }
 
@@ -94,27 +91,25 @@ class InGameMenu extends Stage {
             font = skin.getFont("commodore-64");
 
 //to use this skin on game screen, create a Labels style for up/down text button on pause menu
-            if (false){ // maybe
-                Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-                pixmap.setColor(Color.WHITE);
-                pixmap.fill();
+            Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+            pixmap.setColor(Color.WHITE);
+            pixmap.fill();
 
-                skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-                pixmap.dispose();
+            skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+            pixmap.dispose();
 
-                skin.add("default", new Label.LabelStyle(font, Color.WHITE));
-                // Store the default libgdx font under the name "default".
-                skin.add("default", font);
+            skin.add("default", new Label.LabelStyle(font, Color.WHITE));
+            // Store the default libgdx font under the name "default".
+            skin.add("default", font);
 
-                // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-                TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-                textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
-                textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
-                textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
-                textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
-                textButtonStyle.font = skin.getFont("default");
-                skin.add("default", textButtonStyle);
-            }
+            // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
+            TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+            textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
+            textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
+            textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
+            textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
+            textButtonStyle.font = skin.getFont("default");
+            skin.add("default", textButtonStyle);
 
             uiSkin = skin;
 
@@ -145,7 +140,6 @@ class InGameMenu extends Stage {
         setupPlayerInfo();
 
         // transparent overlay layer
-        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
                 new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
@@ -165,7 +159,7 @@ class InGameMenu extends Stage {
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
 
-        bg = new ButtonGroup<TextButton>();
+        bg = new ButtonGroup<>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
 
@@ -215,8 +209,8 @@ class InGameMenu extends Stage {
     void addNextButton() {
 
         if (GameWorld.getInstance().getIsTouchScreen()) {
-            Pixmap.setBlending(Pixmap.Blending.None);
             Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+            button.setBlending(Pixmap.Blending.None);
             button.setColor(1, 0, 0, 1);
             button.fillCircle(25, 25, 25);
 
@@ -285,9 +279,6 @@ class InGameMenu extends Stage {
         onscreenMenuTbl.add(button).fillX().uniformX();
     }
 
-    /*
-     * returns true ^H^H^H^H
-     */
     void setCheckedBox(int checked) {
 
         if (buttonNames.size > 0) {
@@ -323,7 +314,6 @@ class InGameMenu extends Stage {
         return selectedIndex;
     }
 
-
     protected void onSelectEvent() { // mt override
     }
 
@@ -332,7 +322,6 @@ class InGameMenu extends Stage {
 
     protected void onEscEvent() { // mt override
     }
-
 
     /*
      * saves the texture ref for disposal ;)

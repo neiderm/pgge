@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.ashley.core.Entity;
@@ -39,43 +38,37 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.SceneData;
 
-
 /*
- * crudely knock together the revolving rig selector platform thingy (intend short load time!)
+ * Player selects the Rig from a revolving platform.
  * There is no scene graph here, and Bullet physics is not used either. so it's just raw math to
  * revolve and push things around in the  3D world. Intend to man up and use a real math and
  * transform for object positions. (Right now it's just manipulating X/Z "2 1/2 D" by sin/cos).
- * Like to  have a catchy "revolve the whole thing into place" animation using true 3D.
  */
-class SelectScreen  extends BaseScreenWithAssetsEngine {
+class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private static final int N_SELECTIONS = 3;
 
-    private Texture gsTexture;
-
-    private BitmapFont font;
-    private ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private InGameMenu stage;
-
-    private Entity platform;
-    private ImmutableArray<Entity> characters;
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+
+    private ImmutableArray<Entity> characters;
+    private Texture gsTexture;
+    private BitmapFont font;
+    private InGameMenu stage;
+    private Entity platform;
     private int idxCurSel;
-    private final float platformHt = 0.2f; // tmp
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
 
     // position them into equilateral triangle (sin/cos)
-    private Vector3[] positions = new Vector3[]{
+    private final Vector3[] positions = new Vector3[]{
             new Vector3(),
             new Vector3(),
             new Vector3()
     };
 
-    private static Array<String> stageNamesList = new Array<String>();
-    private final String SCREENS_DIR = "screens/";
+    private static final Array<String> stageNamesList = new Array<>();
     private boolean isPaused;
-
 
     @Override
     public void show() {
@@ -83,7 +76,6 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         super.init();
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
-
         GameFeature f = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
         if (null != f) {
@@ -95,9 +87,10 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
         // setup a screen/file selection menu (development only)
 //        FileHandle[] files = Gdx.files.local(SCREENS_DIR).list();
+        String SCREENS_DIR = "screens/";
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
 
-        for (FileHandle file: files) {
+        for (FileHandle file : files) {
             // stick the base-name (no path, no extension) into the menu
             String fname = file.name();
             if (fname.matches("(.*).json($)")) {
@@ -108,15 +101,13 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
             }
         }
         stage.addNextButton();
-        stage.onscreenMenuTbl.setVisible( false );
-
+        stage.onscreenMenuTbl.setVisible(false);
 
         final int gsBTNwidth = Gdx.graphics.getWidth();
         final int gsBTNheight = Gdx.graphics.getHeight() / 4;
         final int gsBTNx = 0;
         final int gsBTNy = 0;
 
-        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
@@ -124,16 +115,14 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         stage.addImageButton(gsTexture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
-
         // Font files from ashley-superjumper
         font = new BitmapFont(
                 Gdx.files.internal("data/font.fnt"),
                 Gdx.files.internal("data/font.png"), false);
         font.getData().setScale(1.0f);
 
-        // ok so you can add a label to the stage
         stage.addActor(
-                new Label("Pick Your Rig ... ", new Label.LabelStyle(font, Color.WHITE)) );
+                new Label("Choose your Rig ... ", new Label.LabelStyle(font, Color.WHITE)));
 
         Gdx.input.setInputProcessor(stage);
 
@@ -158,8 +147,8 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
                     axis = 1;
                 }
             }
-        }  else {
-            touchPadDx  = 0; // make sure clear any swipe event in progress
+        } else {
+            touchPadDx = 0; // make sure clear any swipe event in progress
         }
 
         if (0 == axis) { // if input is inactive
@@ -175,13 +164,11 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         return axis;
     }
 
-    // tmp for the pick marker
-    private Vector3 down = new Vector3();
+    private static final float PLATFRM_INC_DEGREES = 360.0f / N_SELECTIONS;
+    private final Vector3 down = new Vector3();
     private float degreesInst; // instantaneous commanded rotation of platform
     private float degreesSetp; // demanded rotation of platform
     private float degreesStep; // magnitude of control output (can be ramp rate limited by control algo)
-    private static final float PLATFRM_INC_DEGREES = 360.0f / N_SELECTIONS;
-
 
     /*
      * steps to the current orientation by applying proportional control with ramp-up
@@ -190,7 +177,6 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
         float step = (degreesSetp - degreesInst) * 0.2f; // error * kP
 
-        // I think we will have a discrete flag to 1) only show the marker line when locked to position and 2) only allow enter/select when in position
         if (Math.abs(step) > 0.01) { // deadband around control point, Q-A-D lock to the setpoint and suppress ringing, normally done by integral term
             if (Math.abs(degreesStep) < 2) { // output is ramped up from 0 to this value, after which 100% of step is accepted
                 int sign = degreesStep < 0 ? -1 : 1;
@@ -203,8 +189,8 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         }
     }
 
-
-    private static final int TANK_MODEL_ORIENTATION = 90; // fixed amount to get the model pointing toward the viewer when selected
+    // fixed amount to get the model pointing toward the viewer when selected
+    private static final int TANK_MODEL_ORIENTATION = 90;
 
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
@@ -225,6 +211,8 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
             double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
 
             position.x = (float) Math.cos(rads);
+            // tmp
+            float platformHt = 0.2f;
             position.y = 0.5f // tmp
                     + platformHt / 2; // arbitrary amount above platform
             position.z = (float) Math.sin(rads);
@@ -244,7 +232,6 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
     }
 
     private void updatePlatform(float platformDegrees) {
-
         Matrix4 transform = platform.getComponent(ModelComponent.class).modelInst.transform;
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
         transform.setTranslation(new Vector3(originCoordinate));
@@ -254,19 +241,13 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
     private int checkedUpDown(int step, int checkedIndex) {
 
         int selectedIndex = checkedIndex;
-
-//        if (0 == previousIncrement)   // ... alternative to debouncing?) ... can't hurt ;)
         selectedIndex += step;
-
-//        previousIncrement = step;
 
         if (selectedIndex >= N_SELECTIONS) {
             selectedIndex = 0;
-        }
-        else if (selectedIndex < 0) {
+        } else if (selectedIndex < 0) {
             selectedIndex = N_SELECTIONS - 1;
         }
-
         return selectedIndex;
     }
 
@@ -274,13 +255,13 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         // show loading bar on this screen? omit LoadingScreen? allowing the
         // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
         // Can have a "generic" pass-off ... each screen as closed sets parameters in next screens data.
-// Next screen i.e. Loading screen, knows it needs to pass certain data (againi, i.e. player name)
-// So the screen may actually own and instance the scene data, not the sceene loader.
+        // Next screen i.e. Loading screen, knows it needs to pass certain data (again, i.e. player name)
+        // So the screen may actually own and instance the scene data, not the sceene loader.
         // screen pass sceneData to scene loader as parameter.
-
         SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get("Characters");        // Magik string
-        GameObject go = mg.getElement(idxCurSel); // first 3 Characters are on the platform - use currently selected index to retrieve
+        ModelGroup mg = sd.modelGroups.get("Characters");
+        // first 3 Characters are on the platform - use currently selected index to retrieve
+        GameObject go = mg.getElement(idxCurSel);
 
         GameWorld.getInstance().loadSceneData(path, go.objectName);
 
@@ -302,33 +283,31 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
         // plots debug graphics
         super.render(delta);
 
-
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-        if (isPaused){
+        if (isPaused) {
             int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
             stage.setCheckedBox(idxCurSel);
 
             InputMapper.InputState inp = stage.mapper.getInputState();
             if (InputMapper.InputState.INP_FIRE1 == inp) {
 
-                if (stageNamesList.size > 0){
+                if (stageNamesList.size > 0) {
                     String stagename = stageNamesList.get(idxCurSel);
                     GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
                 }
-            }
-            else if (InputMapper.InputState.INP_MENU == inp) {
+            } else if (InputMapper.InputState.INP_MENU == inp) {
 
-                stage.onscreenMenuTbl.setVisible( false );
+                stage.onscreenMenuTbl.setVisible(false);
                 isPaused = false;
             }
         } else {
             int step = getStep();
             idxCurSel = checkedUpDown(step, idxCurSel);
-            // Necessary to increment the degrees because we are controlling to it like a setpoint (IOW
+            // Necessary to increment the degrees because we are controlling to it like a setpoint
             // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of car nearest to front of view)
+            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of object nearest to front of view)
 
             // lower previous (raised current selection in updateTanks() )
             characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
@@ -344,12 +323,10 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
                     isPaused = true;
                 }
             } else if (InputMapper.InputState.INP_FIRE1 == inputState) {
-
                 GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
             }
         }
     }
-
 
     @Override
     public void resize(int width, int height) {
@@ -362,16 +339,14 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
 
     @Override
     public void dispose() {
-
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
-
         font.dispose();
         shapeRenderer.dispose();
         stage.dispose();
 
-        if (null != gsTexture)
+        if (null != gsTexture) {
             gsTexture.dispose();
-
+        }
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }
@@ -379,7 +354,6 @@ class SelectScreen  extends BaseScreenWithAssetsEngine {
     /*
      * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
      */
-
     @Override
     public void pause() {
         // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
