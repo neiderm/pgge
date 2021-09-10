@@ -172,11 +172,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      */
     private void updateRotation() {
 
-        float step = (degreesSetp - degreesInst) * 0.2f; // error * kP
+        float kP = 0.2f;
+        float step = (degreesSetp - degreesInst) * kP; // step = error * kP
 
         if (Math.abs(step) > 0.01) { // deadband around control point, Q-A-D lock to the setpoint and suppress ringing, normally done by integral term
             if (Math.abs(degreesStep) < 2) { // output is ramped up from 0 to this value, after which 100% of step is accepted
-                int sign = degreesStep < 0 ? -1 : 1;
+                int sign = (degreesStep < 0) ? -1 : 1;
                 degreesStep += 0.1f * sign;
             }
             degreesInst += step;
@@ -189,10 +190,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     // fixed amount to get the model pointing toward the viewer when selected
     private static final int TANK_MODEL_ORIENTATION = 90;
 
+    // Rigs are positioned in terms of offset from Platform origin
+    // Platform height is buried in selectscreen.json unfortunately ("PlayerIsPlatform")
+    private static final float platformHt = 0.2f;
+
+    private static final float selectedRigOffsY = 0.3f;
+    private static final float unselectedRigOffsY = 0.05f;
+    // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
+    private static final float rigPlacementRadiusScalar = 1.1f;
+
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
      */
-    private void updateTanks(float platformDegrees) {
+    private void updateRigs(float platformDegrees) {
 
         for (int n = 0; n < N_SELECTIONS; n++) {
 
@@ -207,12 +217,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             // add Platform Degrees to the unit angular position on platform
             double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
 
-            position.x = (float) Math.cos(rads);
-            // tmp
-            float platformHt = 0.2f;
-            position.y = 0.5f // tmp
-                    + platformHt / 2; // arbitrary amount above platform
-            position.z = (float) Math.sin(rads);
+            position.x = (float) Math.cos(rads) * rigPlacementRadiusScalar;
+
+            position.y = (platformHt / 2) + unselectedRigOffsY; // raise slightly above platform
+
+            position.z = (float) Math.sin(rads) * rigPlacementRadiusScalar;
 
             Entity e = characters.get(n);
 
@@ -223,7 +232,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             transform.trn(originCoordinate);
 
             if (idxCurSel == n) { // raise selected for arbitrary effect ;)
-                transform.trn(down.set(0, 0.2f, 0));
+                transform.trn(down.set(0, selectedRigOffsY, 0));
             }
         }
     }
@@ -274,7 +283,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     public void render(float delta) {
 
         updateRotation();
-        updateTanks(degreesInst);
+        updateRigs(degreesInst);
         updatePlatform(degreesInst);
 
         // plots debug graphics
@@ -284,13 +293,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.draw();
 
         if (isPaused) {
-            int // wtf?
-                    idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
-            stage.setCheckedBox(idxCurSel);
+            // in menu mode, the y-axis of d-pad is mapped to the in-game GUI menu
+            // integer step is +/-1 on Y axis
+            int step = stage.mapper.getDpad(null).getY();
+            // increments the current index selection by 1 step (+/-)
+            int newSelectionIndex = stage.checkedUpDown(step);
+            // update the checkbox with new index
+            stage.setCheckedBox(newSelectionIndex);
 
             InputMapper.InputState inp = stage.mapper.getInputState();
-            if (InputMapper.InputState.INP_FIRE1 == inp) {
 
+            if (InputMapper.InputState.INP_FIRE1 == inp) {
                 if (stageNamesList.size > 0) {
                     String stagename = stageNamesList.get(idxCurSel);
                     GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
@@ -307,9 +320,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
             degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of object nearest to front of view)
 
-            // lower previous (raised current selection in updateTanks() )
-            characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
-                    down.set(0, -0.5f, 0));
+            // lower previous (raised current selection in updateRigs() )
+//            characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
+//                    down.set(0, -1 * (unselectedRigOffsY), 0));
 
             InputMapper.InputState inputState = stage.mapper.getInputState();
 
