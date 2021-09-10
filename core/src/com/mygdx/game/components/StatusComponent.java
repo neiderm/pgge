@@ -8,21 +8,21 @@ import com.badlogic.ashley.core.Component;
 
 public class StatusComponent implements Component {
 
-    private static final int LIFECLOCKDEFAULT = 1;
-
+    public final int[] damage = new int[4];
+    // Bounty is both the players points loot as well as point value of a prize or
+    //  killed-thing (added to players loot of course)
+    public int bounty;
+    public int deleteFlag;
     public int lifeClock = LIFECLOCKDEFAULT;
     public int prizeCount;
-    public int bounty; // is both the players points loot as well as point value of a prize or
-    //  killed-thing (added to players loot of course)
     public boolean canExit;
-    public int deleteFlag;
-    public int[] damage = new int[4];
+
+    private static final int LIFECLOCKDEFAULT = 1;
 
     public StatusComponent() {
     }
 
     public StatusComponent(int count) {
-
         this.lifeClock = count;
     }
 }

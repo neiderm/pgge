@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.gdx.Gdx;
@@ -31,22 +30,18 @@ public class SceneData {
     public static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string e.g.  SceneData.LOCAL_PLAYER_FNAME
 
     // ignore Lint warning about using type Map ?
-    public HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
-    public HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
-    public HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
-
+    public final HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
+    public final HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
+    public final HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
 
     private static void saveData(SceneData data) {
         Json json = new Json();
         json.setOutputType(JsonWriter.OutputType.json); // see "https://github.com/libgdx/libgdx/wiki/Reading-and-writing-JSON"
         FileHandle fileHandle = Gdx.files.local("GameData_out.json");
         if (data != null) {
-//            fileHandle.writeString(Base64Coder.encodeString(json.prettyPrint(gameData)), false);
             fileHandle.writeString(json.prettyPrint(data), false);
-            //System.out.println(json.prettyPrint(gameData));
         }
     }
-
 
     public static SceneData loadData(String path, String playerObjectName){
 
@@ -55,18 +50,16 @@ public class SceneData {
         //        gameData = json.fromJson(sceneData.class, Base64Coder.decodeString(fileHandle.readString()));
         SceneData sd = json.fromJson(SceneData.class, fileHandle.readString());
 
-        // localplayer object-name is passed along from parent screen ... make a Geame Feature in which
-        // to stash this "persistent" local player info . Other systems/comps will be looking for this
+        // localplayer object-name is passed along from parent screen ... make a Game Feature in which
+        // to stash this "persistent" local player info. Other systems/comps will be looking for this
         // magik name to get reference to the entity.
         GameFeature gf = sd.features.get(LOCAL_PLAYER_FNAME);
-
         saveData(sd);  // test ... write out the data in order to verify order and format
 
         if (null != gf) {
             // Allow local player game feature to be defined in JSON (user Data)
             gf.setObjectName(playerObjectName);
-        }
-        else{
+        } else {
             gf = new GameFeature( playerObjectName );
             sd.features.put(LOCAL_PLAYER_FNAME, gf  /* new GameFeature( playerObjectName ) */ );
         }

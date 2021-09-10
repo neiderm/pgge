@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -39,10 +39,9 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
     private float kI = 0;
     private float kD = 0;
 
-    private Matrix4 process; // reference to present value of whatever we're controlling
-    private Matrix4 setpoint; // this will probably usually be a position we're trying to reach
-    private Vector3 spOffset;  // offset for camera chaser, or 0 for direct target
-
+    private final Matrix4 process; // reference to present value of whatever we're controlling
+    private final Matrix4 setpoint; // this will probably usually be a position we're trying to reach
+    private final Vector3 spOffset;  // offset for camera chaser, or 0 for direct target
 
     /**
      * Creates a {@code PlayerInput} behavior for the specified owner and target.
@@ -50,29 +49,27 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
      * @param owner the owner of this behavior
      */
     public TrackerSB(Steerable<T> owner,
-              Matrix4 setpoint,
-              Matrix4 process,
-              Vector3 spOffset) {
-
+                     Matrix4 setpoint,
+                     Matrix4 process,
+                     Vector3 spOffset) {
         super(owner);
-
         this.setpoint = setpoint;
         this.spOffset = new Vector3(spOffset);
         this.process = process;
     }
 
     // working variables
-    private Vector3 output = new Vector3();
+    private static final Quaternion quat = new Quaternion();
+    private final Vector3 output = new Vector3();
+    private final Vector3 translation = new Vector3();
+    private final Vector3 tmpV = new Vector3();
+    private final Vector3 adjTgtPosition = new Vector3();
     private Vector3 error = new Vector3();
-    private  Vector3 translation = new Vector3();
-    private Vector3 tmpV = new Vector3();
-    private Vector3 adjTgtPosition = new Vector3();
-    private static Quaternion quat = new Quaternion();
 
     /*
      * implements a real simple proportional controller (for non-physics entity and eventually should
      * not be limited to any visual (i.e. model instance) entity
-      */
+     */
     @Override
     protected SteeringAcceleration<T> calculateRealSteering(SteeringAcceleration<T> steering) {
 
@@ -123,9 +120,8 @@ public class TrackerSB<T extends Vector<T>> extends SteeringBehavior<T> {
 
         steering.angular = 0f;
 
-        // Output steering acceleration .. .whatever
-
-        Vector3 steeringLinear = (Vector3)steering.linear;
+        // Output steering acceleration
+        Vector3 steeringLinear = (Vector3) steering.linear;
         steeringLinear.set(tmpV.x, 0, tmpV.z); // casting help ;)
 
         return steering;

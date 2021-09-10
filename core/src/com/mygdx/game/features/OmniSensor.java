@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,54 +27,44 @@ import com.mygdx.game.util.ModelInstanceEx;
 
 /**
  * Created by neiderm on 7/5/2019.
- * <p>
  * This can be a "generic" handler for a sensor. assigned a single target Entity to be sensing for.
  */
-
 public class OmniSensor extends FeatureAdaptor {
 
-    protected Entity target;
-    boolean inverted;
-    boolean isTriggered;
-    KillSensor.ImpactType impactType = KillSensor.ImpactType.NONE;
-    Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
+    private final Vector3 bounds = new Vector3();
+    private final Vector3 direction = new Vector3();
+    private final Vector3 omniRadius = new Vector3();
+    private final Ray lookRay = new Ray();
+    private final Quaternion rotation = new Quaternion();
 
-    private Vector3 bounds = new Vector3();
     private Vector3 tgtPosition = new Vector3();
-    private Vector3 omniRadius = new Vector3();
-
-    private final Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f); //
-
-    private Ray lookRay = new Ray();
-    private Vector3 direction = new Vector3();// new Vector3(0, 0, -1); // vehicle forward ... whatever, just another working vector instance
-    private Quaternion rotation = new Quaternion();
     private ModelComponent mymc;
 
-    protected Matrix4 sensTransform;
+    protected Entity target;
 
+    final Vector3 sensorOrigin = new Vector3(); // the reference point for determining an object has exitted the level
 
+    boolean inverted = false;
+    boolean isTriggered;
     float senseZoneDistance = 5.0f;
+    KillSensor.ImpactType impactType = KillSensor.ImpactType.NONE;
+    Matrix4 sensTransform;
 
-
-    public OmniSensor() {/* no-arg constructor */
-
-        omniRadius.set(DEFAULT_RADIUS); // maybe .. idfk
+    OmniSensor() {/* no-arg constructor */
+        Vector3 DEFAULT_RADIUS = new Vector3(1.5f, 1.5f, 1.5f);
+        omniRadius.set(DEFAULT_RADIUS);
     }
 
     @Override
     public void init(Object target) {
 
-//        super.init(target); // not much there, just sets the target,
         if (null != target) {
             this.target = (Entity) target;
         }
-
         // vector sensor offset
         senseZoneDistance = vR.x;
-
         // grab the starting Origin (translation) of the entity (vT0 set from instance data)
         sensorOrigin.set(vT0);
-
         // in case this is a non-model entity, set transform translation at least initialize to vT0
         sensTransform = new Matrix4(); // construct this here so that it doesn't get set in the .json test writer which is harmless but annoying
         sensTransform.setTranslation(sensorOrigin);
@@ -85,15 +75,11 @@ public class OmniSensor extends FeatureAdaptor {
     public void update(Entity sensor) {
 
         super.update(sensor);
-
         omniRadius.set(vS.x, 0, 0); // if this is model-based entity, bounding radius is added to omni radius below
 
         if (null == mymc) {
-
             mymc = sensor.getComponent(ModelComponent.class);
-
         } else {
-
             sensTransform = mymc.modelInst.transform;
 
 //        if (mymc.boundingRadius > 0 && vS.x == 0) {
@@ -105,8 +91,8 @@ public class OmniSensor extends FeatureAdaptor {
 //        }
 /*
  default bounding radius determined from mesh dimensions (if there is mesh geometry assoc. w/
-this sensor feature)... optional specify  vS  to be added to br such that allowing the effective
-radius to be any arbitryariy sized irrespective of mesh size
+ this sensor feature)... optional specify  vS  to be added to br such that allowing the effective
+ radius to be any arbitryariy sized irrespective of mesh size
 */
             omniRadius.add(mymc.boundingRadius, 0, 0);
         }
@@ -123,26 +109,24 @@ radius to be any arbitryariy sized irrespective of mesh size
             sensorOrigin.add(lookRay.direction.scl(senseZoneDistance)); // we'll see
         }
 
+/*
+ The distance between two points in a three dimensional - 3D - coordinate system can be calculated as
 
-        /*
-The distance between two points in a three dimensional - 3D - coordinate system can be calculated as
+  d = ((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)^(1/2)
 
-d = ((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2)^(1/2)
+  https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
 
-https://www.engineeringtoolbox.com/distance-relationship-between-two-points-d_1854.html
-
-but for this purpose square roots don't need to be taken ... first get reference distance as distance
-from point of sensor origin to a any point lying on the sphere of given radius
-omni radius not being used consistently (sometimes just x given, some times xyz ... doesn't matter, it
+ but for this purpose square roots don't need to be taken ... first get reference distance as distance
+ from point of sensor origin to a any point lying on the sphere of given radius.
+ Omni radius not being used consistently (sometimes just x given, some times xyz ... doesn't matter, it
  ends up just an (essentially arbitrary ) scalar float anyway
- */
+*/
 
         bounds.set(sensorOrigin);
         bounds.add(omniRadius);
         float boundsDst2 = bounds.dst2(sensorOrigin);
 
         if (null == target) {
-
             GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
             if (null != playerFeature) {
 
@@ -170,7 +154,6 @@ omni radius not being used consistently (sometimes just x given, some times xyz 
                     }
                 }
             }
-//            updateTriggered(sensor, isTriggered, sensorOrigin);
         }
     }
 }

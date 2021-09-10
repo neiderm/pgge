@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
@@ -76,7 +75,7 @@ public class GameObject {
 
     private boolean isShootable;
     @SuppressWarnings("unused")
-    private String featureName; // if Entity is to be part of a feature
+    private String featureName; // if Entity is to be part of a Feature
 
     boolean isCharacter;
     boolean isKinematic;  // "is Platform" ?
@@ -102,7 +101,9 @@ public class GameObject {
             nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
             nodeName = null;
         }
+
         for (Node node : nodeArray) {
+
             ModelInstance mi = null;
 
             if (null != nodeName && node.id.contains(nodeName)) {
@@ -110,7 +111,8 @@ public class GameObject {
                 mi = getModelInstance(model, node.id, scale);
 
             } else if (null == nodeName) {
-// special sauce asssumes  loading from single parent-node, requires recursive search to find the specified _node.id_ in the model hierarchy
+                // special sauce - asssumes loading from single parent-node model i.e. requires
+                // recursive search to find the specified node id in the model hierarchy
                 mi = new ModelInstance(model, node.id, true, false, false);
             }
 
@@ -169,7 +171,7 @@ public class GameObject {
     }
 
     /*
-     * NOTE : copies the passed "instance" ... so caller should discard the reference
+     * NOTE: copies the passed "instance" ... so caller should discard the reference
      */
     public void buildGameObject(Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
@@ -181,7 +183,6 @@ public class GameObject {
             if (instanceData.size > 0) {
                 id = instanceData.get(n++);
             }
-
             btCollisionShape shape = null;
 
             if (isKinematic || mass > 0) { // note does not use the gamObject.meshSHape name
@@ -230,8 +231,8 @@ public class GameObject {
             }
 
             if (null != id.translation) {
-                // don't wipe the translation from the incoming modelInance! (this is where panzer
-                // tank getting screwed up ... its nodes have offsets in the local transform! )
+                // Don't wipe the translation from the incoming Model Instance! (this is where 
+                // panzerwagen getting screwed up ... its nodes have offsets in the local transform!)
 //                instance.transform.setTranslation(0, 0, 0);
                 instance.transform.trn(id.translation);
             }
@@ -241,7 +242,7 @@ public class GameObject {
             }
 
             if (null != id.adaptr) {
-                // translation can be passed in to a feature adapter
+                // translation can be passed in to a Feature Adapter
                 Vector3 position = new Vector3();
                 position = instance.transform.getTranslation(position);
 
@@ -291,7 +292,7 @@ public class GameObject {
             } else
                 // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
                 if (
-                        isPlayer             // make sure gound contact colllision filtering works with player character!
+                        isPlayer // make sure gound contact colllision filtering works with player character!
                                 || null != instanceFeatureAdapter
                                 || isShootable
                                 || isCharacter) {
@@ -328,7 +329,7 @@ public class GameObject {
         Entity e = new Entity();
 
         if (null != id && null != id.adaptr) {
-            // translation can be passed in to feature adapter
+            // translation can be passed in to Feature Adapter
             Vector3 position = new Vector3(id.translation);
 
             FeatureAdaptor instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform

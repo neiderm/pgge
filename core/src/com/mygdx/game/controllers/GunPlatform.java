@@ -41,28 +41,25 @@ import com.mygdx.game.util.PrimitivesBuilder;
  */
 public class GunPlatform implements ControllerAbstraction {
 
-    private Node gunNode;
-    private int gunIndex = -1;
-    private Node turretNode;
-    private int turretIndex = -1;
-
+    private final Vector3 prjectileS0 = new Vector3(); // projectile initial vector is body+turret+barrel orientations
     private final Vector3 yAxis = new Vector3(0, 1, 0);
     private final Vector3 xAxis = new Vector3(1, 0, 0);
+    private final ModelInstance mi; // final?
 
-    private float rTurret;
-    private float rBarrel;
-    private final Vector3 prjectileS0 = new Vector3(); // projectile initial vector is body+turret+barrel orientations
-
-    private ModelInstance mi;
     private btCompoundShape btcs;
-
+    private Node gunNode;
+    private Node turretNode;
     private Gunrack gunrack;
     private int energizeTime = 70; // based on the menu timing (70 frames is just over 1 second)
-
+    private int gunIndex = -1;
+    private int turretIndex = -1;
+    private float rTurret;
+    private float rBarrel;
 
     /*
      * non-null gunrack, specifcially sets the warmup time
      */
+    @SuppressWarnings("unused")
     public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, int energizeTime) {
 
         this(mi, bs);
@@ -88,7 +85,6 @@ public class GunPlatform implements ControllerAbstraction {
         this.mi = mi;
 
         if (bs.isCompound()) {
-
             this.btcs = (btCompoundShape) bs;
         }
 
@@ -101,7 +97,7 @@ public class GunPlatform implements ControllerAbstraction {
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strTurretNode);
 
-        if (index >= 0) { // index != -1
+        if (index >= 0) {
             turretNode = mi.getNode(strTurretNode, true);  // recursive
             turretIndex = index;
         }
@@ -113,12 +109,11 @@ public class GunPlatform implements ControllerAbstraction {
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
 
-        if (index >= 0) { // index != -1
+        if (index >= 0) {
             gunNode = mi.getNode(strBarrelNode, true);  // recursive
             gunIndex = index;
         }
     }
-
 
     @Override
     public void updateControls(float[] analogs, boolean[] switches, float time) {
@@ -129,39 +124,38 @@ public class GunPlatform implements ControllerAbstraction {
         }
 
         if (null != turretNode) {
-// turret origin would probably be center of rig model and will look screwy if it goes too far out of range
+            // turret origin would probably be center of rig model and will look screwy if it goes too far out of range
             float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[InputMapper.VIRTUAL_X1_AXIS];
-// center is at 180
+            // center is at 180
             if (rfloat > 120 && rfloat < 240) {
                 rfloat -= analogs[InputMapper.VIRTUAL_X1_AXIS];
                 turretNode.rotation.set(yAxis, rfloat);
             }
-
             rTurret = turretNode.rotation.getAngleAround(yAxis) - 180;
         }
 
         if (null != gunNode) {
-// gun barrel origin would probably be center of rig model and will look screwy if it goes too far out of range
+            // gun barrel origin would probably be center of rig model and will look screwy if it goes too far out of range
             float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[InputMapper.VIRTUAL_Y1_AXIS];
-// offset the gun angle to a range that makes sense
+            // offset the gun angle to a range that makes sense
             float elevation = -rfloat;
             if (rfloat > 180) {
                 elevation = 360 - rfloat;
             }
-// allow a small emount of negative elevation (below level)
+            // allow a small emount of negative elevation (below level)
             if (elevation > -10 && elevation < 30) {
                 rfloat += analogs[InputMapper.VIRTUAL_Y1_AXIS];
                 gunNode.rotation.set(xAxis, rfloat);
             }
-// check rotation angle for sign?
-            rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);  // ha! like cargo cult programming or something like that
+            // check rotation angle for sign?
+            rBarrel = (180 - gunNode.rotation.getAngleAround(xAxis) + 180);
         }
 
         // update Transforms
         mi.calculateTransforms(); // definately need this !
 
         if (null != btcs && null != mi.transform) {
-// update child collision shape
+            // update child collision shape
             if (null != turretNode) {
                 btcs.updateChildTransform(turretIndex, turretNode.globalTransform);
             }
@@ -174,17 +168,13 @@ public class GunPlatform implements ControllerAbstraction {
         }
 
         /*
-         *set the basic gun sight vector, but  is definately not onesizefitsall
+         *set the basic gun sight vector, but is definately not onesizefitsall
          */
         prjectileS0.set(0, 0.6f, 0 - 1.3f);
         prjectileS0.rotate(xAxis, rBarrel);
         prjectileS0.rotate(yAxis, rTurret);
 
-
         if (switches[SW_FIRE1]) { // FIRE 1
-//            ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
-            // if (null != mc && null != mc.modelInst && null != mc.modelInst.transform)
-
             if (null != gunrack && gunrack.fireWeapon() >= 0) {
                 //if (gunrack.fireWeapon() >= 0)
                 {
@@ -198,7 +188,6 @@ public class GunPlatform implements ControllerAbstraction {
         }
     }
 
-
     private final Vector3 vFprj = new Vector3();
     private final Vector3 trans = new Vector3();
     private final Vector3 tmpV = new Vector3();
@@ -206,26 +195,25 @@ public class GunPlatform implements ControllerAbstraction {
     private final Quaternion qTemp = new Quaternion();
     private final Quaternion qBody = new Quaternion();
 
-
     private void fireProjectile(Matrix4 srcTrnsfm, Gunrack.WeaponType weapon) {
 
         if (null != srcTrnsfm) {
 
             srcTrnsfm.getRotation(qBody);
 
-            ModelInstanceEx.rotateRad(prjectileS0, qBody); //  rotate the resulting offset vector to orientation of vehicle
+            ModelInstanceEx.rotateRad(prjectileS0, qBody); // rotate the resulting offset vector to orientation of Rig
 
-            srcTrnsfm.getTranslation(trans); // start coord of projectile = vehicle center + offset
+            srcTrnsfm.getTranslation(trans); // start coord of projectile = Rig center + offset
 
-            trans.add(prjectileS0); // start coord of projectile = vehicle center + offset
+            trans.add(prjectileS0); // start coord of projectile = Rig center + offset
 
-// copy src  rotation & translation into the tmp transform, then rotate to gun/turret orientation
+            // copy src rotation & translation into the tmp transform, then rotate to gun/turret orientation
             tmpM.set(srcTrnsfm);
-            tmpM.rotate(yAxis, rTurret); // rotate the body transform by turrent rotation  about Y-axis (float degrees)
-            tmpM.rotate(xAxis, rBarrel); //
+            tmpM.rotate(yAxis, rTurret); // rotate the body transform by turrent rotation about Y-axis (float degrees)
+            tmpM.rotate(xAxis, rBarrel);
 
-            // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
-            float mag = -0.15f; // scale  accordingly for magnitifdue of forward "velocity"
+            // set unit vector for direction of travel for theoretical projectile fired perfectly in forward direction
+            float mag = -0.15f; // scale accordingly for magnitidue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
             switch (weapon) {
@@ -233,7 +221,6 @@ public class GunPlatform implements ControllerAbstraction {
                 case UNDEFINED:
                 case STANDARD_AMMO:
                     Entity target = gunrack.getHitDectector().getEntity();
-                    // if (null != hitdetector)...
                     if (null != target) {
                         CompCommon.spawnNewGameObject(
                                 new Vector3(0.1f, 0.1f, 0.1f), trans,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.util.ModelInstanceEx;
 
-//public class PhysProjectile extends Projectile {
 public class PhysProjectile extends FeatureAdaptor {
 
     private static final int IMPULSE_SCALE = 25;
@@ -36,14 +35,12 @@ public class PhysProjectile extends FeatureAdaptor {
 
     public PhysProjectile(Vector3 vFp) {
         this.vF.set(vFp);
-//        super(vFp);
     }
 
-
     private BulletComponent bc;
-    private Vector3 rel_pos = new Vector3();
-    private Vector3 impulse = new Vector3();
-    private Vector3 tmpV = new Vector3();
+    private final Vector3 relPosition = new Vector3();
+    private final Vector3 impulse = new Vector3();
+    private final Vector3 tmpV = new Vector3();
 
     @Override
     public void update(Entity ee) {
@@ -53,47 +50,37 @@ public class PhysProjectile extends FeatureAdaptor {
         // only do this once ... one time grab the entity bullet comp
         if (null == bc) {
             // set a collision processor
-            if (null == collisionProcessor){
+            if (null == collisionProcessor) {
                 collisionProcessor = new DebouncedCollisionProc(0);
             }
-        // impart a physics force
+            // impart a physics force
             bc = ee.getComponent(BulletComponent.class);
 
             if (null != bc && null != bc.body) {
                 // one shot impulse
-                bc.body.applyImpulse( impulse.set(vF).scl(IMPULSE_SCALE),
-                        rel_pos.set(0, 0, -1));
+                bc.body.applyImpulse(impulse.set(vF).scl(IMPULSE_SCALE),
+                        relPosition.set(0, 0, -1));
             }
         }
-
-//        if (null != bc && null != bc.body) {
-//// apply force for X amnt of time?
-//            if (false) {
-//                bc.body.applyCentralForce(vF );
-//            }
-//        }
     }
 
     @Override
-    public void onProcessedCollision(Entity ee){
+    public void onProcessedCollision(Entity ee) {
 
-//        super.onProcessedCollision(ee);
         CompCommon.physicsBodyMarkForRemoval(ee);
 
         ModelComponent mc = ee.getComponent(ModelComponent.class);
         ModelInstance mi = mc.modelInst;
         if (mi.materials.size > 0) {
-            ModelInstanceEx.setColorAttribute(mi, new Color(Color.RED), 0.9f); //tmp?
+            ModelInstanceEx.setColorAttribute(mi, new Color(Color.RED), 0.9f);
         }
-
-        _update(ee);
+        projectileUpdate(ee);
     }
 
-
-// copied from Projectile.update()
-
-    private void _update(Entity projectile) {
-
+    /*
+     * copied from Projectile.update()
+     */
+    private void projectileUpdate(Entity projectile) {
         // projectile moves by one step vector if there is no collision imminent
         ModelComponent fmc = projectile.getComponent(ModelComponent.class);// could cache this model comp lookup?
 // if (null != fmc)
@@ -101,28 +88,26 @@ public class PhysProjectile extends FeatureAdaptor {
         btCollisionObject rayPickObject = BulletWorld.getInstance().rayTest(tmpV, vF, 1.0f);
 
         if (null != rayPickObject) {
-
             // stopped projectile
             StatusComponent sc = projectile.getComponent(StatusComponent.class);
             if (null != sc) {
-                sc.lifeClock = 0;    // kill off the projectile
+                sc.lifeClock = 0; // kill off the projectile
             } else {
                 projectile.add(new StatusComponent(0));
             }
 
             // projectile should make a ringy thing if hit wall or should shatter into triangles if impact on a shootable
-// unfortunately it seems walls are reported by the getCollisnEntity  as valid target Entity   blah
+            // unfortunately it seems walls are reported by the getCollisnEntity as valid target Entity   blah
             Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
 
             if (null != target) {
                 // spawn the sensor to handle the outcome
                 CompCommon.spawnNewGameObject(
                         new Vector3(0.1f, 0.1f, 0.1f),
-                        tmpV,   //                                mi.transform.getTranslation(trans),
+                        tmpV,   // mi.transform.getTranslation()
                         new KillSensor(target),
-                        "capsule"); // the specified mesh-shape shown only momentairly ... could assign and use KIll Sensors' default shape-thingy here? for default  Impact "STrike"
-            }
-            else {
+                        "capsule"); // the specified mesh-shape shown only momentarily ... could assign and use KIll Sensors' default shape-thingy here? for default Impact "STrike"
+            } else {
                 if (fmc.modelInst.materials.size > 0) {
                     ModelInstanceEx.setColorAttribute(fmc.modelInst, new Color(Color.PINK), 0.5f); //tmp?
                 }

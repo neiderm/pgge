@@ -1,7 +1,5 @@
 /*
- * pgge
- *
- * Copyright (c) 2020 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +16,7 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -29,13 +28,14 @@ import com.mygdx.game.components.ModelComponent;
 
 public class SlideBox extends FeatureAdaptor {
 
+    private final Vector3 vFwrdUnitRay = new Vector3();
+    private final Vector3 position = new Vector3();
+    private final Vector3 vCollisionRay = new Vector3();
+    private float fImpactEnergy;
+    private final Vector3 tmpScaleStep = new Vector3();
+
     private BulletComponent bc;
     private ModelInstance instance;
-    private Vector3 vFwrdUnitRay = new Vector3();
-    private Vector3 position = new Vector3();
-    private Vector3 vCollisionRay = new Vector3();
-    private float fImpactEnergy;
-    private Vector3 tmpScaleStep = new Vector3();
 
     @Override
     public void update(Entity ee) {
@@ -58,71 +58,60 @@ public class SlideBox extends FeatureAdaptor {
             instance = ee.getComponent(ModelComponent.class).modelInst;
         }
 
-        if (null != bc && null != instance && null != vFwrdUnitRay) {
-            /*
-             * apply arbitrary threshold to cut off simulated force once "friction" has applied enough deceleration
-             */
+        /*
+         * apply arbitrary threshold to cut off simulated force once "friction" has applied enough deceleration
+         */
+        btCollisionObject rayPickObject =
+                BulletWorld.getInstance().rayTest(
+                        instance.transform.getTranslation(position),
+                        vCollisionRay, 1.0f);
 
-            btCollisionObject rayPickObject =
-                    BulletWorld.getInstance().rayTest(
-                            instance.transform.getTranslation(position),
-                            vCollisionRay, 1.0f);
+        if (null == rayPickObject) {
+            //  moves by one step vector if there is no collision imminent
+            final float FF = 0.040f;
+            final float TH = 0.003f;
+            fImpactEnergy *= (1.0f - FF); // arbitrary simulated frictional force consumes impact energy until object comes to rest
 
-            if (null == rayPickObject) {
-                //  moves by one step vector if there is no collision imminent
-//                final float FF = 0.050f; // no hit
-                final float FF = 0.040f;
-                fImpactEnergy *= (1 - FF); // arbitrary simulated frictional force consumes impact energy until object comes to rest
+            if (Math.abs(fImpactEnergy) > TH) {
+                final float VFSCALER = 0.1f;
+                tmpScaleStep.set(vFwrdUnitRay).scl(VFSCALER);
 
-                final float TH = 0.003f;
+                instance.transform.trn(tmpScaleStep.scl(fImpactEnergy));
 
-                if (Math.abs(fImpactEnergy) > TH) {
-                    final float VFSCALER = 0.1f;
-                    tmpScaleStep.set(vFwrdUnitRay).scl( VFSCALER );
-
-                    instance.transform.trn( tmpScaleStep.scl(fImpactEnergy));
-
+                if (null != bc) {
                     bc.body.setWorldTransform(instance.transform); // sync body to visual model
-
+                } else {
+                    Gdx.app.log("SlideBox", "Bullet Component can't be NULL");
                 }
-            }  else {
-                Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
+            }
+        } else {
+            Entity target = BulletWorld.getInstance().getCollisionEntity(rayPickObject.getUserValue());
 
-                if (null != target) {
-                    FeatureComponent tfc = target.getComponent(FeatureComponent.class);
+            if (null != target) {
+                FeatureComponent tfc = target.getComponent(FeatureComponent.class);
 
-                    if (null != tfc) {
-                        FeatureAdaptor fa = tfc.featureAdpt;
-                        if (null != fa) {
+                if (null != tfc) {
+                    FeatureAdaptor fa = tfc.featureAdpt;
 
+                    if (null != fa && F_SUB_TYPE_T.FT_SLIDEY_BLK == fa.fSubType) {
+                        // only a slidebox target should be handled this way!
+                        SlideBox sbTarget = (SlideBox) fa;
+                        float frictionLoss = 1.0f - fImpactEnergy;
+                        frictionLoss /= 2.0f; // fudge the value until block hits next one
+                        float transferredEnergy = 1.0f - frictionLoss;
 
-                            if (F_SUB_TYPE_T.FT_SLIDEY_BLK == fa.fSubType) {
-
-                            // only a slidebox target should be handled this way!
-                            SlideBox sbTarget = (SlideBox)fa;
-// exception handling
-                            float frictionLoss = 1 - fImpactEnergy;
-                            frictionLoss /= 2; // does't hit
-//                            frictionLoss /= 5; // does't hit
-//                            frictionLoss = 0; // barely hit
-                            float transferredEnergy = 1 - frictionLoss;
-
-                            // yep target feature adapter gets a reference to its own entity .. thats the way it works
-                                sbTarget.handleCollision(target, ee, transferredEnergy);
-                            }
-
-                        }
+                        // target feature adapter gets a reference to its own entity .. thats the way it works
+                        sbTarget.handleCollision(target, ee, transferredEnergy);
                     }
                 }
-
-                vFwrdUnitRay.setZero();
-                fImpactEnergy = 0;
             }
+            vFwrdUnitRay.setZero();
+            fImpactEnergy = 0;
         }
     }
 
 
-    private Vector3 tmpV3 = new Vector3();
+    private final Vector3 tmpV3 = new Vector3();
 
     @Override
     public void onProcessedCollision(Entity ee) {
@@ -136,71 +125,60 @@ public class SlideBox extends FeatureAdaptor {
 
             if (null != collisionObject) {
 
-                handleCollision(ee, collisionObject, 1 /* energy always one here */ );
+                handleCollision(ee, collisionObject, 1 /* energy always one here */);
             }
-// ... hmmm...
-//            bc.body.setLinearFactor(new Vector3(0, 0, 1)); // needs to restrict move to x or z planes depending upon closes ordinal to vector of impact
-//            bc.body.setAngularFactor(new Vector3(0, 0, 0));
-            // ... no .......
         }
     }
 
 
-    public void handleCollision(Entity ee, Entity collisionObject, float energy) {
+    void handleCollision(Entity ee, Entity collisionObject, float energy) {
 
         if (null == bc) {
 
             bc = ee.getComponent(BulletComponent.class);
         }
-        if (null != bc) {
-            /*
-             * get position of colliding object  and determine the direction/vector of the collision -
-             */
-            if (null != collisionObject) {
+        /*
+         * get position of colliding object  and determine the direction/vector of the collision -
+         */
+        if (null != bc && null != collisionObject) {
 
-                ModelComponent mc = collisionObject.getComponent(ModelComponent.class);
+            ModelComponent mc = collisionObject.getComponent(ModelComponent.class);
 
-                if (null != mc && null != mc.modelInst && null != mc.modelInst.transform) {
+            if (null != mc && null != mc.modelInst.transform /* && null != mc.modelInst */) {
 
-                    mc.modelInst.transform.getTranslation(tmpV3);   // collision object position
+                mc.modelInst.transform.getTranslation(tmpV3);   // collision object position
 
-                    Matrix4 xfm = bc.body.getWorldTransform();
+                Matrix4 xfm = bc.body.getWorldTransform();
 
-                    if (null != xfm){
-                        xfm.getTranslation(vFwrdUnitRay);
-                    }
-
-                    vFwrdUnitRay.sub(tmpV3);
-                    vFwrdUnitRay.y = 0;
-                    float absDX = Math.abs(vFwrdUnitRay.x);
-                    float absDZ = Math.abs(vFwrdUnitRay.z);
-
-                    // snap the collision force vector to "N, S, E, W"
-                    if (absDX > absDZ) {
-                        vFwrdUnitRay.z = 0;
-                        //if (absDX > 0)
-                        {
-                            vFwrdUnitRay.x = vFwrdUnitRay.x / absDX; // negated
-                        }
-                    } else // if (absDZ > absDX)
-                    {
-                        vFwrdUnitRay.x = 0;
-                        //if (absDX > 0)
-                        {
-                            vFwrdUnitRay.z = vFwrdUnitRay.z / absDZ;
-                        }
-                    }
-
-                    fImpactEnergy = energy; // initial collision "energy" starts at 100%
-
-                    final float HalfExtent = 1; // box is 2 x 2 x 2
-                    vCollisionRay.set(vFwrdUnitRay).scl( HalfExtent ); // fudged, needs to be half-extent  of objecgt dimension axis of collision
+                if (null != xfm) {
+                    xfm.getTranslation(vFwrdUnitRay);
                 }
+
+                vFwrdUnitRay.sub(tmpV3);
+                vFwrdUnitRay.y = 0;
+                float absDX = Math.abs(vFwrdUnitRay.x);
+                float absDZ = Math.abs(vFwrdUnitRay.z);
+
+                // snap the collision force vector to "N, S, E, W"
+                if (absDX > absDZ) {
+                    vFwrdUnitRay.z = 0;
+                    //if (absDX > 0)
+                    {
+                        vFwrdUnitRay.x = vFwrdUnitRay.x / absDX; // negated
+                    }
+                } else {
+                    vFwrdUnitRay.x = 0;
+                    //if (absDX > 0)
+                    {
+                        vFwrdUnitRay.z = vFwrdUnitRay.z / absDZ;
+                    }
+                }
+
+                fImpactEnergy = energy; // initial collision "energy" starts at 100%
+
+                final float HalfExtent = 1; // box is 2 x 2 x 2
+                vCollisionRay.set(vFwrdUnitRay).scl(HalfExtent); // fudged, needs to be half-extent  of objecgt dimension axis of collision
             }
-// ... hmmm...
-//            bc.body.setLinearFactor(new Vector3(0, 0, 1)); // needs to restrict move to x or z planes depending upon closes ordinal to vector of impact
-//            bc.body.setAngularFactor(new Vector3(0, 0, 0));
-            // ... no .......
         }
     }
 }

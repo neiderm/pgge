@@ -1,7 +1,5 @@
 /*
- * pgge
- *
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
@@ -24,6 +21,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
 
+/*
+ * class is referenced from json loader
+ */
+@SuppressWarnings("unused")
 public class MovingPlatform extends FeatureAdaptor {
     /*
      * simle platform moves directly from point A to point B using simple proportional control
@@ -32,42 +33,37 @@ public class MovingPlatform extends FeatureAdaptor {
     public MovingPlatform() { // mt
     }
 
-    private final float K_PROP = 0.04f; // 2b loaded from JSON
-
-    private static final float RAMP_STEPS = 20; // whatever
+    private static final float RAMP_STEPS = 20.0f; // whatever
+    private static final float K_PROP = 0.04f; // loaded from JSON
     private static final int STOP_TIME = 3 * 60; // FPS
 
     private int stopTimer = STOP_TIME;
     private int nStepCnt;
-
-    private Vector3 vA;// = new Vector3();
-    private Vector3 vB;// = new Vector3();
+    private Vector3 vA;
+    private Vector3 vB;
     private Vector3 vStep = new Vector3();
     private Vector3 vError = new Vector3();
     private Vector3 tmpV = new Vector3();
 
-
     @Override
     public void update(Entity featureEnt) {
-        //               super.update(featureIntrf);
+
         ModelInstance instance = featureEnt.getComponent(ModelComponent.class).modelInst;
 
         if (null == vA || null == vB){
-            // bah grab the starting Origin (translation) of the entity from the instance data because we don't have proper init/constructions
+            // bah grab the starting origin (translation) of the entity from the instance data because we don't have proper init/constructions
             vA = new Vector3(vT0);
             vB = new Vector3(vT);
         }
 
         if (stopTimer-- <= 0) {
-
             instance.transform.getTranslation(tmpV);
             vError.set(vB).sub(tmpV);
 
             tmpV.set(Vector3.Zero);
             float dst2Error = tmpV.dst2(vError);
 
-            // vA, vB fixed so this part would not change ... get the step vector (SAME DIRECTION as [ vB - vA ]
-            // and scale by kProp
+            // vA, vB fixed so this part would not change - get the step vector (SAME DIRECTION as [ vB - vA ] and scale by kProp
             vStep.set(vB);
             vStep.sub(vA);
 
@@ -77,11 +73,9 @@ public class MovingPlatform extends FeatureAdaptor {
             tmpV.set(vStep);
             tmpV.scl(1/(float)Math.sqrt(dst2Step));
 
-
-            // apply kProp as gain on unit vector for constant speed (after the ramp) ... NOT on the
-            // Error term ... so it's not really prop control!
+            // Apply kProp as gain on unit vector for constant speed (after the ramp) ... NOT on the
+            // error term ... so it's not really prop control!
             vStep.set(tmpV.scl(K_PROP));
-
 
             // scale vStep to ramping increment * ramp_count
             vStep.scl(1/RAMP_STEPS); // would be final/const .. using the dst2 value below
@@ -95,12 +89,12 @@ public class MovingPlatform extends FeatureAdaptor {
             tmpV.set(Vector3.Zero);
             float dst2StepRampIncV = tmpV.dst2(vStep); // use this to test proximity to point B
 
-
             // use proportional output but capped at whatever the ramped value is
             tmpV.set(vError.scl(( K_PROP * 0.5f) ));
-            if (tmpV.x <= vStep.x && tmpV.y <= vStep.y && tmpV.z <= vStep.z){
-//                vStep.set(tmpV);
-            }
+
+//            if (tmpV.x <= vStep.x && tmpV.y <= vStep.y && tmpV.z <= vStep.z){
+//            //                vStep.set(tmpV);
+//            }
 
             instance.transform.trn(vStep); // only moves visual model, not the body!
 

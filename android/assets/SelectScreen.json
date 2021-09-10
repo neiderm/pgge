@@ -41,8 +41,7 @@
 	"UserModelPartsNodes": {
 		"elements": [
 			{
-				"objectName": "skySphere",
-				"iSWhatever": true
+				"objectName": "skySphere"
 			},
 			{
 				"objectName": "boxTex"

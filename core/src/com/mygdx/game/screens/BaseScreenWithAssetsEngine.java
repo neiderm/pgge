@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.mygdx.game.screens;
 
-
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -29,26 +28,22 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.RenderSystem;
 
-
 abstract class BaseScreenWithAssetsEngine implements Screen {
 
-    private GfxBatch gfxBatch;
-
-    private SceneLoader sceneLoader;
     protected Engine engine;
 
+    private GfxBatch gfxBatch;
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-
+    private SceneLoader sceneLoader;
     private DirectionalShadowLight shadowLight;
-    private Vector3 lightDirection = new Vector3(0.5f, -1f, 0f);
+    private final Vector3 lightDirection = new Vector3(0.5f, -1.0f, 0f);
 
-    // The human field of view is roughly around 60 to 70 degrees, so 67 provides a pretty normal perspective (libgdx/wiki/Projection,-viewport,-&-camera)
+    // field of view should be in the range of 60 to 70 degrees
     PerspectiveCamera cam =
             new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 
-
     BaseScreenWithAssetsEngine(){
-// scene loader construction right away because it kicks off new asset manager (background) loading process
+        // Scene Loader construction right away because it kicks off new Asset Manager (background) loading process
         this.sceneLoader = new SceneLoader();
     }
 
@@ -76,9 +71,7 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         renderSystem = new RenderSystem(shadowLight, environment, cam);
         engine.addSystem(renderSystem);
 
-
         gfxBatch = new GfxBatch(environment, cam);
-
 
         SceneLoader.buildScene(engine);
 
@@ -102,7 +95,6 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         engine.update(deltaTime);
-
         gfxBatch.update(deltaTime);
     }
 

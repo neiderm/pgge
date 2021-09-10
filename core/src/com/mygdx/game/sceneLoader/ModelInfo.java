@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -22,16 +21,18 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class ModelInfo {
 
+    public String fileName;
+    public Model model;
+
+    AnimAdapter animAdapter;
+
+    @SuppressWarnings("unused")
     public ModelInfo() {
     }
 
+    @SuppressWarnings("unused")
     public ModelInfo(String fileName) {
-
         this.fileName = fileName;
-        this.model = PrimitivesBuilder.getModel();  // allow it to be default
+        this.model = PrimitivesBuilder.getModel();
     }
-
-    public String fileName;
-    public AnimAdapter animAdapter;
-    public Model model;
 }

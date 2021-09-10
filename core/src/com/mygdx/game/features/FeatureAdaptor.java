@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,23 +22,6 @@ import com.mygdx.game.GameWorld;
 public class FeatureAdaptor implements FeatureIntrf {
 
     private Object userData; // lefttover  hackage
-    public int bounty;
-
-    GameWorld.GAME_STATE_T activateOnState;
-    boolean isActivated;
-
-    public CollisionProcessorIntrf collisionProcessor;
-
-    // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
-    Vector3 vR = new Vector3(); // x = offset of omnisensor sense zone from body origin
-    Vector3 vS = new Vector3();// x = radius of omnisensor
-    Vector3 vT = new Vector3(); // sensor location thing, or projectile movement step
-
-    // origins or other gameObject.instance specific data - position, scale etc.
-//    public Vector3 vR0 = new Vector3();
-//    public Vector3 vS0 = new Vector3();
-    Vector3 vT0 = new Vector3();     // starting Origin (translation) of the entity from the instance data
-
 
     public enum F_SUB_TYPE_T {
         FT_NONE,
@@ -48,17 +31,30 @@ public class FeatureAdaptor implements FeatureIntrf {
         FT_PLAYER,
         FT_ACTOR,
         FT_WEAAPON_0,
-        FT_WEAAPON_1;
-    };
-
+        FT_WEAAPON_1
+    }
 
     public F_SUB_TYPE_T fSubType;
 
+    public CollisionProcessorIntrf collisionProcessor;
+    public int bounty;
+
+    // generic integer attributes  ? e.g min/max etc. idfk ...  non-POJO types must be new'd if instantiate by JSON
+    final Vector3 vR = new Vector3(); // x = offset of omnisensor sense zone from body origin
+    final Vector3 vS = new Vector3();// x = radius of omnisensor
+
+    // origins or other gameObject.instance specific data - position, scale etc.
+//    public Vector3 vR0 = new Vector3();
+//    public Vector3 vS0 = new Vector3();
+    final Vector3 vT0 = new Vector3(); // starting Origin (translation) of the entity from the instance data
+
+    GameWorld.GAME_STATE_T activateOnState;
+    boolean isActivated;
+    Vector3 vT = new Vector3(); // sensor location thing, or projectile movement step
 
     @Override
     public void init(Object asdf) { // mt
     }
-
 
     @Override
     public void update(Entity ee) { // mt
@@ -66,22 +62,15 @@ public class FeatureAdaptor implements FeatureIntrf {
         // allow not defined in json to be implicitly ignoired,
         if (!isActivated &&
                 (activateOnState == GameWorld.getInstance().getRoundActiveState() ||
-                        activateOnState == GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL)
-        ) {
-
+                        activateOnState == GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL)) {
             isActivated = true;
             onActivate(ee);
         }
 
-        if (null != collisionProcessor) {
-
-            if (collisionProcessor.processCollision(ee)) {
-
-                onProcessedCollision(ee);
-            }
+        if (null != collisionProcessor && collisionProcessor.processCollision(ee)) {
+            onProcessedCollision(ee);
         }
     }
-
 
     public void onDestroyed(Entity e) { // mt
     }
@@ -89,26 +78,18 @@ public class FeatureAdaptor implements FeatureIntrf {
     public void onProcessedCollision(Entity ee) { // mt
     }
 
-
     @Override
     public void onActivate(Entity ee) { // mt
     }
 
-
-    /*
-     * leftover from hackage
-     */
     public FeatureAdaptor makeFeatureAdapter(Vector3 position) {
 
         if (null == activateOnState) {
             isActivated = true; // default to "activated" if no activation trigger is specified
         }
 
-// hope init() won't clobber  vt0
         // grab the starting Origin (translation) of the entity from the instance data
         vT0.set(position);
-
-// big hack ... idfk... need some kind of generic means to let the Feature Adapter sub-class take care of its derived implementation
         init(userData);
 
         return this;

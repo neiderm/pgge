@@ -4,7 +4,7 @@ import com.badlogic.ashley.core.Entity;
 
 public interface CollisionProcessorIntrf {
 
-    public void onCollision(Entity myCollisionObject) ;
+    void onCollision(Entity myCollisionObject) ;
 
-    public boolean processCollision(Entity myCollisionObject) ;
+    boolean processCollision(Entity myCollisionObject) ;
 }

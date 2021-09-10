@@ -11,13 +11,14 @@ import com.mygdx.game.BulletWorld;
 /**
  * Created by neiderm on 12/21/2017.
  */
-
 public class BulletComponent implements Component {
 
-
+/*
+ * todo: override equals methos in this class
+ */
     public static class MotionState extends btMotionState {
 
-        public Matrix4 transform;
+        public final Matrix4 transform;
 
         MotionState(final Matrix4 transform) {
             this.transform = transform;
@@ -34,11 +35,10 @@ public class BulletComponent implements Component {
         }
     }
 
-    public MotionState motionstate;
-    public btCollisionShape shape;  // this refefrence actually avialable thru the bc body
+    public final btCollisionShape shape; // this reference apparently is available thru the bc body
+    public final float mass;
     public btRigidBody body;
-    public float mass;
-
+    public MotionState motionstate;
 
     public BulletComponent(btCollisionShape shape, Matrix4 transform, float mass) {
 

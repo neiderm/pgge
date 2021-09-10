@@ -17,7 +17,6 @@
 package com.mygdx.game.controllers;
 
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
@@ -35,21 +34,18 @@ public class SteeringBulletEntity extends SteeringEntity {
     private float maxLinearAcceleration;
     private float maxAngularSpeed;
     private float maxAngularAcceleration;
-    private float boundingRadius;
     private boolean tagged;
     private boolean independentFacing;
     /* GN: in base class
     protected SteeringBehavior<Vector3> steeringBehavior;
     private static final SteeringAcceleration<Vector3> steeringOutput = new SteeringAcceleration<Vector3>(new Vector3());
     */
-    private final Quaternion tmpQuaternion = new Quaternion();
     private final Matrix4 tmpMatrix4 = new Matrix4();
     private final Vector3 tmpVector3 = new Vector3();
 
-    private static final Vector3 ANGULAR_LOCK = new Vector3(0, 1, 0);
-
     // GN:
-    SteeringBulletEntity(){}
+    SteeringBulletEntity() {
+    }
 
     public SteeringBulletEntity(btRigidBody body) {
         this.body = body;
@@ -90,12 +86,12 @@ public class SteeringBulletEntity extends SteeringEntity {
             steeringBehavior.calculateSteering(steeringOutput);
 
             *//*
-             * Here you might want to add a motor control layer filtering steering accelerations.
-             *
-             * For instance, a car in a driving game has physical constraints on its movement: it cannot turn while stationary; the
-             * faster it moves, the slower it can turn (without going into a skid); it can brake much more quickly than it can
-             * accelerate; and it only moves in the direction it is facing (ignoring power slides).
-             *//*
+     * Here you might want to add a motor control layer filtering steering accelerations.
+     *
+     * For instance, a car in a driving game has physical constraints on its movement: it cannot turn while stationary; the
+     * faster it moves, the slower it can turn (without going into a skid); it can brake much more quickly than it can
+     * accelerate; and it only moves in the direction it is facing (ignoring power slides).
+     *//*
 
             // Apply steering acceleration
             applySteering(steeringOutput, deltaTime);
@@ -203,7 +199,7 @@ public class SteeringBulletEntity extends SteeringEntity {
     @Override
     public float getBoundingRadius() {
         // TODO: this should be calculated via the actual btShape
-        return .5f;
+        return 0.5f;
     }
 
     @Override

@@ -43,7 +43,9 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
  */
 
 public class SceneLoader implements Disposable {
+
     private static final String _FILE_ = "SceneLoader"; // is there a better way?
+
     // Model Group names
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
@@ -97,8 +99,8 @@ public class SceneLoader implements Disposable {
                 if (fn.contains(".g3d")) {
                     sd.modelInfo.get(key).model = assets.get(fn, Model.class);
                 } else if (fn.contains(".png")) {
-// loads texture image files below with user model
-////                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
+                    // loads texture image files below with user model
+                    // sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
                 }
             }
         }
@@ -150,7 +152,7 @@ public class SceneLoader implements Disposable {
         }
     }
 
-    public static void _createTestObjects(Engine engine) {
+    public static void createTestObjects(Engine engine) {
 
         Random rnd = new Random(); // Warning:(157, 26) Save and re-use this "Random".
 
@@ -213,7 +215,7 @@ public class SceneLoader implements Disposable {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         /*
-         * build  the model groups
+         * build the model groups
          */
         for (String key : sd.modelGroups.keySet()) {
             Gdx.app.log(_FILE_, key);
