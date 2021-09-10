@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ import com.mygdx.game.util.PrimitivesBuilder;
  */
 public class CompCommon {
 
-    CompCommon() { // mt
+    private CompCommon() {
+        throw new IllegalStateException("Utility class");
     }
 
     public static void spawnNewGameObject(
@@ -66,18 +67,9 @@ public class CompCommon {
         if (null == sc) {
             sc = new StatusComponent(1);
         }
-        sc.deleteFlag = 2;         // flag bullet Comp for deletion
+        sc.deleteFlag = 2; // flag bullet Comp for deletion
         ee.add(sc);
 
-//        BulletComponent bc = ee.getComponent(BulletComponent.class);
-//
-//        if (null != bc) {
-///*            bc.body.setCollisionFlags(
-//                    bc.body.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);*/
-//        } else {
-//            // bah processing object that should already be "at rest" ???? .....................................................
-//            Gdx.app.log("collisionHdlr", "BulletComponent bc =  === NULLLL");
-//        }
     }
 
     /*
@@ -87,9 +79,10 @@ public class CompCommon {
     public static void entityAddPhysicsBody(Entity ee, Vector3 translation) {
 
         // tooooo dooo how to handle shape?
-        btCollisionShape shape = PrimitivesBuilder.getShape("box", new Vector3(1, 1, 1));
+        btCollisionShape shape =
+                PrimitivesBuilder.getShape("box", new Vector3(1, 1, 1));
 
-//            add BulletComponent and link to the model comp xform
+        // add Bullet Component and link to the model comp xform
         ModelComponent mc = ee.getComponent(ModelComponent.class);
         Matrix4 transform = mc.modelInst.transform;
         transform.setTranslation(translation);

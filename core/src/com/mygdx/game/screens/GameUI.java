@@ -73,7 +73,6 @@ public class GameUI extends InGameMenu {
 
         // start with White, alpha==0 and fade to Black with alpha=1
         hudOverlayColor = new Color(1, 1, 1, 0);
-//        stage.setOverlayColor(hudOverlayColor);
 
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
@@ -89,7 +88,6 @@ public class GameUI extends InGameMenu {
                 mapper.setAxis(1, t.getKnobPercentY() * (-1));
             }
         });
-
         // anything else a sub-class needs to do can be overridden
         init();
     }
@@ -106,7 +104,6 @@ public class GameUI extends InGameMenu {
 
 /*    @Override
     public boolean touchDown (int screenX, int screenY, int pointer, int button) {
-
         Gdx.app.log("", "screenX = " + screenX + " screenY = " + screenY);
         return true;
     }*/
@@ -176,10 +173,8 @@ public class GameUI extends InGameMenu {
     private void addTouchPad(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
-
         int tpRadius = 100;
         int knobRadius = 36;
-
         float scale = Gdx.graphics.getDensity();
 
         // fudge scaling to make UI controls visible on my HTC One M8
@@ -202,7 +197,6 @@ public class GameUI extends InGameMenu {
         button.fillCircle(knobRadius, knobRadius, knobRadius);
         tpKnob = new Texture(button);
 
-        //Create TouchPad Style
         touchpadStyle = new Touchpad.TouchpadStyle();
         //Create Drawable's from TouchPad skin
 //        Drawable touchBackground = touchpadSkin.getDrawable("touchBackground");
@@ -213,20 +207,17 @@ public class GameUI extends InGameMenu {
         background.setColor(1, 1, 1, .2f);
         background.fillCircle(tpRadius, tpRadius, tpRadius);
 
-        //Apply the Drawables to the TouchPad Style
-//        touchpadStyle.background = touchBackground;
-
         tpBackgnd = new Texture(background);
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(tpBackgnd));
 //        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
         touchpadStyle.knob = new TextureRegionDrawable(new TextureRegion(tpKnob));
 
-        //Create new TouchPad with the created style
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, tpRadius * 2f, tpRadius * 2f);
 
-        // touchpad.addListener ... https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
+        // RE touchpad.addListener
+        //   https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
         this.addActor(touchpad);
 
@@ -275,7 +266,6 @@ public class GameUI extends InGameMenu {
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
         Texture useTexture = new Texture(pixmap);
-// saves the texture ref for disposal ;)
         ImageButton button = addImageButton(useTexture, btnX, btnY, ips);
 
         pixmap.dispose();
@@ -299,7 +289,8 @@ public class GameUI extends InGameMenu {
         }
         stringBuilder.setLength(0);
         stringBuilder.append(
-                String.format(Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
+                String.format(
+                        Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
 
         if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
             setLabelColor(timerLabel, Color.RED);
@@ -379,7 +370,6 @@ public class GameUI extends InGameMenu {
             }
         }
 //        else if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-//
 //            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
 //        }
     }
@@ -401,6 +391,11 @@ public class GameUI extends InGameMenu {
     protected void onMenuEvent() { // mt
     }
 
+    /**
+     * Display text string with a timed fadeout
+     * @param message text string
+     * @param time    fadeout time
+     */
     void setMsgLabel(String message, int time) {
         msgLabelCounter = time * 60;
         mesgLabel.setText(message);
@@ -448,7 +443,7 @@ public class GameUI extends InGameMenu {
         switch (GameWorld.getInstance().getRoundActiveState()) {
 
             case ROUND_ACTIVE:
-                if (getPrizeCount() >= SceneLoader.numberOfCrapiums) {
+                if (getPrizeCount() >= SceneLoader.getNumberOfCrapiums()) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
 //                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 } else if (screenTimer <= 0) {
@@ -536,15 +531,17 @@ public class GameUI extends InGameMenu {
             itemsLabel.setText(stringBuilder.append("EXIT"));
 
             stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore()));      // update score indicateor
+            scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
 
         } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
 
             stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append(getPrizeCount()).append(" / ").append(SceneLoader.numberOfCrapiums));
+            itemsLabel.setText(
+                    stringBuilder.append(
+                            getPrizeCount()).append(" / ").append(SceneLoader.getNumberOfCrapiums()));
 
             stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore()));      // update score indicateor
+            scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
 
         } else if (GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras) {
 

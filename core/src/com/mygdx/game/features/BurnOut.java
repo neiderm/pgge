@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,22 +31,19 @@ import com.mygdx.game.util.ModelInstanceEx;
  */
 public class BurnOut extends FeatureAdaptor {
 
-    private Vector3 up = new Vector3( );
+    private final Color cc;
+    private final Vector3 scale = new Vector3(1, 1, 1);
+    private final Vector3 up = new Vector3();
+    // save original model material attributes ? big hack!
+    private final TextureAttribute fxTextureAttrib;
 
     private ModelComponent mc = null;
-
     private int clock = 88;  // using as percent alphA
-    private Vector3 scale = new Vector3(1, 1, 1);
-    private Color cc;
 
-    // save original model material attributes ? big hack!@
-    private TextureAttribute fxTextureAttrib;
-//    private Texture myTexture; // may not use this
+//    public BurnOut() { // mt
+//   }
 
-    public BurnOut() { // mt
-    }
-
-    public BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType impt) {
+    BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType impt) {
 
         this.fxTextureAttrib = fxTextureAttrib;
         this.activateOnState = GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL;
@@ -54,44 +51,34 @@ public class BurnOut extends FeatureAdaptor {
         if (KillSensor.ImpactType.ACQUIRE == impt) {
             // marker for prize pickup
             cc = new Color(Color.GOLD);
-        }
-        else  if (KillSensor.ImpactType.POWERUP == impt)
-        {
+        } else if (KillSensor.ImpactType.POWERUP == impt) {
             cc = new Color(Color.PURPLE);
-        }
-        else  if (KillSensor.ImpactType.DAMAGING == impt)
-        {
+        } else if (KillSensor.ImpactType.DAMAGING == impt) {
             cc = new Color(Color.YELLOW);
-        }
-        else  if (KillSensor.ImpactType.STRIKE == impt)
-        {
+        } else if (KillSensor.ImpactType.STRIKE == impt) {
             cc = new Color(Color.ROYAL);
-        }
-        else { // FATAL etc.
+        } else { // FATAL etc.
             cc = new Color(Color.FIREBRICK);
         }
 
         if (KillSensor.ImpactType.DAMAGING == impt || KillSensor.ImpactType.FATAL == impt) {
-
-// these will sloooowwly float up
+            // these will sloooowwly float up
             up.set(0, 0.01f, 0);
         }
     }
-
 
     @Override
     public void update(Entity ee) {
 
         super.update(ee);
 
-        if (null == mc){
+        if (null == mc) {
             mc = ee.getComponent(ModelComponent.class);
             ModelInstance mi = mc.modelInst;
-            scale.set( mi.nodes.get(0).scale);
+            scale.set(mi.nodes.get(0).scale);
         }
-
         //        if (isActivated)
-        {
+        //{
             if (clock > 0) {
 
                 clock -= 1;     // could have a Status Comp provide this timer eh????
@@ -101,39 +88,35 @@ public class BurnOut extends FeatureAdaptor {
                 // if (null != mc) {
                 ModelInstance mi = mc.modelInst;
                 mi.nodes.get(0).scale.set(scale);
-
                 // make'er float away
                 mi.transform.trn(up);
-
                 mi.calculateTransforms();
 
                 if (mi.materials.size > 0) {
-
+                    // could cache material?
                     Material mat = mi.materials.get(0);
 
-                    // make sure Material is valid  i.e. should have at least 1 Attribute
+                    // make sure material is valid i.e. should have at least 1 attribute
                     if (null != mat && mat.size() > 0 && null != fxTextureAttrib) {
-
                         mat.set(fxTextureAttrib); // idfk i guess don't care what tex coords are just smearing it around the shape anyway
                     } else {
                         // just mess w/ color
+                        assert mat != null;
                         mat.clear();
                     }
                     // and for the icing on this bitcake ... fade it out!!! whoooh ooo
                     cc.a = clock / 100.0f;
-
                     ModelInstanceEx.setColorAttribute(mi, cc); // this one sets the blending attribute .. doesn't matter
                 }
             } else {
-                // kill me  - most of the time not having to protect against re-adding the Status Comp, but this one would't stay dead :(
+                // kill me - most of the time not having to protect against re-adding the Status Comp, but this one would't stay dead :(
                 StatusComponent sc = ee.getComponent((StatusComponent.class));
                 if (null == sc) {
                     ee.add(new StatusComponent(0));
-                }
-                else{
+                } else {
                     ee.getComponent(StatusComponent.class).lifeClock = 0;
                 }
             }
-        }
+        //}
     }
 }

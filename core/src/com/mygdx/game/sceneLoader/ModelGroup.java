@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,31 +28,28 @@ import com.mygdx.game.util.PrimitivesBuilder;
 /**
  * Created by neiderm on 12/18/17.
  */
-
 public class ModelGroup {
 
     public static final String SPAWNERS_MGRP_KEY = "Spawners";
     public static final String MGRP_DEFAULT_MDL_NAME = ""; // if MG key is "empty", then multiple gsme Objectca
+//    private static final String DEFAULT_MODEL_NODE_ID = "node1";
 
-    private static final String DEFAULT_MODEL_NODE_ID = "node1";
-
-
+    @SuppressWarnings("unused")
     public ModelGroup() {
+        // empty constructor necessary for loading from .json
     }
 
     public ModelGroup(String modelName) {
-        this.modelName = modelName; // try setting this now
+        this.modelName = modelName;
     }
 
-    Array<GameObject> elements = new Array<GameObject>();
+    final Array<GameObject> elements = new Array<GameObject>();
     private String modelName;
     private boolean isKinematic;
     private boolean isCharacter;
 
-
     /*
      * iterate all GameObjects in this instance and build them
-     *
      */
     public void build(Engine engine, boolean deleteObjects) {
 
@@ -78,9 +75,7 @@ public class ModelGroup {
     public GameObject getElement(int index) {
 
         if (elements.size > 0) {
-
             return elements.get(index);
-
         } else
             return null;
     }
@@ -128,24 +123,22 @@ public class ModelGroup {
                 ModelInstance instance;
 
                 // look for model Info name matching object name ... seems only reason is so a model
-                // group of objects can be grouped together and set common attribute ... ischaractrer
+                // group of objects can be grouped together and set common attribute ... ischaracter
                 ModelInfo mdlInfo = sd.modelInfo.get(gameObject.objectName);
 
                 if (null != mdlInfo) {
-
                     Model model = mdlInfo.model;
                     instance = new ModelInstance(model);
                     // recursively gets a compound bullet shape
-                    shape = PrimitivesBuilder.getCompShape(  model );
-
+                    shape = PrimitivesBuilder.getCompShape(model);
                 } else {
-                    Model  model = PrimitivesBuilder.getModel();
+                    Model model = PrimitivesBuilder.getModel();
                     rootNodeId = gameObject.objectName;
 
                     Vector3 v3scale = gameObject.scale;
 
+                    // instantiate Model Instance with root node ID if valid
                     if (null != rootNodeId) {
-// doesn't protect itself again null node name
                         instance = new ModelInstance(model, rootNodeId);
                     } else {
                         instance = new ModelInstance(model); // probably no good!!!!!!!
@@ -161,13 +154,11 @@ public class ModelGroup {
 
                         // note does not use the gamObject.meshSHape name
                         shape = PrimitivesBuilder.getShape(rootNodeId, v3scale);
-
                     } else {
                         instance = null; // don't use the invalid instance and a non graphical or physics  entity is created
                     }
                 }
-
-                gameObject.buildGameObject( engine, instance, shape);
+                gameObject.buildGameObject(engine, instance, shape);
 
             } else {
                 /* load all nodes from model that match /objectName.*/

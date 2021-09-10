@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2021 Glenn Neidermeier
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.mygdx.game.systems;
 
 import com.badlogic.ashley.core.Entity;
@@ -11,14 +26,13 @@ import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.util.EventQueue;
 import com.mygdx.game.util.GameEvent;
 
-
 public class PickRaySystem extends IteratingSystem {
 
-    private EventQueue eventQueue;
-    private static Vector3 position = new Vector3();
+    private static final Vector3 position = new Vector3();
 
+    private final EventQueue eventQueue;
 
-    public PickRaySystem(Signal<GameEvent> gameEventSignal){
+    public PickRaySystem(Signal<GameEvent> gameEventSignal) {
 
         super(Family.all(PickRayComponent.class).get());
 
@@ -33,8 +47,7 @@ public class PickRaySystem extends IteratingSystem {
 
     @Override
     public void update(float deltaTime) {
-
-// first we have to find out who's listening for notificaitons
+        // first we have to find out who's listening for notifications
         for (GameEvent event : eventQueue.getEvents()) {
 
             switch (event.getEventType()) {
@@ -52,22 +65,16 @@ public class PickRaySystem extends IteratingSystem {
     }
 
     private void handleEvent(GameEvent event) {
-
         /*
          * likely to let this be in the Character event handler
          */
         Entity picked = applyPickRay((Ray) event.getObject());
 
-//        if (null != picked) ... let this always be a response!
-        {
-            event.handle(picked, event.getEventType());
-
-            // notification to picked? ... no it may be done in the overridden event.handle()er tho .
-        }
+        // always respond even if picked is null
+        event.handle(picked, event.getEventType());
+        // notification to picked? ... no it may be done in the overridden event.handle()er tho .
     }
 
-
-//    Vector3 interSection = new Vector3();
     /*
      * Using raycast/vector-projection to detect object. Can be generalized as a sort of
      * collision detection. Would like to have the collision shape and/or raycast implemmetantion
@@ -90,10 +97,11 @@ public class PickRaySystem extends IteratingSystem {
                 mc.modelInst.transform.getTranslation(position).add(mc.center);
 
                 // gets the distance of the center of object to the ray, for more accuracy
-                float dist2 = intersect(ray, position, mc.boundingRadius, null);
+                float dist2 = intersect(ray, position, mc.boundingRadius);
 
-                if (dist2 >= 0)
+                if (dist2 >= 0) {
                     dist2 = ray.origin.dst2(position);//ray.origin to object distance works ok
+                }
 
                 if ((dist2 < distance || distance < 0f) && dist2 >= 0) {
                     picked = e;
@@ -109,7 +117,7 @@ public class PickRaySystem extends IteratingSystem {
      *  to object center ( >= 0 )  or -1 if no intersection
      *  Create an extended Ray class for this.
      */
-    private float intersect(Ray ray, Vector3 center, float radius, Vector3 intersection) {
+    private float intersect(Ray ray, Vector3 center, float radius) {
 
         float dst2 = -1;
 
@@ -133,5 +141,4 @@ public class PickRaySystem extends IteratingSystem {
         }
         return dst2;
     }
-
 }

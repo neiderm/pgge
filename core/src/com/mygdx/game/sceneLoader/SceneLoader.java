@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.sceneLoader;
 
 import com.badlogic.ashley.core.Engine;
@@ -39,27 +38,30 @@ import java.util.Random;
 
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
-
 /**
  * Created by neiderm on 12/18/17.
  */
 
 public class SceneLoader implements Disposable {
-
-    // Model Group name,  has to be fixed
+    private static final String _FILE_ = "SceneLoader"; // is there a better way?
+    // Model Group names
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
+    private static final String USER_MODEL_INFO = "UserMeshesModel";
     private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
 
-    private static boolean useTestObjects = true;
-    private static AssetManager assets;
+    //    private static boolean useTestObjects = true;
+    private static AssetManager assets; // see comment below on instantiating it
     private static Model userModel;
 
     public SceneLoader() {
-
         SceneData sd = GameWorld.getInstance().getSceneData();
-
-        assets = new AssetManager(); // Assigning a value to a static field in a constructor could cause unreliable behavior at runtime since it will change the value for all instances of the class.
+        /*
+         * Assigning a value to a static field in a constructor could cause unreliable behavior at
+         * runtime since it will change the value for all instances of the class.
+         * ... or so they say ;)
+         */
+        assets = new AssetManager();
 
         for (String key : sd.modelInfo.keySet()) {
 
@@ -93,41 +95,35 @@ public class SceneLoader implements Disposable {
 
             if (null != fn) {
                 if (fn.contains(".g3d")) {
-
                     sd.modelInfo.get(key).model = assets.get(fn, Model.class);
-                }
-//                else if (fn.contains(".png")) {
-//// loads texture image files below with user model
+                } else if (fn.contains(".png")) {
+// loads texture image files below with user model
 ////                    sd.modelInfo.get(key).model = assets.get(sd.modelInfo.get(key).fileName, Texture.class);
-//                }
+                }
             }
         }
-
         /*
-         * simple parts Model bult up from instances created by Model Builder .part() ... only need
-         * built on Screen Loading   (should not be disposed on a screen Re-Start)
+         * simple parts model bult up from instances created by Model Builder .part() ... only need
+         * built on Screen Loading (should not be disposed on screen restart)
          */
         ModelGroup umg = sd.modelGroups.get(USER_MODEL_PARTS);
 
         if (null != umg) { // may or may not be define in scene data
 
             if (null != userModel) {
-                Gdx.app.log("SceneLoader", "tex Model not been disposed properly?");
+                Gdx.app.log(_FILE_, "tex Model not been disposed properly?");
             }
             userModel = makeUserModel(umg); // stores reference to model in the dummy ModelInfo block
-
             /*
-             * use the dummy ModelInfo block to store reference to the newly-constructred model
+             * use the dummy ModelInfo block to store reference to the newly-constructed model
              */
-            ModelInfo textureModelInfo = sd.modelInfo.get("UserMeshesModel");
+            ModelInfo textureModelInfo = sd.modelInfo.get(USER_MODEL_INFO);
 
             if (null != textureModelInfo) {
-
                 textureModelInfo.model = userModel;
             }
             // please ... release me .. let me go!  this Model Group no longer needed, if only i could purge!
         }
-
         /*
          * create the player Model group using the special Game Feature defined by the loader, or get
          * localplayer model group if one is defined in json (which also needs to know which object name
@@ -138,7 +134,7 @@ public class SceneLoader implements Disposable {
         GameFeature playerFeature =
                 GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 
-        String localPlayerObjectname = null;
+        String localPlayerObjectname;
 
         if (null != playerFeature) {
             localPlayerObjectname = playerFeature.getObjectName();
@@ -146,9 +142,7 @@ public class SceneLoader implements Disposable {
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
             if (null != tmg) {  // select screen doesnt define a player group
-
                 GameObject gameObject = tmg.getElement(0); // snhould be only 1!
-
                 gameObject.mass = 5.1f;   // should be from the model or something
                 gameObject.isPlayer = true; ////////////////// bah look at me hack
                 gameObject.objectName = localPlayerObjectname;
@@ -158,10 +152,11 @@ public class SceneLoader implements Disposable {
 
     public static void _createTestObjects(Engine engine) {
 
-        Random rnd = new Random();
+        Random rnd = new Random(); // Warning:(157, 26) Save and re-use this "Random".
 
         int N_ENTITIES = 10;
         final int N_BOXES = 4;
+        boolean useTestObjects = true;
         if (!useTestObjects) N_ENTITIES = 0;
         Vector3 size = new Vector3();
 
@@ -181,47 +176,55 @@ public class SceneLoader implements Disposable {
             } else {
                 btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
                 engine.addEntity(
-                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
-
+                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(),
+                                "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
             }
         }
     }
 
     private static void buildModelGroup(Engine engine, String key) {
 
-        Gdx.app.log("SceneLoader", "modelGroup = " + key);
+        Gdx.app.log(_FILE_, "modelGroup = " + key);
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get(key);
 
         if (null != mg) {
-
             mg.build(engine);
         }
     }
 
-    public static int numberOfCrapiums;
+    /*
+     * keeps count of number of crapiums in each areener
+     */
+    private static int numberOfCrapiums;
+
+    public static int getNumberOfCrapiums() {
+        return numberOfCrapiums;
+    }
+
+    public static void incNumberOfCrapiums() {
+        numberOfCrapiums += 1;
+    }
 
     public static void buildScene(Engine engine) {
 
         numberOfCrapiums = 0;
 
-
         SceneData sd = GameWorld.getInstance().getSceneData();
-
         /*
          * build  the model groups
          */
         for (String key : sd.modelGroups.keySet()) {
-
+            Gdx.app.log(_FILE_, key);
+            // skip this model group it is built from scratch during asset loading (not loaded from g3db)
             if (key.equals(USER_MODEL_PARTS)) {
                 continue; // how to remove Model Group ?
             }
-
-            if (key.equals(STATIC_OBJECTS)) {
-                System.out.println();
+            if (key.equals(LOCAL_PLAYER_MGRP)) { // mt
             }
-
+            if (key.equals(STATIC_OBJECTS)) { // mt
+            }
             buildModelGroup(engine, key);
         }
     }
@@ -241,16 +244,17 @@ public class SceneLoader implements Disposable {
         int objectCountFlag = 0;
         final int SKY_BOX_OBJECT = 0;
 
+// Instead of being a node loaded from a mesh model, the element represents a texture file 
+// to be loaded, and the node mesh generated by matching the string (case-insensitive) e.g. 
+// sphere, box etc with the object name to select the appropriate mb.part
         for (GameObject go : mg.elements) {
 
             ModelInfo mi = sd.modelInfo.get(go.objectName);
 
             Texture tex = null;
 
-            if (null != mi) {
-                if (null != mi.fileName) {
-                    tex = assets.get(mi.fileName, Texture.class);
-                }
+            if (null != mi && null != mi.fileName) {
+                tex = assets.get(mi.fileName, Texture.class);
             }
 
             long attributes =
@@ -287,11 +291,8 @@ public class SceneLoader implements Disposable {
             }
         }
 
-        Model model = mb.end();
-
-        return model;
+        return mb.end();
     }
-
 
     @Override
     public void dispose() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,54 +42,50 @@ import com.mygdx.game.util.PrimitivesBuilder;
 
 public class GameObject {
 
-    public GameObject() {
-
+    private GameObject() {
         this.isShadowed = true;
+        this.isShootable = false;
     }
 
     public GameObject(float mass) {
-
         this();
         this.mass = mass;
     }
 
     public GameObject(String objectName) {
-
         this();
         this.objectName = objectName;
     }
 
     public GameObject(String objectName, float mass, Vector3 scale, InstanceData instanceData) {
-
         this(objectName);
         this.mass = mass;
         this.scale = scale;
         this.instanceData.add(instanceData);
     }
 
-    private Array<InstanceData> instanceData = new Array<InstanceData>();
+    private final Array<InstanceData> instanceData = new Array<InstanceData>();
 
-    public String objectName;
-    private String featureName; // if Entity is to be part of a feature
-
-    //            Vector3 translation; // needs to be only per-instance
     public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
-    public float mass;
     public String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
-    boolean isKinematic;  //  "is Platform" ?
+    public String objectName;
     public boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
-    boolean isCharacter;
-    boolean isPlayer;
-    private boolean isShootable;
+    public float mass;
 
+    private boolean isShootable;
+    @SuppressWarnings("unused")
+    private String featureName; // if Entity is to be part of a feature
+
+    boolean isCharacter;
+    boolean isKinematic;  // "is Platform" ?
+    boolean isPlayer;
 
     public Array<InstanceData> getInstanceData() {
 
         return instanceData;
     }
-
 
     /*
      * searching the group model for the given gameObject.objectName*
@@ -100,16 +96,12 @@ public class GameObject {
         String nodeName = objectName.replaceAll("\\*$", "");
 
         // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
-        if (model.nodes.get(0).hasChildren()) {
+        if (nodeName.length() < 1 && model.nodes.get(0).hasChildren()) {
             //  e.g. landscape,goonpatrol models end up here, howerver its only the exploding rig that needs
             // special sauce:  if object name was '*' than ressuling nodename length would be 0
-            if (nodeName.length() < 1) {
-
-                nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
-                nodeName = null;
-            }
+            nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
+            nodeName = null;
         }
-
         for (Node node : nodeArray) {
             ModelInstance mi = null;
 
@@ -123,7 +115,6 @@ public class GameObject {
             }
 
             if (null != mi) {
-
                 btCollisionShape shape = null;
                 // TODO find another way to get shape - depends on the instance which is bass-ackwards
                 // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
@@ -136,45 +127,43 @@ public class GameObject {
                             meshShape, boundingBox.getDimensions(dimensions), node);
                 }
 
-                buildGameObject( engine, mi, shape);
+                buildGameObject(engine, mi, shape);
             } // else  ... bail out if matched an un-globbed name ?
         }
     }
 
-    /*
-     * IN:
+    /**
+     * Create new instance of a ModelInstance
+     * reference:
+     * https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
+     * https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
      *
-     * RETURN:
-     *   ModelInstance
-     *
-     * Reference:
-     *    https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
-     *    https://stackoverflow.com/questions/21827302/scaling-a-modelinstance-in-libgdx-3d-and-bullet-engine
+     * @param model       Model to be instanced
+     * @param strNodeName node identifier string
+     * @param scale       scale factor
+     * @return instantiated ModelInstance
      */
     private static ModelInstance getModelInstance(Model model, String strNodeName, Vector3 scale) {
 
-        if (null == strNodeName){
+        if (null == strNodeName) {
             return null; // invalid node name are handled ok, but not if null, so gth out~!
         }
         ModelInstance instance = new ModelInstance(model, strNodeName);
 
-//        if (null != instance)
-        {
-            Node modelNode = instance.getNode(strNodeName);
+        Node modelNode = instance.getNode(strNodeName);
 
-            if (null != modelNode){
+        if (null != modelNode) {
 
-                instance.transform.set(modelNode.globalTransform);
-                modelNode.translation.set(0, 0, 0);
-                modelNode.scale.set(1, 1, 1);
-                modelNode.rotation.idt();
+            instance.transform.set(modelNode.globalTransform);
+            modelNode.translation.set(0, 0, 0);
+            modelNode.scale.set(1, 1, 1);
+            modelNode.rotation.idt();
 
-                if (null != scale) {
-                    instance.nodes.get(0).scale.set(scale);
-                }
-
-                instance.calculateTransforms();
+            if (null != scale) {
+                instance.nodes.get(0).scale.set(scale);
             }
+
+            instance.calculateTransforms();
         }
         return instance;
     }
@@ -182,21 +171,8 @@ public class GameObject {
     /*
      * NOTE : copies the passed "instance" ... so caller should discard the reference
      */
-    public void buildGameObject( Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
-//        int countIndex = 0;
-//        int keyIndex = 0xffff;
-//        String strObjNameModelInfoKey;
-//        SceneData sd = GameWorld.getInstance().getSceneData();
-//
-//        for (String key : sd.modelInfo.keySet()) {
-//
-//            if (key.equals(this.objectName)) {
-//                keyIndex = countIndex;
-//                strObjNameModelInfoKey = new String(this.objectName);
-//                break;
-//            }
-//            countIndex += 1;
-//        }
+    public void buildGameObject(Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
+
         InstanceData id = null;
         int n = 0;
 
@@ -207,12 +183,13 @@ public class GameObject {
             }
 
             btCollisionShape shape = null;
-            if (isKinematic || mass > 0) { // note does not use the gamObject.meshSHape name
 
+            if (isKinematic || mass > 0) { // note does not use the gamObject.meshSHape name
                 shape = btcs;
             }
 
             Entity e;
+
             if (null != modelInst) {
                 e = buildObjectInstance(modelInst.copy(), shape, id);
             } else {
@@ -221,15 +198,7 @@ public class GameObject {
 
             engine.addEntity(e);
 
-//            ModelComponent mc = e.getComponent(ModelComponent.class);
-//            if (null != mc) {
-//
-//                if (0xffff == keyIndex) {
-//                    //System.out.println("keyindex?");
-//                }
-//                mc.modelInfoIndx = keyIndex;    // ok maybe this is dumb why not just keep the name string
-//            }
-        } while (/*null != id && */ n < instanceData.size);
+        } while (n < instanceData.size);
     }
 
     /*
@@ -261,7 +230,8 @@ public class GameObject {
             }
 
             if (null != id.translation) {
-// don't wipe the translation from the incoming modelInance! (this is where panzer tank getting scrwed up ... its nodes have offsets in the local transform! )
+                // don't wipe the translation from the incoming modelInance! (this is where panzer
+                // tank getting screwed up ... its nodes have offsets in the local transform! )
 //                instance.transform.setTranslation(0, 0, 0);
                 instance.transform.trn(id.translation);
             }
@@ -271,14 +241,14 @@ public class GameObject {
             }
 
             if (null != id.adaptr) {
-// translation can now be passed in to feature adapter
+                // translation can be passed in to a feature adapter
                 Vector3 position = new Vector3();
                 position = instance.transform.getTranslation(position);
 
                 instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
                 e.add(new FeatureComponent(instanceFeatureAdapter));
 
-// bah this also done below for all non-static Bullet bodies
+                // bah this also done below for all non-static Bullet bodies
                 e.add(statusComp); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
@@ -287,19 +257,16 @@ public class GameObject {
 
         ModelInfo mi = GameWorld.getInstance().getSceneData().modelInfo.get(this.objectName);
 
-            if (null != mi && null != mi.animAdapter){
-//new instance (manually copy) of mi.animAdator - it will be type of subclass !
-                mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
-// manually copy needed fields, but only those of the mi.animAdapter base class can be known so they need to be kind of generaic
-                mc.animAdapter.strMdlNode = mi.animAdapter.strMdlNode;
-
-// pass along the entity of the model instance ^H^H^H^H^ no ?????
-//                        mc.animAdapter.init(null);
-            }
+        if (null != mi && null != mi.animAdapter) {
+            //new instance (manually copy) of mi.animAdator - it will be type of subclass !
+            mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
+            // Manually copy needed fields, but only fields of the mi.animAdapter base class can be
+            // known so they need to be kind of generic.
+            mc.animAdapter.strMdlNode = mi.animAdapter.strMdlNode;
+        }
 
         mc.isShadowed = isShadowed; // disable shadowing of skybox)
         e.add(mc);
-
 
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -328,12 +295,12 @@ public class GameObject {
                                 || null != instanceFeatureAdapter
                                 || isShootable
                                 || isCharacter) {
-                        // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
-                        BulletWorld.getInstance().addBodyWithCollisionNotif(
-                                e, // needs the Entity to add to the table BLAH
-                                BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
+                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
+                    BulletWorld.getInstance().addBodyWithCollisionNotif(
+                            e, // needs the Entity to add to the table BLAH
+                            BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
 
-                        e.add(statusComp); // needs an SC in order to be 'shootable'
+                    e.add(statusComp); // needs an SC in order to be 'shootable'
                 }
         }
 
@@ -348,9 +315,8 @@ public class GameObject {
         if (isPlayer) {
             GameFeature playerFeature = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
 //if (null != playerFeature)
-            playerFeature.setEntity(e);                        // ok .. only 1 player entity per player Feature
+            playerFeature.setEntity(e); // only 1 player Entity per player Feature
         }
-
         return e;
     }
 
@@ -362,13 +328,12 @@ public class GameObject {
         Entity e = new Entity();
 
         if (null != id && null != id.adaptr) {
-// translation can now be passed in to feature adapter
+            // translation can be passed in to feature adapter
             Vector3 position = new Vector3(id.translation);
 
             FeatureAdaptor instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
             e.add(new FeatureComponent(instanceFeatureAdapter));
         }
-
         return e;
     }
 }
