@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.graphics.g3d.utils.DepthShaderProvider;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.components.ModelComponent;
 
 /**
@@ -28,23 +27,17 @@ public class RenderSystem extends EntitySystem {
     public int visibleCount;
     public int renderableCount;
 
+    private final Vector3 position = new Vector3();
+
     private Environment environment;
     private PerspectiveCamera cam;
-
     private ModelBatch modelBatch;
     private DirectionalShadowLight shadowLight;
     private ModelBatch shadowBatch;
-
-    private Vector3 position = new Vector3();
-
-
     private ImmutableArray<Entity> entities;
 
-
     private RenderSystem() {
-//        super(Family.all(ModelComponent.class).get());
     }
-
 
     public RenderSystem(DirectionalShadowLight shadowLight, Environment environment, PerspectiveCamera cam ) {
 
@@ -67,22 +60,17 @@ public class RenderSystem extends EntitySystem {
     @Override
     public void removedFromEngine(Engine engine) {
 
-        entities = null;// super.removedFromEngine(engine);
+        entities = null;
         modelBatch.dispose();
 
         shadowBatch.dispose();
         shadowLight.dispose();
     }
 
-//    @Override
     private void processEntity (Entity entity, float deltaTime){
 
         ModelComponent mc = entity.getComponent(ModelComponent.class);
         ModelInstance modelInst = mc.modelInst;
-
-        // only entity with valid model comp and model instance should be in here
-        //assert null != mc;
-        //assert null != mc.modelInst;
 
         renderableCount += 1;
 
@@ -105,10 +93,9 @@ public class RenderSystem extends EntitySystem {
 
         modelBatch.begin(cam);
 
-//        super.update(deltaTime);
-        for (Entity e : entities)
+        for (Entity e : entities) {
             processEntity(e, deltaTime);
-
+        }
         modelBatch.end();
 
         // shadows or model batch first ... doesn't seem to matter
@@ -118,8 +105,7 @@ public class RenderSystem extends EntitySystem {
 
         for (Entity e : entities) {
             ModelComponent mc = e.getComponent(ModelComponent.class);
-            //assert null != mc;
-            //assert null != mc.modelInst;
+
             if (mc.isShadowed
                     && isVisible(cam, mc.modelInst.transform.getTranslation(position), mc.boundingRadius)
                     ) {
@@ -130,15 +116,16 @@ public class RenderSystem extends EntitySystem {
         shadowLight.end();
     }
 
-    /*
-       https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-         to use radius:
-          mc.modelInst.transform.getTranslation(position);
-          cam.frustum.sphereInFrustum(position, mc.boundingRadius );
-    */
+    /**
+     * Ref:
+     *   https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+     * @param cam
+     * @param position mc.modelInst.transform.getTranslation(position)
+     * @param radius
+     * @return
+     */
     private boolean isVisible(PerspectiveCamera cam, Vector3 position, float radius) {
 
         return cam.frustum.sphereInFrustum(position, radius);
-//        return cam.frustum.boundsInFrustum(position, mc.dimensions);
     }
 }

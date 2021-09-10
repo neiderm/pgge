@@ -1,14 +1,24 @@
+/*
+ * Copyright (c) 2021 Glenn Neidermeier
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 
 public class MyGdxGame extends Game {
-
-/*    @Override
-    public void render() {
-        super.render(); // I can hook into this render, as well as that of current screen
-    }*/
 
     @Override
     public void create() {
@@ -22,25 +32,4 @@ public class MyGdxGame extends Game {
         // ( btw Screen:dispose() is not called automatically by framework )
         GameWorld.getInstance().dispose();  // dispose the current screen
     }
-
-
-/*    @Override
-    public void pause () {
-        super.pause(); // .................... android center or "back" btn
-    }
-
-    // Note: android -  when resume into game screen, there are 2 gl surface changed events, so 2 series of resize+resume
-
-    // from android "resume" (2)  (left soft button)
-    @Override
-    public void resume () {
-
-        super.resume();
-    }
-
-    // from android "resume" (1)  (left soft button)
-    @Override
-    public void resize (int width, int height) {
-        super.resize(width, height);
-    }*/
 }

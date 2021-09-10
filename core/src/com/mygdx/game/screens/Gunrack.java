@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,38 +37,29 @@ public class Gunrack extends Table {
 
     private static final float WPN_MENU_FADE_ALPH = 0.9f; // alpha value at which change the rate of menu fadeout effect
     private static final float WPN_MENU_FADE_THRD = 0.8f; // alpha value at which change the rate of menu fadeout effect
+    private static final Color menuColor = new Color(Color.WHITE);
+    private final Array<WeaponSpec> weaponsSpecs = new Array<>();
+    private final GameEvent hitDetectEvent; // because it needs to be passed to gunPlatfrom ... sue me
+    private final Label selectionLabel;
+    private final Label roundsLabel;
 
     private int menuPointer;
     private int menuSelection;
-
-    private static Color menuColor = new Color(Color.WHITE);
-
     private WeaponType selectedWeapon = WeaponType.UNDEFINED; // weapon array element 0 ^H^H^H -1 is a hack to force it to be (re)initialized
-
-    private Array<WeaponSpec> weaponsSpecs = new Array<WeaponSpec>();
-
     private Array<WeaponInstance> weaponsMenu;
-
-    private GameEvent hitDetectEvent; // because it needs to be passed to gunPlatfrom ... sue me
-
-    private Label selectionLabel;
-    private Label roundsLabel;
 
     /*
      * need some kind of type in order to put the menu items in an array
      */
-    class WeaponInstance {
-        int type;
-
-        //        int roundsAvailable; ... no rounds available must persist outside the menu array
+    static class WeaponInstance {
+        final int type;
         WeaponInstance(int type) {
             this.type = type;
         }
     }
 
-    class WeaponSpec {
-        //        private int roundsCap = OUT_OF_AMMO; // could set a real default here .. was trying to catch the other plce it shouldn't have been set!
-        private int roundsCap; // set a default here ?
+    static class WeaponSpec {
+        private final int roundsCap; // set a default here ?
         private int roundsAvail;
 
         void reset() {
@@ -95,7 +86,7 @@ public class Gunrack extends Table {
     }
 
 
-    public Gunrack(GameEvent hitDetectEvent, BitmapFont font) {
+    Gunrack(GameEvent hitDetectEvent, BitmapFont font) {
 
         this.hitDetectEvent = hitDetectEvent;
 
@@ -104,8 +95,6 @@ public class Gunrack extends Table {
 
         onWeaponAcquired(0);
 
-//        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
-//        selectionLabel = new Label("asedfasdf", skin);
         selectionLabel = new Label("wselect", new Label.LabelStyle(font, Color.CHARTREUSE));
         roundsLabel = new Label("rounds", new Label.LabelStyle(font, Color.TEAL));
 
@@ -142,7 +131,6 @@ public class Gunrack extends Table {
             roundsLabel.setText("=" + rounds);
             roundsLabel.setVisible(true);
         }
-
 
         Color clr = selectionLabel.getColor();
         float alpha = clr.a;
@@ -195,7 +183,6 @@ public class Gunrack extends Table {
                 // selection updated - instead of hiding menu immediately, set color to indicate and let menu do "normal "fadeout
                 Color clr = selectionLabel.getColor();
                 clr.a = Gunrack.WPN_MENU_FADE_THRD;
-//                selectionLabel.setColor(clr);
                 menuSelection = menuPointer;
             }
         }
@@ -204,7 +191,7 @@ public class Gunrack extends Table {
 
         if (menuSelection != w) {
             WeaponType wt;
-///
+
             switch (menuSelection) {
                 case 0:
                     wt = WeaponType.STANDARD_AMMO;
@@ -217,10 +204,8 @@ public class Gunrack extends Table {
                     break;
             }
             this.selectedWeapon = wt;
-///
             return true;
         }
-
         return false;
     }
 

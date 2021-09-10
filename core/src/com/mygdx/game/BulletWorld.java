@@ -55,6 +55,7 @@ public class BulletWorld implements Disposable {
     public static boolean USE_DDBUG_DRAW = false;
 
     private static BulletWorld instance = null;
+
     private DebugDrawer debugDrawer;
     private btCollisionConfiguration collisionConfiguration;
     private btCollisionDispatcher dispatcher;
@@ -64,8 +65,8 @@ public class BulletWorld implements Disposable {
     private Array<Object> userToEntityLUT;
     private Array<btTriangleInfoMap> savedTriangleInfoMapRefs;
 
+    @SuppressWarnings("unused")
     private MyContactListener mcl;         // don't delete me!~!!!!!!
-
 
     class MyContactListener extends ContactListener {
         /*
@@ -94,8 +95,8 @@ public class BulletWorld implements Disposable {
                     // collision, whereas it needs to just handle the edge contact filtering for the terrain ...
                 }
             }
-//        It seems then the terrain will be found in the other side of the collision point so apparently
-//        here is all the handling that needs done for edge filtering - go ahead and check for the ground flag anyway
+            // It seems then the terrain will be found in the other side of the collision point so apparently
+            // here is all the handling that needs done for edge filtering - go ahead and check for the ground flag anyway
             if ( /*uv1 != 0*/ 0 != (GROUND_FLAG | co1.getContactCallbackFlag())) {
 //            btCollisionShape cs1 = co1.getCollisionShape();
 //                if (cs1.className.equals("btBvhTriangleMeshShape"))
@@ -133,11 +134,9 @@ public class BulletWorld implements Disposable {
                     if (null != comp) {
                         FeatureAdaptor fa = comp.featureAdpt;
 
-                        if (null != fa) {
-                            if (null != fa.collisionProcessor) {
+                            if (null != fa && null != fa.collisionProcessor) {
                                 fa.collisionProcessor.onCollision(ee1);
                             }
-                        }
                     }
                 } else { // no longer has bullet comp, can be ignored
                     Gdx.app.log("onContactEnded", "no Bullet Comp (0)");
@@ -155,11 +154,9 @@ public class BulletWorld implements Disposable {
                     if (null != comp) {
                         FeatureAdaptor fa = comp.featureAdpt;
 
-                        if (null != fa) {
-                            if (null != fa.collisionProcessor) {
+                            if (null != fa && null != fa.collisionProcessor) {
                                 fa.collisionProcessor.onCollision(ee0);
                             }
-                        }
                     }
                 }
             }
@@ -167,11 +164,10 @@ public class BulletWorld implements Disposable {
     }
 
     private BulletWorld() {
-        //        throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
+      // throw new GdxRuntimeException("not allowed, use bulletWorld = BulletWorld.getInstance() ");
     }
 
     public static BulletWorld getInstance() {
-
         if (null == instance) {
             instance = new BulletWorld();
         }
@@ -181,12 +177,13 @@ public class BulletWorld implements Disposable {
     public void initialize() {
 
         if (null != collisionWorld) {
-            Gdx.app.log("BulletWorld", "(collisionWorld != null)");
+            Gdx.app.log(_CLASS_, "(collisionWorld != null)");
         }
 
         savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
         userToEntityLUT = new Array<Object>();
-        userToEntityLUT.add(null); // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
+        // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
+        userToEntityLUT.add(null);
 
         rayResultCallback = new ClosestRayResultCallback(rayFrom, rayTo);
 
@@ -197,7 +194,7 @@ public class BulletWorld implements Disposable {
         solver = new btSequentialImpulseConstraintSolver();
         collisionWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
         collisionWorld.setGravity(new Vector3(0, -9.81f, 0));
-// GN: don't delete me
+
         mcl = new MyContactListener();
 
         debugDrawer = new DebugDrawer();
@@ -248,7 +245,6 @@ public class BulletWorld implements Disposable {
 
         // I let it pause itself, lets the gamescreen render() slightly less cluttery
         if (!GameWorld.getInstance().getIsPaused()) {
-
             collisionWorld.stepSimulation(deltaTime /* Gdx.graphics.getDeltaTime() */, 5);
         }
     }
@@ -256,7 +252,6 @@ public class BulletWorld implements Disposable {
     public void update(float deltaTime, Camera camera) {
 
         update(deltaTime);
-
         // https://gamedev.stackexchange.com/questions/75186/libgdx-draw-bullet-physics-bounding-box
         debugDrawer.begin(camera);
         collisionWorld.debugDrawWorld();
@@ -264,7 +259,7 @@ public class BulletWorld implements Disposable {
     }
 
     /*
-     this is here for access to collisionworld
+     This is here for access to collisionworld
       https://stackoverflow.com/questions/24988852/raycasting-in-libgdx-3d
      */
     private static final Vector3 rayFrom = new Vector3();
@@ -308,11 +303,13 @@ public class BulletWorld implements Disposable {
         return rayTest(ray.set(origin, direction), length);
     }
 
+    private static final String _CLASS_ = "BulletWorld";
+
     public void addBody(btRigidBody body) {
         if (null != collisionWorld) {
             collisionWorld.addRigidBody(body);
         } else {
-            System.out.println("collisionWorld cannot be null!");
+            Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
         }
     }
 
@@ -320,12 +317,12 @@ public class BulletWorld implements Disposable {
         if (null != collisionWorld) {
             collisionWorld.removeRigidBody(body);
         } else {
-            System.out.println("collisionWorld cannot be null!");
+            Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
         }
     }
 
     /*
-     * for static "terrain" mesh only right now, shouldn't need to be removed "dynamicallyt"
+     * for static "terrain" mesh only right now, shouldn't need to be removed "dynamically"
      */
     public void addTriangleInfoMap(btTriangleInfoMap tim) {
 
@@ -364,14 +361,7 @@ public class BulletWorld implements Disposable {
                         body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
                 userToEntityLUT.add(ee); // what if e (body) removed?
 
-// ground ->object collision
-//                    body.setContactCallbackFlag(GROUND_FLAG);
-//                    body.setContactCallbackFilter(0);
-// object->ground collision
-                //body.setContactCallbackFlag(OBJECT_FLAG);
-                // body.setContactCallbackFilter(GROUND_FLAG);
-
-// Developer mode flag to turn off Contact callback filtering  for debug pps????????
+                // Developer mode flag to turn off Contact callback filtering  for debug pps????????
                 body.setContactCallbackFlag(flag);
                 body.setContactCallbackFilter(filter);
             }

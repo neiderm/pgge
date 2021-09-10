@@ -284,7 +284,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.draw();
 
         if (isPaused) {
-            int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
+            int // wtf?
+                    idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
             stage.setCheckedBox(idxCurSel);
 
             InputMapper.InputState inp = stage.mapper.getInputState();

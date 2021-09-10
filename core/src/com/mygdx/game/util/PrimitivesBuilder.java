@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,20 +54,17 @@ import com.mygdx.game.components.ModelComponent;
 /**
  * Created by neiderm on 12/18/17.
  */
-
 public class PrimitivesBuilder /* implements Disposable */ {
 
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
-    protected static final float DIM_UNIT = 1.0f;
-    protected static final float DIM_HE = 1f / 2f; // primitives half extent constant
-    protected static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
+    private static final float DIM_UNIT = 1.0f;
+    private static final float DIM_HE = 1.0f / 2.0f; // primitives half extent constant
+    private static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
     private static Array<btCollisionShape> savedShapeRefs = new Array<btCollisionShape>();
+    private static Model model;
 
-    public static Model model;
-
-    /* instances only access the protected reference to the model */
-//    private PrimitivesBuilder() { }
+    private PrimitivesBuilder() { }
 
     public static Model getModel() {
         return model;
@@ -220,45 +217,47 @@ public class PrimitivesBuilder /* implements Disposable */ {
         btCollisionShape shape = null;
 
         if (null == node) {
-            Gdx.app.log("Pblder", "getShape() null == node");
-            // return   .... probably
+            Gdx.app.log("PrimitivesBuilder", "getShape() null == node");
         }
 
         if (null == dimensions)
             dimensions = new Vector3(1, 1, 1);
 
-        if (shapeName.equals("convexHullShape")) {
+        switch (shapeName) {
+            default:
+            case "btBoxShape":
+                shape = new btBoxShape(dimensions.scl(0.5f));
+                break;
 
-//                if (null != node) { // assert
-            shape = getShape(node); // saves the shape ref, shouldn't hurt anything if gets saved again
+            case "convexHullShape":
+                shape = getShape(node); // saves the shape ref, shouldn't hurt anything if gets saved again
 
-            if (null == shape) {
-                Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
-            } else {
-                Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
-                        + ((btConvexHullShape) shape).getNumPoints());
-            }
+                if (null == shape) {
+                    Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
+                } else {
+                    Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
+                            + ((btConvexHullShape) shape).getNumPoints());
+                }
+                break;
 
-        } else if (shapeName.equals("triangleMeshShape")) {
+            case "triangleMeshShape":
+                btBvhTriangleMeshShape trimeshShape = null;
+                if (null != node){
+                    trimeshShape =
+                            (btBvhTriangleMeshShape) Bullet.obtainStaticNodeShape(node, false);
+                }
+                shape = trimeshShape;
 
-            btBvhTriangleMeshShape trimeshShape =
-                    (btBvhTriangleMeshShape) Bullet.obtainStaticNodeShape(node, false);
-
-            shape = trimeshShape;
-
-            //  btTriangleInfoMap will need to be disposed (and reference kept other wise GC will eat them!
-            if (null != trimeshShape) {
-                btTriangleInfoMap tim = new btTriangleInfoMap();
-                Collision.btGenerateInternalEdgeInfo(trimeshShape, tim);
-                BulletWorld.getInstance().addTriangleInfoMap(tim);
-            } // else ... error in model/mesh?
-        } else if (shapeName.equals("btBoxShape")) {
-
-            shape = new btBoxShape(dimensions.scl(0.5f));
+                //  btTriangleInfoMap will need to be disposed (and reference kept other wise GC will eat them!
+                if (null != trimeshShape) {
+                    btTriangleInfoMap tim = new btTriangleInfoMap();
+                    Collision.btGenerateInternalEdgeInfo(trimeshShape, tim);
+                    BulletWorld.getInstance().addTriangleInfoMap(tim);
+                } // else ... error in model/mesh?
+                break;
         }
 
         if (null == shape) { // default
-
             shape = new btSphereShape(dimensions.scl(0.5f).x);
         }
 
@@ -269,14 +268,8 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         btCollisionShape shape = null;
 
-        if (null != node) {
-            if (node.parts.size > 0) {
+            if (null != node && node.parts.size > 0) {
                 shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
-/*
- there is some problem here  with parent+child[n] models (commanche, military jeeP) ... but only on "shootme" test screen ?? !!!!!!
-                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart.mesh);
-                */
-            }
         }
 
         return saveShapeRef(shape);

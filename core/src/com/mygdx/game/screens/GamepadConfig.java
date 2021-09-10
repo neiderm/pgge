@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
@@ -23,25 +22,17 @@ import com.mygdx.game.GameWorld;
 
 /**
  * Created by neiderm on 12/07/19.
+ * Very crude controllers config, WIP
  */
-
-/*
- * crude controllers config WIPO
- * select between various canned controller configs
- *
- */
-
 public class GamepadConfig implements Screen {
 
-    private InGameMenu stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
-
+    private InGameMenu stage; // extend stage (like did for GamePad) in order to Override keyDown?
 
     GamepadConfig() { // mt
     }
 
     @Override
     public void render(float delta) {
-
 //        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -79,17 +70,17 @@ public class GamepadConfig implements Screen {
         stage.dispose();
     }
 
-
     @Override
     public void show() {
 
+        final String bType = "toggle";
         stage = new InGameMenu("skin/uiskin.json", null);
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("PS type", "toggle"); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("XB type", "toggle"); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("Android? (PS)", "toggle"); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("PC(B)", "toggle"); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("PS type", bType); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("XB type", bType); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("Android? (PS)", bType); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("PC(B)", bType); InputMapper.NumberControlCfgTypes++;
         stage.addNextButton();
     }
 

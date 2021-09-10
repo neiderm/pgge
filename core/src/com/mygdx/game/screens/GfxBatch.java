@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,32 +24,27 @@ import com.badlogic.gdx.utils.Disposable;
 
 public class GfxBatch implements Disposable {
 
-    // going around the entity system by stashing references to model instances of graphics that are supposed to be debugging only,
-    private
-    static                                  // temp static pardon the hackage
-    Array<ModelInstance> debugGraphics;
+    // going around the entity system by stashing references to model instances of graphics that are
+    // supposed to be debugging only,
+    private static Array<ModelInstance> debugGraphics;
 
+    private final ModelBatch modelBatch;
 
-    private ModelBatch modelBatch;
     private Environment environment;
     private PerspectiveCamera cam;
 
-
-    public GfxBatch() {
-
+    private GfxBatch() {
         this.modelBatch = new ModelBatch();
         debugGraphics = new Array<ModelInstance>();
     }
 
-    public GfxBatch(Environment environment, PerspectiveCamera cam) {
-
+    GfxBatch(Environment environment, PerspectiveCamera cam) {
         this();
         this.environment = environment;
         this.cam = cam;
     }
 
     public static void draw(ModelInstance modelInstance){
-
         debugGraphics.add(modelInstance);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
@@ -25,19 +24,13 @@ import com.mygdx.game.GameWorld;
 
 /**
  * Created by neiderm on 7/16/2018.
- * based on:
- * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
+ * Based on:
+ *   http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
-
 public class SplashScreen implements Screen {
 
-    private static String dataFileName = "SelectScreen.json";
     private SpriteBatch batch;
     private Texture ttrSplash;
-    private InputMapper mapper;
-
-    public SplashScreen() { // mt
-    }
 
     @Override
     public void render(float delta) {
@@ -56,23 +49,23 @@ public class SplashScreen implements Screen {
         // (but once global "isTouchscreen" is set, don't clear it ;)
         if (!GameWorld.getInstance().getIsTouchScreen() && isTouched)
             GameWorld.getInstance().setIsTouchScreen(true);
-
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
-//        if (mapper.checkInputState(InputMapper.InputState.INP_SELECT, true)){   .......... doesn't work for TS :(
-
 //        if (InputMapper.InputState.INP_SELECT == mapper.getInputState(true))
         {
+            final String dataFileName = "SelectScreen.json";
             /*
-             * if no data file found, go into test  Screen
+             * load the Select Screen if its data file is found
              */
-            if (Gdx.files.internal(dataFileName).exists()) { // returns void so check forst  valid file path
+            if (Gdx.files.internal(dataFileName).exists()) {
 
                 GameWorld.getInstance().setSceneData(dataFileName);
-                GameWorld.getInstance().showScreen(new LoadingScreen(true, LoadingScreen.ScreenTypes.SETUP));
+                GameWorld.getInstance().showScreen(new LoadingScreen(
+                        true, LoadingScreen.ScreenTypes.SETUP));
             } else {
-                Gdx.app.log("SplachScfren", "using TestMeScreen");
+                Gdx.app.log("SplashScreen",
+                        "Select Screen data not found, loading Test Screen");
                 GameWorld.getInstance().showScreen(new ReduxScreen());
             }
         }
@@ -95,7 +88,6 @@ public class SplashScreen implements Screen {
     public void show() {
         batch = new SpriteBatch();
         ttrSplash = new Texture("splash-screen.png");
-        mapper = new InputMapper();
     }
 
     @Override

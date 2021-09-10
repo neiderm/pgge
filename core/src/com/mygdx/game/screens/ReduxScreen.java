@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.screens;
-
 
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
@@ -42,7 +40,6 @@ import com.badlogic.gdx.physics.bullet.collision.Collision;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
-import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -55,7 +52,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
 import java.util.Random;
 
 /*
- * crude test screen with ECS, Bullet Physics, but no Scene Loader or much anything else
+ * Simple test screen with ECS, Bullet Physics, but no Scene Loader or much anything else
  *
  * Original libGDX 3D and Bullet physics demo from
  *   "http://bedroomcoders.co.uk/libgdx-bullet-redux-2/",
@@ -68,17 +65,14 @@ class ReduxScreen implements Screen {
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam; // has to be sent to bullet world for update debug draw
-    private CameraInputController camController; // FirstPersonCameraController camController;
+    private CameraInputController camController;
     private AssetManager assets;
-    private Model landscapeModel;
-    private ModelInstance landscapeInstance;
     private final ModelBuilder modelBuilder = new ModelBuilder();
 
     private Texture cubeTex;
     private Model cube ;
     private Texture sphereTex;
     private Model ball;
-
 
     @Override
     public void render(float delta) {
@@ -93,7 +87,6 @@ class ReduxScreen implements Screen {
 
         BulletWorld.getInstance().update(delta, cam);
     }
-
 
     @Override
     public void show() {
@@ -148,23 +141,20 @@ class ReduxScreen implements Screen {
                         new Material(TextureAttribute.createDiffuse(sphereTex)),
                         VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 
-
         // little point putting static meshes in a convenience wrapper
         // as you only have a few and don't spawn them repeatedly
 
-        landscapeModel = assets.get("data/landscape.g3db", Model.class);
+        Model landscapeModel = assets.get("data/landscape.g3db", Model.class);
 
-        btCollisionShape triMesh = (btCollisionShape) new btBvhTriangleMeshShape(landscapeModel.meshParts);
+        btCollisionShape triMesh = new btBvhTriangleMeshShape(landscapeModel.meshParts);
 
         // put the landscape at an angle so stuff falls of it...
-//        physObj.MotionState motionstate = new physObj.MotionState(new Matrix4().idt().rotate(new Vector3(1,0,0), 20f));
         MotionState motionstate = new MotionState(
                 new Matrix4().idt().rotate(new Vector3(1, 0, 0), 20f)
         );
-        btRigidBody landscape = new btRigidBody(0, motionstate, triMesh);
-        landscapeInstance = new ModelInstance(landscapeModel);
+
+        ModelInstance landscapeInstance = new ModelInstance(landscapeModel);
         landscapeInstance.transform = motionstate.transform;
-//        collisionWorld.addRigidBody(landscape);
 
         Entity e = new Entity();
         e.add(new ModelComponent(landscapeInstance));
@@ -178,41 +168,35 @@ class ReduxScreen implements Screen {
 
         engine.addEntity(e);
 
-
         Vector3 size;
 
         size = new Vector3(20, 1, 20);
 
         e = PrimitivesBuilder.load(
                 new ModelInstance(cube),
-//                PrimitivesBuilder.getModel(), "boxTex",
                 PrimitivesBuilder.getShape("boxTex", size),
                 size, 0, new Vector3(0, -4, 0)); // trans
 
         engine.addEntity(e);
 
-
         size = new Vector3(8, 8, 8);
 
         e = PrimitivesBuilder.load(
                 new ModelInstance(ball),
-//                PrimitivesBuilder.getModel(), "sphereTex",
                 PrimitivesBuilder.getShape("sphereTex", size),
                 size, 0, new Vector3(10, -5, 0)); // trans
 
         engine.addEntity(e);
 
-
         createTestObjects(engine);
     }
-
 
     private void createTestObjects(Engine engine) {
 
         Random rnd = new Random();
 
-        int N_ENTITIES = 300;
-        final int N_BOXES = 200;
+        int N_ENTITIES = 30;
+        final int N_BOXES = 20;
 
         Vector3 size = new Vector3();
 
@@ -230,7 +214,6 @@ class ReduxScreen implements Screen {
                         PrimitivesBuilder.load(
                                 new ModelInstance(cube),
                                 shape, size, size.x, translation));
-
             } else {
                 btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
                 engine.addEntity(
@@ -241,11 +224,9 @@ class ReduxScreen implements Screen {
         }
     }
 
-
     @Override
-    public void resize(int width, int height) {
+    public void resize(int width, int height) { // mt
     }
-
 
     @Override
     public void dispose() {
@@ -257,7 +238,6 @@ class ReduxScreen implements Screen {
         BulletWorld.getInstance().dispose();
 
         assets.dispose();
-
         cube.dispose();
         cubeTex.dispose();
         ball.dispose();
@@ -266,7 +246,6 @@ class ReduxScreen implements Screen {
         // I guess not everything is handled by ECS ;)
         PrimitivesBuilder.clearShapeRefs();
     }
-
 
     /*
      * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
@@ -290,10 +269,10 @@ class ReduxScreen implements Screen {
         dispose();
     }
 
-
+    // override the equals method in this class
     public static class MotionState extends btMotionState {
 
-        public Matrix4 transform;
+        public final Matrix4 transform;
 
         public MotionState(final Matrix4 transform) {
             this.transform = transform;

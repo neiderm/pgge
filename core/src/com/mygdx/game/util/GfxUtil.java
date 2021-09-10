@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,52 +34,37 @@ import com.badlogic.gdx.utils.BufferUtils;
 
 import java.nio.IntBuffer;
 
-
 /**
  *  Creating Models on the fly seems to be something that happens.
  *  Possibly because I am dumb about this ... e.g.  creating new Mesh and Model for all my debug graphic lines.
  *    .... can get on with just one model ... if each new Mesh added as a Node and unify w/ the "Primtivess" model.
  *  For now, provide some static structures to track and manage lifecycle (implement dispose() on them!).
- *
- *  FOr now stubbornly refuses to be extendsion of Model
  */
 public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
 
-
-    private static Array<Model> savedModelRefs;
-
-
-    private static final String LINE_MESH_PART_ID = "linemeshpartid";
-
     // default id name is "node" + .size .. nothing fancy  see "ModelBuilder::node()"
     private static final String DEFAULT_MODEL_NODE_ID = "node1";
-
-
-    private final Model lineModel;
+    private static final String LINE_MESH_PART_ID = "linemeshpartid";
     private final ModelInstance instance;
+
+    private static Array<Model> savedModelRefs;
 
     public GfxUtil() {
 
         if (null == savedModelRefs){
             init();
         }
-
-        lineModel = makeModelMesh(2, LINE_MESH_PART_ID); // simple mesh part ID,
+        Model lineModel = makeModelMesh(2, LINE_MESH_PART_ID); // simple mesh part ID,
         instance = new ModelInstance(lineModel);
 
         savedModelRefs.add(lineModel);
 
-
-//        Node modelNode = instance.getNode(DEFAULT_MODEL_NODE_ID);
-        // use default, don't need to set it    // modelNode.id = LINE_MODEL_NODE_ID;
-
-// interesting
+        // interesting
         int mts = getMaxTextureSize();
         Gdx.app.log("GfxUtil", "GL_MAX_TEXTURE_SIZE = " + mts);
     }
 
     public static void init(){
-
         savedModelRefs = new Array<Model>();
     }
 
@@ -101,23 +86,19 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         Gdx.app.log("GfxUtil:clearRefs()", "Models removed = " + n);
     }
 
-
     /**
      *
      * Ref:
      *   https://stackoverflow.com/questions/28057588/setting-the-indices-for-a-3d-mesh-in-libgdx
      *
-     *   Needs to be static because the Model needs to be tracked for dispose()
+     *  Needs to be static because the Model needs to be tracked for dispose()
      */
     private static Model makeModelMesh(int nVertices, String meshPartID) {
-
-        int maxVertices = nVertices;
-        int maxIndices = nVertices;
 
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
 
-        Mesh mesh = new Mesh(true, maxVertices, maxIndices,
+        Mesh mesh = new Mesh(true, nVertices, nVertices,
                 new VertexAttribute(VertexAttributes.Usage.Position, 3, "a_position"),
                 new VertexAttribute(VertexAttributes.Usage.ColorUnpacked, 4, "a_color"));
 
@@ -130,43 +111,30 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
         mesh.setIndices(indices);
 
         modelBuilder.part(meshPartID, mesh, GL20.GL_LINES, new Material());
-        Model model = modelBuilder.end();
 
-        return model;
+        return modelBuilder.end();
     }
 
-
     /*
-    https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+     Below mostly is dogpile of what started as debuggin helps for drawing lines.
+     Using lineTo and line to manipulate the "this.instance" modelInstance of this Model
+     Sets the vertices directly in the float buffers and then the instance returned to caller to pump thru the render batch.
 
-Below mostly is dogpile of what started as debuggin helps for drawing lines.
-Using lineTo and line to manipulate the "this.instance" modelInstance of this Model ... yep wtf alright
-Sets the vertices directly in the float buffers and then the instance returned to caller to pump thru the render batch.
-
-
-    Builder.createXYZCoordinates() ??
-     */
+     Builder.createXYZCoordinates() ??
+     See:
+         https://stackoverflow.com/questions/38928229/how-to-draw-a-line-between-two-points-in-libgdx-in-3d
+    */
     private final Vector3 to = new Vector3();
 
     /*
      * convenience for lineTo ... return modelInstance for chaining
      */
     public ModelInstance line(Vector3 from, Vector3 b, Color c) {
-
-        // to := from + b and preserve "from" // to.set(from.add(b));
         to.set(from.x + b.x, from.y + b.y, from.z + b.z);
-
         return lineTo(from, to, c);
     }
 
-    /*
-    MeshPartBuilder.line()!!!!!!!!!
-     */
-    public ModelInstance lineTo(
-            //Vector3[] lineVertsBuffer, int nVertices,
-                                Vector3 from, Vector3 to, Color c) {
-
-//         Node modelNode = instance.getNode("asdf");
+    public ModelInstance lineTo(Vector3 from, Vector3 to, Color c) {
         Node modelNode = Node.getNode(
                 instance.nodes, DEFAULT_MODEL_NODE_ID, true, true);
 
@@ -178,10 +146,9 @@ Sets the vertices directly in the float buffers and then the instance returned t
         setVertex(nVerts, 1, 7, from, c );
 
         meshPart.mesh.setVertices(nVerts);
-// }
+
         return instance;
     }
-
 
     private static void getVertex(float[] array, int index, int stride, Vector3 point, Color c){
 
@@ -205,7 +172,7 @@ Sets the vertices directly in the float buffers and then the instance returned t
     }
 
     /*
-    https://stackoverflow.com/questions/35627720/libgdx-what-texture-size
+     * https://stackoverflow.com/questions/35627720/libgdx-what-texture-size
      */
     private static int getMaxTextureSize() {
         IntBuffer buffer = BufferUtils.newIntBuffer(16);
@@ -231,13 +198,13 @@ Sets the vertices directly in the float buffers and then the instance returned t
         for (Node node : model.nodes) {
 
             if (node.parts.size > 0) {
-
                 MeshPart meshPart = node.parts.get(0).meshPart;
                 meshBuilder.setVertexTransform(node.localTransform); // apply node transformation
                 meshBuilder.addMesh(meshPart);
             }
-            else
-                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size );
+            else {
+                Gdx.app.log("SceneLoader ", "node.parts.size < 1 ..." + node.parts.size);
+            }
         }
 
         Mesh mesh = meshBuilder.end();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
@@ -37,22 +36,19 @@ import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 
 public class LoadingScreen implements Screen {
 
-    private ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     private SpriteBatch batch;
     private Texture ttrSplash;
     private Texture ttrLoad;
     private Texture ttrBackDrop;
-
     private int loadCounter = 0;
+    private int screenTimer = (int) (60 * 2.9f); //fps*sec
     private boolean isLoaded;
     private boolean shouldPause = true;
     private ScreenTypes screenType = LEVEL;
     private InputMapper mapper;
-
     private Screen newScreen;
-
-    private int screenTimer = (int) (60 * 2.9f);//fps*sec
 
     public enum ScreenTypes {
         SETUP,
@@ -60,7 +56,6 @@ public class LoadingScreen implements Screen {
     }
 
     LoadingScreen(boolean shouldPause, ScreenTypes screenType) {
-
         this.shouldPause = shouldPause;
         this.screenType = screenType;
     }
@@ -70,10 +65,8 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void show() {
-
         // instancing asset Loader class kicks off asynchronous asset loading which we need to start
         // right now obviously. Then the asset loader instance must be passed off to the Screen to use and dispose.
-
         switch (screenType) {
             default:
             case LEVEL:
@@ -101,9 +94,9 @@ public class LoadingScreen implements Screen {
         mapper = new InputMapper();
     }
 
-    private StringBuilder stringBuilder = new StringBuilder();
+    private final StringBuilder stringBuilder = new StringBuilder();
     private BitmapFont font;
-    float alpha = 1;
+    private float alpha = 1.0f;
 
     @Override
     public void render(float delta) {
@@ -119,28 +112,25 @@ public class LoadingScreen implements Screen {
                 GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 5f) * 3f);
         batch.end();
 
-
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
 // if screentype == whatever?
         if (ScreenTypes.SETUP == screenType) {
 
-            if (!isLoaded) { // show load bar
-
+            if (!isLoaded) {
+                // show loading bar
                 shapeRenderer.setColor(new Color(Color.BLACK)); // only while loading
                 shapeRenderer.rect(
                         (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
                         20f + loadCounter, 1);
             } else {
-// fade screen?
-                if (screenTimer > 0){
-                    if (screenTimer < 60) {
-                        alpha -= 1 / 60;
+                // fade screen?
+                    if (screenTimer > 0 && screenTimer < 60) {
+                        alpha -= 1.0f / 60;
                         shapeRenderer.setColor(new Color(0, 0, 0, 1 - alpha));
                         shapeRenderer.rect(0, 0,
                                 GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
                     }
-                }
             }
         } else {
             shapeRenderer.setColor(new Color(255, 0, 0, 1));
@@ -148,7 +138,6 @@ public class LoadingScreen implements Screen {
                     (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
                     20f + loadCounter, 10);
         }
-
         shapeRenderer.end();
 
         if (screenTimer > 0) {
@@ -181,6 +170,7 @@ public class LoadingScreen implements Screen {
             if (ScreenTypes.SETUP == screenType) {
 
                 if (screenTimer > 0) {
+                    // mt
                 } else {
                     ttrBackDrop = ttrSplash;
                     stringBuilder.setLength(0);
@@ -206,17 +196,14 @@ public class LoadingScreen implements Screen {
 
             if (0 == screenTimer || !shouldPause) {
 
+                final float AxisThreshold = 0.8f;
                 if (  InputMapper.InputState.INP_FIRE1 == inp ) {
                     GameWorld.getInstance().showScreen(newScreen);
                 }
-                else if (  InputMapper.InputState.INP_MENU == inp
-                        //   || /* !isGamePadConfigured and gamePad anyKey/button except "Select"   */
-                        || mapper.getAxisX(0) > 0.8f  // hacky hacky
-                        ) {
-                    if (ScreenTypes.SETUP == screenType) {
-                        GameWorld.getInstance().showScreen(new GamepadConfig()); // tmp menu screen
-//                        GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
-                    }
+                else if ((ScreenTypes.SETUP == screenType) &&
+                        (InputMapper.InputState.INP_MENU == inp ||
+                                mapper.getAxisX(0) > AxisThreshold)) {
+                        GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
             }
         }

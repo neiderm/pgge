@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,18 +31,15 @@ import com.mygdx.game.util.PrimitivesBuilder;
 /**
  * Created by neiderm on 2/28/2018.
  * Reference for "ScreenManager" arch. pattern:
- * http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
- * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object parameter (extends Stage implements Screen ???? )
- * http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
- * <p>
- * intented as singleton, keep this thin.
+ *   http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
+ * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object
+ * parameter (extends Stage implements Screen ???? )
+ *   http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
  */
-
 public final class GameWorld implements Disposable {
 
-    public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth(); //tmp ..  640;
-    public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight(); // tmp .. 480;
-
+    public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
+    public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
 
     public enum GAME_STATE_T {
         ROUND_NONE,
@@ -56,15 +53,11 @@ public final class GameWorld implements Disposable {
         ROUND_ACTIVATE_ON_ALL // dummy state for "unconditionally" activating features
     }
 
-    // arbitrary character string to make sure locally added player model info  doesn't bump into
-    // the user-designated model info sections in the screen json files
-    private final String PLAYER_OBJECT_TAG = "P0_";
+    private static GameWorld instance;
 
     private SceneData sceneData;
     private String sceneDataFile;
     private Game game;
-
-    private static GameWorld instance;
 
     // created lazily and cached for later usage.
     public static GameWorld getInstance() {
@@ -90,22 +83,10 @@ public final class GameWorld implements Disposable {
      */
     public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */) {
 
-        if (null == game)
+        if (null == game) {
             return;
-
-        // Get current screen to dispose it >>>>>  ???????
-//        Screen currentScreen = game.getScreen();
-
-        // Show new screen
-//        AbstractScreen newScreen = screenEnum.getScreen(params);
-//        newScreen.buildStage();
-
+        }
         game.setScreen(screen); // calls screen.hide() on the current screen but should that call dispose() ??????
-
-        // Dispose previous screen
-//        if (currentScreen != null) {
-//            currentScreen.dispose();
-//        }
     }
 
     /*
@@ -168,7 +149,7 @@ public final class GameWorld implements Disposable {
         this.sceneDataFile = path; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
-// BEFORE the scene data is reloaded, ....
+        // BEFORE the scene data is reloaded, ....
         if (null != playerObjectName) {
             // get the  player model info from previous scene data
             selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
@@ -178,7 +159,7 @@ public final class GameWorld implements Disposable {
 
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
-            sceneData.modelInfo.put(playerObjectName,         selectedModelInfo );
+            sceneData.modelInfo.put(playerObjectName, selectedModelInfo );
         }
     }
 
@@ -191,25 +172,27 @@ public final class GameWorld implements Disposable {
         this.sceneDataFile = path; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
-// BEFORE the scene data is reloaded, ....
+        // BEFORE the scene data is reloaded, ....
         if (null != playerObjectName) {
             // get the  player model info from previous scene data
             selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
         }
 
-// when loading from Select Screen, need to distinguish the name of the selected player object
+        // When loading from Select Screen, need to distinguish the name of the selected player 
+        // object by an arbitrary character string to make sure locally added player model info 
+        // doesn't bump into the user-designated model info sections in the screen json files
+        String PLAYER_OBJECT_TAG = "P0_";
         String adjPlayerObjectName = PLAYER_OBJECT_TAG + playerObjectName;
 
         this.sceneData = SceneData.loadData(path, adjPlayerObjectName);
 
-        sceneData.modelInfo.put(adjPlayerObjectName,         selectedModelInfo );
+        sceneData.modelInfo.put(adjPlayerObjectName, selectedModelInfo );
     }
 
     /*
      * for screen reload/restart only .. assume data file is already set by previous caller
      */
     public void reloadSceneData(String modelName) {
-
         setSceneData(sceneDataFile, modelName);
     }
 
@@ -218,14 +201,14 @@ public final class GameWorld implements Disposable {
     }
 
     public GameFeature getFeature(String featureName) {
-
         return sceneData.features.get(featureName);
     }
 
     public void addSpawner(GameObject object) {
-
         addSpawner(object, ModelGroup.MGRP_DEFAULT_MDL_NAME);
     }
+
+    private static final String _CLASS_ = "GameWorld";
 
     private void addSpawner(GameObject object, String modelName) {
 
@@ -235,16 +218,11 @@ public final class GameWorld implements Disposable {
          * in additional objects queued into that MG instance, but the MG
          */
         if (null != mg) {
-
-            System.out.println("spawners mg NOT null ... ?");
+            Gdx.app.log(_CLASS_, "spawners mg NOT null ... ?");
 
             // model Name is used for e.g. "tank" and similiar models - loading entire model and globbing it toether (game object is literally "*" )
-            if (
-                /* mg.modelName.equals(modelName)  && */
-                    mg.getModelName().isEmpty()  // idfk
-                            || mg.getModelName().equals(ModelGroup.MGRP_DEFAULT_MDL_NAME)
-            ) {
-                System.out.println("mg.modelName.isEmpty(), ok to add another Game object to this model Group ... ?");
+            if (mg.getModelName().isEmpty() || mg.getModelName().equals(ModelGroup.MGRP_DEFAULT_MDL_NAME)) {
+                Gdx.app.log(_CLASS_, "mg.modelName.isEmpty(), ok to add another Game object to this model Group ... ?");
             }
         } else {
             mg = new ModelGroup(modelName);
