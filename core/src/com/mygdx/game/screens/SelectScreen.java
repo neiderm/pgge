@@ -62,7 +62,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private BitmapFont font;
     private InGameMenu stage;
     private Entity platform;
-    private int idxCurSel;
+    private int idxRigSelection;
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
     private boolean isPaused;
@@ -123,7 +123,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         Gdx.input.setInputProcessor(stage);
 
-        degreesSetp = 90 - idxCurSel * PLATFRM_INC_DEGREES;
+        degreesSetp = 90 - idxRigSelection * PLATFRM_INC_DEGREES;
     }
 
     /*
@@ -231,7 +231,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             transform.trn(position);
             transform.trn(originCoordinate);
 
-            if (idxCurSel == n) { // raise selected for arbitrary effect ;)
+            if (idxRigSelection == n) { // raise selected for arbitrary effect ;)
                 transform.trn(down.set(0, selectedRigOffsY, 0));
             }
         }
@@ -267,12 +267,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get("Characters");
         // first 3 Characters are on the platform - use currently selected index to retrieve
-        GameObject go = mg.getElement(idxCurSel);
+        GameObject go = mg.getElement(idxRigSelection);
 
         GameWorld.getInstance().loadSceneData(path, go.objectName);
 
         return new LoadingScreen();
     }
+
+    private int idxMenuSelection;
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -293,36 +295,27 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.draw();
 
         if (isPaused) {
-            // in menu mode, the y-axis of d-pad is mapped to the in-game GUI menu
-            // integer step is +/-1 on Y axis
             int step = stage.mapper.getDpad(null).getY();
-            // increments the current index selection by 1 step (+/-)
-            int newSelectionIndex = stage.checkedUpDown(step);
-            // update the checkbox with new index
-            stage.setCheckedBox(newSelectionIndex);
+            idxMenuSelection = stage.checkedUpDown(step);
+            stage.setCheckedBox(idxMenuSelection);
 
             InputMapper.InputState inp = stage.mapper.getInputState();
 
             if (InputMapper.InputState.INP_FIRE1 == inp) {
                 if (stageNamesList.size > 0) {
-                    String stagename = stageNamesList.get(idxCurSel);
+                    String stagename = stageNamesList.get(idxMenuSelection);
                     GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
                 }
             } else if (InputMapper.InputState.INP_MENU == inp) {
-
                 stage.onscreenMenuTbl.setVisible(false);
                 isPaused = false;
             }
         } else {
             int step = getStep();
-            idxCurSel = checkedUpDown(step, idxCurSel);
+            idxRigSelection = checkedUpDown(step, idxRigSelection);
             // Necessary to increment the degrees because we are controlling to it like a setpoint
             // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
             degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of object nearest to front of view)
-
-            // lower previous (raised current selection in updateRigs() )
-//            characters.get(idxCurSel).getComponent(ModelComponent.class).modelInst.transform.trn(
-//                    down.set(0, -1 * (unselectedRigOffsY), 0));
 
             InputMapper.InputState inputState = stage.mapper.getInputState();
 
