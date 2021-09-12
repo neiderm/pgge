@@ -45,11 +45,10 @@ import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.PrimitivesBuilder;
-
-import java.util.Random;
 
 /*
  * Simple test screen with ECS, Bullet Physics, but no Scene Loader or much anything else
@@ -60,6 +59,8 @@ import java.util.Random;
  */
 class ReduxScreen implements Screen {
 
+    private final ModelBuilder modelBuilder = new ModelBuilder();
+
     private Engine engine = new Engine();
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
@@ -67,12 +68,11 @@ class ReduxScreen implements Screen {
     private PerspectiveCamera cam; // has to be sent to bullet world for update debug draw
     private CameraInputController camController;
     private AssetManager assets;
-    private final ModelBuilder modelBuilder = new ModelBuilder();
 
     private Texture cubeTex;
-    private Model cube ;
     private Texture sphereTex;
     private Model ball;
+    private Model cube;
 
     @Override
     public void render(float delta) {
@@ -124,7 +124,6 @@ class ReduxScreen implements Screen {
         Gdx.input.setInputProcessor(camController);
 
         assets.finishLoading();
-
         //
         // here onwards all assets ready!
         //
@@ -136,7 +135,6 @@ class ReduxScreen implements Screen {
 
         sphereTex = new Texture(Gdx.files.internal("data/day.png"), false);
         ball =
-//                modelBuilder.createSphere(2f, 2f, 2f, 16, 16,
                 modelBuilder.createSphere(1, 1, 1, 16, 16,
                         new Material(TextureAttribute.createDiffuse(sphereTex)),
                         VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
@@ -188,40 +186,7 @@ class ReduxScreen implements Screen {
 
         engine.addEntity(e);
 
-        createTestObjects(engine);
-    }
-
-    private void createTestObjects(Engine engine) {
-
-        Random rnd = new Random();
-
-        int N_ENTITIES = 30;
-        final int N_BOXES = 20;
-
-        Vector3 size = new Vector3();
-
-        for (int i = 0; i < N_ENTITIES; i++) {
-
-            size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            size.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
-
-            Vector3 translation =
-                    new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-
-            if (i < N_BOXES) {
-                btCollisionShape shape = PrimitivesBuilder.getShape("boxTex", size); // note: 1 shape re-used
-                engine.addEntity(
-                        PrimitivesBuilder.load(
-                                new ModelInstance(cube),
-                                shape, size, size.x, translation));
-            } else {
-                btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
-                engine.addEntity(
-                        PrimitivesBuilder.load(
-                                new ModelInstance(ball),
-                                shape, new Vector3(size.x, size.x, size.x), size.x, translation));
-            }
-        }
+        SceneLoader.createTestObjects(engine);
     }
 
     @Override
@@ -252,21 +217,15 @@ class ReduxScreen implements Screen {
      */
 
     @Override
-    public void pause() {
-        // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
-        Gdx.app.log("TestScreen", "pause");
+    public void pause() { // MT
     }
 
     @Override
-    public void resume() {
-        // Android resume from "minimized" (Recent Apps button selected)
-        Gdx.app.log("TestScreen", "resume");
+    public void resume() { // MT
     }
 
     @Override
-    public void hide() {
-        Gdx.app.log("TestScreen", "hide");
-        dispose();
+    public void hide() { // MT
     }
 
     // override the equals method in this class
@@ -274,7 +233,7 @@ class ReduxScreen implements Screen {
 
         public final Matrix4 transform;
 
-        public MotionState(final Matrix4 transform) {
+        MotionState(final Matrix4 transform) {
             this.transform = transform;
         }
 
