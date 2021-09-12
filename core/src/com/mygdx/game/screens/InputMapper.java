@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
@@ -60,7 +59,6 @@ IPEGA PG-9076  "Microsoft X-Box 360 pad" (looks like a PS control)
   LR Axis0    Axis3
   UD Axis1    Axis4
 
-
 -----------------------------
 
 MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
@@ -75,18 +73,30 @@ MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
  LR  Axis1    Axis3
  UD  Axis0    Axis2
 
+-----------------------------
+
+PS3 (connected by USB)
+
+   9==L1      10==R1
+ Ax4==L2     Ax5==R2
+
+ 4==SELECT
+ 5==PS
+ 6==START
+
+ LR  BT13/BT14
+ LR  BT11/BT12
 
 -----------------------------
 Android:
  L2->Ax5(+)  R2->Ax4(+)
  Dpad is Axis 6 (L-/R+) & 7 (U-/D+)
 -----------------------------
-
 */
 
 public class InputMapper {
 
-    static int NumberControlCfgTypes;
+    static int numberControlCfgTypes;
     private static final int MAX_AXES = 8;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
@@ -97,40 +107,38 @@ public class InputMapper {
     public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
     public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
-    public static final int VIRTUAL_AXES_SZ = 6;
+    static final int VIRTUAL_AXES_SZ = 6;
 
-    public enum VirtualAxes {
-        VIRTUAL_AD_AXIS, // WASD "X" axis
-        VIRTUAL_WS_AXIS, // WASD "Y" axis
-        VIRTUAL_X1_AXIS, // right anlg stick "X" (if used)
-        VIRTUAL_Y1_AXIS, // right anlg stick "Y" (if used)
-        VIRTUAL_L2_AXIS, // front button "left 2" (if used)
-        VIRTUAL_R2_AXIS // front button "right 2" (if used)
-    }
+//    public enum VirtualAxes {
+//        VIRTUAL_AD_AXIS, // WASD "X" axis
+//        VIRTUAL_WS_AXIS, // WASD "Y" axis
+//        VIRTUAL_X1_AXIS, // right anlg stick "X" (if used)
+//        VIRTUAL_Y1_AXIS, // right anlg stick "Y" (if used)
+//        VIRTUAL_L2_AXIS, // front button "left 2" (if used)
+//        VIRTUAL_R2_AXIS // front button "right 2" (if used)
+//    }
 
-    // so this is the control switches abstrction
+    // control switches abstraction
     public enum InputState {
         INP_NONE,
         INP_VIEW,
         INP_MENU,
         INP_FIRE1,   // A
         INP_FIRE2,   // B
-        INP_BROVER,  // Y
-        INP_ADJ,     // X
+        INP_BROVER,  // Y (brake/roll-over)
+        INP_FUNC,    // X
         INP_SEL1,
-        INP_SEL2;;
+        INP_SEL2;
     }
 
-    private VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
-    private boolean[] buttonStates = new boolean[VirtualButtons.values().length];
-    private int[] buttonStateDebCts = new int[VirtualButtons.values().length];
+    private final VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
+    private final int[] buttonStateDebCts = new int[VirtualButtons.values().length];
+    private final boolean[] buttonStates = new boolean[VirtualButtons.values().length];
+    private final Vector2 pointer = new Vector2();
 
     private Controller connectedCtrl;
-    private Vector2 pointer = new Vector2();
-
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
-
 
     InputMapper() {
 
@@ -177,12 +185,13 @@ public class InputMapper {
     private static final int DPAD_Y_AXIS = 7;
 
     @Deprecated
-        // get the "virtual axis" hardcoded to axis 0
+    // get the "virtual axis" hardcoded to axis 0
     float getAxisX(int notUsed) {
         return analogAxes[VIRTUAL_AD_AXIS];
     }
+
     @Deprecated
-        // get the "virtual axis" hardcoded to axis 1
+    // get the "virtual axis" hardcoded to axis 1
     float getAxisY(int notUsed) {
         return analogAxes[VIRTUAL_WS_AXIS];
     }
@@ -194,87 +203,77 @@ public class InputMapper {
     }
 
     // allows axes to be virtualized from external source, i.e keyboard
-    void setAxis(int axisIndex, float axisValue){
+    void setAxis(int axisIndex, float axisValue) {
 
-        if (axisIndex < MAX_AXES){
+        if (axisIndex < MAX_AXES) {
             analogAxes[axisIndex] = axisValue;
         }
     }
 
     private void setAxes(float[] values) {
 
-        for (int idx = 0; idx < MAX_AXES; idx++) {
-            analogAxes[idx] = values[idx];
-        }
+        System.arraycopy(values, 0, analogAxes, 0, MAX_AXES);
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
         // If a controller is connected, find it and grab a link to it
         Controller connectedCtrl = null;
         int i = 0;
-        for (Controller c : Controllers.getControllers()) {
+        for (Controller controller : Controllers.getControllers()) {
+            Gdx.app.log("InputMapper", controller.getName());
             if (i++ == selectControl) {
-                connectedCtrl = c;
+                connectedCtrl = controller;
                 break;
             }
         }
         return connectedCtrl;
     }
 
-/*
- abstractions for switch inputs (which may not be supported among all running platforms)
- - there are gamepad controller buttons, keyboard, and also few simple functions that are implemented as
- GUI widgets on the touch screen (FIre 1 Fire 2, and then also the "back arrow" screen-button on
- Android devices (ESCAPE) can be used
+    /*
+     * Abstractions for switch inputs (which may not be supported among all running platforms) -
+     * there are gamepad controller buttons, keyboard, and also virtual buttons on the touch screen
+     * (Fire 1 Fire 2). In addition the "back arrow" screen-button on Android devices can be used as ESC.
+     *
+     * additional states for button combos?
+     * this is probably going to be a bottleneck to progress at some point
+     */
+    private InputState evalNewInputState(boolean checkIsTouched) {
 
- additional states for button combos?
-  this is probably going to be a bottleneck to progress at some point
- */
-private InputState evalNewInputState(boolean checkIsTouched) {
+        InputState newInputState = incomingInputState;
 
-    InputState newInputState = incomingInputState;
-
-    if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
-            || Gdx.input.isKeyPressed(Input.Keys.BACK)
-            || getControlButton(VirtualButtons.BTN_START)
-    ) {
-        newInputState = InputState.INP_MENU;
+        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
+                || Gdx.input.isKeyPressed(Input.Keys.BACK)
+                || getControlButton(VirtualButtons.BTN_START)) {
+            newInputState = InputState.INP_MENU;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
+                || getControlButton(VirtualButtons.BTN_SELECT)) {
+            newInputState = InputState.INP_VIEW;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
+                || (Gdx.input.justTouched() && checkIsTouched)
+                || getControlButton(VirtualButtons.BTN_A)) {
+            newInputState = InputState.INP_FIRE1;
+            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
+                || getControlButton(VirtualButtons.BTN_B)) {
+            newInputState = InputState.INP_FIRE2;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.ENTER)
+                || getControlButton(VirtualButtons.BTN_Y)) {
+            newInputState = InputState.INP_BROVER;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
+                || getControlButton(VirtualButtons.BTN_L1)) {
+            newInputState = InputState.INP_SEL1;
+        }
+        else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
+                || getControlButton(VirtualButtons.BTN_R1)) {
+            newInputState = InputState.INP_SEL2;
+        }
+        return newInputState;
     }
-    else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
-            || (Gdx.input.justTouched() && checkIsTouched)
-            || getControlButton(VirtualButtons.BTN_A)
-    ) {
-        newInputState = InputState.INP_FIRE1;
-
-        pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
-    }
-    else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-            || getControlButton(VirtualButtons.BTN_B)
-    ) {
-        newInputState = InputState.INP_FIRE2;
-    }
-    else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
-            || getControlButton(VirtualButtons.BTN_SELECT)
-    ) {
-        newInputState = InputState.INP_VIEW;
-    }
-    else if (Gdx.input.isKeyPressed(Input.Keys.GRAVE)
-            || getControlButton(VirtualButtons.BTN_Y)
-    ) {
-        newInputState = InputState.INP_BROVER;
-    }
-    else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_RIGHT)
-            || getControlButton(VirtualButtons.BTN_L1)
-    ) {
-        newInputState = InputState.INP_SEL1;
-    }
-    else if (Gdx.input.isKeyPressed(Input.Keys.BACKSPACE)
-            || getControlButton(VirtualButtons.BTN_R1)
-    ) {
-        newInputState = InputState.INP_SEL2;
-    }
-    return newInputState;
-}
 
     /*
      * Eval update and return the input state,
@@ -373,7 +372,6 @@ private InputState evalNewInputState(boolean checkIsTouched) {
         return Gdx.graphics.getHeight() - pointer.y; // normalize this to the way libGdx does ;)
     }
 
-
     void setControlButton(int buttonIndex, boolean state) {
 
         if (buttonIndex < MAX_BUTTONS) {
@@ -396,10 +394,10 @@ private InputState evalNewInputState(boolean checkIsTouched) {
                     case 3: // PCb
                         int val = state ? 1 : 0;
                         // do not make these switches mutually exclusive to the other switch of the "pair"
-                        if (VirtualButtons.BTN_L2 == bb ){
+                        if (VirtualButtons.BTN_L2 == bb) {
                             analogAxes[VIRTUAL_L2_AXIS] = val;
                         }
-                        if ( VirtualButtons.BTN_R2 == bb){
+                        if (VirtualButtons.BTN_R2 == bb) {
                             analogAxes[VIRTUAL_R2_AXIS] = val;
                         }
                         break;
@@ -417,38 +415,34 @@ private InputState evalNewInputState(boolean checkIsTouched) {
             return buttonStates[index];
     }
 
-    boolean getDebouncedContrlButton(VirtualButtons vbutton){
+    boolean getDebouncedContrlButton(VirtualButtons vbutton) {
         return getDebouncedContrlButton(vbutton, false, 5);
     }
 
-    boolean getDebouncedContrlButton(VirtualButtons vbutton, int repeatPeriod){
+    boolean getDebouncedContrlButton(VirtualButtons vbutton, int repeatPeriod) {
         return getDebouncedContrlButton(vbutton, true, repeatPeriod);
     }
 
-    private boolean getDebouncedContrlButton(VirtualButtons vbutton, boolean letRepeat, int repeatPeriod ){
+    private boolean getDebouncedContrlButton(VirtualButtons vbutton, boolean letRepeat, int repeatPeriod) {
 
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
 
-        if (getControlButton(vbutton)) {
-
-            if (0 == buttonStateDebCts[switchIndex]) {
+        if (getControlButton(vbutton) && (0 == buttonStateDebCts[switchIndex])) {
 
                 rv = true;
-
-                    // controller may emit several down/up events on a "single" button press/release
-                    buttonStateDebCts[switchIndex] = repeatPeriod;
-            }
+                // controller may emit several down/up events on a "single" button press/release
+                buttonStateDebCts[switchIndex] = repeatPeriod;
         }
         // if user has let go of button, then reduce the countdown to the debounce time
-        if ( ! getControlButton(vbutton)   ) {
+        if (!getControlButton(vbutton)) {
             final int Debounce_Time = 15;
             if (buttonStateDebCts[switchIndex] > Debounce_Time) {
                 buttonStateDebCts[switchIndex] = Debounce_Time;
             }
         }
 
-        if ( ! getControlButton(vbutton) || letRepeat ) {
+        if (!getControlButton(vbutton) || letRepeat) {
             buttonStateDebCts[switchIndex] -= 2;
             if (buttonStateDebCts[switchIndex] < 0) {
                 buttonStateDebCts[switchIndex] = 0;
@@ -457,13 +451,12 @@ private InputState evalNewInputState(boolean checkIsTouched) {
         return rv;
     }
 
-    public class DpadAxis {
+    public static class DpadAxis {
         // Vector2 ??
         int x;
         int y;
 
-        /* protect agains key held-over during screen transition ...my
-         stupid wonky key handling  */
+        /* protect against key held over during screen transition ... funky key handling ;) */
         boolean xBreak;
         boolean yBreak;
 
@@ -507,12 +500,11 @@ private InputState evalNewInputState(boolean checkIsTouched) {
 
             this.y = y;
         }
-
     }
 
-
-    private DpadAxis dPadAxes = new DpadAxis(); // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
-    private float[] analogAxes = new float[MAX_AXES];
+    // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
+    private final DpadAxis dPadAxes = new DpadAxis();
+    private final float[] analogAxes = new float[MAX_AXES];
 
     /*
      * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
@@ -528,13 +520,7 @@ private InputState evalNewInputState(boolean checkIsTouched) {
         if (null != connectedCtrl) {
             povDir = connectedCtrl.getPov(0);
         }
-        /*
-         e.g. povDirection.northeast, southeast etc. ignored. If previous POV direction were
-         kept, then e.g.
 
-         if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir ||
-                   ( previousPovDirection.north == povDir && ( PovDirection.northEast == povDir || PovDirection.northWest == povDir  ) )  )
-         */
         if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir) {
             dPadAxes.setY(-1);
         }
@@ -557,17 +543,12 @@ private InputState evalNewInputState(boolean checkIsTouched) {
             case 3: // PC
                 break;
             case 2: // android: dpad axes mapped to virtual WASD axes
-                dPadAxes.setX( (int)analogAxes[VIRTUAL_AD_AXIS]); // DPAD_X_AXIS
-                dPadAxes.setY( (int)analogAxes[VIRTUAL_WS_AXIS]); // DPAD_Y_AXIS
+                dPadAxes.setX((int) analogAxes[VIRTUAL_AD_AXIS]); // DPAD_X_AXIS
+                dPadAxes.setY((int) analogAxes[VIRTUAL_WS_AXIS]); // DPAD_Y_AXIS
                 break;
         }
         return dPadAxes;
     }
-
-
-    /*
-     https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/extensions/ControllersTest.java
-    */
 
     private void print(String message) {
 //        Gdx.app.log("Input", message);
@@ -595,8 +576,9 @@ private InputState evalNewInputState(boolean checkIsTouched) {
                 buttonmMapping[5] = VirtualButtons.BTN_R1;
                 buttonmMapping[6] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[7] = VirtualButtons.BTN_START;
+                // Turbo?
                 break;
-            case 2: // Andoid
+            case 2: // Android
                 buttonmMapping[96] = VirtualButtons.BTN_A;
                 buttonmMapping[97] = VirtualButtons.BTN_B;
                 buttonmMapping[99] = VirtualButtons.BTN_X;
@@ -615,7 +597,7 @@ private InputState evalNewInputState(boolean checkIsTouched) {
                 buttonmMapping[6] = VirtualButtons.BTN_R1; // T1
                 buttonmMapping[5] = VirtualButtons.BTN_L2; // T4  (virtualize as L2/R2 axis)
                 buttonmMapping[7] = VirtualButtons.BTN_R2; // T2  (virtualize as L2/R2 axis)
-                buttonmMapping[8] = VirtualButtons.BTN_ESC; // how many "PC" game pads have a 3rd face-button?
+                buttonmMapping[8] = VirtualButtons.BTN_ESC;    // 3rd function button
                 buttonmMapping[9] = VirtualButtons.BTN_SELECT; // MOUSE
                 buttonmMapping[10] = VirtualButtons.BTN_START; // ENTER
                 break;
@@ -623,8 +605,8 @@ private InputState evalNewInputState(boolean checkIsTouched) {
 
         Controllers.addListener(new ControllerListenerAdapter() {
 
-            private float[] axes = new float[MAX_AXES];
-            private float[] remappedAxes = new float[MAX_AXES];
+            private final float[] axes = new float[MAX_AXES];
+            private final float[] remappedAxes = new float[MAX_AXES];
 
             int indexOf(Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
@@ -661,7 +643,8 @@ private InputState evalNewInputState(boolean checkIsTouched) {
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    case 0: // Linux + PG-9076 PS style control (USB cable):
+                    // Linux + PG-9076 PS style control (USB cable):
+                    case 0:
                         // L2/R2 are analog (positive-range only)
                         remappedAxes[VIRTUAL_L2_AXIS] = axes[2];
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[5];
@@ -670,9 +653,20 @@ private InputState evalNewInputState(boolean checkIsTouched) {
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[4];
                         break;
 
-                    case 2: // Android
+                    // Windows + MYGT (Xbox style) controller (Bluetooth)
+                    case 1:
+                        // swap the WS and AD axes
+                        remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
+                        remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
+                        // swap the X1 and Y1 axes
+                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
+                        break;
+
+                    // Android (PG-9076?)
+                    case 2:
                         // Dpad is axis - remap it ONLY if has been moved
-                        if (DPAD_X_AXIS == axisIndex || DPAD_Y_AXIS == axisIndex){
+                        if (DPAD_X_AXIS == axisIndex || DPAD_Y_AXIS == axisIndex) {
                             remappedAxes[VIRTUAL_AD_AXIS] = axes[DPAD_X_AXIS];
                             remappedAxes[VIRTUAL_WS_AXIS] = axes[DPAD_Y_AXIS];
                         }
@@ -682,17 +676,8 @@ private InputState evalNewInputState(boolean checkIsTouched) {
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[4];
                         break;
 
-                    case 1: // Windows + MYGT (Xbox style) controller (Bluetooth)
-                        // swap the WS and AD axes
-                        remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
-                        remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
-                        // swap the X1 and Y1 axes
-                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
-//                        Ax4==L2(+)  Ax4==R2(-)
-                        break;
+                    // PCb BELKIN NOSTROMO (old USB controller)  axes [0,1] (left analog stick)
                     case 3:
-// PCb BELKIN NOSTROMO (old USB contrroller)  axes [0,1] (left anglg stik)
                         // swap the X1 and Y1 axes
                         remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];

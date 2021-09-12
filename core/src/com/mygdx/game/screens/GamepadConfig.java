@@ -44,8 +44,8 @@ public class GamepadConfig implements Screen {
         stage.setCheckedBox(idxCurSel);
 
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()
-               || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
-                ) {
+                || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
+        ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
 
             GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
@@ -66,7 +66,6 @@ public class GamepadConfig implements Screen {
 
     @Override
     public void dispose() {
-
         stage.dispose();
     }
 
@@ -77,21 +76,23 @@ public class GamepadConfig implements Screen {
         stage = new InGameMenu("skin/uiskin.json", null);
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("PS type", bType); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("XB type", bType); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("Android? (PS)", bType); InputMapper.NumberControlCfgTypes++;
-        stage.addButton("PC(B)", bType); InputMapper.NumberControlCfgTypes++;
+        stage.addButton("PS type", bType);
+        InputMapper.numberControlCfgTypes++;
+        stage.addButton("XB type", bType);
+        InputMapper.numberControlCfgTypes++;
+        stage.addButton("Android? (PS)", bType);
+        InputMapper.numberControlCfgTypes++;
+        stage.addButton("PC(B)", bType);
+        InputMapper.numberControlCfgTypes++;
         stage.addNextButton();
     }
 
     @Override
     public void pause() {        // empty
     }
-
     @Override
     public void resume() {        // empty
     }
-
     @Override
     public void hide() {
         dispose();
