@@ -84,7 +84,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         // setup a screen/file selection menu (development only)
 //        FileHandle[] files = Gdx.files.local(SCREENS_DIR).list();
-        String SCREENS_DIR = "screens/";
+        final String SCREENS_DIR = "screens/";
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
 
         for (FileHandle file : files) {
@@ -192,12 +192,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     // Rigs are positioned in terms of offset from Platform origin
     // Platform height is buried in selectscreen.json unfortunately ("PlayerIsPlatform")
-    private static final float platformHt = 0.2f;
+    private static final float PLATFORM_HEIGHT = 0.2f;
 
-    private static final float selectedRigOffsY = 0.3f;
-    private static final float unselectedRigOffsY = 0.05f;
+    private static final float SELECTED_RIG_OFFS_Y = 0.3f;
+    private static final float UNSELECTED_RIG_OFFS_Y = 0.05f;
     // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
-    private static final float rigPlacementRadiusScalar = 1.1f;
+    private static final float RIG_PLACEMENT_RADIUS_SCALAR = 1.1f;
 
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
@@ -217,11 +217,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             // add Platform Degrees to the unit angular position on platform
             double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
 
-            position.x = (float) Math.cos(rads) * rigPlacementRadiusScalar;
+            position.x = (float) Math.cos(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
 
-            position.y = (platformHt / 2) + unselectedRigOffsY; // raise slightly above platform
+            position.y = (PLATFORM_HEIGHT / 2) + UNSELECTED_RIG_OFFS_Y; // raise slightly above platform
 
-            position.z = (float) Math.sin(rads) * rigPlacementRadiusScalar;
+            position.z = (float) Math.sin(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
 
             Entity e = characters.get(n);
 
@@ -232,7 +232,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             transform.trn(originCoordinate);
 
             if (idxRigSelection == n) { // raise selected for arbitrary effect ;)
-                transform.trn(down.set(0, selectedRigOffsY, 0));
+                transform.trn(down.set(0, SELECTED_RIG_OFFS_Y, 0));
             }
         }
     }
@@ -274,6 +274,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return new LoadingScreen();
     }
 
+    // do not convert me to a local variable ... jdoc tag?
     private int idxMenuSelection;
 
     /*
