@@ -56,6 +56,7 @@ import com.mygdx.game.components.ModelComponent;
  */
 public class PrimitivesBuilder /* implements Disposable */ {
 
+    private static final String CLASS_STRING = "PrimitivesBuilder";
     // use unit (i.e. 1.0f) for all dimensions - primitive objects will have scale applied by load()
     private static final float DIM_UNIT = 1.0f;
     private static final float DIM_HE = 1.0f / 2.0f; // primitives half extent constant
@@ -64,7 +65,8 @@ public class PrimitivesBuilder /* implements Disposable */ {
     private static Array<btCollisionShape> savedShapeRefs = new Array<btCollisionShape>();
     private static Model model;
 
-    private PrimitivesBuilder() { }
+    private PrimitivesBuilder() { // MT
+    }
 
     public static Model getModel() {
         return model;
@@ -73,15 +75,16 @@ public class PrimitivesBuilder /* implements Disposable */ {
     /* one instance of the primitives model is allowed to persist for the entire app lifetime */
     public static void init() {
 
-        final ModelBuilder mb = new ModelBuilder();
-        long attributes =
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal;
+        final String SPHERE_STRING = "sphere";
+        final String BOX_STRING = "box";
+        final String CYLINDER_STRING = "cylinder";
+        final String CONE_STRING = "cone";
+        final String CAPSULE_STRING = "capsule";
 
-// hackaround to make sure attributes are consistent between "simple" (color only) vs textured shapes see below
-// null pointer exception thrown in render shadow batch due to texture attribute but invalid texture
-// didn't exactly pin down what was happening, must be  a race condition lets the material work most of the time, not much to go on ...
-//  https://github.com/libgdx/libgdx/issues/4166
-        attributes |= VertexAttributes.Usage.TextureCoordinates;
+        final ModelBuilder mb = new ModelBuilder();
+        long attributes = VertexAttributes.Usage.Position |
+                VertexAttributes.Usage.Normal |
+                VertexAttributes.Usage.TextureCoordinates;
 
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
@@ -90,34 +93,33 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         mb.begin();
 
-        mb.node().id = "sphere";
-        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
+        mb.node().id = SPHERE_STRING;
+        mb.part(SPHERE_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.GREEN), TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
-        mb.node().id = "box";
-        mb.part("box", GL20.GL_TRIANGLES, attributes,
+        mb.node().id = BOX_STRING;
+        mb.part(BOX_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.BLUE), TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
-        mb.node().id = "cone";
-        mb.part("cone", GL20.GL_TRIANGLES, attributes,
+        mb.node().id = CONE_STRING;
+        mb.part(CONE_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW), TextureAttribute.createDiffuse(tex))).cone(1f, 1f, 1f, 10);
-        mb.node().id = "capsule";
-        mb.part("capsule", GL20.GL_TRIANGLES, attributes,
+        mb.node().id = CAPSULE_STRING;
+        mb.part(CAPSULE_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.CYAN), TextureAttribute.createDiffuse(tex))).capsule(1f * DIM_HE, DIM_CAPS_HT, 10); // note radius and height vs. bullet
-        mb.node().id = "cylinder";
-        mb.part("cylinder", GL20.GL_TRIANGLES, attributes,
+        mb.node().id = CYLINDER_STRING;
+        mb.part(CYLINDER_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(ColorAttribute.createDiffuse(Color.MAGENTA), TextureAttribute.createDiffuse(tex))).cylinder(1f, 1f, 1f, 10);
-
         /*
-         * images used for texture test objects, which are not normally enabled so these extra PNG files bring some
-         * bloatware to mobile device, the main thing is to keep a cap on number of textures loaded into the rendering context
+         * todo: images used for texturing test objects, which are only for test screen i.el extra PNG files bring some
+         * bloatware to mobile device, the main thing is to limit the number of textures loaded into the rendering context.
          */
         tex = new Texture(Gdx.files.internal("data/crate.png"), true);
         mb.node().id = "boxTex";
-        mb.part("box", GL20.GL_TRIANGLES, attributes,
+        mb.part(BOX_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).box(1f, 1f, 1f);
 
         tex = new Texture(Gdx.files.internal("data/day.png"), true);
         mb.node().id = "sphereTex";
-        mb.part("sphere", GL20.GL_TRIANGLES, attributes,
+        mb.part(SPHERE_STRING, GL20.GL_TRIANGLES, attributes,
                 new Material(TextureAttribute.createDiffuse(tex))).sphere(1f, 1f, 1f, 10, 10);
 
         model = mb.end();
@@ -145,7 +147,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
                 shape.dispose();
             }
         }
-        Gdx.app.log("Primtive:clearShapeRefs", "Removed shapes ct = " + n);
+        Gdx.app.log(CLASS_STRING, "Removed shapes ct = " + n);
     }
 
     /*
@@ -167,11 +169,11 @@ public class PrimitivesBuilder /* implements Disposable */ {
         btCollisionShape shape = null;
 
         if (objectName.contains("box")) {
-// bulletshape given in file but get box builder is tied to it already
+            // bulletshape given in json file but get box builder is tied to it already
             shape = new btBoxShape(size.cpy().scl(DIM_HE));
 
         } else if (objectName.contains("sphere")) {
-// bulletshape given in file but get Sphere builder is tied to it already
+            // bulletshape given in json file but get Sphere builder is tied to it already
             shape = new btSphereShape(size.x * DIM_HE);
 
         } else if (objectName.contains("cylinder")) {
@@ -190,10 +192,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
             shape = new btCapsuleShape(radius, height);
 
         } else if (objectName.contains("cone")) {
-
             shape = new btConeShape(size.x * DIM_HE, size.y);
         } else {
-            Gdx.app.log("Prim", "object name not found");
+            Gdx.app.log(CLASS_STRING, "object name not found");
         }
 
         // if object name doesn't match then ... no shape
@@ -214,40 +215,36 @@ public class PrimitivesBuilder /* implements Disposable */ {
      */
     public static btCollisionShape getShape(String shapeName, Vector3 dimensions, Node node) {
 
-        btCollisionShape shape = null;
+        btCollisionShape shape;
 
         if (null == node) {
-            Gdx.app.log("PrimitivesBuilder", "getShape() null == node");
+            Gdx.app.log(CLASS_STRING, "getShape() null == node");
         }
 
         if (null == dimensions)
             dimensions = new Vector3(1, 1, 1);
 
         switch (shapeName) {
-            default:
             case "btBoxShape":
                 shape = new btBoxShape(dimensions.scl(0.5f));
                 break;
-
             case "convexHullShape":
                 shape = getShape(node); // saves the shape ref, shouldn't hurt anything if gets saved again
 
                 if (null == shape) {
-                    Gdx.app.log("Pblder", "null == shape shapeName ==   \"" + "\" )");
+                    Gdx.app.log(CLASS_STRING, "null == shape shapeName ==   \"" + "\" )");
                 } else {
-                    Gdx.app.log("Pblder", "btConvexHullShape getNumPoints"
+                    Gdx.app.log(CLASS_STRING, "btConvexHullShape getNumPoints"
                             + ((btConvexHullShape) shape).getNumPoints());
                 }
                 break;
-
             case "triangleMeshShape":
                 btBvhTriangleMeshShape trimeshShape = null;
-                if (null != node){
+                if (null != node) {
                     trimeshShape =
                             (btBvhTriangleMeshShape) Bullet.obtainStaticNodeShape(node, false);
                 }
                 shape = trimeshShape;
-
                 //  btTriangleInfoMap will need to be disposed (and reference kept other wise GC will eat them!
                 if (null != trimeshShape) {
                     btTriangleInfoMap tim = new btTriangleInfoMap();
@@ -255,12 +252,11 @@ public class PrimitivesBuilder /* implements Disposable */ {
                     BulletWorld.getInstance().addTriangleInfoMap(tim);
                 } // else ... error in model/mesh?
                 break;
+            case "btSphereShape":
+            default: // null
+                shape = new btSphereShape(dimensions.scl(0.5f).x);
+                break;
         }
-
-        if (null == shape) { // default
-            shape = new btSphereShape(dimensions.scl(0.5f).x);
-        }
-
         return saveShapeRef(shape);
     }
 
@@ -268,10 +264,9 @@ public class PrimitivesBuilder /* implements Disposable */ {
 
         btCollisionShape shape = null;
 
-            if (null != node && node.parts.size > 0) {
-                shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
+        if (null != node && node.parts.size > 0) {
+            shape = MeshHelper.createConvexHullShape(node.parts.get(0).meshPart);
         }
-
         return saveShapeRef(shape);
     }
 
@@ -282,7 +277,6 @@ public class PrimitivesBuilder /* implements Disposable */ {
         if (null != mesh) {
             shape = MeshHelper.createConvexHullShape(mesh);
         }
-
         return saveShapeRef(shape);
     }
 
@@ -291,28 +285,24 @@ public class PrimitivesBuilder /* implements Disposable */ {
         btCollisionShape shape;
 
         Mesh mesh = singleMesh(model);
-
         shape = getShape(mesh);
 
         if (null != mesh) {
             mesh.dispose();
         }
-
         return shape;
     }
 
     /*
-recursively get a flat array of node  from the model
- */
+     * Recursively get a flat array of node  from the model
+     */
     public static void getNodeArray(Array<Node> srcNodeArray, Array<Node> destNodeArray) {
 
         for (Node childNode : srcNodeArray) {
             // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
             if (childNode.parts.size > 0) {
-
                 destNodeArray.add(childNode);
             }
-
             if (childNode.hasChildren()) {
                 getNodeArray((Array<Node>) childNode.getChildren(), destNodeArray);
             }
@@ -336,7 +326,6 @@ recursively get a flat array of node  from the model
             }
             index += 1;
         }
-
         return rVal;
     }
 
@@ -350,7 +339,7 @@ recursively get a flat array of node  from the model
 
         for (Node node : nodeArray) {
             // adds a convex hull shape for each child - child shapes added in order of nodes, so setting the
-// shape user index isn't absolutely necessary  - but set the index anyway just because ;)
+            // shape user index isn't absolutely necessary - but set the index anyway just because ;)
             if (node.parts.size > 0) { // avoid non-graphic nodes (lamps etc)
 
                 btCollisionShape comp = PrimitivesBuilder.getShape(node);
@@ -362,13 +351,12 @@ recursively get a flat array of node  from the model
                     compoundShape.addChildShape(new Matrix4(node.localTransform), comp);
                 }
             }
-//  recursive
+            // recursive
             if (node.hasChildren()) {
                 nodeArray = (Array<Node>) node.getChildren();
                 getCompShape(compoundShape, nodeArray);
             }
         }
-
         return compoundShape;//saveShapeRef(compoundShape); // comp shapes have to be disposed as well
     }
 
@@ -377,8 +365,9 @@ recursively get a flat array of node  from the model
      */
     private static Mesh singleMesh(Model model) {
 
-        // "demodularize" model - combine modelParts into single Node for generating the physics shape
-        // (with a "little" work - multiple renderable instances per model component -  the model could remain "modular" allowing e.g. spinny bits on rigs)
+        // "de-modularize" model - combine modelParts into single Node for generating the physics shape
+        // (with a "little" work - multiple renderable instances per model component -  the model
+        // could remain "modular" allowing e.g. spinny bits on rigs)
         MeshBuilder meshBuilder = new MeshBuilder();
         meshBuilder.begin(model.meshParts.get(0).mesh.getVertexAttributes(), GL20.GL_TRIANGLES);
 
@@ -391,20 +380,16 @@ recursively get a flat array of node  from the model
                 meshBuilder.addMesh(meshPart);
             }
         }
-
         return meshBuilder.end();
     }
-
 
     /*
      *  test objects only, not part of Game Object loading stack
      */
-    public static Entity load(
-            Model model, String nodeID, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+    public static Entity load(Model model, String nodeID, btCollisionShape shape,
+                              Vector3 size, float mass, Vector3 translation) {
 
-        ModelInstance instance = new ModelInstance(model, nodeID);
-
-        return load(instance, shape, size, mass, translation);
+        return load(new ModelInstance(model, nodeID), shape, size, mass, translation);
     }
 
     /*
@@ -426,7 +411,6 @@ recursively get a flat array of node  from the model
         if (null != translation) {
             instance.transform.trn(translation);
         }
-
 //        if (null != shape)
         {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -435,10 +419,10 @@ recursively get a flat array of node  from the model
         return e;
     }
 
-
     public static void dispose() {
-        // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-//  Disposing the primitivesModel will automatically make all instances invalid!
+        // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed.
+        // Therefore, the Model must outlive all its ModelInstances.
+        //  Disposing the primitivesModel will automatically make all instances invalid!
         model.dispose();
         model = null;
     }
