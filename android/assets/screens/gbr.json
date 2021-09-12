@@ -1,79 +1,10 @@
 {
 "features": {
-		"Player": {
-			"userData": 80
-		}
-	},
+	"Player": {
+		"userData": 80
+	}
+},
 "modelGroups": {
-	"LocalPlayer": {
-		"elements": [
-			{
-				"objectName": "LocalPlayerObjectName",
-				"instanceData": [
-					{
-						"translation": {
-							"x": 0,
-							"y": 11,
-							"z": -5
-						}
-					}
-				]
-			}
-		]
-	},
-	"TextureObjects": {
-		"elements": [
-			{
-				"objectName": "skySphere",
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				},
-				"isShadowed": false
-			}
-		],
-		"modelName": "UserMeshesModel"
-	},
-	"UserModelStaticGroup": {
-		"elements": [
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"y": -14
-						}
-					}
-				],
-				"objectName": "boxTex",
-				"scale": {
-					"x": 40,
-					"y": 2,
-					"z": 40
-				},
-				"meshShape": "btBoxShape"
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 10,
-							"y": -5
-						}
-					}
-				],
-				"objectName": "sphereTex",
-				"scale": {
-					"x": 6,
-					"y": 6,
-					"z": 6
-				},
-				"meshShape": "btSphereShape"
-			}
-		],
-		"modelName": "UserMeshesModel",
-		"isKinematic": true
-	},
 	"Goons": {
 		"elements": [
 			{
@@ -86,10 +17,10 @@
 						}
 					}
 				],
-				"objectName": "Tank",
-				"mass": 5.1,
 				"meshShape": "convexHullShape",
-				"isPickable": true
+				"objectName": "Tank",
+				"isPickable": true,
+				"mass": 5.1
 			},
 			{
 				"instanceData": [
@@ -115,12 +46,80 @@
 						}
 					}
 				],
+				"meshShape": "convexHullShape",
 				"objectName": "ship",
-				"mass": 5.1,
-				"meshShape": "convexHullShape"
+				"mass": 5.1
 			}
 		],
 		"isCharacter": true
+	},
+	"TextureObjects": {
+		"elements": [
+			{
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				},
+				"objectName": "skySphere",
+				"isShadowed": false
+			}
+		],
+		"modelName": "UserMeshesModel"
+	},
+	"UserModelStaticGroup": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": -14
+						}
+					}
+				],
+				"scale": {
+					"x": 40,
+					"y": 2,
+					"z": 40
+				},
+				"meshShape": "btBoxShape",
+				"objectName": "boxTex"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 10,
+							"y": -5
+						}
+					}
+				],
+				"scale": {
+					"x": 6,
+					"y": 6,
+					"z": 6
+				},
+				"meshShape": "btSphereShape",
+				"objectName": "sphereTex"
+			}
+		],
+		"modelName": "UserMeshesModel",
+		"isKinematic": true
+	},
+	"LocalPlayer": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 11,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "LocalPlayerObjectName"
+			}
+		]
 	},
 	"Features": {
 		"elements": [
@@ -129,14 +128,13 @@
 					{
 						"adaptr": {
 							"class": "com.mygdx.game.features.ExitSensor",
-							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
+							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vT": {
 								"x": -2,
-								"y": 8,
-								"z": 0
+								"y": 8
 							}
 						}
 					}
@@ -164,13 +162,13 @@
 						}
 					}
 				],
-				"objectName": "box",
 				"scale": {
 					"x": 4,
 					"y": 1,
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
+				"objectName": "box",
 				"isKinematic": true
 			},
 			{
@@ -197,13 +195,13 @@
 						}
 					}
 				],
-				"objectName": "box",
 				"scale": {
 					"x": 4,
 					"y": 1,
 					"z": 4
 				},
 				"meshShape": "btBoxShape",
+				"objectName": "box",
 				"isKinematic": true
 			}
 		]
@@ -236,8 +234,8 @@
 						}
 					}
 				],
-				"objectName": "landscape",
 				"meshShape": "triangleMeshShape",
+				"objectName": "landscape",
 				"isKinematic": true
 			}
 		],

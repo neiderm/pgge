@@ -3,22 +3,22 @@
 	"TextureObjects": {
 		"elements": [
 			{
-				"objectName": "skySphere",
 				"scale": {
 					"x": 200,
 					"y": 200,
 					"z": 200
 				},
+				"objectName": "skySphere",
 				"isShadowed": false
 			},
 			{
-				"objectName": "boxTex",
-				"featureName": "PlayerIsPlatform",
 				"scale": {
 					"x": 4,
 					"y": 0.2,
 					"z": 4
 				},
+				"objectName": "boxTex",
+				"featureName": "PlayerIsPlatform",
 				"isPlayer": true
 			}
 		],
@@ -60,25 +60,17 @@
 	"boxTex": {
 		"fileName": "data/crate.png"
 	},
-	"Jeep_Renegade_2016": {
-		"fileName": "tanks/Jeep_Renegade_2016.g3db",
-		"animAdapter": {
-			"class": "com.mygdx.game.animations.RigAnimation",
-			"strMdlNode": "Tank_01.radar"
-		}
-	},
 	"truck": {
-		"fileName": "tanks/MilitaryCombatVehicle.g3db",
-		"animAdapter": {
-			"class": "com.mygdx.game.animations.RigAnimation",
-			"strMdlNode": "Tank_01.radar"
-		}
+		"fileName": "tanks/MilitaryCombatVehicle.g3db"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReference_derskySphereHere"
 	},
 	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"Jeep_Renegade_2016": {
+		"fileName": "tanks/Jeep_Renegade_2016.g3db"
 	}
 }
 }
