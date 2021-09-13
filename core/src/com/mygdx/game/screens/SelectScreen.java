@@ -46,6 +46,8 @@ import com.mygdx.game.sceneLoader.SceneData;
  */
 class SelectScreen extends BaseScreenWithAssetsEngine {
 
+    private static final String CLASS_STRING = "SelectScreen";
+
     private static final Array<String> stageNamesList = new Array<String>();
     private static final int N_SELECTIONS = 3;
 
@@ -321,11 +323,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             InputMapper.InputState inputState = stage.mapper.getInputState();
 
             if (InputMapper.InputState.INP_MENU == inputState) {
-//                GameWorld.getInstance().showScreen(newLoadingScreen("gbr.json")); // LevelOne.json
-// setup a screen/file selection menu (development only)
                 if (stageNamesList.size > 0) {
                     stage.onscreenMenuTbl.setVisible(true);
                     isPaused = true;
+                }
+                else {
+                    Gdx.app.log(CLASS_STRING, "No screen files found!");
                 }
             } else if (InputMapper.InputState.INP_FIRE1 == inputState) {
                 GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
@@ -360,19 +363,15 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      * android "back" button sends ApplicationListener.pause(), but then sends ApplicationListener.dispose() !!
      */
     @Override
-    public void pause() {
-        // Android "Recent apps" (square on-screen button), Android "Home" (middle o.s. btn ... Game.pause()->Screen.pause()
-        Gdx.app.log("SelectScreen", "pause");
+    public void pause() { // MT
     }
 
     @Override
-    public void resume() {
-        // Android resume from "minimized" (Recent Apps button selected)
+    public void resume() { // MT
     }
 
     @Override
     public void hide() {
-        Gdx.app.log("SelectScreen", "hide");
         dispose();
     }
 }
