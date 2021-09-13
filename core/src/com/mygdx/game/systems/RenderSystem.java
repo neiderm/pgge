@@ -74,7 +74,7 @@ public class RenderSystem extends EntitySystem {
 
         renderableCount += 1;
 
-//        if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius))
+        if (isVisible(cam, modelInst.transform.getTranslation(position), mc.boundingRadius))
         {
             visibleCount += 1;
             modelBatch.render(modelInst, environment);
@@ -99,7 +99,7 @@ public class RenderSystem extends EntitySystem {
         modelBatch.end();
 
         // shadows or model batch first ... doesn't seem to matter
-        // https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/g3d/ShadowMappingTest.java
+        //   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/g3d/ShadowMappingTest.java
         shadowLight.begin(Vector3.Zero.cpy(), cam.direction);
         shadowBatch.begin(shadowLight.getCamera());
 
@@ -119,10 +119,10 @@ public class RenderSystem extends EntitySystem {
     /**
      * Ref:
      *   https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-     * @param cam
+     * @param cam probably a Perspective Camera
      * @param position mc.modelInst.transform.getTranslation(position)
-     * @param radius
-     * @return
+     * @param radius Model Component bounding radius
+     * @return sphere in frustum
      */
     private boolean isVisible(PerspectiveCamera cam, Vector3 position, float radius) {
 
