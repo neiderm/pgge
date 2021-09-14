@@ -123,8 +123,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.addActor(
                 new Label("Choose your Rig ... ", new Label.LabelStyle(font, Color.WHITE)));
 
-        Gdx.input.setInputProcessor(stage);
-
         degreesSetp = 90 - idxRigSelection * PLATFRM_INC_DEGREES;
     }
 
@@ -133,7 +131,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      */
     private int getStep() {
 
-        int axis = stage.mapper.getDpad(null).getX();
+        int axis = stage.mapper.getDpad().getX();
 
         if (Gdx.input.isTouched()) {
             // make sure not in a swipe event already
@@ -298,7 +296,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.draw();
 
         if (isPaused) {
-            int step = stage.mapper.getDpad(null).getY();
+            int step = stage.mapper.getDpad().getY();
             idxMenuSelection = stage.checkedUpDown(step);
             stage.setCheckedBox(idxMenuSelection);
 
