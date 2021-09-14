@@ -40,11 +40,11 @@ public class GamepadConfig implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
+        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad().getY());
         stage.setCheckedBox(idxCurSel);
 
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()
-                || stage.mapper.getAxisY(0) > 0.8f                           // hacky hacky
+                || stage.mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > 0.8f                           // hacky hacky
         ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
 
@@ -76,13 +76,13 @@ public class GamepadConfig implements Screen {
         stage = new InGameMenu("skin/uiskin.json", null);
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("PS type", bType);
+        stage.addButton("Microsoft X-Box 360 pad (Linux:USB)", bType);
         InputMapper.numberControlCfgTypes++;
-        stage.addButton("XB type", bType);
+        stage.addButton("Xbox 360 Controller (Win 2.4G or USB)", bType);
         InputMapper.numberControlCfgTypes++;
-        stage.addButton("Android? (PS)", bType);
+        stage.addButton("Android B/T", bType);
         InputMapper.numberControlCfgTypes++;
-        stage.addButton("PC(B)", bType);
+        stage.addButton("n45 Dual Analog Gamepad (USB)", bType); // IOS Linux (Windows apparently has stick axes reversed)
         InputMapper.numberControlCfgTypes++;
         stage.addNextButton();
     }
