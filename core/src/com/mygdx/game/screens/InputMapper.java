@@ -29,53 +29,67 @@ import java.util.Arrays;
  * Created by neiderm on 6/28/2018.
  */
 /*
+Tested Controllers:
 
-Belkin "Nostromo Nostromo n45 Dual Analog Gamepad"
+-----------------------------
+Belkin Nostromo n45
+"Nostromo Nostromo n45 Dual Analog Gamepad" (Linux, IOS)
+"Nostromo n45 Dual Analog Gamepad" (Win 10?)
+ note: dPad reported as POV (WIN10/Linux)
+       dPad not reported on IOS?
 
- |     [5]                  [7]  |
- |     [4]                  [6]  |
-    -----------------------------
- |     [U]
- | [L]  + [R]                   B4[3]      |
- |    [D]     [8][9][10]   B3[2]    B2[1]  |
- |                              B1[0]      |
-         1-           2-
-      0- axes 0+   3- axes 3+
-         1+           2+
+       [5]                       [7]
+       [4]                       [6]
+
+       [U]
+   [L]  # [R]                   B4[3]
+      [D]     [8][9][10]   B3[2]  #  B2[1]
+                                B1[0]
+         1-          2-
+      0- #  0+   3-  #  3+
+         1+          2+
 
       ESC=8 MOUSE=9 ENTER=10
 
 -----------------------------
-
-IPEGA PG-9076  "Microsoft X-Box 360 pad" (looks like a PS control)
+IPEGA PG-9076
+"Xbox 360 Controller for Windows" (connected USB Win10)
+"Microsoft X-Box 360 pad"   (connected USB Linux)
+"PG-9076"  (connected B/T Android)
+ note: dPad reported as POV (Win/Linux)
+ note: dPad reported as axes 6+7 (Android)
 
   b4==L1      b5==R1
  Ax2==L2(+)  Ax5==R2(+)       Note on front anlg switches:  1==Down  -1==Up  (0 in the middle  ... wow)
 
-                Y[3]
- 6==Select   X[2]   B[1]
- 7==Start       A[0]
+                 Y[3]
+ 6==Select   X[2] #  B[1]
+ 7==Start        A[0]
 
   LR Axis0    Axis3
   UD Axis1    Axis4
 
 -----------------------------
-
-MYGT MY-C04  "MYGT Controller"  (looks like Xbox control)
+MYGT MY-C04
+"Xbox 360 Controller for Windows" (Win10)
+"MYGT Controller" (Android)
+ note: 2.4 Gz interface, USB port is charge-only
+ note: dPad reported as POV (Win10)
 
    4==L1       5==R1
  Ax4==L2(+)  Ax4==R2(-)
 
-                Y[3]
- 6==Back     X[2]   B[1]
- 7==Start       A[0]
+                 Y[3]
+ 6==Back     X[2] #  B[1]
+ 7==Start        A[0]
 
  LR  Axis1    Axis3
  UD  Axis0    Axis2
 
 -----------------------------
-
-PS3 (connected by USB)
+Sony Wireless Controller
+"PLAYSTATION(R)3 Controller" (connected by USB WIN10)
+"Sony PLAYSTATION(R)3 Controller" (connected by USB IOS, Linux)
 
    9==L1      10==R1
  Ax4==L2     Ax5==R2
@@ -97,9 +111,9 @@ Android:
 public class InputMapper {
 
     static int numberControlCfgTypes;
+
     private static final int MAX_AXES = 8;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
-
     // virtual axis assignments, probably an enum would be better
     public static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
     public static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
@@ -107,6 +121,7 @@ public class InputMapper {
     public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
     public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
+
     static final int VIRTUAL_AXES_SZ = 6;
 
 //    public enum VirtualAxes {
@@ -118,7 +133,9 @@ public class InputMapper {
 //        VIRTUAL_R2_AXIS // front button "right 2" (if used)
 //    }
 
-    // control switches abstraction
+    /*
+     * enumerate the various input events with which the screens may (poll/notify?)
+     */
     public enum InputState {
         INP_NONE,
         INP_VIEW,
@@ -126,9 +143,9 @@ public class InputMapper {
         INP_FIRE1,   // A
         INP_FIRE2,   // B
         INP_BROVER,  // Y (brake/roll-over)
-        INP_FUNC,    // X
-        INP_SEL1,
-        INP_SEL2;
+        INP_FUNC,    // X (tbd)
+        INP_SEL1,    // L1
+        INP_SEL2     // R1
     }
 
     private final VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
@@ -141,12 +158,10 @@ public class InputMapper {
     private InputState preInputState = InputState.INP_NONE;
 
     InputMapper() {
-
         initController();
         connectedCtrl = getConnectedCtrl(0);
-
-        // bah ... debounce this (bounce from key on previous screen)
-        checkInputState(InputState.INP_FIRE1); // seems to be necessary and effective with game pad ;)
+        // flush any active input from previous screen
+        checkInputState(InputState.INP_FIRE1); // seems to be necessary with game pad ?
     }
 
 //    private class ButtonData {
@@ -161,11 +176,14 @@ public class InputMapper {
 //        }
 //    }
 
+    /*
+     * abstraction of controller buttons
+     */
     public enum VirtualButtons {
         BTN_NONE,
-        BTN_ESC, // how many PC game pads have a 3rd face button?
-        BTN_SELECT, // BTN_MOUSE
-        BTN_START, // BTN_ENTER
+        BTN_ESC, // n45 'ESC'
+        BTN_SELECT, // n45 'MOUSE'
+        BTN_START, // n45 'ENTER'
         BTN_A,
         BTN_B,
         BTN_C,
@@ -180,38 +198,26 @@ public class InputMapper {
         BTN_R3
     }
 
-    // android dpad analog axes
-    private static final int DPAD_X_AXIS = 6;
-    private static final int DPAD_Y_AXIS = 7;
-
     @Deprecated
-    // get the "virtual axis" hardcoded to axis 0
     float getAxisX(int notUsed) {
         return analogAxes[VIRTUAL_AD_AXIS];
     }
-
     @Deprecated
-    // get the "virtual axis" hardcoded to axis 1
     float getAxisY(int notUsed) {
         return analogAxes[VIRTUAL_WS_AXIS];
     }
 
     // get the "virtual axis"
     float getAxis(int axisIndex) {
-
         return analogAxes[axisIndex];
     }
-
     // allows axes to be virtualized from external source, i.e keyboard
     void setAxis(int axisIndex, float axisValue) {
-
         if (axisIndex < MAX_AXES) {
             analogAxes[axisIndex] = axisValue;
         }
     }
-
     private void setAxes(float[] values) {
-
         System.arraycopy(values, 0, analogAxes, 0, MAX_AXES);
     }
 
@@ -220,7 +226,8 @@ public class InputMapper {
         Controller connectedCtrl = null;
         int i = 0;
         for (Controller controller : Controllers.getControllers()) {
-            Gdx.app.log("InputMapper", controller.getName());
+            Gdx.app.log(
+                    "InputMapper", "using connected controller " + controller.getName());
             if (i++ == selectControl) {
                 connectedCtrl = controller;
                 break;
@@ -230,12 +237,13 @@ public class InputMapper {
     }
 
     /*
-     * Abstractions for switch inputs (which may not be supported among all running platforms) -
-     * there are gamepad controller buttons, keyboard, and also virtual buttons on the touch screen
-     * (Fire 1 Fire 2). In addition the "back arrow" screen-button on Android devices can be used as ESC.
-     *
-     * additional states for button combos?
-     * this is probably going to be a bottleneck to progress at some point
+     * Available physical devices - which can include e.g. gamepad controller buttons, keyboard
+     * input, as well as virtual buttons on the touch screen - are multiplexed into the various
+     * discrete input abstractions.
+     * todo: how Input.Keys.BACK generated in Android Q
+     * todo: table
+     *          Keyboard   Android TS       Controller
+     * ESCAPE   Esc        Input.Keys.BACK  Start Button
      */
     private InputState evalNewInputState(boolean checkIsTouched) {
 
@@ -245,58 +253,53 @@ public class InputMapper {
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtons.BTN_START)) {
             newInputState = InputState.INP_MENU;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtons.BTN_SELECT)) {
             newInputState = InputState.INP_VIEW;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
                 || getControlButton(VirtualButtons.BTN_A)) {
             newInputState = InputState.INP_FIRE1;
-            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f); // default to screen center or whatever
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
+            // default to screen center just because
+            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f);
+        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtons.BTN_B)) {
             newInputState = InputState.INP_FIRE2;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.ENTER)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ENTER)
                 || getControlButton(VirtualButtons.BTN_Y)) {
             newInputState = InputState.INP_BROVER;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
                 || getControlButton(VirtualButtons.BTN_L1)) {
             newInputState = InputState.INP_SEL1;
-        }
-        else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
                 || getControlButton(VirtualButtons.BTN_R1)) {
             newInputState = InputState.INP_SEL2;
         }
         return newInputState;
     }
 
-    /*
-     * Eval update and return the input state,
-     * If incoming input state has changed from current (previous) value, then update with stored
-     * input state and return it. If not change, returns NONE.
-     * Since the global Incoming Input State value is always "de-latched" reset then this is only
-     * useful in that situation that the caller needs the actual new input state value for further processing.
-     * Keeping this interface for now just in case but should probably be using checkInputState().
+    /**
+     * Evaluate discrete inputs and return the enum id of the active input if any.
+     * If incoming input state has changed from previous value, then update with stored
+     * input state and return it. If no change, returns NONE.
+     * This api is necessary because checkInputState() de-latches (resets) the global Input State
+     * so can't be used successively to check for more than one state  .... bah
+     *
+     * @param checkIsTouched if touch screen input should be included in input mux
+     *
+     * @return enum constant of the currently active input if any or INP_NONE
      */
     InputState getInputState(boolean checkIsTouched) {
 
         InputState newInputState = evalNewInputState(checkIsTouched);
-
-        InputState rv = InputState.INP_NONE;
+        InputState debouncedInputState = InputState.INP_NONE;
 
         if (preInputState != newInputState) { // debounce
-            rv = newInputState;
+            debouncedInputState = newInputState;
         }
-
         preInputState = newInputState;
         incomingInputState = InputState.INP_NONE; // unlatch the input state
-
-        return rv;
+        return debouncedInputState;
     }
 
     InputState getInputState() {
@@ -309,28 +312,33 @@ public class InputMapper {
         nowInputState = getInputState();
     }
 
-    void unlatchInputstate() {
-        nowInputState = InputState.INP_NONE;
-    }
+//    void unlatchInputstate() {
+//        nowInputState = InputState.INP_NONE;
+//    }
 
     boolean isInputState(InputState inp) {
         return (nowInputState == inp);
     }
 
-    /*
-     * Eval and update the input state,
-     * Return true if state is changes AND matches the wanted state. Else return false.
-     * Only resets the Incoming State if changes AND matches.
-     * So this is useful for doing a series of tests for different wanted states where it is OK
-     * (and necessary) that the incoming state is not reset/cleared.
+    /**
+     * If queried switch is active AND switch state has changed reset the Incoming State and return true.
+     * This API is potentially useful for doing a series of tests for different wanted states where
+     * it is OK (and necessary) that the incoming state is not reset/cleared.
+     *
+     * This piece of cargo cult programming presently serves only one apparentl purpose: flushes/debounces
+     * sticking input from "Fire1" switch (e.g. space-key) from Splash Screen, causing Select Screen
+     * to be immediately dispatched and jump right to Loading.
+     *
+     * @param queriedInputState input switch to be tested for
+     * @return boolean true if input switch is active and not held
      */
-    private boolean checkInputState(InputState wantedInputState) {
+    private boolean checkInputState(InputState queriedInputState) {
 
         InputState newInputState = evalNewInputState(true);
 
         boolean rv = false;
 
-        if (newInputState == wantedInputState) {
+        if (newInputState == queriedInputState) {
             if (preInputState != newInputState) { // debounce
                 rv = true;
                 preInputState = newInputState;
@@ -344,16 +352,13 @@ public class InputMapper {
      * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
      */
     void setInputState(InputState incomingInputState) {
-
         this.incomingInputState = incomingInputState;
     }
 
     void setPointer(float x, float y) {
-
         setInputState(InputState.INP_FIRE1);
         pointer.set(x, y);
     }
-
     /*
     	public int getX () {
 		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
@@ -362,7 +367,6 @@ public class InputMapper {
     float getPointerX() {
         return pointer.x;
     }
-
     /*
     	public int getY () {
 		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
@@ -380,20 +384,16 @@ public class InputMapper {
 
             if (null != bb) {
                 buttonStates[bb.ordinal()] = state;
-                /*
-                 old PC game control, front buttons (not analog switches) virtualize front button pairs as
-                 a pair of axes each ranging [0:+1]
-                 */
-                int mode = GameWorld.getInstance().getControllerMode();
-                switch (mode) {
+
+                switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    case 0: // PS
-                    case 1: // XB
-                    case 2: // PS/AND
+                    case 0: // Linux USB (PG9076)
+                    case 1: // Windows USB (2.4G ?)
+                    case 2: // Android B/T
                         break;
-                    case 3: // PCb
+                    case 3: // PC USB (N45)
+                        // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
                         int val = state ? 1 : 0;
-                        // do not make these switches mutually exclusive to the other switch of the "pair"
                         if (VirtualButtons.BTN_L2 == bb) {
                             analogAxes[VIRTUAL_L2_AXIS] = val;
                         }
@@ -407,7 +407,6 @@ public class InputMapper {
     }
 
     private boolean getControlButton(VirtualButtons wantedInputState) {
-
         int index = wantedInputState.ordinal();
         if (index > buttonStates.length) {
             return false;
@@ -429,10 +428,9 @@ public class InputMapper {
         boolean rv = false;
 
         if (getControlButton(vbutton) && (0 == buttonStateDebCts[switchIndex])) {
-
-                rv = true;
-                // controller may emit several down/up events on a "single" button press/release
-                buttonStateDebCts[switchIndex] = repeatPeriod;
+            rv = true;
+            // controller may emit several down/up events on a "single" button press/release
+            buttonStateDebCts[switchIndex] = repeatPeriod;
         }
         // if user has let go of button, then reduce the countdown to the debounce time
         if (!getControlButton(vbutton)) {
@@ -441,7 +439,6 @@ public class InputMapper {
                 buttonStateDebCts[switchIndex] = Debounce_Time;
             }
         }
-
         if (!getControlButton(vbutton) || letRepeat) {
             buttonStateDebCts[switchIndex] -= 2;
             if (buttonStateDebCts[switchIndex] < 0) {
@@ -455,7 +452,6 @@ public class InputMapper {
         // Vector2 ??
         int x;
         int y;
-
         /* protect against key held over during screen transition ... funky key handling ;) */
         boolean xBreak;
         boolean yBreak;
@@ -466,54 +462,51 @@ public class InputMapper {
         }
 
         public int getX() {
-
             int rt = 0;
 
-            if (xBreak)
+            if (xBreak) {
                 rt = this.x;
-
-            if (0 == this.x)
+            }
+            if (0 == this.x) {
                 xBreak = true;
-
+            }
             return rt;
         }
-
         public int getY() {
-
             int rt = 0;
 
-            if (yBreak)
+            if (yBreak) {
                 rt = this.y;
-
-            if (0 == this.y)
+            }
+            if (0 == this.y) {
                 yBreak = true;
-
+            }
             return rt;
         }
-
         public void setX(int x) {
-
             this.x = x;
         }
-
         public void setY(int y) {
-
             this.y = y;
         }
     }
 
-    // typically only 1 dPad, but it could be implemented as either an axis or 4 buttons while libGdx has it's own abstraction
+    // dPad: POV, axis, or 4 buttons?
     private final DpadAxis dPadAxes = new DpadAxis();
     private final float[] analogAxes = new float[MAX_AXES];
 
     /*
      * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
+     * note: POV to be eliminated with libGdx Controllers 2.0
      *
-     * NOTE: Android emulator: it gets keyboard input surprisingly on Windows (but not Linux it seems).
-     * But glitchy and not worth considering.
+     * NOTE: observed that Android emulator reports keyboard input (Windows host) but seems unreliable.
      */
+    @Deprecated
     DpadAxis getDpad(DpadAxis axisIndex) {
+        return getDpad();
+    }
 
+    DpadAxis getDpad() {
         dPadAxes.clear();
 
         PovDirection povDir = PovDirection.center;
@@ -534,15 +527,16 @@ public class InputMapper {
             dPadAxes.setX(1);
         }
 
-        // special sauce for PS/AND ctrl config
+        // handle exceptions to the general rules above
         int mode = GameWorld.getInstance().getControllerMode();
         switch (mode) {
             default:
-            case 0: // PS
-            case 1: // XB
-            case 3: // PC
+            case 0: // Ipega PG-9076 Linux USB
+            case 1: // Windows USB B/T
+            case 3: // Belkin n45 Linux USB
                 break;
-            case 2: // android: dpad axes mapped to virtual WASD axes
+            case 2: // Android
+                // map dpad to virtual axes
                 dPadAxes.setX((int) analogAxes[VIRTUAL_AD_AXIS]); // DPAD_X_AXIS
                 dPadAxes.setY((int) analogAxes[VIRTUAL_WS_AXIS]); // DPAD_Y_AXIS
                 break;
@@ -551,23 +545,25 @@ public class InputMapper {
     }
 
     private void print(String message) {
-//        Gdx.app.log("Input", message);
+        Gdx.app.log("InputMapper", message);
     }
 
+    /*
+     * enumerates connected controllers (todo: list known controllers in a table)
+     * sets button mapping
+     */
     private void initController() {
-
         // print the currently connected controllers to the console
-        print("Controllers: " + Controllers.getControllers().size);
+        print("initController(): available controllers: " + Controllers.getControllers().size);
         int i = 0;
         for (Controller controller : Controllers.getControllers()) {
             print("#" + i++ + ": " + controller.getName());
         }
-
-        int mode = GameWorld.getInstance().getControllerMode();
-        switch (mode) {
+// todo:  if(c.getName().contains("Xbox") or whatever
+        switch (GameWorld.getInstance().getControllerMode()) {
             default:
-            case 0: // PS
-            case 1: // XB
+            case 0: // Ipega PG-9076 Linux USB
+            case 1: // Windows (USB, B/T)
                 buttonmMapping[0] = VirtualButtons.BTN_A;
                 buttonmMapping[1] = VirtualButtons.BTN_B;
                 buttonmMapping[2] = VirtualButtons.BTN_X;
@@ -588,7 +584,7 @@ public class InputMapper {
                 buttonmMapping[109] = VirtualButtons.BTN_SELECT;
                 buttonmMapping[108] = VirtualButtons.BTN_START;
                 break;
-            case 3: // PCb BELKIN NOSTROMO (old USB contrroller)
+            case 3: // Belkin n45 Linux USB
                 buttonmMapping[0] = VirtualButtons.BTN_A; // B1
                 buttonmMapping[1] = VirtualButtons.BTN_B; // B2
                 buttonmMapping[2] = VirtualButtons.BTN_X; // B3
@@ -604,7 +600,6 @@ public class InputMapper {
         }
 
         Controllers.addListener(new ControllerListenerAdapter() {
-
             private final float[] axes = new float[MAX_AXES];
             private final float[] remappedAxes = new float[MAX_AXES];
 
@@ -620,40 +615,47 @@ public class InputMapper {
                 setControlButton(buttonIndex, true);
                 return false;
             }
-
             @Override
             public boolean buttonUp(Controller controller, int buttonIndex) {
-
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
-
                 setControlButton(buttonIndex, false);
                 return false;
             }
-
-            /*
-             * any axis moved then refresh the map i.e. read all conroller's axes
+            /**
+             * Event handler for movement of controller axes
+             * @param controller controller
+             * @param axisIndex axis index
+             * @param value axis value
+             * @return false indicating that the event has been handled
              */
             @Override
             public boolean axisMoved(Controller controller, int axisIndex, float value) {
-
+                /*
+                the naive approach taken here is (assuming first that axes mapping are one-size-fits-all)
+                is to read all axes from the controller (not just the indicated axisIndex) and then
+                adjust as necessary for the specific platform/device combination.
+                 */
                 for (int idx = 0; idx < MAX_AXES; idx++) {
                     axes[idx] = controller.getAxis(idx);
                     remappedAxes[idx] = axes[idx];
                 }
 
+                // android dpad analog axes
+                final int DPAD_X_AXIS = 6;
+                final int DPAD_Y_AXIS = 7;
+
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    // Linux + PG-9076 PS style control (USB cable):
+                    // Linux USB (Ipega PG-9076)
                     case 0:
                         // L2/R2 are analog (positive-range only)
                         remappedAxes[VIRTUAL_L2_AXIS] = axes[2];
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[5];
-
+                        // set the X1 and Y1 axes
                         remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[4];
                         break;
-
-                    // Windows + MYGT (Xbox style) controller (Bluetooth)
+                    // Windows (USB, B/T)
                     case 1:
                         // swap the WS and AD axes
                         remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
@@ -662,40 +664,36 @@ public class InputMapper {
                         remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
                         break;
-
-                    // Android (PG-9076?)
+                    // Android (B/T)
                     case 2:
-                        // Dpad is axis - remap it ONLY if has been moved
-                        if (DPAD_X_AXIS == axisIndex || DPAD_Y_AXIS == axisIndex) {
-                            remappedAxes[VIRTUAL_AD_AXIS] = axes[DPAD_X_AXIS];
-                            remappedAxes[VIRTUAL_WS_AXIS] = axes[DPAD_Y_AXIS];
+                        // Android reports Dpad as axes - set it only if it was actually moved?
+                        if ((DPAD_X_AXIS == axisIndex) || (DPAD_Y_AXIS == axisIndex)) {
+                            remappedAxes[VIRTUAL_AD_AXIS] = axes[ DPAD_X_AXIS ];
+                            remappedAxes[VIRTUAL_WS_AXIS] = axes[ DPAD_Y_AXIS ];
                         }
-
-                        // L2/R2 are analog (positive-range only)
+                        // L2/R2 are analog axes range [0:1.0]
                         remappedAxes[VIRTUAL_L2_AXIS] = axes[5];
                         remappedAxes[VIRTUAL_R2_AXIS] = axes[4];
                         break;
-
-                    // PCb BELKIN NOSTROMO (old USB controller)  axes [0,1] (left analog stick)
+                    // Linux USB (BELKIN NOSTROMO n45)
                     case 3:
-                        // swap the X1 and Y1 axes
+                        // swap the X1 and Y1 axes  todo: Windos but not Linux? 
                         remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
                         remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
                         break;
                 }
-
                 setAxes(remappedAxes);
                 print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
                 return false;
             }
-
             /*
-             * pov moved may not be reported  ... it may report the dpad as axes (Android)
-             * so virtualize it as an axis regardless
+             * Virtualize POV (dpad) as an axis.
+             * POV may not be reported on all platform, e.g. Android reports the dpad as axes.
+             * todo POV to be removed with libGDX Controllers > 2.0
              */
             @Override
             public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
-                print("#" + indexOf(controller) + ", pov " + povIndex + ": " + value);
+                print("#" + indexOf(controller) + ", POV " + povIndex + ": " + value);
 
                 Arrays.fill(axes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
 
@@ -711,9 +709,7 @@ public class InputMapper {
                 if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
                     axes[1] = +1;
                 }
-
                 setAxes(axes);
-
                 return false;
             }
         });
