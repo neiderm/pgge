@@ -494,11 +494,6 @@ public class InputMapper {
      *
      * NOTE: observed that Android emulator reports keyboard input (Windows host) but seems unreliable.
      */
-    @Deprecated
-    DpadAxis getDpad(DpadAxis axisIndex) {
-        return getDpad();
-    }
-
     DpadAxis getDpad() {
         dPadAxes.clear();
 

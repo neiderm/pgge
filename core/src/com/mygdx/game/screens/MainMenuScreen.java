@@ -42,7 +42,7 @@ public class MainMenuScreen implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad(null).getY());
+        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad().getY());
         stage.setCheckedBox(idxCurSel);
 
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()) {
@@ -53,9 +53,8 @@ public class MainMenuScreen implements Screen {
             String featureName = null;
 
             if (null != gf) {
-                featureName = gf.getObjectName(); // i hope so
+                featureName = gf.getObjectName();
             }
-
             switch (idxCurSel) {
                 default:
                 case 0:
@@ -63,8 +62,8 @@ public class MainMenuScreen implements Screen {
                     GameWorld.getInstance().showScreen(new LoadingScreen());
                     break;
                 case 1:
-                    GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
-                    GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
+                    GameWorld.getInstance().setSceneData("SelectScreen.json");
+                    GameWorld.getInstance().showScreen(
                             new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
                     break;
                 case 2:
@@ -95,8 +94,8 @@ public class MainMenuScreen implements Screen {
         stage = new InGameMenu("skin/uiskin.json", null);
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("New Game", bTypeToggle);
-        stage.addButton("Preferences", bTypeToggle);
+        stage.addButton("Crapium Screen", bTypeToggle);
+        stage.addButton("Select Screen", bTypeToggle);
         stage.addButton("Exit", bTypeToggle);
         stage.addNextButton();
     }
