@@ -148,17 +148,18 @@ public final class GameWorld implements Disposable {
     public void setSceneData(String path) {
         setSceneData(path, null);
     }
-    /*
-     * passes along the player object name and path to next screen json
-     */
 
     /**
-     * @param path             name of json file to load
+     * passes along the player object name and path to next screen json
+     *
+     * @param fileName         name of json file to load
      * @param playerObjectName if not null, previous scene player object data is reloaded to new screen.
      */
-    public void setSceneData(String path, String playerObjectName) {
+    public void setSceneData(String fileName, String playerObjectName) {
 
-        sceneDataFile = path; // keep this for screen restart reloading
+        String playerFeatureName = playerObjectName + ""; // quash lint warning re redundant variable
+///
+        sceneDataFile = fileName; // keep this persistent for screen restart/reloading
 
         ModelInfo selectedModelInfo = null;
 
@@ -166,8 +167,9 @@ public final class GameWorld implements Disposable {
             // get the player model info from previous scene data
             selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
         }
-        sceneData = SceneData.loadData(path, playerObjectName);
-
+        sceneData = SceneData.loadData(sceneDataFile, playerFeatureName);
+///
+        // definately needs to be non-null here!
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
             sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
@@ -178,9 +180,21 @@ public final class GameWorld implements Disposable {
      * this is only for Select Screen, to set the "tag" on the player object name
      * bah duplicated code
      */
-    public void loadSceneData(String path, String playerObjectName) {
+    public void setSceneData(String fileName, int idxRigSelection) {
 
-        sceneDataFile = path; // keep this for screen restart reloading
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        ModelGroup mg = sd.modelGroups.get("Characters");
+        // first 3 Characters are on the platform - use currently selected index to retrieve
+        GameObject go = mg.getElement(idxRigSelection);
+        String playerObjectName = go.objectName;
+
+        // When loading from Select Screen, need to distinguish the name of the selected player
+        // object by an arbitrary character string to make sure locally added player model info
+        // doesn't bump into the user-designated model info sections in the screen json files
+        final String PLAYER_OBJECT_TAG = "P0_";
+        String playerFeatureName = PLAYER_OBJECT_TAG + playerObjectName;
+///
+        sceneDataFile = fileName; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
 
@@ -188,16 +202,10 @@ public final class GameWorld implements Disposable {
             // get the  player model info from previous scene data
             selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
         }
-
-        // When loading from Select Screen, need to distinguish the name of the selected player 
-        // object by an arbitrary character string to make sure locally added player model info 
-        // doesn't bump into the user-designated model info sections in the screen json files
-        final String PLAYER_OBJECT_TAG = "P0_";
-        String adjPlayerObjectName = PLAYER_OBJECT_TAG + playerObjectName;
-
-        sceneData = SceneData.loadData(path, adjPlayerObjectName);
-
-        sceneData.modelInfo.put(adjPlayerObjectName, selectedModelInfo);
+        sceneData = SceneData.loadData(fileName, playerFeatureName);
+///
+//        if (null != selectedModelInfo) ... don't care
+        sceneData.modelInfo.put(playerFeatureName, selectedModelInfo);
     }
 
     /*

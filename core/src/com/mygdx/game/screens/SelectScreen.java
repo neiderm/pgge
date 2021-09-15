@@ -34,9 +34,6 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.SceneData;
 
 /*
  * Player selects the Rig from a revolving platform.
@@ -258,19 +255,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     }
 
     private Screen newLoadingScreen(String path) {
-        // show loading bar on this screen? omit LoadingScreen? allowing the
-        // next (gameScreen) to be instantiated, and thus it's data store available to set parameters etc.
-        // Can have a "generic" pass-off ... each screen as closed sets parameters in next screens data.
-        // Next screen i.e. Loading screen, knows it needs to pass certain data (again, i.e. player name)
-        // So the screen may actually own and instance the scene data, not the sceene loader.
-        // screen pass sceneData to scene loader as parameter.
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get("Characters");
-        // first 3 Characters are on the platform - use currently selected index to retrieve
-        GameObject go = mg.getElement(idxRigSelection);
 
-        GameWorld.getInstance().loadSceneData(path, go.objectName);
-
+        GameWorld.getInstance().setSceneData(path, idxRigSelection);
         return new LoadingScreen();
     }
 
