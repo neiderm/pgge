@@ -102,12 +102,6 @@ public class GameUI extends InGameMenu {
         return screenTimer;
     }
 
-/*    @Override
-    public boolean touchDown (int screenX, int screenY, int pointer, int button) {
-        Gdx.app.log("", "screenX = " + screenX + " screenY = " + screenY);
-        return true;
-    }*/
-
     @Override
     public boolean keyDown(int keycode) {
 
@@ -168,7 +162,7 @@ public class GameUI extends InGameMenu {
     }
 
     /**
-     * Based on "http://www.bigerstaff.com/libgdx-touchpad-example"
+     * Based on "http://www.bigerstaff.com/libgdx-touchpad-example" (link broken)
      */
     private void addTouchPad(ChangeListener touchPadChangeListener) {
 
@@ -338,15 +332,10 @@ public class GameUI extends InGameMenu {
     public void onCameraSwitch() { // mt
     }
 
-//    @Override
-//    protected void onSelectEvent() { // mt ... override it
-//    }
-
     @Override
     protected void onPauseEvent() {
 
         if (GameWorld.getInstance().getIsPaused()) {
-
             GameWorld.getInstance().setIsPaused(false);
 
             switch (getCheckedIndex()) {
@@ -362,16 +351,13 @@ public class GameUI extends InGameMenu {
                 case 3: // camera
                     onCameraSwitch();  // to put in GameUI interface and override
                     break;
-                case 4: // dbg drwr
+                case 4: // debug draw
                     BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
                     // has to reinitialize bullet world to set the flag
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
                     break;
             }
         }
-//        else if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-//            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-//        }
     }
 
     @Override
@@ -393,6 +379,7 @@ public class GameUI extends InGameMenu {
 
     /**
      * Display text string with a timed fadeout
+     *
      * @param message text string
      * @param time    fadeout time
      */
@@ -429,7 +416,7 @@ public class GameUI extends InGameMenu {
             onMenuEvent();
         }
         if (GameWorld.getInstance().getIsPaused()) {
-            checkedBox = checkedUpDown(mapper.getDpad(null).getY());
+            checkedBox = checkedUpDown(mapper.getDpad().getY());
         }
         setCheckedBox(checkedBox);
     }
@@ -445,9 +432,8 @@ public class GameUI extends InGameMenu {
             case ROUND_ACTIVE:
                 if (getPrizeCount() >= SceneLoader.getNumberOfCrapiums()) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
-//                    screenTimer = 3 * 60; // temp .... untkil there is an "exit" sensor
                 } else if (screenTimer <= 0) {
-                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    screenTimer = 2 * 60; // FPS // screen transition: 2 seconds fadeout
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 break;
@@ -458,7 +444,7 @@ public class GameUI extends InGameMenu {
                 break;
             case ROUND_COMPLETE_WAIT:
                 if (screenTimer <= 0) {
-                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    screenTimer = 2 * 60; // FPS // screen transition: 2 seconds fadeout
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 if (canExit) { // exit sensor is tripped
@@ -467,7 +453,7 @@ public class GameUI extends InGameMenu {
                 break;
             case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
                 if (screenTimer <= continueScreenTimeUp) {
-                    screenTimer = 2 * 60; // FPS // 2 seconds fadout screen transition
+                    screenTimer = 2 * 60; // FPS // screen transition: 2 seconds fadeout
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 break;
@@ -504,7 +490,6 @@ public class GameUI extends InGameMenu {
         setOverlayColor(0, 0, 0, 0);
         showOSC(false);
         showPauseMenu(false);
-//        mesgLabel.setVisible(false);
         GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
 
         updateTimerLbl();
