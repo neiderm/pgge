@@ -36,7 +36,7 @@ Belkin Nostromo n45
 "Nostromo Nostromo n45 Dual Analog Gamepad" (Linux, IOS)
 "Nostromo n45 Dual Analog Gamepad" (Win 10?)
  note: dPad reported as POV (WIN10/Linux)
-       dPad not reported on IOS?
+       dPad not reported on MacBook
 
        [5]                       [7]
        [4]                       [6]
@@ -198,27 +198,16 @@ public class InputMapper {
         BTN_R3
     }
 
-    @Deprecated
-    float getAxisX(int notUsed) {
-        return analogAxes[VIRTUAL_AD_AXIS];
-    }
-    @Deprecated
-    float getAxisY(int notUsed) {
-        return analogAxes[VIRTUAL_WS_AXIS];
-    }
-
     // get the "virtual axis"
     float getAxis(int axisIndex) {
         return analogAxes[axisIndex];
     }
+
     // allows axes to be virtualized from external source, i.e keyboard
     void setAxis(int axisIndex, float axisValue) {
         if (axisIndex < MAX_AXES) {
             analogAxes[axisIndex] = axisValue;
         }
-    }
-    private void setAxes(float[] values) {
-        System.arraycopy(values, 0, analogAxes, 0, MAX_AXES);
     }
 
     private static Controller getConnectedCtrl(int selectControl) {
@@ -286,7 +275,6 @@ public class InputMapper {
      * so can't be used successively to check for more than one state  .... bah
      *
      * @param checkIsTouched if touch screen input should be included in input mux
-     *
      * @return enum constant of the currently active input if any or INP_NONE
      */
     InputState getInputState(boolean checkIsTouched) {
@@ -324,7 +312,7 @@ public class InputMapper {
      * If queried switch is active AND switch state has changed reset the Incoming State and return true.
      * This API is potentially useful for doing a series of tests for different wanted states where
      * it is OK (and necessary) that the incoming state is not reset/cleared.
-     *
+     * <p>
      * This piece of cargo cult programming presently serves only one apparentl purpose: flushes/debounces
      * sticking input from "Fire1" switch (e.g. space-key) from Splash Screen, causing Select Screen
      * to be immediately dispatched and jump right to Loading.
@@ -359,6 +347,7 @@ public class InputMapper {
         setInputState(InputState.INP_FIRE1);
         pointer.set(x, y);
     }
+
     /*
     	public int getX () {
 		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
@@ -367,6 +356,7 @@ public class InputMapper {
     float getPointerX() {
         return pointer.x;
     }
+
     /*
     	public int getY () {
 		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
@@ -472,6 +462,7 @@ public class InputMapper {
             }
             return rt;
         }
+
         public int getY() {
             int rt = 0;
 
@@ -483,9 +474,11 @@ public class InputMapper {
             }
             return rt;
         }
+
         public void setX(int x) {
             this.x = x;
         }
+
         public void setY(int y) {
             this.y = y;
         }
@@ -559,7 +552,7 @@ public class InputMapper {
         for (Controller controller : Controllers.getControllers()) {
             print("#" + i++ + ": " + controller.getName());
         }
-// todo:  if(c.getName().contains("Xbox") or whatever
+        // controller identification is not consistent between platforms
         switch (GameWorld.getInstance().getControllerMode()) {
             default:
             case 0: // Ipega PG-9076 Linux USB
@@ -600,7 +593,8 @@ public class InputMapper {
         }
 
         Controllers.addListener(new ControllerListenerAdapter() {
-            private final float[] axes = new float[MAX_AXES];
+
+            private final float[] rawAxes = new float[MAX_AXES];
             private final float[] remappedAxes = new float[MAX_AXES];
 
             int indexOf(Controller controller) {
@@ -609,18 +603,18 @@ public class InputMapper {
 
             @Override
             public boolean buttonDown(Controller controller, int buttonIndex) {
-
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " down");
-
                 setControlButton(buttonIndex, true);
                 return false;
             }
+
             @Override
             public boolean buttonUp(Controller controller, int buttonIndex) {
                 print("#" + indexOf(controller) + ", button " + buttonIndex + " up");
                 setControlButton(buttonIndex, false);
                 return false;
             }
+
             /**
              * Event handler for movement of controller axes
              * @param controller controller
@@ -636,8 +630,8 @@ public class InputMapper {
                 adjust as necessary for the specific platform/device combination.
                  */
                 for (int idx = 0; idx < MAX_AXES; idx++) {
-                    axes[idx] = controller.getAxis(idx);
-                    remappedAxes[idx] = axes[idx];
+                    rawAxes[idx] = controller.getAxis(idx);
+                    remappedAxes[idx] = rawAxes[idx];
                 }
 
                 // android dpad analog axes
@@ -646,46 +640,47 @@ public class InputMapper {
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                    // Linux USB (Ipega PG-9076)
+                        // Linux USB (Ipega PG-9076)
                     case 0:
                         // L2/R2 are analog (positive-range only)
-                        remappedAxes[VIRTUAL_L2_AXIS] = axes[2];
-                        remappedAxes[VIRTUAL_R2_AXIS] = axes[5];
+                        remappedAxes[VIRTUAL_L2_AXIS] = rawAxes[2];
+                        remappedAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
                         // set the X1 and Y1 axes
-                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[4];
+                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[4];
                         break;
                     // Windows (USB, B/T)
                     case 1:
                         // swap the WS and AD axes
-                        remappedAxes[VIRTUAL_AD_AXIS] = axes[1];
-                        remappedAxes[VIRTUAL_WS_AXIS] = axes[0];
+                        remappedAxes[VIRTUAL_AD_AXIS] = rawAxes[1];
+                        remappedAxes[VIRTUAL_WS_AXIS] = rawAxes[0];
                         // swap the X1 and Y1 axes
-                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
+                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
                         break;
                     // Android (B/T)
                     case 2:
                         // Android reports Dpad as axes - set it only if it was actually moved?
                         if ((DPAD_X_AXIS == axisIndex) || (DPAD_Y_AXIS == axisIndex)) {
-                            remappedAxes[VIRTUAL_AD_AXIS] = axes[ DPAD_X_AXIS ];
-                            remappedAxes[VIRTUAL_WS_AXIS] = axes[ DPAD_Y_AXIS ];
+                            remappedAxes[VIRTUAL_AD_AXIS] = rawAxes[DPAD_X_AXIS];
+                            remappedAxes[VIRTUAL_WS_AXIS] = rawAxes[DPAD_Y_AXIS];
                         }
                         // L2/R2 are analog axes range [0:1.0]
-                        remappedAxes[VIRTUAL_L2_AXIS] = axes[5];
-                        remappedAxes[VIRTUAL_R2_AXIS] = axes[4];
+                        remappedAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
+                        remappedAxes[VIRTUAL_R2_AXIS] = rawAxes[4];
                         break;
                     // Linux USB (BELKIN NOSTROMO n45)
                     case 3:
-                        // swap the X1 and Y1 axes  todo: Windos but not Linux? 
-                        remappedAxes[VIRTUAL_X1_AXIS] = axes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = axes[2];
+                        // swap the X1 and Y1 axes  todo: Windos but not Linux?
+                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
                         break;
                 }
-                setAxes(remappedAxes);
-                print("#" + indexOf(controller) + ", axes " + axisIndex + ": " + value);
+                System.arraycopy(remappedAxes, 0, analogAxes, 0, MAX_AXES);
+                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
                 return false;
             }
+
             /*
              * Virtualize POV (dpad) as an axis.
              * POV may not be reported on all platform, e.g. Android reports the dpad as axes.
@@ -695,21 +690,21 @@ public class InputMapper {
             public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
                 print("#" + indexOf(controller) + ", POV " + povIndex + ": " + value);
 
-                Arrays.fill(axes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
+                Arrays.fill(rawAxes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
 
                 if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    axes[0] = -1;
+                    rawAxes[0] = -1;
                 }
                 if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    axes[0] = +1;
+                    rawAxes[0] = +1;
                 }
                 if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    axes[1] = -1;
+                    rawAxes[1] = -1;
                 }
                 if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    axes[1] = +1;
+                    rawAxes[1] = +1;
                 }
-                setAxes(axes);
+                System.arraycopy(rawAxes, 0, analogAxes, 0, MAX_AXES);
                 return false;
             }
         });

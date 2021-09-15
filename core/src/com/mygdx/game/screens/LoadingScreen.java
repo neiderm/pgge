@@ -31,9 +31,8 @@ import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 /**
  * Created by neiderm on 7/16/2018.
  * based on:
- * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
+ *  http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
-
 public class LoadingScreen implements Screen {
 
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -202,7 +201,7 @@ public class LoadingScreen implements Screen {
                 }
                 else if ((ScreenTypes.SETUP == screenType) &&
                         (InputMapper.InputState.INP_MENU == inp ||
-                                mapper.getAxisX(0) > AxisThreshold)) {
+                                mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > AxisThreshold)) {
                         GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
             }
