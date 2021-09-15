@@ -69,7 +69,8 @@ public class GameUI extends InGameMenu {
 
     GameUI() {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
-        super(null, "Paused");
+//        super(null, "Paused");
+        super(DEFAULT_UISKIN_JSON, "Paused");
 
         // start with White, alpha==0 and fade to Black with alpha=1
         hudOverlayColor = new Color(1, 1, 1, 0);

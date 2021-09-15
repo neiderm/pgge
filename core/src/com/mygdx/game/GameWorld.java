@@ -31,12 +31,20 @@ import com.mygdx.game.util.PrimitivesBuilder;
 /**
  * Created by neiderm on 2/28/2018.
  * Reference for "ScreenManager" arch. pattern:
- *   http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
+ * http://bioboblog.blogspot.com/2012/08/libgdx-screen-management.html (posted 16.Aug.2012)
  * Based on libgdx-screen-management, but each Screen is a new instance and showScreen() has Object
  * parameter (extends Stage implements Screen ???? )
- *   http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
+ * http://www.pixnbgames.com/blog/libgdx/how-to-manage-screens-in-libgdx/ (Posted 13.Nov.2014, improved to use enum)
  */
 public final class GameWorld implements Disposable {
+
+    private static final String CLASS_STRING = "GameWorld";
+
+    // deserves a more unique name (in json too)
+    public static final String LOCAL_PLAYER_FNAME = "Player";
+
+    public static final String DEFAULT_FONT_FNT = "data/default.fnt";
+    public static final String DEFAULT_FONT_PNG = "data/default.png";
 
     public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
     public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
@@ -68,12 +76,10 @@ public final class GameWorld implements Disposable {
     }
 
     void initialize(Game game) {
-
         this.game = game;
-
         // static subsystems initialized only once per application run
         Bullet.init();
-        PrimitivesBuilder.init();            // one time only .. for now i guess
+        PrimitivesBuilder.init();
 
         game.setScreen(new SplashScreen());
     }
@@ -82,7 +88,6 @@ public final class GameWorld implements Disposable {
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
     public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */) {
-
         if (null == game) {
             return;
         }
@@ -90,8 +95,9 @@ public final class GameWorld implements Disposable {
     }
 
     /*
-     please don't hate the Game World globals needed to be shared between Game World and Game Screen
+     * Game World globals needed to be shared between Game World and Screens
      */
+    // controller mode
     private int controllerMode;
 
     public int getControllerMode() {
@@ -102,6 +108,7 @@ public final class GameWorld implements Disposable {
         this.controllerMode = iMode;
     }
 
+    // is paused
     private boolean isPaused = false;
 
     public boolean getIsPaused() {
@@ -113,6 +120,7 @@ public final class GameWorld implements Disposable {
         this.isPaused = isPaused;
     }
 
+    // is touch screen
     private boolean isTouchScreen = false;
 
     public boolean getIsTouchScreen() {
@@ -123,6 +131,7 @@ public final class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
+    // round active state
     private GAME_STATE_T roundActiveState = GAME_STATE_T.ROUND_NONE; // for better or worse ... ;)  gameScreenState ??
 
     public GAME_STATE_T getRoundActiveState() {
@@ -137,29 +146,31 @@ public final class GameWorld implements Disposable {
      * set Select Screen data
      */
     public void setSceneData(String path) {
-
         setSceneData(path, null);
     }
-
     /*
-     passes along the player object name and path to next screen json
+     * passes along the player object name and path to next screen json
+     */
+
+    /**
+     * @param path             name of json file to load
+     * @param playerObjectName if not null, previous scene player object data is reloaded to new screen.
      */
     public void setSceneData(String path, String playerObjectName) {
 
-        this.sceneDataFile = path; // keep this for screen restart reloading
+        sceneDataFile = path; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
-        // BEFORE the scene data is reloaded, ....
-        if (null != playerObjectName) {
-            // get the  player model info from previous scene data
-            selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
-        }
 
-        this.sceneData = SceneData.loadData(path, playerObjectName);
+        if (null != playerObjectName) {
+            // get the player model info from previous scene data
+            selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
+        }
+        sceneData = SceneData.loadData(path, playerObjectName);
 
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
-            sceneData.modelInfo.put(playerObjectName, selectedModelInfo );
+            sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
         }
     }
 
@@ -169,24 +180,24 @@ public final class GameWorld implements Disposable {
      */
     public void loadSceneData(String path, String playerObjectName) {
 
-        this.sceneDataFile = path; // keep this for screen restart reloading
+        sceneDataFile = path; // keep this for screen restart reloading
 
         ModelInfo selectedModelInfo = null;
-        // BEFORE the scene data is reloaded, ....
+
         if (null != playerObjectName) {
             // get the  player model info from previous scene data
-            selectedModelInfo = this.sceneData.modelInfo.get(playerObjectName);
+            selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
         }
 
         // When loading from Select Screen, need to distinguish the name of the selected player 
         // object by an arbitrary character string to make sure locally added player model info 
         // doesn't bump into the user-designated model info sections in the screen json files
-        String PLAYER_OBJECT_TAG = "P0_";
+        final String PLAYER_OBJECT_TAG = "P0_";
         String adjPlayerObjectName = PLAYER_OBJECT_TAG + playerObjectName;
 
-        this.sceneData = SceneData.loadData(path, adjPlayerObjectName);
+        sceneData = SceneData.loadData(path, adjPlayerObjectName);
 
-        sceneData.modelInfo.put(adjPlayerObjectName, selectedModelInfo );
+        sceneData.modelInfo.put(adjPlayerObjectName, selectedModelInfo);
     }
 
     /*
@@ -200,6 +211,12 @@ public final class GameWorld implements Disposable {
         return sceneData;
     }
 
+    /**
+     * Retrieves the requested Feature by name thru Scene Loader
+     *
+     * @param featureName feature name
+     * @return Game Feature
+     */
     public GameFeature getFeature(String featureName) {
         return sceneData.features.get(featureName);
     }
@@ -207,8 +224,6 @@ public final class GameWorld implements Disposable {
     public void addSpawner(GameObject object) {
         addSpawner(object, ModelGroup.MGRP_DEFAULT_MDL_NAME);
     }
-
-    private static final String _CLASS_ = "GameWorld";
 
     private void addSpawner(GameObject object, String modelName) {
 
@@ -218,28 +233,18 @@ public final class GameWorld implements Disposable {
          * in additional objects queued into that MG instance, but the MG
          */
         if (null != mg) {
-            Gdx.app.log(_CLASS_, "spawners mg NOT null ... ?");
-
-            // model Name is used for e.g. "tank" and similiar models - loading entire model and globbing it toether (game object is literally "*" )
-            if (mg.getModelName().isEmpty() || mg.getModelName().equals(ModelGroup.MGRP_DEFAULT_MDL_NAME)) {
-                Gdx.app.log(_CLASS_, "mg.modelName.isEmpty(), ok to add another Game object to this model Group ... ?");
-            }
+            Gdx.app.log(CLASS_STRING, "spawners ModelGroup != null");
         } else {
             mg = new ModelGroup(modelName);
             sceneData.modelGroups.put(ModelGroup.SPAWNERS_MGRP_KEY, mg);
         }
-
         mg.addElement(object);
     }
 
-    /* I don't think we see a dispose event on Android */
     @Override
     public void dispose() {
-
         game.getScreen().dispose();
-
         PrimitivesBuilder.dispose(); //  call static method
-
         instance = null;
     }
 }

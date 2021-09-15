@@ -75,7 +75,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         super.init();
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
-        GameFeature f = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+        GameFeature f = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
         if (null != f) {
             platform = f.getEntity();
@@ -116,8 +116,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         // Font files from ashley-superjumper
         font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
+                Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+                Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
         font.getData().setScale(1.0f);
 
         stage.addActor(
@@ -324,8 +324,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (stageNamesList.size > 0) {
                     stage.onscreenMenuTbl.setVisible(true);
                     isPaused = true;
-                }
-                else {
+                } else {
                     Gdx.app.log(CLASS_STRING, "No screen files found!");
                 }
             } else if (InputMapper.InputState.INP_FIRE1 == inputState) {

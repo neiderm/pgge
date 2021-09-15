@@ -134,7 +134,7 @@ public class SceneLoader implements Disposable {
          * global player feature.
          */
         GameFeature playerFeature =
-                GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+                GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
         String localPlayerObjectname;
 

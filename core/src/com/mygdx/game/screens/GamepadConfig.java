@@ -47,7 +47,6 @@ public class GamepadConfig implements Screen {
                 || stage.mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > 0.8f                           // hacky hacky
         ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
-
             GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
 
             GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
@@ -71,9 +70,8 @@ public class GamepadConfig implements Screen {
 
     @Override
     public void show() {
-
         final String bType = "toggle";
-        stage = new InGameMenu("skin/uiskin.json", null);
+        stage = new InGameMenu();
         Gdx.input.setInputProcessor(stage);
 
         stage.addButton("Microsoft X-Box 360 pad (Linux:USB)", bType);
@@ -90,9 +88,11 @@ public class GamepadConfig implements Screen {
     @Override
     public void pause() {        // empty
     }
+
     @Override
     public void resume() {        // empty
     }
+
     @Override
     public void hide() {
         dispose();

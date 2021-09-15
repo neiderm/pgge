@@ -77,7 +77,7 @@ import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
  */
 public class GameScreen extends BaseScreenWithAssetsEngine {
 
-    private static final String _CLASS_ = "GameScreen";
+    private static final String CLASS_STRING = "GameScreen";
     private final Signal<GameEvent> gameEventSignal = new Signal<>();
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
@@ -102,8 +102,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         super.init();
 
         batch = new SpriteBatch();
-        font = new BitmapFont(Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
+        font = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+                Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
 
         float fontGetDensity = Gdx.graphics.getDensity();
 
@@ -127,7 +127,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         GfxUtil.init();
 
-        GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
+        GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
         pickedPlayer = pf.getEntity();
         pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
         final int health = 999; // should not go to 0
@@ -155,10 +155,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             if (null != pickedPlayer.getComponent(BulletComponent.class).body) {
                 playerUI = initPlayerUI();
             } else {
-                Gdx.app.log(_CLASS_, "pickedPlayer collision body can't be null");
+                Gdx.app.log(CLASS_STRING, "pickedPlayer collision body can't be null");
             }
         } else {
-            Gdx.app.log(_CLASS_, "pickedPlayer can't be null");
+            Gdx.app.log(CLASS_STRING, "pickedPlayer can't be null");
         }
         multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
         Gdx.input.setInputProcessor(multiplexer);
@@ -269,7 +269,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 gunPlatform.updateControls(analogs, switches, 0 /* unused */);
 
                 //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
-                GameFeature pf = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
+                GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
                 if (Math.abs(analogs[1]) < 0.4f) {                     // love this hacky crap
                     // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
@@ -424,6 +424,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         final Vector3 tmpV = new Vector3();
         final Vector3 posV = new Vector3();
         final GfxUtil lineInstance = new GfxUtil();
+
         @Override
         public void handle(Entity picked, GameEvent.EventType eventType) {
 
@@ -483,7 +484,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             screenTeardown();
 
-            GameFeature localplyaer = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME); // make tag a defined string
+            GameFeature localplyaer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
             if (null != localplyaer) {
                 GameWorld.getInstance().reloadSceneData(localplyaer.getObjectName());
             }
@@ -622,13 +623,16 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    /*
- try to blow up a dead thing
- */
+    /**
+     * Exploding effect for Compound shapes
+     *
+     * @param engine    the engine
+     * @param shape     collision shape
+     * @param modelInst model instance
+     * @param model     model
+     */
     private static void exploducopia(Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
-
         if (shape.className.equals("btCompoundShape")) {
-
             Vector3 translation = new Vector3();
             Quaternion rotation = new Quaternion();
 
@@ -639,18 +643,17 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             modelInst.transform.getTranslation(translation),
                             modelInst.transform.getRotation(rotation))
             );
-
             Array<Node> nodeFlatArray = new Array<>();
             PrimitivesBuilder.getNodeArray(model.nodes, nodeFlatArray);
 
             // build nodes by iterating the node id list, which hopefullly is in same index order as when the comp shape was builtup
             buildChildNodes(engine, nodeFlatArray, model, (btCompoundShape) shape, gameObject);
-
         } else {
-            Gdx.app.log(_CLASS_, "Compound shape only valid for btCompoundShape");
+            Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
         }
     }
 
+    @SuppressWarnings("unused")
     /*
      * debug only (batch is ended each call)
      */
@@ -686,7 +689,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      */
     private void screenTeardown() {
 
-        Gdx.app.log("GameScreen", "screenTearDown");
+        Gdx.app.log(CLASS_STRING, "screenTearDown");
 
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)

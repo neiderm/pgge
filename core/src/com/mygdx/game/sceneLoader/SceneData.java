@@ -19,6 +19,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
+import com.mygdx.game.GameWorld;
 
 import java.util.HashMap;
 
@@ -26,10 +27,6 @@ import java.util.HashMap;
  *  http://niklasnson.com/programming/network/tips%20and%20tricks/2017/09/15/libgdx-save-and-load-game-data.html
  */
 public class SceneData {
-
-    public static final String LOCAL_PLAYER_FNAME = "Player"; // can  globalize the string e.g.  SceneData.LOCAL_PLAYER_FNAME
-
-    // ignore Lint warning about using type Map ?
     public final HashMap<String, GameFeature> features = new HashMap<String, GameFeature>();
     public final HashMap<String, ModelGroup> modelGroups = new HashMap<String, ModelGroup>();
     public final HashMap<String, ModelInfo> modelInfo = new HashMap<String, ModelInfo>();
@@ -43,27 +40,25 @@ public class SceneData {
         }
     }
 
-    public static SceneData loadData(String path, String playerObjectName){
+    public static SceneData loadData(String path, String playerObjectName) {
 
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.internal(path);
-        //        gameData = json.fromJson(sceneData.class, Base64Coder.decodeString(fileHandle.readString()));
         SceneData sd = json.fromJson(SceneData.class, fileHandle.readString());
 
         // localplayer object-name is passed along from parent screen ... make a Game Feature in which
         // to stash this "persistent" local player info. Other systems/comps will be looking for this
         // magik name to get reference to the entity.
-        GameFeature gf = sd.features.get(LOCAL_PLAYER_FNAME);
+        GameFeature gf = sd.features.get(GameWorld.LOCAL_PLAYER_FNAME);
         saveData(sd);  // test ... write out the data in order to verify order and format
 
         if (null != gf) {
             // Allow local player game feature to be defined in JSON (user Data)
             gf.setObjectName(playerObjectName);
         } else {
-            gf = new GameFeature( playerObjectName );
-            sd.features.put(LOCAL_PLAYER_FNAME, gf  /* new GameFeature( playerObjectName ) */ );
+            gf = new GameFeature(playerObjectName);
+            sd.features.put(GameWorld.LOCAL_PLAYER_FNAME, gf);
         }
-
         return sd;
     }
 }

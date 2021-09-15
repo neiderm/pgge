@@ -65,24 +65,26 @@ public class GameObject {
 
     private final Array<InstanceData> instanceData = new Array<InstanceData>();
 
-    public Vector3 scale; // NOT per-instance, all instances should be same scale (share same collision Shape)
-    public String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
-    public String objectName;
     public boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
     public float mass;
+    public String objectName;
+    // all instances should be at same scale (share same collision Shape)
+    public Vector3 scale;
 
     private boolean isShootable;
     @SuppressWarnings("unused")
     private String featureName; // if Entity is to be part of a Feature
+    // never assigned (from json)
+    @SuppressWarnings("unused")
+    private String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
 
     boolean isCharacter;
     boolean isKinematic;  // "is Platform" ?
     boolean isPlayer;
 
     public Array<InstanceData> getInstanceData() {
-
         return instanceData;
     }
 
@@ -103,7 +105,6 @@ public class GameObject {
         }
 
         for (Node node : nodeArray) {
-
             ModelInstance mi = null;
 
             if (null != nodeName && node.id.contains(nodeName)) {
@@ -128,7 +129,6 @@ public class GameObject {
                     shape = PrimitivesBuilder.getShape(
                             meshShape, boundingBox.getDimensions(dimensions), node);
                 }
-
                 buildGameObject(engine, mi, shape);
             } // else  ... bail out if matched an un-globbed name ?
         }
@@ -155,7 +155,6 @@ public class GameObject {
         Node modelNode = instance.getNode(strNodeName);
 
         if (null != modelNode) {
-
             instance.transform.set(modelNode.globalTransform);
             modelNode.translation.set(0, 0, 0);
             modelNode.scale.set(1, 1, 1);
@@ -164,7 +163,6 @@ public class GameObject {
             if (null != scale) {
                 instance.nodes.get(0).scale.set(scale);
             }
-
             instance.calculateTransforms();
         }
         return instance;
@@ -190,13 +188,11 @@ public class GameObject {
             }
 
             Entity e;
-
             if (null != modelInst) {
                 e = buildObjectInstance(modelInst.copy(), shape, id);
             } else {
                 e = buildObjectInstance(id);
             }
-
             engine.addEntity(e);
 
         } while (n < instanceData.size);
@@ -223,7 +219,6 @@ public class GameObject {
         }
 
         if (null != id) {
-
             if (null != id.rotation) {
 // do not idt() this!
 //                instance.transform.idt();
@@ -304,18 +299,15 @@ public class GameObject {
                     e.add(statusComp); // needs an SC in order to be 'shootable'
                 }
         }
-
         if (isCharacter) {
             e.add(new CharacterComponent());
         }
-
         if (isPickable) {
             e.add(new PickRayComponent());
         }
-
         if (isPlayer) {
-            GameFeature playerFeature = GameWorld.getInstance().getFeature(SceneData.LOCAL_PLAYER_FNAME);
-//if (null != playerFeature)
+            GameFeature playerFeature =
+                    GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
             playerFeature.setEntity(e); // only 1 player Entity per player Feature
         }
         return e;

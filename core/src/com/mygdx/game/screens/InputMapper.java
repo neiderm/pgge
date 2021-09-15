@@ -343,28 +343,10 @@ public class InputMapper {
         this.incomingInputState = incomingInputState;
     }
 
-    void setPointer(float x, float y) {
-        setInputState(InputState.INP_FIRE1);
-        pointer.set(x, y);
-    }
-
-    /*
-    	public int getX () {
-		return (int)(Mouse.getX() * Display.getPixelScaleFactor());
-	}
-     */
-    float getPointerX() {
-        return pointer.x;
-    }
-
-    /*
-    	public int getY () {
-		return Gdx.graphics.getHeight() - 1 - (int)(Mouse.getY() * Display.getPixelScaleFactor());
-	}
-     */
-    float getPointerY() {
-        return Gdx.graphics.getHeight() - pointer.y; // normalize this to the way libGdx does ;)
-    }
+//    void setPointer(float x, float y) {
+//        setInputState(InputState.INP_FIRE1);
+//        pointer.set(x, y);
+//    }
 
     void setControlButton(int buttonIndex, boolean state) {
 

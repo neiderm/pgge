@@ -31,7 +31,7 @@ import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
 /**
  * Created by neiderm on 7/16/2018.
  * based on:
- *  http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
+ * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
 public class LoadingScreen implements Screen {
 
@@ -77,19 +77,14 @@ public class LoadingScreen implements Screen {
                 newScreen = new SelectScreen();
                 break;
         }
-
         ttrBackDrop = ttrLoad;
         ttrSplash = new Texture("splash-screen.png");
-
         batch = new SpriteBatch();
-
         font = new BitmapFont(
-                Gdx.files.internal("data/font.fnt"),
-                Gdx.files.internal("data/font.png"), false);
+                Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+                Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
         font.getData().setScale(1.0f);
-
         isLoaded = false;
-
         mapper = new InputMapper();
     }
 
@@ -104,18 +99,14 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-
         batch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-
         font.draw(batch, stringBuilder,
                 GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 5f) * 3f);
         batch.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-// if screentype == whatever?
         if (ScreenTypes.SETUP == screenType) {
-
             if (!isLoaded) {
                 // show loading bar
                 shapeRenderer.setColor(new Color(Color.BLACK)); // only while loading
@@ -124,12 +115,12 @@ public class LoadingScreen implements Screen {
                         20f + loadCounter, 1);
             } else {
                 // fade screen?
-                    if (screenTimer > 0 && screenTimer < 60) {
-                        alpha -= 1.0f / 60;
-                        shapeRenderer.setColor(new Color(0, 0, 0, 1 - alpha));
-                        shapeRenderer.rect(0, 0,
-                                GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-                    }
+                if (screenTimer > 0 && screenTimer < 60) {
+                    alpha -= 1.0f / 60;
+                    shapeRenderer.setColor(new Color(0, 0, 0, 1 - alpha));
+                    shapeRenderer.rect(0, 0,
+                            GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+                }
             }
         } else {
             shapeRenderer.setColor(new Color(255, 0, 0, 1));
@@ -155,7 +146,6 @@ public class LoadingScreen implements Screen {
                 stringBuilder.setLength(0);
                 stringBuilder.append("Loading ... ");
             }
-
             // make the bar up to half the screen width
             loadCounter =
                     (int) (GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress());
@@ -165,9 +155,7 @@ public class LoadingScreen implements Screen {
                 isLoaded = true;
             }
         } else { // is loaded
-
             if (ScreenTypes.SETUP == screenType) {
-
                 if (screenTimer > 0) {
                     // mt
                 } else {
@@ -190,19 +178,19 @@ public class LoadingScreen implements Screen {
             if (!GameWorld.getInstance().getIsTouchScreen() && isTouched) {
                 GameWorld.getInstance().setIsTouchScreen(true);
             }
-
+            /*
+             * has to use getInputState() because the checkInputState() would delatch it
+             */
             InputMapper.InputState inp = mapper.getInputState(true);
 
             if (0 == screenTimer || !shouldPause) {
-
                 final float AxisThreshold = 0.8f;
-                if (  InputMapper.InputState.INP_FIRE1 == inp ) {
+                if (InputMapper.InputState.INP_FIRE1 == inp) {
                     GameWorld.getInstance().showScreen(newScreen);
-                }
-                else if ((ScreenTypes.SETUP == screenType) &&
+                } else if ((ScreenTypes.SETUP == screenType) &&
                         (InputMapper.InputState.INP_MENU == inp ||
                                 mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > AxisThreshold)) {
-                        GameWorld.getInstance().showScreen(new GamepadConfig());
+                    GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
             }
         }

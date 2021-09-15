@@ -20,14 +20,15 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.GameFeature;
+
 /**
  * Created by neiderm on 12/18/17.
- *
+ * <p>
  * Reference:
- *  on-screen menus:
- *   https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
- *  UI skin defined programmatically:
- *   https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+ * on-screen menus:
+ * https://www.gamedevelopment.blog/full-libgdx-game-tutorial-menu-control/
+ * UI skin defined programmatically:
+ * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
  */
 public class MainMenuScreen implements Screen {
 
@@ -48,7 +49,7 @@ public class MainMenuScreen implements Screen {
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()) {
             // pass along the local player object name
             GameFeature gf =
-                    GameWorld.getInstance().getFeature( /* SceneData.LOCAL_PLAYER_FNAME */ "Player");
+                    GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
             String featureName = null;
 
@@ -89,11 +90,9 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
-
         final String bTypeToggle = "toggle";
-        stage = new InGameMenu("skin/uiskin.json", null);
+        stage = new InGameMenu();
         Gdx.input.setInputProcessor(stage);
-
         stage.addButton("Crapium Screen", bTypeToggle);
         stage.addButton("Select Screen", bTypeToggle);
         stage.addButton("Exit", bTypeToggle);

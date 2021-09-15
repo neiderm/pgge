@@ -25,7 +25,7 @@ import com.mygdx.game.GameWorld;
 /**
  * Created by neiderm on 7/16/2018.
  * Based on:
- *   http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
+ * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
 public class SplashScreen implements Screen {
 
