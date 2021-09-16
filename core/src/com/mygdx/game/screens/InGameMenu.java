@@ -21,7 +21,6 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -51,7 +50,6 @@ class InGameMenu extends Stage {
     static final int BTN_KCODE_FIRE1 = 0;
     static final int BTN_KCODE_FIRE2 = 1;
 
-    private final Vector2 v2 = new Vector2();
     private final Array<Texture> savedTextureRefs = new Array<Texture>();
     private final Array<String> buttonNames = new Array<String>();
     private final ButtonGroup<TextButton> bg;
@@ -224,13 +222,14 @@ class InGameMenu extends Stage {
             TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
             ImageButton nextButton = new ImageButton(myTexRegionDrawable);
-            nextButton.addListener(new InputListener() {
-                @Override
-                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    mapper.setInputState(InputMapper.InputState.INP_FIRE1);
-                    return false;
-                }
-            });
+//            nextButton.addListener(new InputListener() {
+//                @Override
+//                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+//                    mapper.setControlButton(BTN_KCODE_FIRE1, true);
+//                    return false;
+//                }
+//            }
+//            );
             onscreenMenuTbl.row();
             onscreenMenuTbl.add(nextButton).fillX().uniformX();
         }
@@ -339,11 +338,10 @@ class InGameMenu extends Stage {
 
                         } else if (InputMapper.InputState.INP_FIRE2 == binding) {
                             mapper.setControlButton(BTN_KCODE_FIRE2, true);
+
                         } else if (InputMapper.InputState.INP_NONE == binding) {
-//                            Vector2 toScrnCoord =
-//                                    newButton.localToParentCoordinates(v2.set(x, y));
-//                            mapper.setPointer(toScrnCoord.x, toScrnCoord.y); // sets INP SELECT
-                            mapper.setInputState(InputMapper.InputState.INP_FIRE1);
+                            // I don't know why Select Screen event is INP NONE
+                            mapper.setControlButton(BTN_KCODE_FIRE1, true);
                         }
                         return true; // to also handle touchUp
                     }

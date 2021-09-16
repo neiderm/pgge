@@ -300,10 +300,6 @@ public class InputMapper {
         nowInputState = getInputState();
     }
 
-//    void unlatchInputstate() {
-//        nowInputState = InputState.INP_NONE;
-//    }
-
     boolean isInputState(InputState inp) {
         return (nowInputState == inp);
     }
@@ -336,24 +332,10 @@ public class InputMapper {
         return rv;
     }
 
-    /*
-     * sets the passed input state, pointer defaults to middle of screen if non-touchscreen system
-     */
-    void setInputState(InputState incomingInputState) {
-        this.incomingInputState = incomingInputState;
-    }
-
-//    void setPointer(float x, float y) {
-//        setInputState(InputState.INP_FIRE1);
-//        pointer.set(x, y);
-//    }
-
     void setControlButton(int buttonIndex, boolean state) {
-
         if (buttonIndex < MAX_BUTTONS) {
             // lookup the virtual button id
             VirtualButtons bb = buttonmMapping[buttonIndex];
-
             if (null != bb) {
                 buttonStates[bb.ordinal()] = state;
 
