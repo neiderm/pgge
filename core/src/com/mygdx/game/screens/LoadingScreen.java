@@ -44,8 +44,8 @@ public class LoadingScreen implements Screen {
     private int loadCounter = 0;
     private int screenTimer = (int) (60 * 2.9f); //fps*sec
     private boolean isLoaded;
-    private boolean shouldPause = true;
-    private ScreenTypes screenType = LEVEL;
+    private boolean shouldPause;
+    private ScreenTypes screenType;
     private InputMapper mapper;
     private Screen newScreen;
 
@@ -59,7 +59,8 @@ public class LoadingScreen implements Screen {
         this.screenType = screenType;
     }
 
-    LoadingScreen() {    //mt
+    LoadingScreen() {
+        this(true, LEVEL);
     }
 
     @Override
@@ -197,12 +198,6 @@ public class LoadingScreen implements Screen {
     }
 
     @Override
-    public void hide() {
-
-        dispose();
-    }
-
-    @Override
     public void pause() {        // mt
     }
 
@@ -221,5 +216,10 @@ public class LoadingScreen implements Screen {
         batch.dispose();
         shapeRenderer.dispose();
         font.dispose();
+    }
+
+    @Override
+    public void hide() {
+        dispose();
     }
 }
