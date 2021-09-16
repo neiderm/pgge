@@ -59,16 +59,12 @@ public class MainMenuScreen implements Screen {
             switch (idxCurSel) {
                 default:
                 case 0:
+                    // set scene for Bonus Level
                     GameWorld.getInstance().setSceneData("GameData.json", featureName);
-                    GameWorld.getInstance().showScreen(new LoadingScreen());
+                    GameWorld.getInstance().showScreen(new LoadingScreen(/* should_pause=true, type=Level */));
                     break;
                 case 1:
-                    GameWorld.getInstance().setSceneData("SelectScreen.json");
-                    GameWorld.getInstance().showScreen(
-                            new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
-                    break;
-                case 2:
-                    GameWorld.getInstance().showScreen(new SplashScreen());
+                    GameWorld.getInstance().showScreen(); // show the default screen
                     break;
             }
         }
@@ -84,17 +80,11 @@ public class MainMenuScreen implements Screen {
     }
 
     @Override
-    public void dispose() {
-        stage.dispose();
-    }
-
-    @Override
     public void show() {
         final String bTypeToggle = "toggle";
         stage = new InGameMenu();
         Gdx.input.setInputProcessor(stage);
-        stage.addButton("Crapium Screen", bTypeToggle);
-        stage.addButton("Select Screen", bTypeToggle);
+        stage.addButton("Bonus Level", bTypeToggle);
         stage.addButton("Exit", bTypeToggle);
         stage.addNextButton();
     }
@@ -110,5 +100,10 @@ public class MainMenuScreen implements Screen {
     @Override
     public void hide() {
         dispose();
+    }
+
+    @Override
+    public void dispose() {
+        stage.dispose();
     }
 }

@@ -25,7 +25,8 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.screens.SplashScreen;
+import com.mygdx.game.screens.LoadingScreen;
+import com.mygdx.game.screens.ReduxScreen;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
@@ -39,6 +40,8 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public final class GameWorld implements Disposable {
 
     private static final String CLASS_STRING = "GameWorld";
+
+    private static final String DEFALT_SCREEN = "SelectScreen.json";
 
     // deserves a more unique name (in json too)
     public static final String LOCAL_PLAYER_FNAME = "Player";
@@ -81,21 +84,33 @@ public final class GameWorld implements Disposable {
         Bullet.init();
         PrimitivesBuilder.init();
 
-        game.setScreen(new SplashScreen());
+        showScreen(); // show loading/splash screen
     }
 
     /*
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
-    public void showScreen(Screen screen  /* ScreenEnum screenEnum, Object... params */) {
+    public void showScreen() {
+        if (Gdx.files.internal(DEFALT_SCREEN).exists()) {
+
+            getInstance().setSceneData(DEFALT_SCREEN);
+            getInstance().showScreen(new LoadingScreen(true, LoadingScreen.ScreenTypes.SETUP));
+        } else {
+            Gdx.app.log("SplashScreen",
+                    "Select Screen data not found, loading Test Screen");
+            getInstance().showScreen(new ReduxScreen());
+        }
+    }
+
+    public void showScreen(Screen screen) {
         if (null == game) {
             return;
         }
-        game.setScreen(screen); // calls screen.hide() on the current screen but should that call dispose() ??????
+        game.setScreen(screen); // calls screen.hide() on the current screen
     }
 
     /*
-     * Game World globals needed to be shared between Game World and Screens
+     * globals that need to be shared between Game World and Screens
      */
     // controller mode
     private int controllerMode;

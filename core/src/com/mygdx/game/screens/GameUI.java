@@ -462,7 +462,7 @@ public class GameUI extends InGameMenu {
                 GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
                 break;
             case ROUND_OVER_QUIT:
-                GameWorld.getInstance().showScreen(new SplashScreen());
+                GameWorld.getInstance().showScreen(); // goes to the default screen (startup splash/load)
                 break;
             case ROUND_OVER_RESTART:
             default:
@@ -550,6 +550,9 @@ public class GameUI extends InGameMenu {
         updateUI();
     }
 
+    /**
+     * Stage must be disposed by owning Screen
+     */
     @Override
     public void dispose() {
 
