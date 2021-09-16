@@ -168,9 +168,8 @@ public class LoadingScreen implements Screen {
                 stringBuilder.setLength(0);
                 stringBuilder.append("Ready!");
             }
-
             // simple polling for a tap on the touch screen
-            // one-time check for TS input (determine wether to show touchpad controll)
+            // one-time check for TS input (determines whether or not to show touchpad control)
             boolean isTouched = Gdx.input.isTouched(0);
 
             // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
@@ -178,18 +177,19 @@ public class LoadingScreen implements Screen {
             if (!GameWorld.getInstance().getIsTouchScreen() && isTouched) {
                 GameWorld.getInstance().setIsTouchScreen(true);
             }
-            /*
-             * has to use getInputState() because the checkInputState() would delatch it
-             */
-            InputMapper.InputState inp = mapper.getInputState(true);
 
             if (0 == screenTimer || !shouldPause) {
                 final float AxisThreshold = 0.8f;
-                if (InputMapper.InputState.INP_FIRE1 == inp) {
+
+                InputMapper.InputState inp = mapper.getInputState();
+
+                if ((InputMapper.InputState.INP_FIRE1 == inp) || isTouched) {
                     GameWorld.getInstance().showScreen(newScreen);
+
                 } else if ((ScreenTypes.SETUP == screenType) &&
                         (InputMapper.InputState.INP_MENU == inp ||
                                 mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > AxisThreshold)) {
+
                     GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
             }

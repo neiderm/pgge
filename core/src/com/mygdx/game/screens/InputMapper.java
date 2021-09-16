@@ -122,6 +122,7 @@ public class InputMapper {
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
     static final int VIRTUAL_AXES_SZ = 6;
+
     /*
      * enumerate the various input events with which the screens may (poll/notify?)
      */
@@ -163,17 +164,17 @@ public class InputMapper {
      * Support of any known controller button-mapping with values in range 0:255.
      * The array is sparsely populated but at the cost of a little unused and inefficiently
      * allocated memory e.g.:
-     *                 virtualButtonCodes[96] = VirtualButtons.BTN_A;
-     *
+     * virtualButtonCodes[96] = VirtualButtons.BTN_A;
+     * <p>
      * In the Key Up and Key Down event handlers, the virtual button code can be determined from the
      * incoming control button code with minimal effort - first the incoming controller button code
      * is used as an index to retrieve the corresponding virtual button code from the virtual button
      * code array, then finally the new button state is stored using the virtual button enum ordinal
      * as the index into the virtual button states array:
-     *
-     *              VirtualButtonCode vbCode = virtualButtonCodes[ controllerButtonCode ];
-     *              assert (null != vbCode)
-     *              virtualButtonStates[ vbCode.ordinal() ] = newButtonState;
+     * <p>
+     * VirtualButtonCode vbCode = virtualButtonCodes[ controllerButtonCode ];
+     * assert (null != vbCode)
+     * virtualButtonStates[ vbCode.ordinal() ] = newButtonState;
      */
     private final VirtualButtonCode[] virtualButtonCodes = new VirtualButtonCode[MAX_BUTTONS];
 
@@ -184,6 +185,7 @@ public class InputMapper {
     private Controller connectedCtrl;
     private InputState preInputState;
     private InputState incomingInputState;
+    private InputState nowInputState;
 
     InputMapper() {
         final int CONTROLLER_ZERO = 0; // presently only 1 player is supported
@@ -224,30 +226,38 @@ public class InputMapper {
         return connectedCtrl;
     }
 
-    /*
+    /**
+     * Evaluate discrete inputs and return the enum id of the active input if any.
      * Available physical devices - which can include e.g. gamepad controller buttons, keyboard
      * input, as well as virtual buttons on the touch screen - are multiplexed into the various
      * discrete input abstractions.
+     * If incoming input state has changed from previous value, then update with stored
+     * input state and return it. If no change, returns NONE.
+     * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
+     * Stage then the caller will have to handle their own TS checking, e.g.:
+     * <p>
+     * if ((InputMapper.InputState.INP_FIRE1 == inp) || Gdx.input.isTouched(0)) {
+     *   GameWorld.getInstance().showScreen(newScreen);
+     * }
+     * <p>
      * todo: how Input.Keys.BACK generated in Android Q
-     * todo: table
-     *          Keyboard   Android TS       Controller
-     * ESCAPE   Esc        Input.Keys.BACK  Start Button
+     *
+     * @return enum constant of the currently active input if any or INP_NONE
      */
-    private InputState evalNewInputState(boolean checkIsTouched) {
-
+    InputState getInputState() {
         InputState newInputState = incomingInputState;
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
+                || getControlButton(VirtualButtonCode.BTN_A)) {
 
-        if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
+            newInputState = InputState.INP_FIRE1;
+
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtonCode.BTN_START)) {
             newInputState = InputState.INP_MENU;
         } else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtonCode.BTN_SELECT)) {
             newInputState = InputState.INP_VIEW;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
-                || (Gdx.input.justTouched() && checkIsTouched)
-                || getControlButton(VirtualButtonCode.BTN_A)) {
-            newInputState = InputState.INP_FIRE1;
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtonCode.BTN_B)) {
             newInputState = InputState.INP_FIRE2;
@@ -261,22 +271,7 @@ public class InputMapper {
                 || getControlButton(VirtualButtonCode.BTN_R1)) {
             newInputState = InputState.INP_SEL2;
         }
-        return newInputState;
-    }
 
-    /**
-     * Evaluate discrete inputs and return the enum id of the active input if any.
-     * If incoming input state has changed from previous value, then update with stored
-     * input state and return it. If no change, returns NONE.
-     * This api is necessary because checkInputState() de-latches (resets) the global Input State
-     * so can't be used successively to check for more than one state  .... bah
-     *
-     * @param checkIsTouched if touch screen input should be included in input mux
-     * @return enum constant of the currently active input if any or INP_NONE
-     */
-    InputState getInputState(boolean checkIsTouched) {
-
-        InputState newInputState = evalNewInputState(checkIsTouched);
         InputState debouncedInputState = InputState.INP_NONE;
 
         if (preInputState != newInputState) { // debounce
@@ -284,23 +279,27 @@ public class InputMapper {
         }
         preInputState = newInputState;
         incomingInputState = InputState.INP_NONE; // unlatch the input state
+
         return debouncedInputState;
     }
 
-    InputState getInputState() {
-        return getInputState(false);
-    }
-
-    private InputState nowInputState;
-
+    @Deprecated
     void latchInputState() {
         nowInputState = getInputState();
     }
 
+    @Deprecated
     boolean isInputState(InputState inp) {
         return (nowInputState == inp);
     }
 
+    /**
+     * Method for Controller Listener button up/down event and or for Input Listener key up/down event.
+     * The incoming button code is used as index to find the corresponding virtual button definition.
+     *
+     * @param buttonIndex    the button code
+     * @param newButtonState incoming button state
+     */
     void setControlButton(int buttonIndex, boolean newButtonState) {
         if (buttonIndex < MAX_BUTTONS) {
             // lookup the virtual button code

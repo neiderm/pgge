@@ -42,13 +42,6 @@ public class SplashScreen implements Screen {
         batch.draw(ttrSplash, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         batch.end();
 
-        // one-time check for TS input (determine wether to show touchpad controll)
-        boolean isTouched = Gdx.input.isTouched(0);
-
-        // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
-        // (but once global "isTouchscreen" is set, don't clear it ;)
-        if (!GameWorld.getInstance().getIsTouchScreen() && isTouched)
-            GameWorld.getInstance().setIsTouchScreen(true);
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
@@ -75,11 +68,9 @@ public class SplashScreen implements Screen {
     public void hide() {  // mt
         dispose();
     }
-
     @Override
     public void pause() {  // mt
     }
-
     @Override
     public void resume() {  // mt
     }
