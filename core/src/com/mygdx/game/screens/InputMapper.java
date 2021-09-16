@@ -236,8 +236,9 @@ public class InputMapper {
      * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
      * Stage then the caller will have to handle their own TS checking, e.g.:
      * <p>
+     * InputMapper.InputState inp = mapper.getInputState();
      * if ((InputMapper.InputState.INP_FIRE1 == inp) || Gdx.input.isTouched(0)) {
-     *   GameWorld.getInstance().showScreen(newScreen);
+     * GameWorld.getInstance().showScreen(newScreen);
      * }
      * <p>
      * todo: how Input.Keys.BACK generated in Android Q
@@ -289,16 +290,6 @@ public class InputMapper {
      */
     void setInputState(InputState incomingInputState) {
         this.incomingInputState = incomingInputState;
-    }
-
-    @Deprecated
-    void latchInputState() {
-        nowInputState = getInputState();
-    }
-
-    @Deprecated
-    boolean isInputState(InputState inp) {
-        return (nowInputState == inp);
     }
 
     /**

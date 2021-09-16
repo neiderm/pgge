@@ -394,10 +394,9 @@ public class GameUI extends InGameMenu {
 
         int checkedBox = 0; // button default at top selection
 
-        mapper.latchInputState();
+        InputMapper.InputState inp = mapper.getInputState();
 
-        if (mapper.isInputState(InputMapper.InputState.INP_FIRE1)) {
-
+        if ((InputMapper.InputState.INP_FIRE1 == inp) ) {
             if (GameWorld.getInstance().getIsPaused()) {
                 onPauseEvent();
             } else {
@@ -407,15 +406,14 @@ public class GameUI extends InGameMenu {
                     onSelectEvent(); // so it can be overriden
                 }
             }
-        } else if (mapper.isInputState(InputMapper.InputState.INP_MENU)) {
+        } else if (InputMapper.InputState.INP_MENU == inp) {
             onEscEvent();
-
-        } else if (mapper.isInputState(InputMapper.InputState.INP_VIEW)) {
+        } else if (InputMapper.InputState.INP_VIEW == inp) {
             onCameraSwitch();
-
-        } else if (mapper.isInputState(InputMapper.InputState.INP_SEL1)) {
+        } else if (InputMapper.InputState.INP_SEL1 == inp) {
             onMenuEvent();
         }
+
         if (GameWorld.getInstance().getIsPaused()) {
             checkedBox = checkedUpDown(mapper.getDpad().getY());
         }
