@@ -57,7 +57,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  *   "http://bedroomcoders.co.uk/libgdx-bullet-redux-2/",
  * and modified to Ashley ECS (entity component system architecture).
  */
-class ReduxScreen implements Screen {
+public class ReduxScreen implements Screen {
 
     private final ModelBuilder modelBuilder = new ModelBuilder();
 

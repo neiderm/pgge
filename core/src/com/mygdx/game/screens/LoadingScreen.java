@@ -54,7 +54,7 @@ public class LoadingScreen implements Screen {
         LEVEL
     }
 
-    LoadingScreen(boolean shouldPause, ScreenTypes screenType) {
+    public LoadingScreen(boolean shouldPause, ScreenTypes screenType) {
         this.shouldPause = shouldPause;
         this.screenType = screenType;
     }
