@@ -208,6 +208,10 @@ class InGameMenu extends Stage {
         addActor(playerInfoTbl);
     }
 
+    /**
+     * Add a "Next" button to an in-game menu. Button touch handler sets the virtual Control
+     * Button in the Input Mapper.
+     */
     void addNextButton() {
         if (GameWorld.getInstance().getIsTouchScreen()) {
             Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
@@ -222,14 +226,14 @@ class InGameMenu extends Stage {
             TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
             ImageButton nextButton = new ImageButton(myTexRegionDrawable);
-//            nextButton.addListener(new InputListener() {
-//                @Override
-//                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-//                    mapper.setControlButton(BTN_KCODE_FIRE1, true);
-//                    return false;
-//                }
-//            }
-//            );
+            // add a touch down listener to the Next button
+            nextButton.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                    return false;
+                }
+            });
             onscreenMenuTbl.row();
             onscreenMenuTbl.add(nextButton).fillX().uniformX();
         }
