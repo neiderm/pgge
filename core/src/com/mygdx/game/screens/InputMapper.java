@@ -283,6 +283,14 @@ public class InputMapper {
         return debouncedInputState;
     }
 
+    /*
+     * sets the passed input state
+     * Unfortunately this is needed only for In Game Menu Next button - setControlButton(FIRE1) sticks
+     */
+    void setInputState(InputState incomingInputState) {
+        this.incomingInputState = incomingInputState;
+    }
+
     @Deprecated
     void latchInputState() {
         nowInputState = getInputState();

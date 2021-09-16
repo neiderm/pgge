@@ -230,7 +230,9 @@ class InGameMenu extends Stage {
             nextButton.addListener(new InputListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                    // TS, in-game menu, tap Next button ... stuck on FIRE1, can't ESC
+                    // mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                    mapper.setInputState(InputMapper.InputState.INP_FIRE1);
                     return false;
                 }
             });
