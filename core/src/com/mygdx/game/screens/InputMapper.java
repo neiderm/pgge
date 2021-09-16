@@ -157,25 +157,6 @@ public class InputMapper {
     private InputState incomingInputState = InputState.INP_NONE;
     private InputState preInputState = InputState.INP_NONE;
 
-    InputMapper() {
-        initController();
-        connectedCtrl = getConnectedCtrl(0);
-        // flush any active input from previous screen
-        checkInputState(InputState.INP_FIRE1); // seems to be necessary with game pad ?
-    }
-
-//    private class ButtonData {
-//
-//        int value;
-//        boolean isRepeatable;
-//
-//        ButtonData setValue(int value, boolean isRepeatable) {
-//            this.value = value;
-//            this.isRepeatable = isRepeatable;
-//            return this;
-//        }
-//    }
-
     /*
      * abstraction of controller buttons
      */
@@ -196,6 +177,17 @@ public class InputMapper {
         BTN_R1,
         BTN_R2,
         BTN_R3
+    }
+
+    InputMapper() {
+        initController();
+        connectedCtrl = getConnectedCtrl(0);
+        /*
+         * Make sure to test that the INP FIRE1 (Space key or X/A button) can be held down and does
+         * not repeat going from one screen to the next.
+         * Leaving incomingInputState not explicitly initialized doesn't seem to have any ill effects.
+         */
+        preInputState = InputState.INP_FIRE1;
     }
 
     // get the "virtual axis"
@@ -302,34 +294,6 @@ public class InputMapper {
 
     boolean isInputState(InputState inp) {
         return (nowInputState == inp);
-    }
-
-    /**
-     * If queried switch is active AND switch state has changed reset the Incoming State and return true.
-     * This API is potentially useful for doing a series of tests for different wanted states where
-     * it is OK (and necessary) that the incoming state is not reset/cleared.
-     * <p>
-     * This piece of cargo cult programming presently serves only one apparentl purpose: flushes/debounces
-     * sticking input from "Fire1" switch (e.g. space-key) from Splash Screen, causing Select Screen
-     * to be immediately dispatched and jump right to Loading.
-     *
-     * @param queriedInputState input switch to be tested for
-     * @return boolean true if input switch is active and not held
-     */
-    private boolean checkInputState(InputState queriedInputState) {
-
-        InputState newInputState = evalNewInputState(true);
-
-        boolean rv = false;
-
-        if (newInputState == queriedInputState) {
-            if (preInputState != newInputState) { // debounce
-                rv = true;
-                preInputState = newInputState;
-            }
-            incomingInputState = InputState.INP_NONE; // unlatch the input state
-        }
-        return rv;
     }
 
     void setControlButton(int buttonIndex, boolean state) {
