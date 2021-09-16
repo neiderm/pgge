@@ -261,10 +261,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 analogs[idxX1] = mapper.getAxis(idxX1);
                 analogs[idxY1] = mapper.getAxis(idxY1);
 
-                switches[ControllerAbstraction.SW_TRIANGL] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_Y);
-                switches[ControllerAbstraction.SW_SQUARE] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_X);
-                switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_A, 60);
-                switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtons.BTN_B, 1);
+                switches[ControllerAbstraction.SW_TRIANGL] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_Y);
+                switches[ControllerAbstraction.SW_SQUARE] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_X);
+                switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_A, 60);
+                switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_B, 1);
 
                 gunPlatform.updateControls(analogs, switches, 0 /* unused */);
 

@@ -20,7 +20,6 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
-import com.badlogic.gdx.math.Vector2;
 import com.mygdx.game.GameWorld;
 
 import java.util.Arrays;
@@ -123,16 +122,6 @@ public class InputMapper {
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
     static final int VIRTUAL_AXES_SZ = 6;
-
-//    public enum VirtualAxes {
-//        VIRTUAL_AD_AXIS, // WASD "X" axis
-//        VIRTUAL_WS_AXIS, // WASD "Y" axis
-//        VIRTUAL_X1_AXIS, // right anlg stick "X" (if used)
-//        VIRTUAL_Y1_AXIS, // right anlg stick "Y" (if used)
-//        VIRTUAL_L2_AXIS, // front button "left 2" (if used)
-//        VIRTUAL_R2_AXIS // front button "right 2" (if used)
-//    }
-
     /*
      * enumerate the various input events with which the screens may (poll/notify?)
      */
@@ -148,19 +137,10 @@ public class InputMapper {
         INP_SEL2     // R1
     }
 
-    private final VirtualButtons[] buttonmMapping = new VirtualButtons[MAX_BUTTONS];
-    private final int[] buttonStateDebCts = new int[VirtualButtons.values().length];
-    private final boolean[] buttonStates = new boolean[VirtualButtons.values().length];
-    private final Vector2 pointer = new Vector2();
-
-    private Controller connectedCtrl;
-    private InputState incomingInputState = InputState.INP_NONE;
-    private InputState preInputState = InputState.INP_NONE;
-
     /*
      * abstraction of controller buttons
      */
-    public enum VirtualButtons {
+    public enum VirtualButtonCode {
         BTN_NONE,
         BTN_ESC, // n45 'ESC'
         BTN_SELECT, // n45 'MOUSE'
@@ -179,13 +159,40 @@ public class InputMapper {
         BTN_R3
     }
 
+    /**
+     * Support of any known controller button-mapping with values in range 0:255.
+     * The array is sparsely populated but at the cost of a little unused and inefficiently
+     * allocated memory e.g.:
+     *                 virtualButtonCodes[96] = VirtualButtons.BTN_A;
+     *
+     * In the Key Up and Key Down event handlers, the virtual button code can be determined from the
+     * incoming control button code with minimal effort - first the incoming controller button code
+     * is used as an index to retrieve the corresponding virtual button code from the virtual button
+     * code array, then finally the new button state is stored using the virtual button enum ordinal
+     * as the index into the virtual button states array:
+     *
+     *              VirtualButtonCode vbCode = virtualButtonCodes[ controllerButtonCode ];
+     *              assert (null != vbCode)
+     *              virtualButtonStates[ vbCode.ordinal() ] = newButtonState;
+     */
+    private final VirtualButtonCode[] virtualButtonCodes = new VirtualButtonCode[MAX_BUTTONS];
+
+    private final boolean[] virtualButtonStates = new boolean[VirtualButtonCode.values().length];
+
+    private final int[] virtualButtonDebounceCounts = new int[VirtualButtonCode.values().length];
+
+    private Controller connectedCtrl;
+    private InputState preInputState;
+    private InputState incomingInputState;
+
     InputMapper() {
-        initController();
-        connectedCtrl = getConnectedCtrl(0);
+        final int CONTROLLER_ZERO = 0; // presently only 1 player is supported
+        connectedCtrl = getConnectedCtrl(CONTROLLER_ZERO);
+        setControllerButtonMapping();
         /*
-         * Make sure to test that the INP FIRE1 (Space key or X/A button) can be held down and does
-         * not repeat going from one screen to the next.
-         * Leaving incomingInputState not explicitly initialized doesn't seem to have any ill effects.
+         * Ensure that the INP FIRE1 (Space key or X/A button) can be held down and does
+         * not repeat when transitioning e.g. from Splash Screen to Select Screen, and also
+         * from Select Screen to Game Screen
          */
         preInputState = InputState.INP_FIRE1;
     }
@@ -195,7 +202,7 @@ public class InputMapper {
         return analogAxes[axisIndex];
     }
 
-    // allows axes to be virtualized from external source, i.e keyboard
+    // allows axes to be virtualized from external source, i.e keyboard WASD, controller, touchscreen
     void setAxis(int axisIndex, float axisValue) {
         if (axisIndex < MAX_AXES) {
             analogAxes[axisIndex] = axisValue;
@@ -232,28 +239,26 @@ public class InputMapper {
 
         if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
-                || getControlButton(VirtualButtons.BTN_START)) {
+                || getControlButton(VirtualButtonCode.BTN_START)) {
             newInputState = InputState.INP_MENU;
         } else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
-                || getControlButton(VirtualButtons.BTN_SELECT)) {
+                || getControlButton(VirtualButtonCode.BTN_SELECT)) {
             newInputState = InputState.INP_VIEW;
         } else if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || (Gdx.input.justTouched() && checkIsTouched)
-                || getControlButton(VirtualButtons.BTN_A)) {
+                || getControlButton(VirtualButtonCode.BTN_A)) {
             newInputState = InputState.INP_FIRE1;
-            // default to screen center just because
-            pointer.set(Gdx.graphics.getHeight() / 2f, Gdx.graphics.getHeight() / 2f);
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-                || getControlButton(VirtualButtons.BTN_B)) {
+                || getControlButton(VirtualButtonCode.BTN_B)) {
             newInputState = InputState.INP_FIRE2;
         } else if (Gdx.input.isKeyPressed(Input.Keys.ENTER)
-                || getControlButton(VirtualButtons.BTN_Y)) {
+                || getControlButton(VirtualButtonCode.BTN_Y)) {
             newInputState = InputState.INP_BROVER;
         } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
-                || getControlButton(VirtualButtons.BTN_L1)) {
+                || getControlButton(VirtualButtonCode.BTN_L1)) {
             newInputState = InputState.INP_SEL1;
         } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
-                || getControlButton(VirtualButtons.BTN_R1)) {
+                || getControlButton(VirtualButtonCode.BTN_R1)) {
             newInputState = InputState.INP_SEL2;
         }
         return newInputState;
@@ -296,12 +301,12 @@ public class InputMapper {
         return (nowInputState == inp);
     }
 
-    void setControlButton(int buttonIndex, boolean state) {
+    void setControlButton(int buttonIndex, boolean newButtonState) {
         if (buttonIndex < MAX_BUTTONS) {
-            // lookup the virtual button id
-            VirtualButtons bb = buttonmMapping[buttonIndex];
-            if (null != bb) {
-                buttonStates[bb.ordinal()] = state;
+            // lookup the virtual button code
+            VirtualButtonCode vbCode = virtualButtonCodes[buttonIndex];
+            if (null != vbCode) {
+                virtualButtonStates[vbCode.ordinal()] = newButtonState;
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
@@ -311,11 +316,11 @@ public class InputMapper {
                         break;
                     case 3: // PC USB (N45)
                         // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
-                        int val = state ? 1 : 0;
-                        if (VirtualButtons.BTN_L2 == bb) {
+                        int val = newButtonState ? 1 : 0;
+                        if (VirtualButtonCode.BTN_L2 == vbCode) {
                             analogAxes[VIRTUAL_L2_AXIS] = val;
                         }
-                        if (VirtualButtons.BTN_R2 == bb) {
+                        if (VirtualButtonCode.BTN_R2 == vbCode) {
                             analogAxes[VIRTUAL_R2_AXIS] = val;
                         }
                         break;
@@ -324,43 +329,43 @@ public class InputMapper {
         }
     }
 
-    private boolean getControlButton(VirtualButtons wantedInputState) {
+    private boolean getControlButton(VirtualButtonCode wantedInputState) {
         int index = wantedInputState.ordinal();
-        if (index > buttonStates.length) {
+        if (index > virtualButtonStates.length) {
             return false;
         } else
-            return buttonStates[index];
+            return virtualButtonStates[index];
     }
 
-    boolean getDebouncedContrlButton(VirtualButtons vbutton) {
+    boolean getDebouncedContrlButton(VirtualButtonCode vbutton) {
         return getDebouncedContrlButton(vbutton, false, 5);
     }
 
-    boolean getDebouncedContrlButton(VirtualButtons vbutton, int repeatPeriod) {
+    boolean getDebouncedContrlButton(VirtualButtonCode vbutton, int repeatPeriod) {
         return getDebouncedContrlButton(vbutton, true, repeatPeriod);
     }
 
-    private boolean getDebouncedContrlButton(VirtualButtons vbutton, boolean letRepeat, int repeatPeriod) {
+    private boolean getDebouncedContrlButton(VirtualButtonCode vbutton, boolean letRepeat, int repeatPeriod) {
 
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
 
-        if (getControlButton(vbutton) && (0 == buttonStateDebCts[switchIndex])) {
+        if (getControlButton(vbutton) && (0 == virtualButtonDebounceCounts[switchIndex])) {
             rv = true;
             // controller may emit several down/up events on a "single" button press/release
-            buttonStateDebCts[switchIndex] = repeatPeriod;
+            virtualButtonDebounceCounts[switchIndex] = repeatPeriod;
         }
         // if user has let go of button, then reduce the countdown to the debounce time
         if (!getControlButton(vbutton)) {
             final int Debounce_Time = 15;
-            if (buttonStateDebCts[switchIndex] > Debounce_Time) {
-                buttonStateDebCts[switchIndex] = Debounce_Time;
+            if (virtualButtonDebounceCounts[switchIndex] > Debounce_Time) {
+                virtualButtonDebounceCounts[switchIndex] = Debounce_Time;
             }
         }
         if (!getControlButton(vbutton) || letRepeat) {
-            buttonStateDebCts[switchIndex] -= 2;
-            if (buttonStateDebCts[switchIndex] < 0) {
-                buttonStateDebCts[switchIndex] = 0;
+            virtualButtonDebounceCounts[switchIndex] -= 2;
+            if (virtualButtonDebounceCounts[switchIndex] < 0) {
+                virtualButtonDebounceCounts[switchIndex] = 0;
             }
         }
         return rv;
@@ -465,12 +470,11 @@ public class InputMapper {
     }
 
     /*
-     * enumerates connected controllers (todo: list known controllers in a table)
-     * sets button mapping
+     * Enumerates connected controllers and configures virtual button mapping.
      */
-    private void initController() {
+    private void setControllerButtonMapping() {
         // print the currently connected controllers to the console
-        print("initController(): available controllers: " + Controllers.getControllers().size);
+        print("available controllers: " + Controllers.getControllers().size);
         int i = 0;
         for (Controller controller : Controllers.getControllers()) {
             print("#" + i++ + ": " + controller.getName());
@@ -480,38 +484,38 @@ public class InputMapper {
             default:
             case 0: // Ipega PG-9076 Linux USB
             case 1: // Windows (USB, B/T)
-                buttonmMapping[0] = VirtualButtons.BTN_A;
-                buttonmMapping[1] = VirtualButtons.BTN_B;
-                buttonmMapping[2] = VirtualButtons.BTN_X;
-                buttonmMapping[3] = VirtualButtons.BTN_Y;
-                buttonmMapping[4] = VirtualButtons.BTN_L1;
-                buttonmMapping[5] = VirtualButtons.BTN_R1;
-                buttonmMapping[6] = VirtualButtons.BTN_SELECT;
-                buttonmMapping[7] = VirtualButtons.BTN_START;
+                virtualButtonCodes[0] = VirtualButtonCode.BTN_A;
+                virtualButtonCodes[1] = VirtualButtonCode.BTN_B;
+                virtualButtonCodes[2] = VirtualButtonCode.BTN_X;
+                virtualButtonCodes[3] = VirtualButtonCode.BTN_Y;
+                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1;
+                virtualButtonCodes[5] = VirtualButtonCode.BTN_R1;
+                virtualButtonCodes[6] = VirtualButtonCode.BTN_SELECT;
+                virtualButtonCodes[7] = VirtualButtonCode.BTN_START;
                 // Turbo?
                 break;
             case 2: // Android
-                buttonmMapping[96] = VirtualButtons.BTN_A;
-                buttonmMapping[97] = VirtualButtons.BTN_B;
-                buttonmMapping[99] = VirtualButtons.BTN_X;
-                buttonmMapping[100] = VirtualButtons.BTN_Y;
-                buttonmMapping[102] = VirtualButtons.BTN_L1;
-                buttonmMapping[103] = VirtualButtons.BTN_R1;
-                buttonmMapping[109] = VirtualButtons.BTN_SELECT;
-                buttonmMapping[108] = VirtualButtons.BTN_START;
+                virtualButtonCodes[96] = VirtualButtonCode.BTN_A;
+                virtualButtonCodes[97] = VirtualButtonCode.BTN_B;
+                virtualButtonCodes[99] = VirtualButtonCode.BTN_X;
+                virtualButtonCodes[100] = VirtualButtonCode.BTN_Y;
+                virtualButtonCodes[102] = VirtualButtonCode.BTN_L1;
+                virtualButtonCodes[103] = VirtualButtonCode.BTN_R1;
+                virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT;
+                virtualButtonCodes[108] = VirtualButtonCode.BTN_START;
                 break;
-            case 3: // Belkin n45 Linux USB
-                buttonmMapping[0] = VirtualButtons.BTN_A; // B1
-                buttonmMapping[1] = VirtualButtons.BTN_B; // B2
-                buttonmMapping[2] = VirtualButtons.BTN_X; // B3
-                buttonmMapping[3] = VirtualButtons.BTN_Y; // B4
-                buttonmMapping[4] = VirtualButtons.BTN_L1; // T3
-                buttonmMapping[6] = VirtualButtons.BTN_R1; // T1
-                buttonmMapping[5] = VirtualButtons.BTN_L2; // T4  (virtualize as L2/R2 axis)
-                buttonmMapping[7] = VirtualButtons.BTN_R2; // T2  (virtualize as L2/R2 axis)
-                buttonmMapping[8] = VirtualButtons.BTN_ESC;    // 3rd function button
-                buttonmMapping[9] = VirtualButtons.BTN_SELECT; // MOUSE
-                buttonmMapping[10] = VirtualButtons.BTN_START; // ENTER
+            case 3: // Belkin n45 Linux/Windows USB
+                virtualButtonCodes[0] = VirtualButtonCode.BTN_A; // B1
+                virtualButtonCodes[1] = VirtualButtonCode.BTN_B; // B2
+                virtualButtonCodes[2] = VirtualButtonCode.BTN_X; // B3
+                virtualButtonCodes[3] = VirtualButtonCode.BTN_Y; // B4
+                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1; // T3
+                virtualButtonCodes[6] = VirtualButtonCode.BTN_R1; // T1
+                virtualButtonCodes[5] = VirtualButtonCode.BTN_L2; // T4  (virtualize as L2/R2 axis)
+                virtualButtonCodes[7] = VirtualButtonCode.BTN_R2; // T2  (virtualize as L2/R2 axis)
+                virtualButtonCodes[8] = VirtualButtonCode.BTN_ESC;    // 3rd function button
+                virtualButtonCodes[9] = VirtualButtonCode.BTN_SELECT; // MOUSE
+                virtualButtonCodes[10] = VirtualButtonCode.BTN_START; // ENTER
                 break;
         }
 
