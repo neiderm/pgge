@@ -126,7 +126,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         texture = new Texture(pixmap);
         stage.addImageButton(
                 texture,
-                Gdx.graphics.getWidth() - ARROW_EXT, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+                Gdx.graphics.getWidth() - (float)ARROW_EXT, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
@@ -297,9 +297,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.draw();
 
         if (isPaused) {
-            int step = stage.mapper.getDpad().getY();
-            idxMenuSelection = stage.checkedUpDown(step);
-            stage.setCheckedBox(idxMenuSelection);
+            idxMenuSelection = stage.setCheckedBox();
 
             InputMapper.InputState inp = stage.mapper.getInputState();
 

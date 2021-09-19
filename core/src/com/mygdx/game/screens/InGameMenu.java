@@ -142,10 +142,10 @@ class InGameMenu extends Stage {
         setupPlayerInfo();
 
         // transparent overlay layer
-//        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
                 new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
-        pixmap.setBlending(Pixmap.Blending.None);
+//        pixmap.setBlending(Pixmap.Blending.None);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
         pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -250,8 +250,8 @@ class InGameMenu extends Stage {
     void addNextButton() {
         if (GameWorld.getInstance().getIsTouchScreen()) {
             Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-            button.setBlending(Pixmap.Blending.None);
-//            Pixmap.setBlending(Pixmap.Blending.None);
+//            button.setBlending(Pixmap.Blending.None);
+            Pixmap.setBlending(Pixmap.Blending.None);
             button.setColor(1, 0, 0, 1);
             button.fillCircle(25, 25, 25);
 
@@ -344,19 +344,25 @@ class InGameMenu extends Stage {
         onscreenMenuTbl.add(button).fillX().uniformX();
     }
 
-    void setCheckedBox(int checked) {
+    int setCheckedBox() {
+        return setCheckedBox(checkedUpDown());
+    }
+
+    int setCheckedBox(int checked) {
         if (buttonNames.size > 0) {
             String name = buttonNames.get(checked);
             bg.setChecked(name);
         }
+        return checked;
     }
 
     int getCheckedIndex() {
         return bg.getCheckedIndex();
     }
 
-    int checkedUpDown(int step) {
+    int checkedUpDown() {
 
+        int step = mapper.getDpad().getY();
         int selectedIndex = bg.getCheckedIndex();
 
         if (0 == previousIncrement) {

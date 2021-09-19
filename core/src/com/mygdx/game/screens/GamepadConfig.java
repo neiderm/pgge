@@ -40,8 +40,7 @@ public class GamepadConfig implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad().getY());
-        stage.setCheckedBox(idxCurSel);
+        int idxCurSel = stage.setCheckedBox();
 
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()
                 || stage.mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > 0.8f                           // hacky hacky

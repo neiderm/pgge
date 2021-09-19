@@ -43,8 +43,7 @@ public class MainMenuScreen implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.checkedUpDown(stage.mapper.getDpad().getY());
-        stage.setCheckedBox(idxCurSel);
+        int idxCurSel = stage.setCheckedBox();
 
         if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()) {
             // pass along the local player object name
