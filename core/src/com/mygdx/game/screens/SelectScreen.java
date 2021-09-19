@@ -44,7 +44,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final String CLASS_STRING = "SelectScreen";
 
     private static final Array<String> stageNamesList = new Array<String>();
-    private static final int N_SELECTIONS = 3;
+    private int actorCount = 0;
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -68,6 +68,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         super.init();
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
+        actorCount = characters.size(); // should be 3!@!!!!
+
         GameFeature f = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
         if (null != f) {
@@ -129,7 +131,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
 
-        degreesSetp = 90 - idxRigSelection * PLATFRM_INC_DEGREES;
+        degreesSetp = 90 - idxRigSelection * platformIncDegrees();
     }
 
     /*
@@ -167,7 +169,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return axis;
     }
 
-    private static final float PLATFRM_INC_DEGREES = 360.0f / N_SELECTIONS;
     private final Vector3 down = new Vector3();
     private float degreesInst; // instantaneous commanded rotation of platform
     private float degreesSetp; // demanded rotation of platform
@@ -205,15 +206,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
     private static final float RIG_PLACEMENT_RADIUS_SCALAR = 1.1f;
 
+    private float platformIncDegrees() {
+        return (360.0f / actorCount);
+    }
+
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
      */
     private void updateRigs(float platformDegrees) {
 
-        for (int n = 0; n < N_SELECTIONS; n++) {
+        for (int n = 0; n < actorCount; n++) {
 
             // angular offset of unit to position it relative to platform
-            float positionDegrees = PLATFRM_INC_DEGREES * n;
+            float positionDegrees = platformIncDegrees() * n;
 
             // final rotation of unit is Platform Degrees plus angular rotation to orient unit relative to platform
             float orientionDegrees = positionDegrees - platformDegrees - TANK_MODEL_ORIENTATION;
@@ -250,15 +255,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
     }
 
+    // based on  InGameMenu. checkedUpDown()    
     private int checkedUpDown(int step, int checkedIndex) {
 
         int selectedIndex = checkedIndex;
         selectedIndex += step;
 
-        if (selectedIndex >= N_SELECTIONS) {
+        if (selectedIndex >= actorCount) {
             selectedIndex = 0;
         } else if (selectedIndex < 0) {
-            selectedIndex = N_SELECTIONS - 1;
+            selectedIndex = actorCount - 1;
         }
         return selectedIndex;
     }
@@ -311,7 +317,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             idxRigSelection = checkedUpDown(step, idxRigSelection);
             // Necessary to increment the degrees because we are controlling to it like a setpoint
             // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-            degreesSetp -= PLATFRM_INC_DEGREES * step;   // negated (matches to left/right of object nearest to front of view)
+            degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
 
             InputMapper.InputState inputState = stage.mapper.getInputState();
 
