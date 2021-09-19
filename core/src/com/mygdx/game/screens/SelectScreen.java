@@ -24,11 +24,9 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
@@ -57,14 +55,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             new Vector3()
     };
     private ImmutableArray<Entity> characters;
-    private Texture gsTexture;
-    private BitmapFont font;
-    private InGameMenu stage;
     private Entity platform;
     private int idxRigSelection;
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
     private boolean isPaused;
+    private InGameMenu stage;
 
     @Override
     public void show() {
@@ -103,22 +99,35 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         final int gsBTNheight = Gdx.graphics.getHeight() / 4;
         final int gsBTNx = 0;
         final int gsBTNy = 0;
+        Pixmap pixmap;
+        Texture texture;
 
-        Pixmap pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
+        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
-        gsTexture = new Texture(pixmap);
-        stage.addImageButton(gsTexture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
+        texture = new Texture(pixmap);
+        stage.addImageButton(texture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
-        // Font files from ashley-superjumper
-        font = new BitmapFont(
-                Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
-                Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
-        font.getData().setScale(1.0f);
+        pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 0, 0, .8f);
+        pixmap.fillTriangle(0, 16, 32, 32, 32, 0);
+        texture = new Texture(pixmap);
+        stage.addImageButton(
+                texture,
+                0, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+        pixmap.dispose();
 
-        stage.addActor(
-                new Label("Choose your Rig ... ", new Label.LabelStyle(font, Color.WHITE)));
+        pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
+        pixmap.setColor(0, 1, 0, .8f);
+        pixmap.fillTriangle(0, 0, 0, 32, 32, 16);
+        texture = new Texture(pixmap);
+        stage.addImageButton(
+                texture,
+                Gdx.graphics.getWidth() - 32.0f, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+        pixmap.dispose();
+
+        stage.addLabel("Choose your Rig ... ", Color.WHITE);
 
         degreesSetp = 90 - idxRigSelection * PLATFRM_INC_DEGREES;
     }
@@ -331,13 +340,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     @Override
     public void dispose() {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
-        font.dispose();
         shapeRenderer.dispose();
         stage.dispose();
-
-        if (null != gsTexture) {
-            gsTexture.dispose();
-        }
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }

@@ -58,15 +58,15 @@ class InGameMenu extends Stage {
     final Table onscreenMenuTbl = new Table();
     final Table playerInfoTbl = new Table();
 
+    private int previousIncrement;
+    private int count;
+
     // @dispsables
     private final Texture overlayTexture;
     private final Image overlayImage;
     private final Skin uiSkin;
     private final BitmapFont font;
-
     private Texture buttonTexture;
-    private int previousIncrement;
-    private int count;
 
     static final String DEFAULT_UISKIN_JSON = "skin/uiskin.json";
 
@@ -142,9 +142,10 @@ class InGameMenu extends Stage {
         setupPlayerInfo();
 
         // transparent overlay layer
-        Pixmap.setBlending(Pixmap.Blending.None);
+//        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
                 new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
+        pixmap.setBlending(Pixmap.Blending.None);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
         pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
@@ -208,39 +209,6 @@ class InGameMenu extends Stage {
         addActor(playerInfoTbl);
     }
 
-    /**
-     * Add a "Next" button to an in-game menu. Button touch handler sets the virtual Control
-     * Button in the Input Mapper.
-     */
-    void addNextButton() {
-        if (GameWorld.getInstance().getIsTouchScreen()) {
-            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-//            button.setBlending(Pixmap.Blending.None);
-            Pixmap.setBlending(Pixmap.Blending.None);
-            button.setColor(1, 0, 0, 1);
-            button.fillCircle(25, 25, 25);
-
-            buttonTexture = new Texture(button);
-            button.dispose();
-            TextureRegion myTextureRegion = new TextureRegion(buttonTexture);
-            TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-            ImageButton nextButton = new ImageButton(myTexRegionDrawable);
-            // add a touch down listener to the Next button
-            nextButton.addListener(new InputListener() {
-                @Override
-                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    // TS, in-game menu, tap Next button ... stuck on FIRE1, can't ESC
-                    // mapper.setControlButton(BTN_KCODE_FIRE1, true);
-                    mapper.setInputState(InputMapper.InputState.INP_FIRE1);
-                    return false;
-                }
-            });
-            onscreenMenuTbl.row();
-            onscreenMenuTbl.add(nextButton).fillX().uniformX();
-        }
-    }
-
     private Skin makeSkin() {
         Skin skin = new Skin();
 
@@ -268,59 +236,46 @@ class InGameMenu extends Stage {
         return skin;
     }
 
-    void addButton(String name, String styleName) {
-        addButton(new TextButton(name, uiSkin, styleName));
+    /*
+     * add a label in the default font and style
+     */
+    void addLabel(String labelText, Color labelColor) {
+        addActor(new Label(labelText, new Label.LabelStyle(font, labelColor)));
     }
 
-    void addButton(String text) {
-        addButton(new TextButton(text, uiSkin));
-    }
+    /**
+     * Add a "Next" button to an in-game menu. Button touch handler sets the virtual Control
+     * Button in the Input Mapper.
+     */
+    void addNextButton() {
+        if (GameWorld.getInstance().getIsTouchScreen()) {
+            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
+            button.setBlending(Pixmap.Blending.None);
+//            Pixmap.setBlending(Pixmap.Blending.None);
+            button.setColor(1, 0, 0, 1);
+            button.fillCircle(25, 25, 25);
 
-    private void addButton(TextButton button) {
-        buttonNames.add(button.getText().toString());
-        bg.add(button);
-        count += 1;
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(button).fillX().uniformX();
-    }
+            buttonTexture = new Texture(button);
+            button.dispose();
+            TextureRegion myTextureRegion = new TextureRegion(buttonTexture);
+            TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
 
-    void setCheckedBox(int checked) {
-        if (buttonNames.size > 0) {
-            String name = buttonNames.get(checked);
-            bg.setChecked(name);
+            ImageButton nextButton = new ImageButton(myTexRegionDrawable);
+            // add a touch down listener to the Next button
+            nextButton.addListener(new InputListener() {
+                @Override
+                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                    // TS, in-game menu, tap Next button ... stuck on FIRE1, can't ESC
+                    // mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                    mapper.setInputState(InputMapper.InputState.INP_FIRE1);
+                    return false;
+                }
+            });
+            onscreenMenuTbl.row();
+            onscreenMenuTbl.add(nextButton).fillX().uniformX();
         }
     }
 
-    int getCheckedIndex() {
-        return bg.getCheckedIndex();
-    }
-
-    int checkedUpDown(int step) {
-        final int N_SELECTIONS = count;
-        int selectedIndex = bg.getCheckedIndex();
-
-        if (0 == previousIncrement) {
-            selectedIndex += step;
-        }
-        previousIncrement = step;
-
-        if (selectedIndex >= N_SELECTIONS) {
-            selectedIndex = (N_SELECTIONS - 1);
-        }
-        if (selectedIndex < 0) {
-            selectedIndex = 0;
-        }
-        return selectedIndex;
-    }
-
-    protected void onSelectEvent() { // mt override
-    }
-
-    protected void onPauseEvent() { // mt override
-    }
-
-    protected void onEscEvent() { // mt override
-    }
 
     /*
      * saves the texture ref for disposal ;)
@@ -373,6 +328,64 @@ class InGameMenu extends Stage {
         return newButton;
     }
 
+    void addButton(String name, String styleName) {
+        addButton(new TextButton(name, uiSkin, styleName));
+    }
+
+    void addButton(String text) {
+        addButton(new TextButton(text, uiSkin));
+    }
+
+    private void addButton(TextButton button) {
+        buttonNames.add(button.getText().toString());
+        bg.add(button);
+        count += 1;
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(button).fillX().uniformX();
+    }
+
+    void setCheckedBox(int checked) {
+        if (buttonNames.size > 0) {
+            String name = buttonNames.get(checked);
+            bg.setChecked(name);
+        }
+    }
+
+    int getCheckedIndex() {
+        return bg.getCheckedIndex();
+    }
+
+    int checkedUpDown(int step) {
+        final int N_SELECTIONS = count;
+        int selectedIndex = bg.getCheckedIndex();
+
+        if (0 == previousIncrement) {
+            selectedIndex += step;
+        }
+        previousIncrement = step;
+
+        if (selectedIndex >= N_SELECTIONS) {
+            selectedIndex = (N_SELECTIONS - 1);
+        }
+        if (selectedIndex < 0) {
+            selectedIndex = 0;
+        }
+        return selectedIndex;
+    }
+
+    // event handlers to be overridden
+    protected void onSelectEvent() { // mt
+    }
+
+    protected void onPauseEvent() { // mt
+    }
+
+    protected void onEscEvent() { // mt
+    }
+
+    /*
+     * dispose textures of Actors that were added to the Stage by the client
+     */
     private void clearShapeRefs() {
         for (Texture tex : savedTextureRefs) {
             tex.dispose();
