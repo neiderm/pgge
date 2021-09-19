@@ -97,34 +97,34 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         final int gsBTNwidth = Gdx.graphics.getWidth();
         final int gsBTNheight = Gdx.graphics.getHeight() / 4;
-        final int gsBTNx = 0;
-        final int gsBTNy = 0;
         Pixmap pixmap;
         Texture texture;
 
         pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, .3f);
+        pixmap.setColor(1, 1, 1, 0.3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
         texture = new Texture(pixmap);
-        stage.addImageButton(texture, gsBTNx, gsBTNy, InputMapper.InputState.INP_NONE);
+        stage.addImageButton(texture, 0, 0, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
-        pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 0, 0, .8f);
-        pixmap.fillTriangle(0, 16, 32, 32, 32, 0);
+        final int ARROW_EXT = 64; // extent of arrow tile (height/width)
+        final int ARROW_MID = ARROW_EXT / 2;
+        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 0, 0, 1.0f);
+        pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
         texture = new Texture(pixmap);
         stage.addImageButton(
                 texture,
                 0, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
-        pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(0, 1, 0, .8f);
-        pixmap.fillTriangle(0, 0, 0, 32, 32, 16);
+        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
+        pixmap.setColor(1, 0, 0, 1.0f);
+        pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
         texture = new Texture(pixmap);
         stage.addImageButton(
                 texture,
-                Gdx.graphics.getWidth() - 32.0f, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+                Gdx.graphics.getWidth() - ARROW_EXT, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
@@ -151,11 +151,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 }
             }
         } else {
-            touchPadDx = 0; // make sure clear any swipe event in progress
+            touchPadDx = 0; // clear any swipe event in progress
         }
 
         if (0 == axis) { // if input is inactive
-            /* && 0 != dPadYaxis */ /* key is released ... not necessary but for debugging */
+            /* key is released ... not necessary but for debugging */
             dPadYaxis = 0; // de-latch previous input state
         } else { /* if input is active */
             if (0 == dPadYaxis) { // if input is "justPressed"
