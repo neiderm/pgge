@@ -58,7 +58,6 @@ public class GameUI extends InGameMenu {
     private int screenTimer = DEFAULT_SCREEN_TIME;
 
     // @dispoable
-    private Skin touchpadSkin;
     private Texture tpBackgnd;
     private Texture tpKnob;
 
@@ -69,7 +68,6 @@ public class GameUI extends InGameMenu {
 
     GameUI() {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
-//        super(null, "Paused");
         super(DEFAULT_UISKIN_JSON, "Paused");
 
         // start with White, alpha==0 and fade to Black with alpha=1
@@ -164,6 +162,9 @@ public class GameUI extends InGameMenu {
 
     /**
      * Based on "http://www.bigerstaff.com/libgdx-touchpad-example" (link broken)
+     * see also
+     * https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
+     * https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
      */
     private void addTouchPad(ChangeListener touchPadChangeListener) {
 
@@ -178,25 +179,13 @@ public class GameUI extends InGameMenu {
             knobRadius = (int) (knobRadius * scale / 2);
         }
 
-        //Create a touchpad skin
-        touchpadSkin = new Skin();
-
-        //Set background image
-//        touchpadSkin.add("touchBackground", new Texture("data/touchBackground.png"));
-//        Pixmap.setBlending(Pixmap.Blending.None);
-        //Set knob image
-//        tpKnob = new Texture("data/touchKnob.png");
-//        touchpadSkin.add("touchKnob", tpKnob);
         Pixmap button = new Pixmap(knobRadius * 2, knobRadius * 2, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 0.5f);
         button.fillCircle(knobRadius, knobRadius, knobRadius);
         tpKnob = new Texture(button);
 
         touchpadStyle = new Touchpad.TouchpadStyle();
-        //Create Drawable's from TouchPad skin
-//        Drawable touchBackground = touchpadSkin.getDrawable("touchBackground");
 
-// https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
 //        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap background = new Pixmap(tpRadius * 2, tpRadius * 2, Pixmap.Format.RGBA8888);
         background.setColor(1, 1, 1, .2f);
@@ -204,15 +193,11 @@ public class GameUI extends InGameMenu {
 
         tpBackgnd = new Texture(background);
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(tpBackgnd));
-//        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
         touchpadStyle.knob = new TextureRegionDrawable(new TextureRegion(tpKnob));
 
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
         touchpad.setBounds(15, 15, tpRadius * 2f, tpRadius * 2f);
-
-        // RE touchpad.addListener
-        //   https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
         touchpad.addListener(touchPadChangeListener);
         this.addActor(touchpad);
 
@@ -260,6 +245,7 @@ public class GameUI extends InGameMenu {
         Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
+        // no need to keep ref to texture for disposal (InGameMenu keeps reference list for disposal)
         Texture useTexture = new Texture(pixmap);
         ImageButton button = addImageButton(useTexture, btnX, btnY, ips);
 
@@ -396,7 +382,7 @@ public class GameUI extends InGameMenu {
 
         InputMapper.InputState inp = mapper.getInputState();
 
-        if ((InputMapper.InputState.INP_FIRE1 == inp) ) {
+        if ((InputMapper.InputState.INP_FIRE1 == inp)) {
             if (GameWorld.getInstance().getIsPaused()) {
                 onPauseEvent();
             } else {
@@ -427,7 +413,6 @@ public class GameUI extends InGameMenu {
     private void updateScreenTransition() {
 
         switch (GameWorld.getInstance().getRoundActiveState()) {
-
             case ROUND_ACTIVE:
                 if (getPrizeCount() >= SceneLoader.getNumberOfCrapiums()) {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT);
@@ -469,7 +454,6 @@ public class GameUI extends InGameMenu {
     }
 
     private void showOSC(boolean show) {
-// todo: put on screen controls in a table layout
         if (!GameWorld.getInstance().getIsTouchScreen()) {
             show = false;
         }
@@ -505,7 +489,7 @@ public class GameUI extends InGameMenu {
             mesgLabel.setVisible(true);
             setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
-            // hackity hack  this is presently only means of generating "SELECT" event on touchscreen
+            // hackity hack  the pick button is apparently the only means of generating "SELECT" event on touchscreen?
             picButton.setVisible(GameWorld.getInstance().getIsTouchScreen());
 
         } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
@@ -556,13 +540,11 @@ public class GameUI extends InGameMenu {
 
         super.dispose();
 
-        if (null != touchpadSkin)
-            touchpadSkin.dispose();
-
-        if (null != tpBackgnd)
+        if (null != tpBackgnd) {
             tpBackgnd.dispose();
-
-        if (null != tpKnob)
+        }
+        if (null != tpKnob) {
             tpKnob.dispose();
+        }
     }
 }
