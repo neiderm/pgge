@@ -35,12 +35,6 @@ import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
  */
 public class LoadingScreen implements Screen {
 
-    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-
-    private SpriteBatch batch;
-    private Texture ttrSplash;
-    private Texture ttrLoad;
-    private Texture ttrBackDrop;
     private int loadCounter = 0;
     private int screenTimer = (int) (60 * 2.9f); //fps*sec
     private boolean isLoaded;
@@ -48,6 +42,14 @@ public class LoadingScreen implements Screen {
     private ScreenTypes screenType;
     private InputMapper mapper;
     private Screen newScreen;
+    private Texture ttrBackDrop; // reference to selected texture (does not need disposed)
+
+    // disposables
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+    private Texture ttrSplash;
+    private Texture ttrLoad;
+    private SpriteBatch spriteBatch;
+    private BitmapFont bitmapFont;
 
     public enum ScreenTypes {
         SETUP,
@@ -80,17 +82,22 @@ public class LoadingScreen implements Screen {
         }
         ttrBackDrop = ttrLoad;
         ttrSplash = new Texture("splash-screen.png");
-        batch = new SpriteBatch();
-        font = new BitmapFont(
+        spriteBatch = new SpriteBatch();
+        bitmapFont = new BitmapFont(
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
-        font.getData().setScale(1.0f);
+        bitmapFont.getData().setScale(1.0f);
         isLoaded = false;
         mapper = new InputMapper();
     }
 
+    /*
+     * re-use the String Builder instance
+     */
     private final StringBuilder stringBuilder = new StringBuilder();
-    private BitmapFont font;
+    /*
+     * alpha persistent for fadeout
+     */
     private float alpha = 1.0f;
 
     @Override
@@ -99,11 +106,11 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        batch.begin();
-        batch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        font.draw(batch, stringBuilder,
-                GameWorld.VIRTUAL_WIDTH / 4f, (GameWorld.VIRTUAL_HEIGHT / 5f) * 3f);
-        batch.end();
+        spriteBatch.begin();
+        spriteBatch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+        bitmapFont.draw(spriteBatch, stringBuilder,
+                GameWorld.VIRTUAL_WIDTH / 4.0f, (GameWorld.VIRTUAL_HEIGHT / 5.0f) * 3);
+        spriteBatch.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
@@ -112,8 +119,8 @@ public class LoadingScreen implements Screen {
                 // show loading bar
                 shapeRenderer.setColor(new Color(Color.BLACK)); // only while loading
                 shapeRenderer.rect(
-                        (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
-                        20f + loadCounter, 1);
+                        (GameWorld.VIRTUAL_WIDTH / 4.0f), (GameWorld.VIRTUAL_HEIGHT / 2.0f) - 5,
+                        20.0f + loadCounter, 1);
             } else {
                 // fade screen?
                 if (screenTimer > 0 && screenTimer < 60) {
@@ -134,7 +141,6 @@ public class LoadingScreen implements Screen {
         if (screenTimer > 0) {
             screenTimer -= 1;
         }
-
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
@@ -197,25 +203,28 @@ public class LoadingScreen implements Screen {
         }
     }
 
+    /*
+     * required implementations of abstract methods
+     */
     @Override
-    public void pause() {        // mt
+    public void pause() { // mt
     }
 
     @Override
-    public void resume() {        // mt
+    public void resume() { // mt
     }
 
     @Override
-    public void resize(int width, int height) {        // mt
+    public void resize(int width, int height) { // mt
     }
 
     @Override
     public void dispose() {
         ttrLoad.dispose();
         ttrSplash.dispose();
-        batch.dispose();
+        spriteBatch.dispose();
         shapeRenderer.dispose();
-        font.dispose();
+        bitmapFont.dispose();
     }
 
     @Override
