@@ -87,7 +87,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
     private CameraInputController camController;
-    private BitmapFont font;
+    private BitmapFont debugPrintFont;
     private OrthographicCamera guiCam;
     private SpriteBatch batch = new SpriteBatch();
     private GameUI playerUI;
@@ -95,20 +95,20 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private Entity pickedPlayer;
     private Gunrack gunrack;
 
-    public void setup() {
+    private void setup() {
         // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
         BulletWorld.getInstance().initialize();
 
         super.init();
 
         batch = new SpriteBatch();
-        font = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+        debugPrintFont = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
 
         float fontGetDensity = Gdx.graphics.getDensity();
 
         if (fontGetDensity > 1)
-            font.getData().setScale(fontGetDensity);
+            debugPrintFont.getData().setScale(fontGetDensity);
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
@@ -182,7 +182,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             @Override
             protected void init() { // mt
-                gunrack = new Gunrack(hitDetectEvent, font /*  this is the debug text font */) {
+                gunrack = new Gunrack(hitDetectEvent, debugPrintFont /*  this is the debug text debugPrintFont */) {
                     @Override
                     public void act(float delta) { // mt
                         super.act(delta);
@@ -659,12 +659,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      */
     private void debugPrint(String string, Color color, int row, int col) {
 
-        int y = (int) ((float) row * font.getLineHeight() + font.getLineHeight());
-        int x = (int) ((float) col * font.getLineHeight());
+        int y = (int) ((float) row * debugPrintFont.getLineHeight() + debugPrintFont.getLineHeight());
+        int x = (int) ((float) col * debugPrintFont.getLineHeight());
         batch.setProjectionMatrix(guiCam.combined);
         batch.begin();
-        font.setColor(color);
-        font.draw(batch, string, x, y);
+        debugPrintFont.setColor(color);
+        debugPrintFont.draw(batch, string, x, y);
         batch.end();
     }
 
@@ -697,7 +697,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         BulletWorld.getInstance().dispose();
         playerUI.dispose();
 
-        font.dispose(); // only instantiated on show()  for some reaseon
+        debugPrintFont.dispose(); // only instantiated on show()  for some reaseon
 
         // I guess not everything is handled by ECS ;)
         PrimitivesBuilder.clearShapeRefs();
