@@ -59,7 +59,7 @@ class InGameMenu extends Stage {
     final Table playerInfoTbl = new Table();
 
     private int previousIncrement;
-    private int count;
+    private int actorCount;
 
     // @dispsables
     private final Texture overlayTexture;
@@ -339,7 +339,7 @@ class InGameMenu extends Stage {
     private void addButton(TextButton button) {
         buttonNames.add(button.getText().toString());
         bg.add(button);
-        count += 1;
+        actorCount += 1;
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
     }
@@ -356,7 +356,7 @@ class InGameMenu extends Stage {
     }
 
     int checkedUpDown(int step) {
-        final int N_SELECTIONS = count;
+
         int selectedIndex = bg.getCheckedIndex();
 
         if (0 == previousIncrement) {
@@ -364,8 +364,8 @@ class InGameMenu extends Stage {
         }
         previousIncrement = step;
 
-        if (selectedIndex >= N_SELECTIONS) {
-            selectedIndex = (N_SELECTIONS - 1);
+        if (selectedIndex >= actorCount) {
+            selectedIndex = (actorCount - 1);
         }
         if (selectedIndex < 0) {
             selectedIndex = 0;
