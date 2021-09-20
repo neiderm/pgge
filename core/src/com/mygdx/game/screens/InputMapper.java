@@ -430,10 +430,10 @@ class InputMapper {
 //        }
     }
 
-    // dPad: POV, axis, or 4 buttons?
-    private final DpadAxis dPadAxes = new DpadAxis();
     private final float[] analogAxes = new float[MAX_AXES];
 
+    // dPad: POV, axis, or 4 buttons?
+    private final DpadAxis dPadAxes = new DpadAxis();
     /*
      * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
      * note: POV to be eliminated with libGdx Controllers 2.0
@@ -535,7 +535,6 @@ class InputMapper {
         Controllers.addListener(new ControllerListenerAdapter() {
 
             private final float[] rawAxes = new float[MAX_AXES];
-            private final float[] remappedAxes = new float[MAX_AXES];
 
             int indexOf(Controller controller) {
                 return Controllers.getControllers().indexOf(controller, true);
@@ -571,7 +570,7 @@ class InputMapper {
                  */
                 for (int idx = 0; idx < MAX_AXES; idx++) {
                     rawAxes[idx] = controller.getAxis(idx);
-                    remappedAxes[idx] = rawAxes[idx];
+                    analogAxes[idx] = rawAxes[idx];
                 }
 
                 // android dpad analog axes
@@ -583,41 +582,41 @@ class InputMapper {
                         // Linux USB (Ipega PG-9076)
                     case 0:
                         // L2/R2 are analog (positive-range only)
-                        remappedAxes[VIRTUAL_L2_AXIS] = rawAxes[2];
-                        remappedAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
+                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[2];
+                        analogAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
                         // set the X1 and Y1 axes
-                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[4];
+                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[4];
                         break;
                     // Windows (USB, B/T)
                     case 1:
                         // swap the WS and AD axes
-                        remappedAxes[VIRTUAL_AD_AXIS] = rawAxes[1];
-                        remappedAxes[VIRTUAL_WS_AXIS] = rawAxes[0];
+                        analogAxes[VIRTUAL_AD_AXIS] = rawAxes[1];
+                        analogAxes[VIRTUAL_WS_AXIS] = rawAxes[0];
                         // swap the X1 and Y1 axes
-                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
+                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
                         break;
                     // Android (B/T)
                     case 2:
                         // Android reports Dpad as axes - set it only if it was actually moved?
                         if ((DPAD_X_AXIS == axisIndex) || (DPAD_Y_AXIS == axisIndex)) {
-                            remappedAxes[VIRTUAL_AD_AXIS] = rawAxes[DPAD_X_AXIS];
-                            remappedAxes[VIRTUAL_WS_AXIS] = rawAxes[DPAD_Y_AXIS];
+                            analogAxes[VIRTUAL_AD_AXIS] = rawAxes[DPAD_X_AXIS];
+                            analogAxes[VIRTUAL_WS_AXIS] = rawAxes[DPAD_Y_AXIS];
                         }
                         // L2/R2 are analog axes range [0:1.0]
-                        remappedAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
-                        remappedAxes[VIRTUAL_R2_AXIS] = rawAxes[4];
+                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
+                        analogAxes[VIRTUAL_R2_AXIS] = rawAxes[4];
                         break;
                     // Linux USB (BELKIN NOSTROMO n45)
                     case 3:
                         // swap the X1 and Y1 axes  todo: Windos but not Linux?
-                        remappedAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        remappedAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
+                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
+                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
                         break;
                 }
-                System.arraycopy(remappedAxes, 0, analogAxes, 0, MAX_AXES);
-                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
+//                System.arraycopy(remappedAxes, 0, analogAxes, 0, MAX_AXES);
+//                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
                 return false;
             }
 
