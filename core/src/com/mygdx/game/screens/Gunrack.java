@@ -240,9 +240,6 @@ public class Gunrack extends Table {
             int iws = selectedWeapon.ordinal();
             spec = weaponsSpecs.get(iws);
         }
-//        else {
-//            System.out.println("weapon index out of range = " + selectedWeapon);
-//        }
         if (null != spec) {
             rounds = spec.fire();
         }

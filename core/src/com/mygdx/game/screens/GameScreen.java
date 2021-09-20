@@ -48,6 +48,7 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
 import com.mygdx.game.controllers.ControllerAbstraction;
+import com.mygdx.game.controllers.ControllerAdapter;
 import com.mygdx.game.controllers.GunPlatform;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
@@ -182,7 +183,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             @Override
             protected void init() { // mt
-                gunrack = new Gunrack(hitDetectEvent, debugPrintFont /*  this is the debug text debugPrintFont */) {
+                gunrack = new Gunrack(hitDetectEvent, debugPrintFont) {
                     @Override
                     public void act(float delta) { // mt
                         super.act(delta);
@@ -200,16 +201,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 addActor(gunrack);
             }
 
+            private ControllerAdapter.ControlBundle cbundle = new ControllerAdapter.ControlBundle();
+
             // setup the vehicle model so it can be referenced in the mapper
-            final ControllerAbstraction chassisModel = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+            // todo: model can instantiate body and pickedplayer can set it?
+            final ControllerAbstraction rigModel = new TankController(
                     pickedPlayer.getComponent(BulletComponent.class).body,
-                    pickedPlayer.getComponent(BulletComponent.class).mass /* should be a property of the tank? */);
-
-            GunPlatform gunPlatform; // doesn't need new instance here, force it to create new instance below
-
-            // working variables
-            final float[] analogs = new float[InputMapper.VIRTUAL_AXES_SZ];
-            final boolean[] switches = new boolean[8];
+                    pickedPlayer.getComponent(BulletComponent.class).mass, /* should be a property of the rig? */
+                    cbundle
+            );
 
             @Override
             public void onCameraSwitch() {
@@ -218,6 +218,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 else
                     multiplexer.removeProcessor(camController);
             }
+
+            // doesn't need new instance here, force it to create new instance below
+            GunPlatform gunPlatform;
 
             @Override
             protected void onSelectEvent() {
@@ -244,39 +247,29 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     gunPlatform = new GunPlatform(
                             pickedPlayer.getComponent(ModelComponent.class).modelInst,
                             pickedPlayer.getComponent(BulletComponent.class).shape,
-                            gunrack, withEnergizeDelay);
+                            gunrack, cbundle, withEnergizeDelay);
                 }
-                final int idxX = InputMapper.VIRTUAL_AD_AXIS;
-                final int idxY = InputMapper.VIRTUAL_WS_AXIS;
-                final int idxL2 = InputMapper.VIRTUAL_L2_AXIS;
-                final int idxR2 = InputMapper.VIRTUAL_R2_AXIS;
-                final int idxX1 = InputMapper.VIRTUAL_X1_AXIS;
-                final int idxY1 = InputMapper.VIRTUAL_Y1_AXIS;
-
                 // route the signal domain of the input device to that of the model
-                analogs[idxX] = mapper.getAxis(idxX);
-                analogs[idxY] = mapper.getAxis(idxY);
-                analogs[idxL2] = mapper.getAxis(idxL2);
-                analogs[idxR2] = mapper.getAxis(idxR2);
-                analogs[idxX1] = mapper.getAxis(idxX1);
-                analogs[idxY1] = mapper.getAxis(idxY1);
+                cbundle.analogX = mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS);
+                cbundle.analogY = mapper.getAxis(InputMapper.VIRTUAL_WS_AXIS);
+                cbundle.analogX1 = mapper.getAxis(InputMapper.VIRTUAL_X1_AXIS);
+                cbundle.analogY1 = mapper.getAxis(InputMapper.VIRTUAL_Y1_AXIS);
+                cbundle.analogL = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
+                cbundle.analogR = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
+                cbundle.switch0 = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_A, 60);
+                cbundle.switch1 = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_B, 1);
 
-                switches[ControllerAbstraction.SW_TRIANGL] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_Y);
-                switches[ControllerAbstraction.SW_SQUARE] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_X);
-                switches[ControllerAbstraction.SW_FIRE1] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_A, 60);
-                switches[ControllerAbstraction.SW_FIRE2] = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_B, 1);
-
-                gunPlatform.updateControls(analogs, switches, 0 /* unused */);
+                gunPlatform.updateControls(0 /* unused */);
 
                 //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
                 GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
-                if (Math.abs(analogs[1]) < 0.4f) {                     // love this hacky crap
+                // user data is hacked in flag applied on levels that set the player Rig to have auto-forward movement
+                if (Math.abs(cbundle.analogY) < 0.4f) {
                     // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
-                    analogs[1] = (-1) * pf.userData / 100.0f; // percent
+                    cbundle.analogY = (-1) * pf.userData / 100.0f; // percent
                 }
-
-                chassisModel.updateControls(analogs, switches, 0);
+                rigModel.updateControls(0 /* unused */);
             }
 
             @Override
@@ -316,7 +309,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             }
                         }
                         break;
-
                     case ROUND_OVER_RESTART:
                         // handled at end of render pass
                     default:

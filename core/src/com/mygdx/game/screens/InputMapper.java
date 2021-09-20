@@ -107,21 +107,22 @@ Android:
 -----------------------------
 */
 
-public class InputMapper {
+class InputMapper {
 
     static int numberControlCfgTypes;
 
     private static final int MAX_AXES = 8;
-    private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
-    // virtual axis assignments, probably an enum would be better
-    public static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
-    public static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
-    public static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
-    public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
-    public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
-    public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
-    static final int VIRTUAL_AXES_SZ = 6;
+    // virtual axis assignments, probably an enum would be better
+    static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
+    static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
+    static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
+    static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
+    static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
+    static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
+
+//    public static final int VIRTUAL_AXES_SZ = 6;
+    private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
     /*
      * enumerate the various input events with which the screens may (poll/notify?)
@@ -185,7 +186,6 @@ public class InputMapper {
     private Controller connectedCtrl;
     private InputState preInputState;
     private InputState incomingInputState;
-    private InputState nowInputState;
 
     InputMapper() {
         final int CONTROLLER_ZERO = 0; // presently only 1 player is supported
@@ -413,6 +413,21 @@ public class InputMapper {
         public void setY(int y) {
             this.y = y;
         }
+
+
+//// maybe ...
+//        public boolean getUp() {
+//          return (getY() > 0);
+//        }
+//        public boolean getDown() {
+//            return (getY() < 0);
+//        }
+//        public boolean getRight() {
+//            return (getX() > 1);
+//        }
+//        public boolean getLeft() {
+//            return (getX() < 1);
+//        }
     }
 
     // dPad: POV, axis, or 4 buttons?

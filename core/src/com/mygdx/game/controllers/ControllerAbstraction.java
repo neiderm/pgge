@@ -6,10 +6,10 @@ package com.mygdx.game.controllers;
 public interface ControllerAbstraction {
 
     // interfacing between client input abstraction and controller
-    int SW_FIRE1 = 0;
-    int SW_FIRE2 = 1;
-    int SW_SQUARE = 2;
-    int SW_TRIANGL = 3;
+//    int SW_FIRE1 = 0;
+//    int SW_FIRE2 = 1;
+//    int SW_SQUARE = 2;
+//    int SW_TRIANGL = 3;
 
-    void updateControls(float[] analogs, boolean[] switches, float time);
+    void updateControls(float time);
 }

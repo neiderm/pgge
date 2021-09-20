@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Glenn Neidermeier
+ * Copyright (c) 2021 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.features.SensProjectile;
 import com.mygdx.game.screens.Gunrack;
-import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -39,12 +38,12 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * https://free3d.com/3d-model/t-55-12298.html
  * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
-public class GunPlatform implements ControllerAbstraction {
-
-    private final Vector3 prjectileS0 = new Vector3(); // projectile initial vector is body+turret+barrel orientations
+public class GunPlatform extends ControllerAdapter {
+    // projectile initial vector is body+turret+barrel orientation
+    private final Vector3 prjectileS0 = new Vector3();
     private final Vector3 yAxis = new Vector3(0, 1, 0);
     private final Vector3 xAxis = new Vector3(1, 0, 0);
-    private final ModelInstance mi; // final?
+    private final ModelInstance mi;
 
     private btCompoundShape btcs;
     private Node gunNode;
@@ -56,56 +55,31 @@ public class GunPlatform implements ControllerAbstraction {
     private float rTurret;
     private float rBarrel;
 
-    /*
-     * non-null gunrack, specifcially sets the warmup time
-     */
-    @SuppressWarnings("unused")
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, int energizeTime) {
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack,
+                       ControlBundle controlBundle, boolean delay) {
 
-        this(mi, bs);
+        this.controlBundle = controlBundle;
         this.gunrack = gunrack;
-        this.energizeTime = energizeTime;
-    }
-
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
-
-        this(mi, bs);
-        this.gunrack = gunrack;
+        this.mi = mi;
 
         if (!delay) {
             this.energizeTime = 0;
         }
-    }
-
-    /*
-     * this constructor allows gunrack to remain null (not needed for weapon 0 aka standard ammo)
-     */
-    private GunPlatform(ModelInstance mi, btCollisionShape bs) {
-
-        this.mi = mi;
 
         if (bs.isCompound()) {
             this.btcs = (btCompoundShape) bs;
         }
 
-//        String strMdlNode = "Tank_01.003";
-//        String strTurretNode = "Main_Turre"; //"tank_cabine";
-        //String strTurretNode = "tank_cabine"; // Turret
-        String strTurretNode = "Turret"; //
-
-        int index;
+        String strTurretNode = "Turret";
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
-        index = PrimitivesBuilder.getNodeIndex(mi.nodes, strTurretNode);
+        int index = PrimitivesBuilder.getNodeIndex(mi.nodes, strTurretNode);
 
         if (index >= 0) {
             turretNode = mi.getNode(strTurretNode, true);  // recursive
             turretIndex = index;
         }
 
-        String strBarrelNode = "Main_Gun"; // https://free3d.com/3d-model/veteran-tiger-tank-38672.html
-        //String strBarrelNode = "tenk_canhao"; // Cylinder02
-//        String strBarrelNode = "Cylinder02"; //
-
+        String strBarrelNode = "Main_Gun";
         // "unroll" the nodes list so that the index to the bullet child shape will be consistent
         index = PrimitivesBuilder.getNodeIndex(mi.nodes, strBarrelNode);
 
@@ -115,8 +89,12 @@ public class GunPlatform implements ControllerAbstraction {
         }
     }
 
-    @Override
-    public void updateControls(float[] analogs, boolean[] switches, float time) {
+    //    @Override
+    public void updateControls(float time) {
+
+        float anlgAxisX = controlBundle.analogX1;
+        float anlgAxisY = controlBundle.analogY1;
+        boolean button0 = controlBundle.switch0;
 
         if (energizeTime > 0) {
             energizeTime -= 1;
@@ -125,10 +103,10 @@ public class GunPlatform implements ControllerAbstraction {
 
         if (null != turretNode) {
             // turret origin would probably be center of rig model and will look screwy if it goes too far out of range
-            float rfloat = turretNode.rotation.getAngleAround(yAxis) - analogs[InputMapper.VIRTUAL_X1_AXIS];
+            float rfloat = turretNode.rotation.getAngleAround(yAxis) - anlgAxisX;
             // center is at 180
             if (rfloat > 120 && rfloat < 240) {
-                rfloat -= analogs[InputMapper.VIRTUAL_X1_AXIS];
+                rfloat -= anlgAxisX;
                 turretNode.rotation.set(yAxis, rfloat);
             }
             rTurret = turretNode.rotation.getAngleAround(yAxis) - 180;
@@ -136,7 +114,7 @@ public class GunPlatform implements ControllerAbstraction {
 
         if (null != gunNode) {
             // gun barrel origin would probably be center of rig model and will look screwy if it goes too far out of range
-            float rfloat = gunNode.rotation.getAngleAround(xAxis) + analogs[InputMapper.VIRTUAL_Y1_AXIS];
+            float rfloat = gunNode.rotation.getAngleAround(xAxis) + anlgAxisY;
             // offset the gun angle to a range that makes sense
             float elevation = -rfloat;
             if (rfloat > 180) {
@@ -144,7 +122,7 @@ public class GunPlatform implements ControllerAbstraction {
             }
             // allow a small emount of negative elevation (below level)
             if (elevation > -10 && elevation < 30) {
-                rfloat += analogs[InputMapper.VIRTUAL_Y1_AXIS];
+                rfloat += anlgAxisY;
                 gunNode.rotation.set(xAxis, rfloat);
             }
             // check rotation angle for sign?
@@ -162,9 +140,6 @@ public class GunPlatform implements ControllerAbstraction {
             if (null != gunNode) {
                 btcs.updateChildTransform(gunIndex, gunNode.globalTransform);
             }
-// Apparently this is NOT needed here (for static/kinematic bodies, YES) conflicting with BUllet
-// update of the body ... puts a significant load/slo-down of bullet update for this body!
-//            body.setWorldTransform(mi.transform);
         }
 
         /*
@@ -174,7 +149,7 @@ public class GunPlatform implements ControllerAbstraction {
         prjectileS0.rotate(xAxis, rBarrel);
         prjectileS0.rotate(yAxis, rTurret);
 
-        if (switches[SW_FIRE1]) { // FIRE 1
+        if (button0) {
             if (null != gunrack && gunrack.fireWeapon() >= 0) {
                 //if (gunrack.fireWeapon() >= 0)
                 {
@@ -200,11 +175,9 @@ public class GunPlatform implements ControllerAbstraction {
         if (null != srcTrnsfm) {
 
             srcTrnsfm.getRotation(qBody);
-
             ModelInstanceEx.rotateRad(prjectileS0, qBody); // rotate the resulting offset vector to orientation of Rig
 
             srcTrnsfm.getTranslation(trans); // start coord of projectile = Rig center + offset
-
             trans.add(prjectileS0); // start coord of projectile = Rig center + offset
 
             // copy src rotation & translation into the tmp transform, then rotate to gun/turret orientation

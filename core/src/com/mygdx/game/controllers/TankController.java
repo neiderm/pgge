@@ -23,14 +23,14 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.screens.GfxBatch;
-import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-public class TankController implements ControllerAbstraction {
+public class TankController extends ControllerAdapter {
 
-    private static final float LINEAR_GAIN = 12.0f; // magnitude of force applied (property of "vehicle" type?)
-    private static final float ANGULAR_GAIN = 5.0f; // degrees multiplier is arbitrary!
+    // experimental values should probably be a property of the Rig type
+    private static final float LINEAR_GAIN = 12.0f; // forward driving force
+    private static final float ANGULAR_GAIN = 5.0f; // steering force
 
     protected final btRigidBody body;
     protected final float mass;
@@ -44,16 +44,27 @@ public class TankController implements ControllerAbstraction {
 
     private boolean izinnaJump;
 
-    public TankController(btRigidBody body, float mass) {
+    public TankController(btRigidBody body, float mass, ControlBundle controlBundle) {
         this.body = body;
         this.mass = mass;
+        // allow the default Control Bundle in the Adapter to be left to Garbage Collection
+        if (null != controlBundle) {
+            this.controlBundle = controlBundle;
+        }
+    }
+
+    public TankController(btRigidBody body, float mass) {
+        this(body, mass, null);
     }
 
     @Override
-    public void updateControls(float[] analogs, boolean[] switches, float time) {
+    public void updateControls(float time) {
 
-        float angular = (null != analogs) ? analogs[InputMapper.VIRTUAL_AD_AXIS] : 0;
-        float direction = (null != analogs) ? analogs[InputMapper.VIRTUAL_WS_AXIS] : 0;
+        float angular = controlBundle.analogX;
+        float direction = controlBundle.analogY;
+        float slideLeft = controlBundle.analogL;
+        float slideRight = controlBundle.analogR;
+        boolean swBrakeJump = controlBundle.switch1;
 
         // this makes reverse steering opposite of my favorite *rigs game ;)
         if (direction < 0) {
@@ -77,8 +88,8 @@ public class TankController implements ControllerAbstraction {
 
         // roll-over function on Fire2 / B button
         if (null == rayPickObject /* || angle > xxxx */) {
-            if (!izinnaJump && (null != switches) && (switches[SW_FIRE2])) {
-                final float ANGULAR_ROLL_GAIN = -0.2f; // note negate direction sign same in both forward and reverse
+            if (!izinnaJump && swBrakeJump) {
+                final float ANGULAR_ROLL_GAIN = -0.2f;
                 izinnaJump = true;
                 ModelInstanceEx.rotateRad(
                         tmpV.set(angular * ANGULAR_ROLL_GAIN, 0.5f, 0), body.getOrientation());
@@ -94,47 +105,42 @@ public class TankController implements ControllerAbstraction {
              * ultimately, somehow MU needs to be a property of the "surface" player is contact with and
              * passed as parameter to the friction computation. Works OK but would be nice to formalize the math.
              */
-            float MU = 0.5f;
+            float coefFriction = 0.5f;
             // check brake switch
-            if (null != switches && switches[SW_FIRE2]) {
-                MU *= 9.0f; // emp-fudgically determined
+            if (swBrakeJump) {
+                coefFriction *= 9.0f; // emp-fudgically determined
             }
-
-            // Determine resultant pushing force by rotating the accelV direction vector (0, 0, 1 or 0, 0, -1)
-            // to the body orientation, resultant X & Y components of steeringLinear applied as a
-            // pushing force to the rig along it's Z axis. This achieves a desired effect in that the magnitude
-            // of applied force reduces proportionately the more that the rig is on an incline.
+            // Determine resultant pushing force by rotating the accelV direction vector (0, 0, 1 or
+            // 0, 0, -1) to the body orientation, resultant X & Y components of steeringLinear applied
+            // as a pushing force to the Rig along it's Z axis. This achieves the desired effect that the
+            // magnitude of applied force reduces in proportion to the degree of inclination of the Rig.
             ModelInstanceEx.rotateRad(accelV.set(0, 0, direction), orientation);
 
-            accelV.scl(LINEAR_GAIN * this.mass);
-
+            accelV.scl(LINEAR_GAIN * mass);
             body.applyCentralForce(accelV);
+            // the degree of friction applied should allow sufficient speed but keep maximum forward
+            // velocity under some reasonable limit
+            body.applyCentralForce(body.getLinearVelocity().scl(-coefFriction * mass)); // "friction"
 
-            // Apply some "drag" to the Rig so that the forward velocity will (eventually) cap off at some reasonable limit
-            body.applyCentralForce(body.getLinearVelocity().scl(-MU * this.mass)); // "friction"
-
-            // controller implementation should treat as a pair of switches which are coupled together
-            // each providing a "half" of the travel of a virtual slide axis
+            // left/right slide input
             float slide;
             // slide it the left ... negatively
-            slide = (null != analogs) ? analogs[InputMapper.VIRTUAL_L2_AXIS] : 0;
+            slide = slideLeft;
             ModelInstanceEx.rotateRad(accelV.set((-slide), 0, 0), orientation);
-
-            accelV.scl(LINEAR_GAIN * this.mass);
+            accelV.scl(LINEAR_GAIN * mass);
             body.applyCentralForce(accelV);
 
             // slide it the right
-            slide = (null != analogs) ? analogs[InputMapper.VIRTUAL_R2_AXIS] : 0;
+            slide = slideRight;
             ModelInstanceEx.rotateRad(accelV.set(slide, 0, 0), orientation);
-
-            accelV.scl(LINEAR_GAIN * this.mass);
+            accelV.scl(LINEAR_GAIN * mass);
             body.applyCentralForce(accelV);
 
             // if touching the ground, and not starting a new jump, then the jump flag can be unlatched
             izinnaJump = false;
         }
 
-// todo: if debug draw
+// tmp: line indicator on Z axix
         GfxBatch.draw(gfxLine.line(trans,
                 ModelInstanceEx.rotateRad(tmpV.set(0, -1, 0), tmpM.getRotation(orientation)),
                 Color.RED));
