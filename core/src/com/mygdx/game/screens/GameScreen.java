@@ -256,8 +256,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 cbundle.analogY1 = mapper.getAxis(InputMapper.VIRTUAL_Y1_AXIS);
                 cbundle.analogL = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
                 cbundle.analogR = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
-                cbundle.switch0 = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_A, 60);
-                cbundle.switch1 = mapper.getDebouncedContrlButton(InputMapper.VirtualButtonCode.BTN_B, 1);
+                cbundle.switch0 = mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A, true, 60);
+                cbundle.switch1 = mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_B);
 
                 gunPlatform.updateControls(0 /* unused */);
 

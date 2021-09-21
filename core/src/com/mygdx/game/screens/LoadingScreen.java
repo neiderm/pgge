@@ -26,8 +26,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.SceneLoader;
 
-import static com.mygdx.game.screens.LoadingScreen.ScreenTypes.LEVEL;
-
 /**
  * Created by neiderm on 7/16/2018.
  * based on:
@@ -40,7 +38,7 @@ public class LoadingScreen implements Screen {
     private boolean isLoaded;
     private boolean shouldPause;
     private ScreenTypes screenType;
-    private InputMapper mapper;
+    private InGameMenu stage = new InGameMenu();
     private Screen newScreen;
     private Texture ttrBackDrop; // reference to selected texture (does not need disposed)
 
@@ -62,7 +60,7 @@ public class LoadingScreen implements Screen {
     }
 
     LoadingScreen() {
-        this(true, LEVEL);
+        this(true, ScreenTypes.LEVEL);
     }
 
     @Override
@@ -88,7 +86,6 @@ public class LoadingScreen implements Screen {
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
         bitmapFont.getData().setScale(1.0f);
         isLoaded = false;
-        mapper = new InputMapper();
     }
 
     /*
@@ -105,6 +102,10 @@ public class LoadingScreen implements Screen {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
+        Gdx.input.setInputProcessor(stage);
 
         spriteBatch.begin();
         spriteBatch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -186,17 +187,12 @@ public class LoadingScreen implements Screen {
             }
 
             if (0 == screenTimer || !shouldPause) {
-                final float AxisThreshold = 0.8f;
-
-                InputMapper.InputState inp = mapper.getInputState();
-
-                if ((InputMapper.InputState.INP_FIRE1 == inp) || isTouched) {
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A) || isTouched) {
                     GameWorld.getInstance().showScreen(newScreen);
-
                 } else if ((ScreenTypes.SETUP == screenType) &&
-                        (InputMapper.InputState.INP_MENU == inp ||
-                                mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > AxisThreshold)) {
-
+                        // first loading screen ends w/ splash - menu option to load gamepad config menu
+                        (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)
+                                || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)))) {
                     GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
             }
@@ -225,6 +221,7 @@ public class LoadingScreen implements Screen {
         spriteBatch.dispose();
         shapeRenderer.dispose();
         bitmapFont.dispose();
+        stage.dispose();
     }
 
     @Override

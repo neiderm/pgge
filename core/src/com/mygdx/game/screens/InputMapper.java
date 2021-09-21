@@ -144,9 +144,9 @@ class InputMapper {
      */
     public enum VirtualButtonCode {
         BTN_NONE,
-        BTN_ESC, // n45 'ESC'
-        BTN_SELECT, // n45 'MOUSE'
-        BTN_START, // n45 'ENTER'
+        BTN_ESC, // n45 'ESC' (unique to this device and not used)
+        BTN_SELECT, // n45 'MOUSE' (View)
+        BTN_START, // n45 'ENTER' (Menu/Esc)
         BTN_A,
         BTN_B,
         BTN_C,
@@ -183,7 +183,8 @@ class InputMapper {
 
     private final int[] virtualButtonDebounceCounts = new int[VirtualButtonCode.values().length];
 
-    private Controller connectedCtrl; // e.g. connectedCtrl.getPov(0);
+    @SuppressWarnings("unused") // e.g. connectedCtrl.getPov(0);
+    private Controller connectedCtrl;
     private InputState preInputState;
     private InputState incomingInputState;
 
@@ -274,28 +275,24 @@ class InputMapper {
         InputState newInputState = incomingInputState;
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
                 || getControlButton(VirtualButtonCode.BTN_A)) {
-
             newInputState = InputState.INP_FIRE1;
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
                 || Gdx.input.isKeyPressed(Input.Keys.BACK)
                 || getControlButton(VirtualButtonCode.BTN_START)) {
             newInputState = InputState.INP_MENU;
+
         } else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
                 || getControlButton(VirtualButtonCode.BTN_SELECT)) {
             newInputState = InputState.INP_VIEW;
+
         } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
                 || getControlButton(VirtualButtonCode.BTN_B)) {
             newInputState = InputState.INP_FIRE2;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.ENTER)
-                || getControlButton(VirtualButtonCode.BTN_Y)) {
-            newInputState = InputState.INP_BROVER;
+
         } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
                 || getControlButton(VirtualButtonCode.BTN_L1)) {
             newInputState = InputState.INP_SEL1;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
-                || getControlButton(VirtualButtonCode.BTN_R1)) {
-            newInputState = InputState.INP_SEL2;
         }
 
         InputState debouncedInputState = InputState.INP_NONE;
@@ -307,14 +304,6 @@ class InputMapper {
         incomingInputState = InputState.INP_NONE; // unlatch the input state
 
         return debouncedInputState;
-    }
-
-    /*
-     * sets the passed input state
-     * Unfortunately this is needed only for In Game Menu Next button - setControlButton(FIRE1) sticks
-     */
-    void setInputState(InputState incomingInputState) {
-        this.incomingInputState = incomingInputState;
     }
 
     /**
@@ -334,8 +323,8 @@ class InputMapper {
     /**
      * This one is public as it is preferable to use the virtual button code
      *
-     * @param vbCode
-     * @param newButtonState
+     * @param vbCode  vbutton Virtual Button Code of tested button
+     * @param newButtonState new button state to set
      */
     void setControlButton(VirtualButtonCode vbCode, boolean newButtonState) {
         if (null != vbCode) {
@@ -361,23 +350,28 @@ class InputMapper {
         }
     }
 
-    private boolean getControlButton(VirtualButtonCode wantedInputState) {
-        int index = wantedInputState.ordinal();
+    /**
+     * get control button - no debounce
+     * @param vbutton Virtual Button Code of tested button
+     * @return state of wanted input
+     */
+     boolean getControlButton(VirtualButtonCode vbutton) {
+        int index = vbutton.ordinal();
         if (index > virtualButtonStates.length) {
             return false;
-        } else
+        } else {
             return virtualButtonStates[index];
+        }
     }
 
-    boolean getDebouncedContrlButton(VirtualButtonCode vbutton) {
-        return getDebouncedContrlButton(vbutton, false, 5);
-    }
-
-    boolean getDebouncedContrlButton(VirtualButtonCode vbutton, int repeatPeriod) {
-        return getDebouncedContrlButton(vbutton, true, repeatPeriod);
-    }
-
-    private boolean getDebouncedContrlButton(VirtualButtonCode vbutton, boolean letRepeat, int repeatPeriod) {
+    /**
+     *      * get control button with configurable debounce time or repeat period
+     * @param vbutton Virtual Button Code of tested button
+     * @param letRepeat boolean whether to let button repeat or not
+     * @param repeatPeriod period of repetition if held down, otherwise sets the debounce time if letRepeat==false
+     * @return state of tested button
+     */
+    boolean getControlButton(VirtualButtonCode vbutton, boolean letRepeat, int repeatPeriod) {
 
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
@@ -542,7 +536,6 @@ class InputMapper {
                         analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
                         break;
                 }
-//                System.arraycopy(remappedAxes, 0, analogAxes, 0, MAX_AXES);
 //                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
                 return false;
             }

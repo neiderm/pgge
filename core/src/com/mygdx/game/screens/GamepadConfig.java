@@ -42,12 +42,11 @@ public class GamepadConfig implements Screen {
 
         int idxCurSel = stage.setCheckedBox();
 
-        if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()
-                || stage.mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS) > 0.8f                           // hacky hacky
+        if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
+                || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)) // analog stick-right, hackamathang
         ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
             GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
-
             GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
                     new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
         }

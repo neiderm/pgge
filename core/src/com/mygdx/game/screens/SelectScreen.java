@@ -300,14 +300,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         if (isPaused) {
             idxMenuSelection = stage.setCheckedBox();
 
-            InputMapper.InputState inp = stage.mapper.getInputState();
-
-            if (InputMapper.InputState.INP_FIRE1 == inp) {
+            if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                 if (stageNamesList.size > 0) {
                     String stagename = stageNamesList.get(idxMenuSelection);
                     GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
                 }
-            } else if (InputMapper.InputState.INP_MENU == inp) {
+            } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 30)) {
                 stage.onscreenMenuTbl.setVisible(false);
                 isPaused = false;
             }
@@ -318,16 +316,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
             degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
 
-            InputMapper.InputState inputState = stage.mapper.getInputState();
-
-            if (InputMapper.InputState.INP_MENU == inputState) {
+            if ((stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 60))) {
                 if (stageNamesList.size > 0) {
                     stage.onscreenMenuTbl.setVisible(true);
                     isPaused = true;
                 } else {
                     Gdx.app.log(CLASS_STRING, "No screen files found!");
                 }
-            } else if (InputMapper.InputState.INP_FIRE1 == inputState) {
+            } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                 GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
             }
         }

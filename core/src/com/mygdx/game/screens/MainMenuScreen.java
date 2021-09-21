@@ -45,7 +45,7 @@ public class MainMenuScreen implements Screen {
 
         int idxCurSel = stage.setCheckedBox();
 
-        if (InputMapper.InputState.INP_FIRE1 == stage.mapper.getInputState()) {
+        if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
             // pass along the local player object name
             GameFeature gf =
                     GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);

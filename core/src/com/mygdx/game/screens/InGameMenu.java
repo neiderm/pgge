@@ -263,17 +263,18 @@ class InGameMenu extends Stage {
             nextButton.addListener(new InputListener() {
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    // TS, in-game menu, tap Next button ... stuck on FIRE1, can't ESC
-                    // mapper.setControlButton(BTN_KCODE_FIRE1, true);
-                    mapper.setInputState(InputMapper.InputState.INP_FIRE1);
+                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                     return false;
+                }
+                @Override
+                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
                 }
             });
             onscreenMenuTbl.row();
             onscreenMenuTbl.add(nextButton).fillX().uniformX();
         }
     }
-
 
     /*
      * saves the texture ref for disposal ;)
@@ -282,7 +283,6 @@ class InGameMenu extends Stage {
             Texture tex, float posX, float posY, final InputMapper.InputState inputBinding) {
 
         savedTextureRefs.add(tex);
-
         final ImageButton newButton = addImageButton(tex, posX, posY);
 
         newButton.addListener(
@@ -302,9 +302,9 @@ class InGameMenu extends Stage {
                             // I don't know why Select Screen event is INP NONE
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                         }
-                        return true; // to also handle touchUp
+                        // true to also handle touchUp events which seems to be needed in a few cases
+                        return true;
                     }
-
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                         if (InputMapper.InputState.INP_FIRE1 == binding) {
@@ -410,6 +410,12 @@ class InGameMenu extends Stage {
         if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
         }
+        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, true);
+        }
+        if (Input.Keys.TAB == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, true);
+        }
         return false;
     }
 
@@ -437,6 +443,12 @@ class InGameMenu extends Stage {
         }
         if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+        }
+        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
+        }
+        if (Input.Keys.TAB == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
         }
         return false;
     }
