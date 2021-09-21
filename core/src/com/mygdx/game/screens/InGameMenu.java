@@ -16,6 +16,7 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -46,9 +47,6 @@ import com.mygdx.game.GameWorld;
  * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
  */
 class InGameMenu extends Stage {
-
-    static final int BTN_KCODE_FIRE1 = 0;
-    static final int BTN_KCODE_FIRE2 = 1;
 
     private final Array<Texture> savedTextureRefs = new Array<Texture>();
     private final Array<String> buttonNames = new Array<String>();
@@ -295,14 +293,14 @@ class InGameMenu extends Stage {
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
                         if (InputMapper.InputState.INP_FIRE1 == binding) {
-                            mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
 
                         } else if (InputMapper.InputState.INP_FIRE2 == binding) {
-                            mapper.setControlButton(BTN_KCODE_FIRE2, true);
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
 
                         } else if (InputMapper.InputState.INP_NONE == binding) {
                             // I don't know why Select Screen event is INP NONE
-                            mapper.setControlButton(BTN_KCODE_FIRE1, true);
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                         }
                         return true; // to also handle touchUp
                     }
@@ -310,9 +308,9 @@ class InGameMenu extends Stage {
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                         if (InputMapper.InputState.INP_FIRE1 == binding) {
-                            mapper.setControlButton(BTN_KCODE_FIRE1, false);
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
                         } else if (InputMapper.InputState.INP_FIRE2 == binding) {
-                            mapper.setControlButton(BTN_KCODE_FIRE2, false);
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
                         }
                     }
                 }
@@ -362,7 +360,7 @@ class InGameMenu extends Stage {
 
     int checkedUpDown() {
 
-        int step = mapper.getDpad().getY();
+        int step = mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
         int selectedIndex = bg.getCheckedIndex();
 
         if (0 == previousIncrement) {
@@ -377,6 +375,70 @@ class InGameMenu extends Stage {
             selectedIndex = 0;
         }
         return selectedIndex;
+    }
+
+    private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
+    private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
+    private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
+    private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
+
+    @Override
+    public boolean keyDown(int keycode) {
+
+        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
+        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
+            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
+        }
+        if (Input.Keys.DPAD_LEFT == keycode) {
+            mapper.setAxis(axisSetIndexX, -1);
+        }
+        if (Input.Keys.DPAD_RIGHT == keycode) {
+            mapper.setAxis(axisSetIndexX, +1);
+        }
+        if (Input.Keys.DPAD_UP == keycode) {
+            mapper.setAxis(axisSetIndexY, -1);
+        }
+        if (Input.Keys.DPAD_DOWN == keycode) {
+            mapper.setAxis(axisSetIndexY, +1);
+        }
+        if (Input.Keys.SPACE == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+        }
+        if (Input.Keys.CONTROL_LEFT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+
+        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
+        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
+            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
+        }
+
+        if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
+                KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
+            mapper.setAxis(axisSetIndexX, 0);
+        }
+        if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
+                KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
+            mapper.setAxis(axisSetIndexY, 0);
+        }
+        if (Input.Keys.SPACE == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+        }
+        if (Input.Keys.CONTROL_LEFT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+        }
+        return false;
     }
 
     // event handlers to be overridden

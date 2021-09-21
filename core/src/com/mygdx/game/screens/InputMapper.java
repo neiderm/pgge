@@ -121,7 +121,7 @@ class InputMapper {
     static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
     static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
-//    public static final int VIRTUAL_AXES_SZ = 6;
+    //    public static final int VIRTUAL_AXES_SZ = 6;
     private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
 
     /*
@@ -183,13 +183,15 @@ class InputMapper {
 
     private final int[] virtualButtonDebounceCounts = new int[VirtualButtonCode.values().length];
 
-    private Controller connectedCtrl;
+    private Controller connectedCtrl; // e.g. connectedCtrl.getPov(0);
     private InputState preInputState;
     private InputState incomingInputState;
 
     InputMapper() {
+        // connected controller .. not used for much anything right now
         final int CONTROLLER_ZERO = 0; // presently only 1 player is supported
         connectedCtrl = getConnectedCtrl(CONTROLLER_ZERO);
+
         setControllerButtonMapping();
         /*
          * Ensure that the INP FIRE1 (Space key or X/A button) can be held down and does
@@ -199,7 +201,30 @@ class InputMapper {
         preInputState = InputState.INP_FIRE1;
     }
 
-    // get the "virtual axis"
+    /**
+     * use axix like virtual buttons (e.g. UI menus, checklists etc.)
+     *
+     * @param axisIndex id of axis to read e.g. InputMapper.VIRTUAL_WS_AXIS etc.
+     * @return integer axis value {-1, 0, 1}
+     */
+    int getAxisI(int axisIndex) {
+
+        float axisX = getAxis(axisIndex);
+        int step = 0;
+        if (axisX > 0.8f) {
+            step = 1;
+        } else if (axisX < -0.8f) {
+            step = -1;
+        }
+        return step;
+    }
+
+    /**
+     * use axis as proportional controller (model control)
+     *
+     * @param axisIndex id of axis to read e.g. InputMapper.VIRTUAL_WS_AXIS etc.
+     * @return float axis value [-1::1]
+     */
     float getAxis(int axisIndex) {
         return analogAxes[axisIndex];
     }
@@ -299,30 +324,39 @@ class InputMapper {
      * @param buttonIndex    the button code
      * @param newButtonState incoming button state
      */
-    void setControlButton(int buttonIndex, boolean newButtonState) {
+    private void setControlButton(int buttonIndex, boolean newButtonState) {
         if (buttonIndex < MAX_BUTTONS) {
             // lookup the virtual button code
             VirtualButtonCode vbCode = virtualButtonCodes[buttonIndex];
-            if (null != vbCode) {
-                virtualButtonStates[vbCode.ordinal()] = newButtonState;
+            setControlButton(vbCode, newButtonState);
+        }
+    }
+    /**
+     * This one is public as it is preferable to use the virtual button code
+     *
+     * @param vbCode
+     * @param newButtonState
+     */
+    void setControlButton(VirtualButtonCode vbCode, boolean newButtonState) {
+        if (null != vbCode) {
+            virtualButtonStates[vbCode.ordinal()] = newButtonState;
 
-                switch (GameWorld.getInstance().getControllerMode()) {
-                    default:
-                    case 0: // Linux USB (PG9076)
-                    case 1: // Windows USB (2.4G ?)
-                    case 2: // Android B/T
-                        break;
-                    case 3: // PC USB (N45)
-                        // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
-                        int val = newButtonState ? 1 : 0;
-                        if (VirtualButtonCode.BTN_L2 == vbCode) {
-                            analogAxes[VIRTUAL_L2_AXIS] = val;
-                        }
-                        if (VirtualButtonCode.BTN_R2 == vbCode) {
-                            analogAxes[VIRTUAL_R2_AXIS] = val;
-                        }
-                        break;
-                }
+            switch (GameWorld.getInstance().getControllerMode()) {
+                default:
+                case 0: // Linux USB (PG9076)
+                case 1: // Windows USB (2.4G ?)
+                case 2: // Android B/T
+                    break;
+                case 3: // PC USB (N45)
+                    // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
+                    int val = newButtonState ? 1 : 0;
+                    if (VirtualButtonCode.BTN_L2 == vbCode) {
+                        analogAxes[VIRTUAL_L2_AXIS] = val;
+                    }
+                    if (VirtualButtonCode.BTN_R2 == vbCode) {
+                        analogAxes[VIRTUAL_R2_AXIS] = val;
+                    }
+                    break;
             }
         }
     }
@@ -369,114 +403,7 @@ class InputMapper {
         return rv;
     }
 
-    public static class DpadAxis {
-        // Vector2 ??
-        int x;
-        int y;
-        /* protect against key held over during screen transition ... funky key handling ;) */
-        boolean xBreak;
-        boolean yBreak;
-
-        void clear() {
-            x = 0;
-            y = 0;
-        }
-
-        public int getX() {
-            int rt = 0;
-
-            if (xBreak) {
-                rt = this.x;
-            }
-            if (0 == this.x) {
-                xBreak = true;
-            }
-            return rt;
-        }
-
-        public int getY() {
-            int rt = 0;
-
-            if (yBreak) {
-                rt = this.y;
-            }
-            if (0 == this.y) {
-                yBreak = true;
-            }
-            return rt;
-        }
-
-        public void setX(int x) {
-            this.x = x;
-        }
-
-        public void setY(int y) {
-            this.y = y;
-        }
-
-
-//// maybe ...
-//        public boolean getUp() {
-//          return (getY() > 0);
-//        }
-//        public boolean getDown() {
-//            return (getY() < 0);
-//        }
-//        public boolean getRight() {
-//            return (getX() > 1);
-//        }
-//        public boolean getLeft() {
-//            return (getX() < 1);
-//        }
-    }
-
     private final float[] analogAxes = new float[MAX_AXES];
-
-    // dPad: POV, axis, or 4 buttons?
-    private final DpadAxis dPadAxes = new DpadAxis();
-    /*
-     * "virtual dPad" provider using either controller POV or keyboard U/D/L/R
-     * note: POV to be eliminated with libGdx Controllers 2.0
-     *
-     * NOTE: observed that Android emulator reports keyboard input (Windows host) but seems unreliable.
-     */
-    DpadAxis getDpad() {
-        dPadAxes.clear();
-
-        PovDirection povDir = PovDirection.center;
-        if (null != connectedCtrl) {
-            povDir = connectedCtrl.getPov(0);
-        }
-
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || PovDirection.north == povDir) {
-            dPadAxes.setY(-1);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || PovDirection.south == povDir) {
-            dPadAxes.setY(1);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || PovDirection.west == povDir) {
-            dPadAxes.setX(-1);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || PovDirection.east == povDir) {
-            dPadAxes.setX(1);
-        }
-
-        // handle exceptions to the general rules above
-        int mode = GameWorld.getInstance().getControllerMode();
-        switch (mode) {
-            default:
-            case 0: // Ipega PG-9076 Linux USB
-            case 1: // Windows USB B/T
-            case 3: // Belkin n45 Linux USB
-                break;
-            case 2: // Android
-                // map dpad to virtual axes
-                dPadAxes.setX((int) analogAxes[VIRTUAL_AD_AXIS]); // DPAD_X_AXIS
-                dPadAxes.setY((int) analogAxes[VIRTUAL_WS_AXIS]); // DPAD_Y_AXIS
-                break;
-        }
-        return dPadAxes;
-    }
 
     private void print(String message) {
         Gdx.app.log("InputMapper", message);

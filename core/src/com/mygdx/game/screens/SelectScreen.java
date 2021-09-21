@@ -126,7 +126,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         texture = new Texture(pixmap);
         stage.addImageButton(
                 texture,
-                Gdx.graphics.getWidth() - (float)ARROW_EXT, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+                Gdx.graphics.getWidth() - (float) ARROW_EXT,
+                Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
@@ -139,7 +140,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      */
     private int getStep() {
 
-        int axis = stage.mapper.getDpad().getX();
+        int axis = stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS);
 
         if (Gdx.input.isTouched()) {
             // make sure not in a swipe event already

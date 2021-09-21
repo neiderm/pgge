@@ -17,7 +17,6 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -38,10 +37,6 @@ import java.util.Locale;
  */
 public class GameUI extends InGameMenu {
 
-    private static final int KEY_CODE_POV_UP = Input.Keys.DPAD_UP;
-    private static final int KEY_CODE_POV_DOWN = Input.Keys.DPAD_DOWN;
-    private static final int KEY_CODE_POV_LEFT = Input.Keys.DPAD_LEFT;
-    private static final int KEY_CODE_POV_RIGHT = Input.Keys.DPAD_RIGHT;
     private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
     private static final int TIME_LIMIT_WARN_SECS = 10;
 
@@ -98,65 +93,6 @@ public class GameUI extends InGameMenu {
 
     int getScreenTimer() {
         return screenTimer;
-    }
-
-    @Override
-    public boolean keyDown(int keycode) {
-
-        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
-        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
-            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
-        }
-        if (KEY_CODE_POV_LEFT == keycode) {
-            mapper.setAxis(axisSetIndexX, -1);
-        }
-        if (KEY_CODE_POV_RIGHT == keycode) {
-            mapper.setAxis(axisSetIndexX, +1);
-        }
-        if (KEY_CODE_POV_UP == keycode) {
-            mapper.setAxis(axisSetIndexY, -1);
-        }
-        if (KEY_CODE_POV_DOWN == keycode) {
-            mapper.setAxis(axisSetIndexY, +1);
-        }
-        if (Input.Keys.SPACE == keycode) {
-            mapper.setControlButton(BTN_KCODE_FIRE1, true);
-        }
-        if (Input.Keys.CONTROL_LEFT == keycode) {
-            mapper.setControlButton(BTN_KCODE_FIRE2, true);
-        }
-        return false;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-
-        int axisSetIndexX = InputMapper.VIRTUAL_AD_AXIS;
-        int axisSetIndexY = InputMapper.VIRTUAL_WS_AXIS;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-            axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
-            axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
-        }
-
-        if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
-                KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
-            mapper.setAxis(axisSetIndexX, 0);
-        }
-        if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
-                KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
-            mapper.setAxis(axisSetIndexY, 0);
-        }
-        if (Input.Keys.SPACE == keycode) {
-            mapper.setControlButton(BTN_KCODE_FIRE1, false);
-        }
-        if (Input.Keys.CONTROL_LEFT == keycode) {
-            mapper.setControlButton(BTN_KCODE_FIRE2, false);
-        }
-        return false;
     }
 
     /**
@@ -284,18 +220,18 @@ public class GameUI extends InGameMenu {
         float step = -0.05f;
         float alphaStep = -step;
 
-        if (hudOverlayColor.r > 0.1f)
+        if (hudOverlayColor.r > 0.1f) {
             hudOverlayColor.r += step;
-
-        if (hudOverlayColor.g > 0.1f)
+        }
+        if (hudOverlayColor.g > 0.1f) {
             hudOverlayColor.g += step;
-
-        if (hudOverlayColor.b > 0.1f)
+        }
+        if (hudOverlayColor.b > 0.1f) {
             hudOverlayColor.b += step;
-
-        if (hudOverlayColor.a < 1)
+        }
+        if (hudOverlayColor.a < 1) {
             hudOverlayColor.a += alphaStep;
-
+        }
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
