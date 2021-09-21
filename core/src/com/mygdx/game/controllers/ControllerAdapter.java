@@ -32,23 +32,14 @@ public class ControllerAdapter implements ControllerAbstraction {
         public boolean switch1;
     }
 
-    // if client code needs to instantiate their own Control Bundle this one can be left to GC
+    // The Controller Adapter is presently only instanced for AI characters e.g. Steering Tank Controller.
+    // Client code in the Player UI class instantiates its own Control Bundle.
     ControlBundle controlBundle = new ControllerAdapter.ControlBundle();
-
-    public void updateControls(float time) { // MT
-    }
 
     ControlBundle getControlBundle() {
         return controlBundle;
     }
 
-//    // todo
-//    enum ButtonAbstraction {
-//        SW_FIRE1,
-//        SW_FIRE21,
-//        SW_SQUARE2,
-//        SW_TRIANGL3
-//    }
-
-    ;
+    public void updateControls(float time) { // MT
+    }
 }

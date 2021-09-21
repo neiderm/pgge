@@ -21,6 +21,7 @@ import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.controllers.ControllerAdapter;
 
 import java.util.Arrays;
 
@@ -401,6 +402,26 @@ class InputMapper {
 
     private void print(String message) {
         Gdx.app.log("InputMapper", message);
+    }
+
+    /**
+     * using the C Bundle helps reduce uses of the InputMapper.VIRTUAL_XXXX
+     * @param cbundle Control Bundle instance passed from owning class
+     * @return the passed C Bundle for chaining
+     */
+    ControllerAdapter.ControlBundle updateControlBundle(
+            ControllerAdapter.ControlBundle cbundle){
+
+        cbundle.analogX = getAxis(InputMapper.VIRTUAL_AD_AXIS);
+        cbundle.analogY = getAxis(InputMapper.VIRTUAL_WS_AXIS);
+        cbundle.analogX1 = getAxis(InputMapper.VIRTUAL_X1_AXIS);
+        cbundle.analogY1 = getAxis(InputMapper.VIRTUAL_Y1_AXIS);
+        cbundle.analogL = getAxis(InputMapper.VIRTUAL_L2_AXIS);
+        cbundle.analogR = getAxis(InputMapper.VIRTUAL_R2_AXIS);
+        cbundle.switch0 = getControlButton(
+                InputMapper.VirtualButtonCode.BTN_A, true, 60);
+        cbundle.switch1 = getControlButton(InputMapper.VirtualButtonCode.BTN_B);
+        return cbundle;
     }
 
     /*

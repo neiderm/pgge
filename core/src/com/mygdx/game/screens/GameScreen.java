@@ -249,15 +249,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             pickedPlayer.getComponent(BulletComponent.class).shape,
                             gunrack, cbundle, withEnergizeDelay);
                 }
-                // route the signal domain of the input device to that of the model
-                cbundle.analogX = mapper.getAxis(InputMapper.VIRTUAL_AD_AXIS);
-                cbundle.analogY = mapper.getAxis(InputMapper.VIRTUAL_WS_AXIS);
-                cbundle.analogX1 = mapper.getAxis(InputMapper.VIRTUAL_X1_AXIS);
-                cbundle.analogY1 = mapper.getAxis(InputMapper.VIRTUAL_Y1_AXIS);
-                cbundle.analogL = mapper.getAxis(InputMapper.VIRTUAL_L2_AXIS);
-                cbundle.analogR = mapper.getAxis(InputMapper.VIRTUAL_R2_AXIS);
-                cbundle.switch0 = mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A, true, 60);
-                cbundle.switch1 = mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_B);
+                mapper.updateControlBundle(cbundle); // sample axes and switches inputs
 
                 gunPlatform.updateControls(0 /* unused */);
 
