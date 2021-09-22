@@ -109,20 +109,21 @@ Android:
 
 public class InputMapper {
 
-    static int numberControlCfgTypes;
+    // this is set going into Game Pad Config ... not sure intended purpose
+    @SuppressWarnings("unused")
+    private static int numberControlCfgTypes;
 
-    private static final int MAX_AXES = 8;
+    static void incrementNumberControlCfgTypes() {
+        numberControlCfgTypes += 1;
+    }
 
     // virtual axis assignments, probably an enum would be better
-    static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
-    static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
-    static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
-    static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
-    static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
-    static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
-
-    //    public static final int VIRTUAL_AXES_SZ = 6;
-    private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
+    public static final int VIRTUAL_AD_AXIS = 0; // WASD "X" axis
+    public static final int VIRTUAL_WS_AXIS = 1; // WASD "Y" axis
+    public static final int VIRTUAL_X1_AXIS = 2; // right anlg stick "X" (if used)
+    public static final int VIRTUAL_Y1_AXIS = 3; // right anlg stick "Y" (if used)
+    public static final int VIRTUAL_L2_AXIS = 4; // front button "left 2" (if used)
+    public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
     /*
      * enumerate the various input events with which the screens may (poll/notify?)
@@ -177,11 +178,15 @@ public class InputMapper {
      * assert (null != vbCode)
      * virtualButtonStates[ vbCode.ordinal() ] = newButtonState;
      */
+    private static final int MAX_BUTTONS = 256; // arbitrary size to fit range of button index space
+
     private final VirtualButtonCode[] virtualButtonCodes = new VirtualButtonCode[MAX_BUTTONS];
 
     private final boolean[] virtualButtonStates = new boolean[VirtualButtonCode.values().length];
 
     private final int[] virtualButtonDebounceCounts = new int[VirtualButtonCode.values().length];
+
+    private static final int MAX_AXES = 8;
 
     private final float[] analogAxes = new float[MAX_AXES];
 
@@ -430,33 +435,25 @@ public class InputMapper {
     }
 
     public static class ControlBundle {
-        // todo: enum
-        public static final int CBTN_SWITCH_0 = 0;
-        public static final int CBTN_SWITCH_1 = 1;
 
-        public float analogX;
-        public float analogY;
-        public float analogX1;
-        public float analogY1;
-        public float analogL;
-        public float analogR;
-
-        private CtrlButton[] cbuttons;
+        private CtrlButton[] cbuttons = new CtrlButton[MAX_BUTTONS];
+        private final float[] analogAxes = new float[MAX_AXES];
 
         public ControlBundle() {
             setButtons();
         }
 
         void setButtons(CtrlButton... cbuttons) {
-            this.cbuttons = new CtrlButton[MAX_BUTTONS]; // how to size this for cbuttons.length?
+
             int copylen = cbuttons.length;
+
             if (copylen < MAX_BUTTONS) {
                 System.arraycopy(cbuttons, 0, this.cbuttons, 0, copylen);
             }
         }
 
-        void setButtons(){
-           setButtons( new CtrlButton(InputMapper.VirtualButtonCode.BTN_A), new CtrlButton());
+        void setButtons() {
+            setButtons(new CtrlButton(InputMapper.VirtualButtonCode.BTN_A), new CtrlButton());
         }
 
         CtrlButton getButton(int index) {
@@ -478,6 +475,23 @@ public class InputMapper {
             }
             return false;
         }
+
+        public void setAxis(int index, float value) {
+            if (index < MAX_AXES) {
+                this.analogAxes[index] = value;
+            }
+        }
+
+        public float getAxis(int index) {
+            if (index < MAX_AXES) {
+                return this.analogAxes[index];
+            }
+            return 0;
+        }
+    }
+
+    private void sampleAxis(int index, ControlBundle cbundle) {
+        cbundle.setAxis(index, getAxis(index));
     }
 
     /**
@@ -487,12 +501,12 @@ public class InputMapper {
      */
     void updateControlBundle(ControlBundle cbundle) {
 
-        cbundle.analogX = getAxis(InputMapper.VIRTUAL_AD_AXIS);
-        cbundle.analogY = getAxis(InputMapper.VIRTUAL_WS_AXIS);
-        cbundle.analogX1 = getAxis(InputMapper.VIRTUAL_X1_AXIS);
-        cbundle.analogY1 = getAxis(InputMapper.VIRTUAL_Y1_AXIS);
-        cbundle.analogL = getAxis(InputMapper.VIRTUAL_L2_AXIS);
-        cbundle.analogR = getAxis(InputMapper.VIRTUAL_R2_AXIS);
+        sampleAxis(InputMapper.VIRTUAL_WS_AXIS, cbundle);
+        sampleAxis(InputMapper.VIRTUAL_AD_AXIS, cbundle);
+        sampleAxis(InputMapper.VIRTUAL_X1_AXIS, cbundle);
+        sampleAxis(InputMapper.VIRTUAL_Y1_AXIS, cbundle);
+        sampleAxis(InputMapper.VIRTUAL_L2_AXIS, cbundle);
+        sampleAxis(InputMapper.VIRTUAL_R2_AXIS, cbundle);
 
         CtrlButton cbutton;
         cbutton = cbundle.getButton(0);

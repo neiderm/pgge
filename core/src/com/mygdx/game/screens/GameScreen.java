@@ -257,9 +257,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
                 // user data is hacked in flag applied on levels that set the player Rig to have auto-forward movement
-                if (Math.abs(cbundle.analogY) < 0.4f) {
+                float yInput = cbundle.getAxis(InputMapper.VIRTUAL_WS_AXIS);
+                if (Math.abs(yInput) < 0.4f) {
                     // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
-                    cbundle.analogY = (-1) * pf.userData / 100.0f; // percent
+                    cbundle.setAxis(InputMapper.VIRTUAL_WS_AXIS, (-1) * pf.userData / 100.0f ); // percent
                 }
                 rigController.updateControls(0 /* unused */);
             }

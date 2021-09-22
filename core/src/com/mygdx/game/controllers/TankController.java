@@ -44,6 +44,7 @@ public class TankController extends CharacterController {
     private final GfxUtil gfxLine = new GfxUtil();
 
     private boolean izinnaJump;
+    private static final int BUTTON_1 = 1;
 
     private TankController(btRigidBody body, float mass, InputMapper.ControlBundle controlBundle) {
         this.body = body;
@@ -64,11 +65,11 @@ public class TankController extends CharacterController {
     @Override
     public void updateControls(float time) {
 
-        float angular = controlBundle.analogX;
-        float direction = controlBundle.analogY;
-        float slideLeft = controlBundle.analogL;
-        float slideRight = controlBundle.analogR;
-        boolean swBrakeJump = controlBundle.getCbuttonState(1);
+        float angular = controlBundle.getAxis(InputMapper.VIRTUAL_AD_AXIS); // .analogX
+        float direction = controlBundle.getAxis(InputMapper.VIRTUAL_WS_AXIS); // .analogY
+        float slideLeft = controlBundle.getAxis(InputMapper.VIRTUAL_L2_AXIS); // .analogL
+        float slideRight = controlBundle.getAxis(InputMapper.VIRTUAL_R2_AXIS); // .analogR
+        boolean swBrakeJump = controlBundle.getCbuttonState(BUTTON_1);
 
         // this makes reverse steering opposite of my favorite *rigs game ;)
         if (direction < 0) {

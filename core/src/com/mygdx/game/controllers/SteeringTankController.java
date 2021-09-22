@@ -94,8 +94,8 @@ public class SteeringTankController extends SteeringBulletEntity {
          */
         final float Forward = -1.0f; // forward (on z axis)
         InputMapper.ControlBundle cbundle = tc.getControlBundle();
-        cbundle.analogX = angular;
-        cbundle.analogY = Forward;
+        cbundle.setAxis(InputMapper.VIRTUAL_AD_AXIS, angular); // X = angular
+        cbundle.setAxis(InputMapper.VIRTUAL_WS_AXIS, Forward); // Y = Forward
         cbundle.setCbuttonState(1, false);  // jump/brake
         tc.updateControls(0);
     }

@@ -73,13 +73,13 @@ public class GamepadConfig implements Screen {
         Gdx.input.setInputProcessor(stage);
 
         stage.addButton("Microsoft X-Box 360 pad (Linux:USB)", bType);
-        InputMapper.numberControlCfgTypes++;
+        InputMapper.incrementNumberControlCfgTypes();
         stage.addButton("Xbox 360 Controller (Win 2.4G or USB)", bType);
-        InputMapper.numberControlCfgTypes++;
+        InputMapper.incrementNumberControlCfgTypes();
         stage.addButton("Android B/T", bType);
-        InputMapper.numberControlCfgTypes++;
+        InputMapper.incrementNumberControlCfgTypes();
         stage.addButton("n45 Dual Analog Gamepad (USB)", bType); // IOS Linux (Windows apparently has stick axes reversed)
-        InputMapper.numberControlCfgTypes++;
+        InputMapper.incrementNumberControlCfgTypes();
         stage.addNextButton();
     }
 

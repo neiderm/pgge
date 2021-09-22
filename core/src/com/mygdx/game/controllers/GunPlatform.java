@@ -28,6 +28,7 @@ import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.features.SensProjectile;
 import com.mygdx.game.screens.Gunrack;
+import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -54,6 +55,8 @@ public class GunPlatform extends CharacterController {
     private int turretIndex = -1;
     private float rTurret;
     private float rBarrel;
+
+    private static final int BUTTON_0 = 0;
 
     public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
 
@@ -90,9 +93,9 @@ public class GunPlatform extends CharacterController {
     @Override
     public void updateControls(float time) {
 
-        float anlgAxisX = controlBundle.analogX1;
-        float anlgAxisY = controlBundle.analogY1;
-        boolean button0 = controlBundle.getCbuttonState(0);
+        float anlgAxisX = controlBundle.getAxis(InputMapper.VIRTUAL_X1_AXIS); // analogX1;
+        float anlgAxisY = controlBundle.getAxis(InputMapper.VIRTUAL_Y1_AXIS); // analogY1;
+        boolean button0 = controlBundle.getCbuttonState(BUTTON_0);
 
         if (energizeTime > 0) {
             energizeTime -= 1;
