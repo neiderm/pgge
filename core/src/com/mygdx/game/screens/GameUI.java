@@ -162,19 +162,19 @@ public class GameUI extends InGameMenu {
         picButton = addImageButton(
                 gsBTNx + 0f, gsBTNy - 0f,
                 gsBTNwidth, gsBTNheight,
-                InputMapper.InputState.INP_FIRE1);
+                ButtonEventHandler.EVENT_A);
 
         xButton = addImageButton(
                 3f * Gdx.graphics.getWidth() / 4, 0,
                 Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4,
-                InputMapper.InputState.INP_FIRE2);
+                ButtonEventHandler.EVENT_B);
     }
 
     /*
-     * make simple outlined button to provide either InputState or touch/pointer input
+     * make simple outlined button and bind an input event handler to it
      */
     private ImageButton addImageButton(
-            float btnX, float btnY, int btnWidth, int btnHeight, final InputMapper.InputState ips
+            float btnX, float btnY, int btnWidth, int btnHeight, final ButtonEventHandler ips
     ) {
 //        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
@@ -311,13 +311,71 @@ public class GameUI extends InGameMenu {
         mesgLabel.setVisible(true);
     }
 
+
+    public enum InputState {
+        INP_NONE,
+        INP_SELECT,
+        INP_START,
+        INP_A,
+        INP_B,
+        INP_Y,
+        INP_X,
+        INP_L1,
+        INP_L2
+    }
+
+    private InputState preInputState;
+    private InputState incomingInputState;
+
+    /**
+     * Evaluate discrete inputs and return the enum id of the active input if any.
+     * Available physical devices - which can include e.g. gamepad controller buttons, keyboard
+     * input, as well as virtual buttons on the touch screen - are multiplexed into the various
+     * discrete input abstractions.
+     * If incoming input state has changed from previous value, then update with stored
+     * input state and return it. If no change, returns NONE.
+     * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
+     * Stage then the caller will have to handle their own TS checking, e.g.:
+     * todo: how Input.Keys.BACK generated in Android Q
+     *
+     * @return enum constant of the currently active input if any or INP_NONE
+     */
+    private InputState getInputState() {
+        InputState newInputState = incomingInputState;
+        if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+            newInputState = InputState.INP_A;
+
+        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_B)) {
+            newInputState = InputState.INP_B;
+
+        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)) {
+            newInputState = InputState.INP_START;
+
+        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_SELECT)) {
+            newInputState = InputState.INP_SELECT;
+
+        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_L1)) {
+            newInputState = InputState.INP_L1;
+        }
+
+        InputState debouncedInputState = InputState.INP_NONE;
+
+        if (preInputState != newInputState) { // debounce
+            debouncedInputState = newInputState;
+        }
+        preInputState = newInputState;
+        incomingInputState = InputState.INP_NONE; // unlatch the input state
+
+        return debouncedInputState;
+    }
+
     private void updateGetInputs() {
 
         int checkedBox = 0; // button default at top selection
 
-        InputMapper.InputState inp = mapper.getInputState();
+        InputState inp = getInputState();
 
-        if ((InputMapper.InputState.INP_FIRE1 == inp)) {
+        if ((InputState.INP_A == inp)) {
             if (GameWorld.getInstance().getIsPaused()) {
                 onPauseEvent();
             } else {
@@ -327,11 +385,11 @@ public class GameUI extends InGameMenu {
                     onSelectEvent(); // so it can be overriden
                 }
             }
-        } else if (InputMapper.InputState.INP_MENU == inp) {
+        } else if (InputState.INP_START == inp) {
             onEscEvent();
-        } else if (InputMapper.InputState.INP_VIEW == inp) {
+        } else if (InputState.INP_SELECT == inp) {
             onCameraSwitch();
-        } else if (InputMapper.InputState.INP_SEL1 == inp) {
+        } else if (InputState.INP_L1 == inp) {
             onMenuEvent();
         }
 

@@ -277,28 +277,42 @@ class InGameMenu extends Stage {
     }
 
     /*
-     * saves the texture ref for disposal ;)
+     * key/touch event handlers
+     */
+    public enum ButtonEventHandler {
+        EVENT_NONE,
+        EVENT_A,
+        EVENT_B
+    }
+
+    /**
+     *
+     * @param tex texture
+     * @param posX X coord
+     * @param posY Y coord
+     * @param inputBinding Button Event Handler
+     * @return Image Button
      */
     ImageButton addImageButton(
-            Texture tex, float posX, float posY, final InputMapper.InputState inputBinding) {
+            Texture tex, float posX, float posY, final ButtonEventHandler inputBinding) {
 
         savedTextureRefs.add(tex);
         final ImageButton newButton = addImageButton(tex, posX, posY);
 
         newButton.addListener(
                 new InputListener() {
-                    final InputMapper.InputState binding = inputBinding;
+                    final ButtonEventHandler binding = inputBinding;
 
                     @Override
                     public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 
-                        if (InputMapper.InputState.INP_FIRE1 == binding) {
+                        if (ButtonEventHandler.EVENT_A == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
 
-                        } else if (InputMapper.InputState.INP_FIRE2 == binding) {
+                        } else if (ButtonEventHandler.EVENT_B == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
 
-                        } else if (InputMapper.InputState.INP_NONE == binding) {
+                        } else if (ButtonEventHandler.EVENT_NONE == binding) {
                             // I don't know why Select Screen event is INP NONE
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                         }
@@ -307,9 +321,9 @@ class InGameMenu extends Stage {
                     }
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                        if (InputMapper.InputState.INP_FIRE1 == binding) {
+                        if (ButtonEventHandler.EVENT_A == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-                        } else if (InputMapper.InputState.INP_FIRE2 == binding) {
+                        } else if (ButtonEventHandler.EVENT_B == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
                         }
                     }
@@ -420,6 +434,9 @@ class InGameMenu extends Stage {
         if (Input.Keys.TAB == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, true);
         }
+        if (Input.Keys.SHIFT_RIGHT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, true);
+        }
         return false;
     }
 
@@ -457,6 +474,9 @@ class InGameMenu extends Stage {
         }
         if (Input.Keys.TAB == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
+        }
+        if (Input.Keys.SHIFT_RIGHT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
         }
         return false;
     }

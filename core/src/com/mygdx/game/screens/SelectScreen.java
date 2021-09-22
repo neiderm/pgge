@@ -43,7 +43,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private static final String CLASS_STRING = "SelectScreen";
 
-    private static final Array<String> stageNamesList = new Array<String>();
+    private static final Array<String> stageNamesList = new Array<>();
     private int actorCount = 0;
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
@@ -106,7 +106,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         pixmap.setColor(1, 1, 1, 0.3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
         texture = new Texture(pixmap);
-        stage.addImageButton(texture, 0, 0, InputMapper.InputState.INP_NONE);
+        stage.addImageButton(texture, 0, 0, InGameMenu.ButtonEventHandler.EVENT_NONE);
         pixmap.dispose();
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
@@ -117,7 +117,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         texture = new Texture(pixmap);
         stage.addImageButton(
                 texture,
-                0, Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+                0, Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_NONE);
         pixmap.dispose();
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
@@ -127,7 +127,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.addImageButton(
                 texture,
                 Gdx.graphics.getWidth() - (float) ARROW_EXT,
-                Gdx.graphics.getHeight() / 2.0f, InputMapper.InputState.INP_NONE);
+                Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_NONE);
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);

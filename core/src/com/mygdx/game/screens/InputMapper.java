@@ -126,21 +126,6 @@ public class InputMapper {
     public static final int VIRTUAL_R2_AXIS = 5; // front button "right 2" (if used)
 
     /*
-     * enumerate the various input events with which the screens may (poll/notify?)
-     */
-    public enum InputState {
-        INP_NONE,
-        INP_VIEW,
-        INP_MENU,
-        INP_FIRE1,   // A
-        INP_FIRE2,   // B
-        INP_BROVER,  // Y (brake/roll-over)
-        INP_FUNC,    // X (tbd)
-        INP_SEL1,    // L1
-        INP_SEL2     // R1
-    }
-
-    /*
      * abstraction of controller buttons
      */
     public enum VirtualButtonCode {
@@ -192,8 +177,6 @@ public class InputMapper {
 
     @SuppressWarnings("unused") // e.g. connectedCtrl.getPov(0);
     private Controller connectedCtrl;
-    private InputState preInputState;
-    private InputState incomingInputState;
 
     InputMapper() {
         // connected controller .. not used for much anything right now
@@ -201,12 +184,6 @@ public class InputMapper {
         connectedCtrl = getConnectedCtrl(CONTROLLER_ZERO);
 
         setControllerButtonMapping();
-        /*
-         * Ensure that the INP FIRE1 (Space key or X/A button) can be held down and does
-         * not repeat when transitioning e.g. from Splash Screen to Select Screen, and also
-         * from Select Screen to Game Screen
-         */
-        preInputState = InputState.INP_FIRE1;
     }
 
     /**
@@ -257,60 +234,6 @@ public class InputMapper {
             }
         }
         return connectedCtrl;
-    }
-
-    /**
-     * Evaluate discrete inputs and return the enum id of the active input if any.
-     * Available physical devices - which can include e.g. gamepad controller buttons, keyboard
-     * input, as well as virtual buttons on the touch screen - are multiplexed into the various
-     * discrete input abstractions.
-     * If incoming input state has changed from previous value, then update with stored
-     * input state and return it. If no change, returns NONE.
-     * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
-     * Stage then the caller will have to handle their own TS checking, e.g.:
-     * <p>
-     * InputMapper.InputState inp = mapper.getInputState();
-     * if ((InputMapper.InputState.INP_FIRE1 == inp) || Gdx.input.isTouched(0)) {
-     * GameWorld.getInstance().showScreen(newScreen);
-     * }
-     * <p>
-     * todo: how Input.Keys.BACK generated in Android Q
-     *
-     * @return enum constant of the currently active input if any or INP_NONE
-     */
-    InputState getInputState() {
-        InputState newInputState = incomingInputState;
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)
-                || getControlButton(VirtualButtonCode.BTN_A)) {
-            newInputState = InputState.INP_FIRE1;
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE)
-                || Gdx.input.isKeyPressed(Input.Keys.BACK)
-                || getControlButton(VirtualButtonCode.BTN_START)) {
-            newInputState = InputState.INP_MENU;
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.TAB)
-                || getControlButton(VirtualButtonCode.BTN_SELECT)) {
-            newInputState = InputState.INP_VIEW;
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.CONTROL_LEFT)
-                || getControlButton(VirtualButtonCode.BTN_B)) {
-            newInputState = InputState.INP_FIRE2;
-
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
-                || getControlButton(VirtualButtonCode.BTN_L1)) {
-            newInputState = InputState.INP_SEL1;
-        }
-
-        InputState debouncedInputState = InputState.INP_NONE;
-
-        if (preInputState != newInputState) { // debounce
-            debouncedInputState = newInputState;
-        }
-        preInputState = newInputState;
-        incomingInputState = InputState.INP_NONE; // unlatch the input state
-
-        return debouncedInputState;
     }
 
     /**
