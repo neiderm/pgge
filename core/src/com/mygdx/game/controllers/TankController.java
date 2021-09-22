@@ -23,10 +23,11 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.screens.GfxBatch;
+import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.GfxUtil;
 import com.mygdx.game.util.ModelInstanceEx;
 
-public class TankController extends ControllerAdapter {
+public class TankController extends CharacterController {
 
     // experimental values should probably be a property of the Rig type
     private static final float LINEAR_GAIN = 12.0f; // forward driving force
@@ -44,7 +45,7 @@ public class TankController extends ControllerAdapter {
 
     private boolean izinnaJump;
 
-    public TankController(btRigidBody body, float mass, ControlBundle controlBundle) {
+    private TankController(btRigidBody body, float mass, InputMapper.ControlBundle controlBundle) {
         this.body = body;
         this.mass = mass;
         // allow the default Control Bundle in the Adapter to be left to Garbage Collection
@@ -53,8 +54,11 @@ public class TankController extends ControllerAdapter {
         }
     }
 
+    /*
+     * constructor will instantiate a new Control Bundle (e.g. for AI/Characters)
+     */
     public TankController(btRigidBody body, float mass) {
-        this(body, mass, null);
+        this(body, mass, new InputMapper.ControlBundle());
     }
 
     @Override
@@ -64,7 +68,7 @@ public class TankController extends ControllerAdapter {
         float direction = controlBundle.analogY;
         float slideLeft = controlBundle.analogL;
         float slideRight = controlBundle.analogR;
-        boolean swBrakeJump = controlBundle.switch1;
+        boolean swBrakeJump = controlBundle.getCbuttonState(1);
 
         // this makes reverse steering opposite of my favorite *rigs game ;)
         if (direction < 0) {

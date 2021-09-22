@@ -38,7 +38,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
  * https://free3d.com/3d-model/t-55-12298.html
  * https://free3d.com/3d-model/veteran-tiger-tank-38672.html
  */
-public class GunPlatform extends ControllerAdapter {
+public class GunPlatform extends CharacterController {
     // projectile initial vector is body+turret+barrel orientation
     private final Vector3 prjectileS0 = new Vector3();
     private final Vector3 yAxis = new Vector3(0, 1, 0);
@@ -55,10 +55,8 @@ public class GunPlatform extends ControllerAdapter {
     private float rTurret;
     private float rBarrel;
 
-    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack,
-                       ControlBundle controlBundle, boolean delay) {
+    public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
 
-        this.controlBundle = controlBundle;
         this.gunrack = gunrack;
         this.mi = mi;
 
@@ -89,12 +87,12 @@ public class GunPlatform extends ControllerAdapter {
         }
     }
 
-    //    @Override
+    @Override
     public void updateControls(float time) {
 
         float anlgAxisX = controlBundle.analogX1;
         float anlgAxisY = controlBundle.analogY1;
-        boolean button0 = controlBundle.switch0;
+        boolean button0 = controlBundle.getCbuttonState(0);
 
         if (energizeTime > 0) {
             energizeTime -= 1;

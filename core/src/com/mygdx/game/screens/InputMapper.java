@@ -21,7 +21,6 @@ import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.controllers.ControllerAdapter;
 
 import java.util.Arrays;
 
@@ -108,7 +107,7 @@ Android:
 -----------------------------
 */
 
-class InputMapper {
+public class InputMapper {
 
     static int numberControlCfgTypes;
 
@@ -184,6 +183,8 @@ class InputMapper {
 
     private final int[] virtualButtonDebounceCounts = new int[VirtualButtonCode.values().length];
 
+    private final float[] analogAxes = new float[MAX_AXES];
+
     @SuppressWarnings("unused") // e.g. connectedCtrl.getPov(0);
     private Controller connectedCtrl;
     private InputState preInputState;
@@ -227,7 +228,7 @@ class InputMapper {
      * @param axisIndex id of axis to read e.g. InputMapper.VIRTUAL_WS_AXIS etc.
      * @return float axis value [-1::1]
      */
-    float getAxis(int axisIndex) {
+    private float getAxis(int axisIndex) {
         return analogAxes[axisIndex];
     }
 
@@ -291,7 +292,7 @@ class InputMapper {
                 || getControlButton(VirtualButtonCode.BTN_B)) {
             newInputState = InputState.INP_FIRE2;
 
-        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)
+        } else if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
                 || getControlButton(VirtualButtonCode.BTN_L1)) {
             newInputState = InputState.INP_SEL1;
         }
@@ -321,10 +322,11 @@ class InputMapper {
             setControlButton(vbCode, newButtonState);
         }
     }
+
     /**
      * This one is public as it is preferable to use the virtual button code
      *
-     * @param vbCode  vbutton Virtual Button Code of tested button
+     * @param vbCode         vbutton Virtual Button Code of tested button
      * @param newButtonState new button state to set
      */
     void setControlButton(VirtualButtonCode vbCode, boolean newButtonState) {
@@ -353,10 +355,11 @@ class InputMapper {
 
     /**
      * get control button - no debounce
+     *
      * @param vbutton Virtual Button Code of tested button
      * @return state of wanted input
      */
-     boolean getControlButton(VirtualButtonCode vbutton) {
+    boolean getControlButton(VirtualButtonCode vbutton) {
         int index = vbutton.ordinal();
         if (index > virtualButtonStates.length) {
             return false;
@@ -366,9 +369,10 @@ class InputMapper {
     }
 
     /**
-     *      * get control button with configurable debounce time or repeat period
-     * @param vbutton Virtual Button Code of tested button
-     * @param letRepeat boolean whether to let button repeat or not
+     * * get control button with configurable debounce time or repeat period
+     *
+     * @param vbutton      Virtual Button Code of tested button
+     * @param letRepeat    boolean whether to let button repeat or not
      * @param repeatPeriod period of repetition if held down, otherwise sets the debounce time if letRepeat==false
      * @return state of tested button
      */
@@ -398,19 +402,90 @@ class InputMapper {
         return rv;
     }
 
-    private final float[] analogAxes = new float[MAX_AXES];
+    /**
+     * class is static and Controller Adapter holds an instance of it
+     */
+    static class CtrlButton {
+        VirtualButtonCode vbcode;
+        boolean state; // open/up closed/down
+        boolean isRepeated; // true = repeated, false = debounced and not repeated
+        int timeout; // if is repeated, then repeat interval, otherwise debounce timeout
 
-    private void print(String message) {
-        Gdx.app.log("InputMapper", message);
+        CtrlButton() {
+            this.state = false; // open/up closed/down
+            this.isRepeated = false; // true = repeated, false = debounced and not repeated
+            this.timeout = 0; // if is repeated, then repeat interval, otherwise debounce timeout
+            this.vbcode = VirtualButtonCode.BTN_NONE;
+        }
+
+        CtrlButton(VirtualButtonCode vbcode) {
+            this(vbcode, false, 0);
+        }
+
+        CtrlButton(VirtualButtonCode vbcode, boolean isRepeated, int timeout) {
+            this.vbcode = vbcode;
+            this.isRepeated = isRepeated;
+            this.timeout = timeout;
+        }
+    }
+
+    public static class ControlBundle {
+        // todo: enum
+        public static final int CBTN_SWITCH_0 = 0;
+        public static final int CBTN_SWITCH_1 = 1;
+
+        public float analogX;
+        public float analogY;
+        public float analogX1;
+        public float analogY1;
+        public float analogL;
+        public float analogR;
+
+        private CtrlButton[] cbuttons;
+
+        public ControlBundle() {
+            setButtons();
+        }
+
+        void setButtons(CtrlButton... cbuttons) {
+            this.cbuttons = new CtrlButton[MAX_BUTTONS]; // how to size this for cbuttons.length?
+            int copylen = cbuttons.length;
+            if (copylen < MAX_BUTTONS) {
+                System.arraycopy(cbuttons, 0, this.cbuttons, 0, copylen);
+            }
+        }
+
+        void setButtons(){
+           setButtons( new CtrlButton(InputMapper.VirtualButtonCode.BTN_A), new CtrlButton());
+        }
+
+        CtrlButton getButton(int index) {
+            if (index < cbuttons.length) {
+                return cbuttons[index];
+            }
+            return null;
+        }
+
+        public void setCbuttonState(int index, boolean state) {
+            if (null != cbuttons[index]) { /* && (index < MAX_BUTTONS) */
+                cbuttons[index].state = state;
+            }
+        }
+
+        public boolean getCbuttonState(int index) {
+            if (index < cbuttons.length) {
+                return cbuttons[index].state;
+            }
+            return false;
+        }
     }
 
     /**
      * using the C Bundle helps reduce uses of the InputMapper.VIRTUAL_XXXX
+     *
      * @param cbundle Control Bundle instance passed from owning class
-     * @return the passed C Bundle for chaining
      */
-    ControllerAdapter.ControlBundle updateControlBundle(
-            ControllerAdapter.ControlBundle cbundle){
+    void updateControlBundle(ControlBundle cbundle) {
 
         cbundle.analogX = getAxis(InputMapper.VIRTUAL_AD_AXIS);
         cbundle.analogY = getAxis(InputMapper.VIRTUAL_WS_AXIS);
@@ -418,10 +493,26 @@ class InputMapper {
         cbundle.analogY1 = getAxis(InputMapper.VIRTUAL_Y1_AXIS);
         cbundle.analogL = getAxis(InputMapper.VIRTUAL_L2_AXIS);
         cbundle.analogR = getAxis(InputMapper.VIRTUAL_R2_AXIS);
-        cbundle.switch0 = getControlButton(
-                InputMapper.VirtualButtonCode.BTN_A, true, 60);
-        cbundle.switch1 = getControlButton(InputMapper.VirtualButtonCode.BTN_B);
-        return cbundle;
+
+        CtrlButton cbutton;
+        cbutton = cbundle.getButton(0);
+        if (null != cbutton) {
+            cbundle.setCbuttonState(0,
+                    getControlButton(
+                            InputMapper.VirtualButtonCode.BTN_A, cbutton.isRepeated, cbutton.timeout));
+        }
+        cbutton = cbundle.getButton(1);
+        if (null != cbutton) {
+            cbundle.setCbuttonState(1,
+                    getControlButton(
+                            InputMapper.VirtualButtonCode.BTN_B, cbutton.isRepeated, cbutton.timeout));
+        }
+
+        cbundle.setCbuttonState(1, getControlButton(InputMapper.VirtualButtonCode.BTN_B));
+    }
+
+    private void print(String message) {
+        Gdx.app.log("InputMapper", message);
     }
 
     /*

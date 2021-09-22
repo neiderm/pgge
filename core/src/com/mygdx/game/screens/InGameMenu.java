@@ -48,8 +48,8 @@ import com.mygdx.game.GameWorld;
  */
 class InGameMenu extends Stage {
 
-    private final Array<Texture> savedTextureRefs = new Array<Texture>();
-    private final Array<String> buttonNames = new Array<String>();
+    private final Array<Texture> savedTextureRefs = new Array<>();
+    private final Array<String> buttonNames = new Array<>();
     private final ButtonGroup<TextButton> bg;
 
     final InputMapper mapper = new InputMapper();
@@ -161,7 +161,7 @@ class InGameMenu extends Stage {
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
 
-        bg = new ButtonGroup<TextButton>();
+        bg = new ButtonGroup<>();
         bg.setMaxCheckCount(1);
         bg.setMinCheckCount(1);
 
@@ -392,6 +392,10 @@ class InGameMenu extends Stage {
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT)) {
+            axisSetIndexX = InputMapper.VIRTUAL_R2_AXIS; // front-left axis button
+            axisSetIndexY = InputMapper.VIRTUAL_L2_AXIS; // front-right axis button
+        }
         if (Input.Keys.DPAD_LEFT == keycode) {
             mapper.setAxis(axisSetIndexX, -1);
         }
@@ -428,6 +432,10 @@ class InGameMenu extends Stage {
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
+        } else
+        if (Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT)) {
+            axisSetIndexX = InputMapper.VIRTUAL_R2_AXIS;
+            axisSetIndexY = InputMapper.VIRTUAL_L2_AXIS;
         }
 
         if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||

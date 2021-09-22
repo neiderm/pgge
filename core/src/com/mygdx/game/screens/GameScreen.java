@@ -47,8 +47,7 @@ import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.controllers.ControllerAbstraction;
-import com.mygdx.game.controllers.ControllerAdapter;
+import com.mygdx.game.controllers.CharacterController;
 import com.mygdx.game.controllers.GunPlatform;
 import com.mygdx.game.controllers.SteeringEntity;
 import com.mygdx.game.controllers.TankController;
@@ -137,13 +136,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
- (a "chaser-camera" entity - no visual but has transform and possibly AI and/or physics chaacterisitics - can be active at most time
- and camera may or may not actually be on it)
-          */
+         The camera chaser is an entity with no visuals, but has transform and possibly AI for e.g.
+         terrain following/collision-avoidance and possibly even collision body for physics interaction w/ world.
+        */
         chaserTransform = new Matrix4(); // hacky crap ... steering behavior construction will not instantiate this
 
-        chaserSteerable.setSteeringBehavior(
-                new TrackerSB<Vector3>(
+        chaserSteerable.setSteeringBehavior(new TrackerSB<>(
                         chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
 
         cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt, playerTrnsfm);
@@ -178,11 +176,22 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
          * here is where all the controller and model stuff comes together
          */
         return new GameUI() {
-
-            boolean withEnergizeDelay = true; // configures weapon to simulate energizine time on switchover
+            // configures weapon to simulate energizing time on switch-over
+            private boolean withEnergizeDelay = true;
+            private CharacterController rigController;
+            private InputMapper.ControlBundle cbundle;
 
             @Override
-            protected void init() { // mt
+            protected void init() {
+                rigController = new TankController( // todo: model can instantiate body and pickedplayer can set it?
+                        pickedPlayer.getComponent(BulletComponent.class).body,
+                        pickedPlayer.getComponent(BulletComponent.class).mass); /* should be a property of the rig? */
+
+                cbundle = rigController.getControlBundle();
+                cbundle.setButtons(
+                        new InputMapper.CtrlButton(InputMapper.VirtualButtonCode.BTN_A, true, 60),
+                        new InputMapper.CtrlButton(InputMapper.VirtualButtonCode.BTN_B));
+
                 gunrack = new Gunrack(hitDetectEvent, debugPrintFont) {
                     @Override
                     public void act(float delta) { // mt
@@ -200,16 +209,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 };
                 addActor(gunrack);
             }
-
-            private ControllerAdapter.ControlBundle cbundle = new ControllerAdapter.ControlBundle();
-
-            // setup the vehicle model so it can be referenced in the mapper
-            // todo: model can instantiate body and pickedplayer can set it?
-            final ControllerAbstraction rigModel = new TankController(
-                    pickedPlayer.getComponent(BulletComponent.class).body,
-                    pickedPlayer.getComponent(BulletComponent.class).mass, /* should be a property of the rig? */
-                    cbundle
-            );
 
             @Override
             public void onCameraSwitch() {
@@ -247,7 +246,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     gunPlatform = new GunPlatform(
                             pickedPlayer.getComponent(ModelComponent.class).modelInst,
                             pickedPlayer.getComponent(BulletComponent.class).shape,
-                            gunrack, cbundle, withEnergizeDelay);
+                            gunrack, withEnergizeDelay);
+                    gunPlatform.setControlBundle(cbundle);
                 }
                 mapper.updateControlBundle(cbundle); // sample axes and switches inputs
 
@@ -261,7 +261,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
                     cbundle.analogY = (-1) * pf.userData / 100.0f; // percent
                 }
-                rigModel.updateControls(0 /* unused */);
+                rigController.updateControls(0 /* unused */);
             }
 
             @Override
@@ -444,10 +444,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         // put in any debug graphics to the render pipeline
         chaserSteerable.update(delta);
 
-        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class); //hack your way into ti
+        ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
         if (null != mc) {
             GfxBatch.draw(
-                    camDbgLineInstance.lineTo(mc.modelInst.transform.getTranslation(tmpPos), chaserTransform.getTranslation(tmpV), Color.PURPLE));
+                    camDbgLineInstance.lineTo(mc.modelInst.transform.getTranslation(tmpPos),
+                            chaserTransform.getTranslation(tmpV), Color.PURPLE));
         }
 
         camController.update(); // this can probaly be pause as well
@@ -457,11 +458,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
-        // update entities queued for deletion (seems like this needs to be done outside of engine/simulation step)
-        cleaner();
-
         // update entities queued for spawning
-        spawner();
+        runCleanerSpawner();
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART ==
                 GameWorld.getInstance().getRoundActiveState()) {
@@ -478,8 +476,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    // cleaner .. to be static
-    private void spawner() {
+    private void runCleanerSpawner() {
+
+        purgeExpiredEntities();
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
@@ -490,31 +489,29 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    /*
-      sweep entities queued for deletion (needs to be done outside of engine/simulation step)
+    /**
+     * sweep entities queued for deletion (needs to be done outside of engine/simulation step)
      */
-    private void cleaner() {
+    private void purgeExpiredEntities() {
 
         for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
 
             StatusComponent sc = e.getComponent(StatusComponent.class);
 
             if (0 == sc.lifeClock) {
-// explode effect only available for models w/ child nodes .... or e.g. rig animations ???
                 ModelComponent mc = e.getComponent(ModelComponent.class);
+                // explode effect only available for models w/ child nodes
                 if (null != mc) {
-
                     BulletComponent bc = e.getComponent(BulletComponent.class);
+
                     if (null != bc && null != bc.shape /* && null != mc.modelInst */) {
-                        // this could possibly be invoked as a rig animation "entity.modelComp.animiation.exploda()"
-                        exploducopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
+                        // this could possibly be invoked as a rig animation "entity.modelComp.animation.exploda()"
+                        explodacopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
                     }
                 }
-
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
 
                 if (null != fc && null != fc.featureAdpt) {
-
                     fc.featureAdpt.onDestroyed(e);
 
                     int bounty = fc.featureAdpt.bounty;
@@ -532,7 +529,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         }
                     } else if (bounty > 0) {
                         StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-
                         if (null != psc) {
                             psc.bounty += bounty;
                         }
@@ -541,7 +537,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 e.remove(ModelComponent.class);
                 removeBulletComp(e);
                 engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
-
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
                     removeBulletComp(e);
@@ -615,21 +610,20 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      * @param modelInst model instance
      * @param model     model
      */
-    private static void exploducopia(Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
+    private static void explodacopia(
+            Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
+
         if (shape.className.equals("btCompoundShape")) {
             Vector3 translation = new Vector3();
             Quaternion rotation = new Quaternion();
-
             GameObject gameObject = new GameObject(1);
 
-            gameObject.getInstanceData().add(
-                    new InstanceData(
+            gameObject.getInstanceData().add(new InstanceData(
                             modelInst.transform.getTranslation(translation),
                             modelInst.transform.getRotation(rotation))
             );
             Array<Node> nodeFlatArray = new Array<>();
             PrimitivesBuilder.getNodeArray(model.nodes, nodeFlatArray);
-
             // build nodes by iterating the node id list, which hopefullly is in same index order as when the comp shape was builtup
             buildChildNodes(engine, nodeFlatArray, model, (btCompoundShape) shape, gameObject);
         } else {

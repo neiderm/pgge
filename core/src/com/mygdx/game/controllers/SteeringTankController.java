@@ -25,6 +25,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
+import com.mygdx.game.screens.InputMapper;
 
 import static java.lang.Math.abs;
 
@@ -37,9 +38,9 @@ import static java.lang.Math.abs;
  */
 public class SteeringTankController extends SteeringBulletEntity {
 
-    private final ControllerAdapter tc;
+    private final CharacterController tc;
 
-    public SteeringTankController(ControllerAdapter tc, btRigidBody body, SteeringEntity target) {
+    public SteeringTankController(CharacterController tc, btRigidBody body, SteeringEntity target) {
 
         super(body);
         this.tc = tc;
@@ -92,10 +93,10 @@ public class SteeringTankController extends SteeringBulletEntity {
            sync the Rig model with the virtual controller inputs
          */
         final float Forward = -1.0f; // forward (on z axis)
-        ControllerAdapter.ControlBundle cbundle = tc.getControlBundle();
+        InputMapper.ControlBundle cbundle = tc.getControlBundle();
         cbundle.analogX = angular;
         cbundle.analogY = Forward;
-        cbundle.switch1 = false; // jump/brake
+        cbundle.setCbuttonState(1, false);  // jump/brake
         tc.updateControls(0);
     }
 }
