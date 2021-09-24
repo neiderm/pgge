@@ -47,7 +47,8 @@
 							"z": -10
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox"
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
 						}
 					},
 					{
@@ -63,7 +64,8 @@
 							"z": -14
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox"
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
 						}
 					},
 					{
@@ -79,7 +81,8 @@
 							"z": -18
 						},
 						"adaptr": {
-							"class": "com.mygdx.game.features.SlideBox"
+							"class": "com.mygdx.game.features.SlideBox",
+							"fSubType": "FT_SLIDEY_BLK"
 						}
 					}
 				],
