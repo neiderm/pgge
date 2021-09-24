@@ -54,7 +54,7 @@ class InGameMenu extends Stage {
     // disposables
     private final Texture overlayTexture;
     private final Image overlayImage;
-    private final BitmapFont font;
+    private final BitmapFont menuFont;
     // disposable
     private Texture buttonTexture;
 
@@ -93,37 +93,14 @@ class InGameMenu extends Stage {
         savedTextureRefs.clear();
 
         if (null != skinName) {
-// todo: redundant see makeSkin()
-            Skin skin = new Skin(Gdx.files.internal(skinName));
-
             final String DEFAULT_FONT = "default-font";
-            font = skin.getFont(DEFAULT_FONT);
+            Skin skin = new Skin(Gdx.files.internal(skinName));
+            menuFont = skin.getFont(DEFAULT_FONT);
+            uiSkin = makeSkin(new Skin(Gdx.files.internal(skinName)));
 
-            // to use this skin on game screen, create a Labels style for up/down text button on pause menu
-            Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-            pixmap.setColor(Color.WHITE);
-            pixmap.fill();
-
-            skin.add("white", new Texture(pixmap));
-            pixmap.dispose();
-
-            skin.add("default", new Label.LabelStyle(font, Color.WHITE));
-            // Store the default libgdx font under the name "default".
-            skin.add("default", font);
-
-            // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-            TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-            textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
-            textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
-            textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
-            textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
-            textButtonStyle.font = skin.getFont("default");
-            skin.add("default", textButtonStyle);
-//
-            uiSkin = skin;
         } else {
             // screens that are not loading UI from a skin must load the font directly
-            font = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+            menuFont = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                     Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
             uiSkin = makeSkin();
         }
@@ -131,13 +108,13 @@ class InGameMenu extends Stage {
 
         float scale = Gdx.graphics.getDensity();
         if (scale > 1) {
-            font.getData().setScale(scale);
+            menuFont.getData().setScale(scale);
         }
         /*
          * GameUI sets a label on the menu which may eventually be useful for other purposes
          */
         if (null != menuName) {
-            Label onScreenMenuLabel = new Label(menuName, new Label.LabelStyle(font, Color.WHITE));
+            Label onScreenMenuLabel = new Label(menuName, new Label.LabelStyle(menuFont, Color.WHITE));
             onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
         }
 
@@ -178,44 +155,6 @@ class InGameMenu extends Stage {
         GameWorld.getInstance().setIsPaused(true);
     }
 
-    void setLabelColor(Label label, Color c) {
-        label.setStyle(new Label.LabelStyle(font, c));
-    }
-
-    void setOverlayColor(float r, float g, float b, float a) {
-        if (null != overlayImage) {
-            overlayImage.setColor(r, g, b, a);
-        }
-    }
-
-    Label scoreLabel;
-    Label itemsLabel;
-    Label timerLabel;
-    Label mesgLabel;
-
-    private void setupPlayerInfo() {
-        scoreLabel = new Label("0000", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(scoreLabel);
-
-        itemsLabel = new Label("0/3", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(itemsLabel);
-
-        timerLabel = new Label("0:15", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(timerLabel).padRight(1);
-
-        playerInfoTbl.row().expand();
-
-        mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(font, Color.WHITE));
-        playerInfoTbl.add(mesgLabel).colspan(3);
-        mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
-
-        playerInfoTbl.row().bottom().left();
-        playerInfoTbl.setFillParent(true);
-//        playerInfoTbl.setDebug(true);
-        playerInfoTbl.setVisible(false);
-        addActor(playerInfoTbl);
-    }
-
     /*
      * Reference:
      *  https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
@@ -233,9 +172,9 @@ class InGameMenu extends Stage {
         skin.add("white", new Texture(pixmap));
         pixmap.dispose();
 
-        skin.add("default", new Label.LabelStyle(font, Color.WHITE));
+        skin.add("default", new Label.LabelStyle(menuFont, Color.WHITE));
         // Store the default libgdx font under the name "default".
-        skin.add("default", font);
+        skin.add("default", menuFont);
 
         // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
@@ -249,11 +188,49 @@ class InGameMenu extends Stage {
         return skin;
     }
 
+    void setLabelColor(Label label, Color c) {
+        label.setStyle(new Label.LabelStyle(menuFont, c));
+    }
+
+    void setOverlayColor(float r, float g, float b, float a) {
+        if (null != overlayImage) {
+            overlayImage.setColor(r, g, b, a);
+        }
+    }
+
+    Label scoreLabel;
+    Label itemsLabel;
+    Label timerLabel;
+    Label mesgLabel;
+
+    private void setupPlayerInfo() {
+        scoreLabel = new Label("0000", new Label.LabelStyle(menuFont, Color.WHITE));
+        playerInfoTbl.add(scoreLabel);
+
+        itemsLabel = new Label("0/3", new Label.LabelStyle(menuFont, Color.WHITE));
+        playerInfoTbl.add(itemsLabel);
+
+        timerLabel = new Label("0:15", new Label.LabelStyle(menuFont, Color.WHITE));
+        playerInfoTbl.add(timerLabel).padRight(1);
+
+        playerInfoTbl.row().expand();
+
+        mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(menuFont, Color.WHITE));
+        playerInfoTbl.add(mesgLabel).colspan(3);
+        mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
+
+        playerInfoTbl.row().bottom().left();
+        playerInfoTbl.setFillParent(true);
+//        playerInfoTbl.setDebug(true);
+        playerInfoTbl.setVisible(false);
+        addActor(playerInfoTbl);
+    }
+
     /*
      * add a label in the default font and style
      */
     void addLabel(String labelText, Color labelColor) {
-        addActor(new Label(labelText, new Label.LabelStyle(font, labelColor)));
+        addActor(new Label(labelText, new Label.LabelStyle(menuFont, labelColor)));
     }
 
     /**
@@ -535,8 +512,8 @@ class InGameMenu extends Stage {
         if (null != overlayTexture) {
             overlayTexture.dispose();
         }
-        if (null != font) {
-            font.dispose();
+        if (null != menuFont) {
+            menuFont.dispose();
         }
         if (null != uiSkin) {
             uiSkin.dispose();
