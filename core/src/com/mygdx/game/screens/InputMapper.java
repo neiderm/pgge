@@ -16,7 +16,6 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.controllers.PovDirection;
@@ -144,7 +143,11 @@ public class InputMapper {
         BTN_L3,
         BTN_R1,
         BTN_R2,
-        BTN_R3
+        BTN_R3,
+        BTN_UP,
+        BTN_DOWN,
+        BTN_LEFT,
+        BTN_RIGHT
     }
 
     /**
@@ -260,6 +263,14 @@ public class InputMapper {
     void setControlButton(VirtualButtonCode vbCode, boolean newButtonState) {
         if (null != vbCode) {
             virtualButtonStates[vbCode.ordinal()] = newButtonState;
+
+            // left/right arrows (Select Screen)
+            if (VirtualButtonCode.BTN_LEFT == vbCode) {
+                analogAxes[VIRTUAL_AD_AXIS] = newButtonState ? (-1) : 0;
+            }
+            if (VirtualButtonCode.BTN_RIGHT == vbCode) {
+                analogAxes[VIRTUAL_AD_AXIS] = newButtonState ? 1 : 0;
+            }
 
             switch (GameWorld.getInstance().getControllerMode()) {
                 default:

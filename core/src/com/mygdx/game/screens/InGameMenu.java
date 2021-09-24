@@ -50,21 +50,22 @@ class InGameMenu extends Stage {
 
     private final Array<Texture> savedTextureRefs = new Array<>();
     private final Array<String> buttonNames = new Array<>();
-    private final ButtonGroup<TextButton> bg;
-
-    final InputMapper mapper = new InputMapper();
-    final Table onscreenMenuTbl = new Table();
-    final Table playerInfoTbl = new Table();
+    private final ButtonGroup<TextButton> buttonGroup;
+    // disposables
+    private final Texture overlayTexture;
+    private final Image overlayImage;
+    private final BitmapFont font;
+    // disposable
+    private Texture buttonTexture;
 
     private int previousIncrement;
     private int actorCount;
 
-    // @dispsables
-    private final Texture overlayTexture;
-    private final Image overlayImage;
-    private final Skin uiSkin;
-    private final BitmapFont font;
-    private Texture buttonTexture;
+    final Table onscreenMenuTbl = new Table();
+    final Table playerInfoTbl = new Table();
+    final Skin uiSkin;
+
+    InputMapper mapper;
 
     static final String DEFAULT_UISKIN_JSON = "skin/uiskin.json";
 
@@ -82,10 +83,17 @@ class InGameMenu extends Stage {
     }
 
     InGameMenu(String skinName, String menuName) {
+
         super();
+
+        mapper = new InputMapper();
+        // if mapper gets changed to extend ControllerListenerAdapter then addListener ends up here
+        // Controllers.addListener(mapper);
+
         savedTextureRefs.clear();
 
         if (null != skinName) {
+// todo: redundant see makeSkin()
             Skin skin = new Skin(Gdx.files.internal(skinName));
 
             final String DEFAULT_FONT = "default-font";
@@ -111,7 +119,7 @@ class InGameMenu extends Stage {
             textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
             textButtonStyle.font = skin.getFont("default");
             skin.add("default", textButtonStyle);
-
+//
             uiSkin = skin;
         } else {
             // screens that are not loading UI from a skin must load the font directly
@@ -119,6 +127,7 @@ class InGameMenu extends Stage {
                     Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
             uiSkin = makeSkin();
         }
+//todo: // uiSkin = makeSkin(skin);
 
         float scale = Gdx.graphics.getDensity();
         if (scale > 1) {
@@ -161,9 +170,9 @@ class InGameMenu extends Stage {
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
 
-        bg = new ButtonGroup<>();
-        bg.setMaxCheckCount(1);
-        bg.setMinCheckCount(1);
+        buttonGroup = new ButtonGroup<>();
+        buttonGroup.setMaxCheckCount(1);
+        buttonGroup.setMinCheckCount(1);
 
         // hack ...state for "non-game" screen should be "paused" since we use it as a visibility flag!
         GameWorld.getInstance().setIsPaused(true);
@@ -207,15 +216,21 @@ class InGameMenu extends Stage {
         addActor(playerInfoTbl);
     }
 
+    /*
+     * Reference:
+     *  https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+     */
     private Skin makeSkin() {
-        Skin skin = new Skin();
+        return makeSkin(new Skin());
+    }
 
+    private Skin makeSkin(Skin skin) {
         //create a Labels showing the score and some credits
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.WHITE);
         pixmap.fill();
 
-        skin.add("white", new Texture(pixmap)); //https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+        skin.add("white", new Texture(pixmap));
         pixmap.dispose();
 
         skin.add("default", new Label.LabelStyle(font, Color.WHITE));
@@ -266,6 +281,7 @@ class InGameMenu extends Stage {
                     mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                     return false;
                 }
+
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                     mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
@@ -282,14 +298,15 @@ class InGameMenu extends Stage {
     public enum ButtonEventHandler {
         EVENT_NONE,
         EVENT_A,
-        EVENT_B
+        EVENT_B,
+        EVENT_LEFT,
+        EVENT_RIGHT
     }
 
     /**
-     *
-     * @param tex texture
-     * @param posX X coord
-     * @param posY Y coord
+     * @param tex          texture
+     * @param posX         X coord
+     * @param posY         Y coord
      * @param inputBinding Button Event Handler
      * @return Image Button
      */
@@ -312,19 +329,26 @@ class InGameMenu extends Stage {
                         } else if (ButtonEventHandler.EVENT_B == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
 
-                        } else if (ButtonEventHandler.EVENT_NONE == binding) {
-                            // I don't know why Select Screen event is INP NONE
-                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                        } else if (ButtonEventHandler.EVENT_LEFT == binding) {
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, true);
+
+                        } else if (ButtonEventHandler.EVENT_RIGHT == binding) {
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, true);
                         }
                         // true to also handle touchUp events which seems to be needed in a few cases
                         return true;
                     }
+
                     @Override
                     public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                         if (ButtonEventHandler.EVENT_A == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
                         } else if (ButtonEventHandler.EVENT_B == binding) {
                             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+                        } else if (ButtonEventHandler.EVENT_LEFT == binding) {
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, false);
+                        } else if (ButtonEventHandler.EVENT_RIGHT == binding) {
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, false);
                         }
                     }
                 }
@@ -350,7 +374,7 @@ class InGameMenu extends Stage {
 
     private void addButton(TextButton button) {
         buttonNames.add(button.getText().toString());
-        bg.add(button);
+        buttonGroup.add(button);
         actorCount += 1;
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
@@ -363,19 +387,19 @@ class InGameMenu extends Stage {
     int setCheckedBox(int checked) {
         if (buttonNames.size > 0) {
             String name = buttonNames.get(checked);
-            bg.setChecked(name);
+            buttonGroup.setChecked(name);
         }
         return checked;
     }
 
     int getCheckedIndex() {
-        return bg.getCheckedIndex();
+        return buttonGroup.getCheckedIndex();
     }
 
     int checkedUpDown() {
 
         int step = mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
-        int selectedIndex = bg.getCheckedIndex();
+        int selectedIndex = buttonGroup.getCheckedIndex();
 
         if (0 == previousIncrement) {
             selectedIndex += step;
@@ -449,26 +473,29 @@ class InGameMenu extends Stage {
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
             axisSetIndexX = InputMapper.VIRTUAL_X1_AXIS; // right anlg stick "X" (if used)
             axisSetIndexY = InputMapper.VIRTUAL_Y1_AXIS; // right anlg stick "Y" (if used)
-        } else
-        if (Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT)) {
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ALT_LEFT)) {
             axisSetIndexX = InputMapper.VIRTUAL_R2_AXIS;
             axisSetIndexY = InputMapper.VIRTUAL_L2_AXIS;
         }
-
-        if (KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT) ||
-                KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT)) {
+        /*
+         * keyboard WASD handling: axis is only cleared if both +/- keys are released
+         */
+        if ((KEY_CODE_POV_LEFT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_RIGHT)) ||
+                (KEY_CODE_POV_RIGHT == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_LEFT))) {
             mapper.setAxis(axisSetIndexX, 0);
         }
-        if (KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN) ||
-                KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP)) {
+        if ((KEY_CODE_POV_UP == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_DOWN)) ||
+                (KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP))) {
             mapper.setAxis(axisSetIndexY, 0);
         }
+        // action buttons
         if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
         }
         if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
         }
+        // UI/menu activation buttons
         if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
         }
