@@ -106,7 +106,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         pixmap.setColor(1, 1, 1, 0.3f);
         pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
         texture = new Texture(pixmap);
-        stage.addImageButton(texture, 0, 0, InGameMenu.ButtonEventHandler.EVENT_NONE);
+        stage.addImageButton(texture, 0, 0, InGameMenu.ButtonEventHandler.EVENT_A);
         pixmap.dispose();
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
