@@ -27,6 +27,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
@@ -97,37 +101,46 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.addNextButton();
         stage.onscreenMenuTbl.setVisible(false);
 
-        final int gsBTNwidth = Gdx.graphics.getWidth();
-        final int gsBTNheight = Gdx.graphics.getHeight() / 4;
         Pixmap pixmap;
         Texture texture;
+        Color theColor = new Color(0, 1.0f, 0, 0.5f);
 
-        pixmap = new Pixmap(gsBTNwidth, gsBTNheight, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 1, 1, 0.3f);
-        pixmap.drawRectangle(0, 0, gsBTNwidth, gsBTNheight);
-        texture = new Texture(pixmap);
-        stage.addImageButton(texture, 0, 0, InGameMenu.ButtonEventHandler.EVENT_A);
-        pixmap.dispose();
+        Button button2 = new TextButton("Next", stage.uiSkin, "default");
+        button2.setSize(Gdx.graphics.getWidth() / 4.0f, Gdx.graphics.getHeight() / 4.0f);
+        button2.setPosition((Gdx.graphics.getWidth() / 2.0f) - (Gdx.graphics.getWidth() / 8.0f), 0);
+        button2.setColor(theColor);
+        button2.addListener(new InputListener() {
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+            }
+        });
+        stage.addActor(button2);
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 0, 0, 1.0f);
+        pixmap.setColor(theColor);
         pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
         texture = new Texture(pixmap);
-        stage.addImageButton(
-                texture,
-                0, Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_NONE);
+        stage.addImageButton(texture,
+                0, Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
         pixmap.dispose();
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
-        pixmap.setColor(1, 0, 0, 1.0f);
+        pixmap.setColor(theColor);
         pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
         texture = new Texture(pixmap);
-        stage.addImageButton(
-                texture,
+        stage.addImageButton(texture,
                 Gdx.graphics.getWidth() - (float) ARROW_EXT,
-                Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_NONE);
+                Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
