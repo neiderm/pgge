@@ -32,13 +32,14 @@ import com.mygdx.game.sceneLoader.SceneLoader;
  * http://www.pixnbgames.com/blog/libgdx/how-to-make-a-splash-screen-in-libgdx/?_sm_nck=1
  */
 public class LoadingScreen implements Screen {
+    // stage is of type inGameMenu in order to have control and keyboard input
+    private final InGameMenu stage = new InGameMenu();
 
     private int loadCounter = 0;
     private int screenTimer = (int) (60 * 2.9f); //fps*sec
     private boolean isLoaded;
     private boolean shouldPause;
     private ScreenTypes screenType;
-    private InGameMenu stage = new InGameMenu();
     private Screen newScreen;
     private Texture ttrBackDrop; // reference to selected texture (does not need disposed)
 
@@ -81,10 +82,13 @@ public class LoadingScreen implements Screen {
         ttrBackDrop = ttrLoad;
         ttrSplash = new Texture("splash-screen.png");
         spriteBatch = new SpriteBatch();
+
         bitmapFont = new BitmapFont(
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
-        bitmapFont.getData().setScale(1.0f);
+
+        bitmapFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
+
         isLoaded = false;
     }
 
@@ -100,6 +104,7 @@ public class LoadingScreen implements Screen {
     @Override
     public void render(float delta) {
 
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 

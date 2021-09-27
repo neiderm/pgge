@@ -105,10 +105,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         debugPrintFont = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
 
-        float fontGetDensity = Gdx.graphics.getDensity();
-
-        if (fontGetDensity > 1)
-            debugPrintFont.getData().setScale(fontGetDensity);
+        debugPrintFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
 
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
 
@@ -142,7 +139,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         chaserTransform = new Matrix4(); // hacky crap ... steering behavior construction will not instantiate this
 
         chaserSteerable.setSteeringBehavior(new TrackerSB<>(
-                        chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
+                chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
 
         cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt, playerTrnsfm);
 
@@ -260,7 +257,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 float yInput = cbundle.getAxis(InputMapper.VIRTUAL_WS_AXIS);
                 if (Math.abs(yInput) < 0.4f) {
                     // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
-                    cbundle.setAxis(InputMapper.VIRTUAL_WS_AXIS, (-1) * pf.userData / 100.0f ); // percent
+                    cbundle.setAxis(InputMapper.VIRTUAL_WS_AXIS, (-1) * pf.userData / 100.0f); // percent
                 }
                 rigController.updateControls(0 /* unused */);
             }
@@ -334,10 +331,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             boolean updateDamage(int[] damageArray) {
 
-                int x = Gdx.graphics.getWidth() * 7 / 8;
-                int y = Gdx.graphics.getHeight() * 6 / 8;
-                int w = Gdx.graphics.getHeight() / 8;
-                int h = Gdx.graphics.getHeight() / 8;
+                int x = GameWorld.VIRTUAL_WIDTH * 7 / 8;
+                int y = GameWorld.VIRTUAL_HEIGHT * 6 / 8;
+                int w = GameWorld.VIRTUAL_HEIGHT / 8;
+                int h = GameWorld.VIRTUAL_HEIGHT / 8;
                 int cX = x + w / 2;
                 int cY = y + h / 2;
                 float radius = w / 2.0f;
@@ -467,11 +464,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             screenTeardown();
 
-            GameFeature localplyaer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
-            if (null != localplyaer) {
-                GameWorld.getInstance().reloadSceneData(localplyaer.getObjectName());
+            GameFeature localPlayer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
+            if (null != localPlayer) {
+                GameWorld.getInstance().reloadSceneData(localPlayer.getObjectName());
             }
-
             SceneLoader.doneLoading();
             setup();
         }
@@ -620,8 +616,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             GameObject gameObject = new GameObject(1);
 
             gameObject.getInstanceData().add(new InstanceData(
-                            modelInst.transform.getTranslation(translation),
-                            modelInst.transform.getRotation(rotation))
+                    modelInst.transform.getTranslation(translation),
+                    modelInst.transform.getRotation(rotation))
             );
             Array<Node> nodeFlatArray = new Array<>();
             PrimitivesBuilder.getNodeArray(model.nodes, nodeFlatArray);

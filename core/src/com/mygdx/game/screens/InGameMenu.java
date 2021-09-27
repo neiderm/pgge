@@ -26,6 +26,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
@@ -50,160 +51,61 @@ class InGameMenu extends Stage {
 
     private final Array<Texture> savedTextureRefs = new Array<>();
     private final Array<String> buttonNames = new Array<>();
-    private final ButtonGroup<TextButton> buttonGroup;
-    // disposables
-    private final Texture overlayTexture;
-    private final Image overlayImage;
-    private final BitmapFont menuFont;
-    // disposable
-    private Texture buttonTexture;
 
+    private ButtonGroup<TextButton> buttonGroup;
+    private Image overlayImage; // disposable
     private int previousIncrement;
     private int actorCount;
 
     final Table onscreenMenuTbl = new Table();
     final Table playerInfoTbl = new Table();
-    final Skin uiSkin;
-
-    InputMapper mapper;
-
-    static final String DEFAULT_UISKIN_JSON = "skin/uiskin.json";
-
-    InGameMenu() {
-        this(DEFAULT_UISKIN_JSON);
-    }
-
-    /**
-     * make constructor public to specify the skin name
-     *
-     * @param skinName String skin name
-     */
-    private InGameMenu(String skinName) {
-        this(skinName, null);
-    }
-
-    InGameMenu(String skinName, String menuName) {
-
-        super();
-
-        mapper = new InputMapper();
-        // if mapper gets changed to extend ControllerListenerAdapter then addListener ends up here
-        // Controllers.addListener(mapper);
-
-        savedTextureRefs.clear();
-
-        if (null != skinName) {
-            final String DEFAULT_FONT = "default-font";
-            Skin skin = new Skin(Gdx.files.internal(skinName));
-            menuFont = skin.getFont(DEFAULT_FONT);
-            uiSkin = makeSkin(new Skin(Gdx.files.internal(skinName)));
-
-        } else {
-            // screens that are not loading UI from a skin must load the font directly
-            menuFont = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
-                    Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
-            uiSkin = makeSkin();
-        }
-//todo: // uiSkin = makeSkin(skin);
-
-        float scale = Gdx.graphics.getDensity();
-        if (scale > 1) {
-            menuFont.getData().setScale(scale);
-        }
-        /*
-         * GameUI sets a label on the menu which may eventually be useful for other purposes
-         */
-        if (null != menuName) {
-            Label onScreenMenuLabel = new Label(menuName, new Label.LabelStyle(menuFont, Color.WHITE));
-            onscreenMenuTbl.add(onScreenMenuLabel).fillX().uniformX();
-        }
-
-        onscreenMenuTbl.setFillParent(true);
-        onscreenMenuTbl.setDebug(true);
-        onscreenMenuTbl.setVisible(true);
-        addActor(onscreenMenuTbl);
-
-        setupPlayerInfo();
-
-        // transparent overlay layer
-        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap pixmap =
-                new Pixmap(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), Pixmap.Format.RGBA8888);
-//        pixmap.setBlending(Pixmap.Blending.None);
-        pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
-        pixmap.fillRectangle(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
-        overlayTexture = new Texture(pixmap);
-        overlayImage = new Image(overlayTexture);
-        overlayImage.setPosition(0, 0);
-        pixmap.dispose();
-
-        Table overlayTbl = new Table();
-        overlayTbl.setFillParent(true);
-        overlayTbl.add(overlayImage);
-//        overlayTbl.setDebug(true);
-        overlayTbl.setVisible(true);
-        overlayTbl.setTouchable(Touchable.disabled);
-        addActor(overlayTbl);
-        setOverlayColor(0, 0, 0, 0);
-
-        buttonGroup = new ButtonGroup<>();
-        buttonGroup.setMaxCheckCount(1);
-        buttonGroup.setMinCheckCount(1);
-
-        // hack ...state for "non-game" screen should be "paused" since we use it as a visibility flag!
-        GameWorld.getInstance().setIsPaused(true);
-    }
-
-    /*
-     * Reference:
-     *  https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-     */
-    private Skin makeSkin() {
-        return makeSkin(new Skin());
-    }
-
-    private Skin makeSkin(Skin skin) {
-        //create a Labels showing the score and some credits
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-
-        skin.add("white", new Texture(pixmap));
-        pixmap.dispose();
-
-        skin.add("default", new Label.LabelStyle(menuFont, Color.WHITE));
-        // Store the default libgdx font under the name "default".
-        skin.add("default", menuFont);
-
-        // Configure a TextButtonStyle and name it "default". Skin resources are stored by type, so this doesn't overwrite the font.
-        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
-        textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
-        textButtonStyle.font = skin.getFont("default");
-        skin.add("default", textButtonStyle);
-
-        return skin;
-    }
-
-    void setLabelColor(Label label, Color c) {
-        label.setStyle(new Label.LabelStyle(menuFont, c));
-    }
-
-    void setOverlayColor(float r, float g, float b, float a) {
-        if (null != overlayImage) {
-            overlayImage.setColor(r, g, b, a);
-        }
-    }
+    // disposables
+    private Texture overlayTexture;
+    private BitmapFont menuFont;
+    private Texture buttonTexture;
 
     Label scoreLabel;
     Label itemsLabel;
     Label timerLabel;
     Label mesgLabel;
+    Skin uiSkin;
+    InputMapper mapper;
 
-    private void setupPlayerInfo() {
+    /**
+     * constructor for a menu that has a header label with the menu name
+     * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
+     *
+     * @param menuName menu name
+     */
+    InGameMenu(String menuName) {
+
+        this();
+
+        onscreenMenuTbl.add(new Label(menuName, uiSkin)).fillX().uniformX();
+    }
+
+    InGameMenu() {
+        super();
+        savedTextureRefs.clear();
+        mapper = new InputMapper();
+        // if mapper gets changed to extend ControllerListenerAdapter then addListener ends up here
+        // Controllers.addListener(mapper);
+
+        final String DEFAULT_FONT = "default-font";
+        final String DEFAULT_UISKIN_JSON = "skin/uiskin.json";
+        Skin skin = new Skin(Gdx.files.internal(DEFAULT_UISKIN_JSON));
+        menuFont = skin.getFont(DEFAULT_FONT);
+        menuFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
+
+        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.font = skin.getFont(DEFAULT_FONT);
+        textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
+        textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
+        textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
+        skin.add("default", textButtonStyle);
+        uiSkin = skin;
+
         scoreLabel = new Label("0000", new Label.LabelStyle(menuFont, Color.WHITE));
         playerInfoTbl.add(scoreLabel);
 
@@ -217,13 +119,55 @@ class InGameMenu extends Stage {
 
         mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(menuFont, Color.WHITE));
         playerInfoTbl.add(mesgLabel).colspan(3);
-        mesgLabel.setVisible(false); // only see this in "Continue ..." sceeen
+        mesgLabel.setVisible(false); // only see this in "Continue ..." screen
 
         playerInfoTbl.row().bottom().left();
         playerInfoTbl.setFillParent(true);
-//        playerInfoTbl.setDebug(true);
         playerInfoTbl.setVisible(false);
         addActor(playerInfoTbl);
+//        playerInfoTbl.setDebug(true);
+
+        // transparent overlay layer
+        Pixmap.setBlending(Pixmap.Blending.None);
+        Pixmap pixmap =
+                new Pixmap(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
+//        pixmap.setBlending(Pixmap.Blending.None);
+        pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
+        pixmap.fillRectangle(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+
+        overlayTexture = new Texture(pixmap);
+        overlayImage = new Image(overlayTexture);
+        overlayImage.setPosition(0, 0);
+        pixmap.dispose();
+
+        Table overlayTbl = new Table();
+        overlayTbl.setFillParent(true);
+        overlayTbl.add(overlayImage);
+        overlayTbl.setVisible(true);
+        overlayTbl.setTouchable(Touchable.disabled);
+        addActor(overlayTbl);
+        setOverlayColor(0, 0, 0, 0);
+//        overlayTbl.setDebug(true);
+
+        buttonGroup = new ButtonGroup<>();
+        buttonGroup.setMaxCheckCount(1);
+        buttonGroup.setMinCheckCount(1);
+
+        // add the menu table last so that it will always be over the overlay layer
+        onscreenMenuTbl.setFillParent(true);
+        onscreenMenuTbl.setVisible(true);
+        addActor(onscreenMenuTbl);
+//        onscreenMenuTbl.setDebug(true);
+    }
+
+    void setLabelColor(Label label, Color c) {
+        label.setStyle(new Label.LabelStyle(menuFont, c));
+    }
+
+    void setOverlayColor(float r, float g, float b, float a) {
+        if (null != overlayImage) {
+            overlayImage.setColor(r, g, b, a);
+        }
     }
 
     /*
@@ -238,35 +182,23 @@ class InGameMenu extends Stage {
      * Button in the Input Mapper.
      */
     void addNextButton() {
-        if (GameWorld.getInstance().getIsTouchScreen()) {
-            Pixmap button = new Pixmap(50, 50, Pixmap.Format.RGBA8888);
-//            button.setBlending(Pixmap.Blending.None);
-            Pixmap.setBlending(Pixmap.Blending.None);
-            button.setColor(1, 0, 0, 1);
-            button.fillCircle(25, 25, 25);
+        Button nextButton = new TextButton("Next", uiSkin, "default");
+        nextButton.setColor(new Color(1, 0f, 0, 1.0f));
+        // add a touch down listener to the Next button
+        nextButton.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                return false;
+            }
 
-            buttonTexture = new Texture(button);
-            button.dispose();
-            TextureRegion myTextureRegion = new TextureRegion(buttonTexture);
-            TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(myTextureRegion);
-
-            ImageButton nextButton = new ImageButton(myTexRegionDrawable);
-            // add a touch down listener to the Next button
-            nextButton.addListener(new InputListener() {
-                @Override
-                public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
-                    return false;
-                }
-
-                @Override
-                public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-                }
-            });
-            onscreenMenuTbl.row();
-            onscreenMenuTbl.add(nextButton).fillX().uniformX();
-        }
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+            }
+        });
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(nextButton).fillX().uniformX();
     }
 
     /*
@@ -341,12 +273,8 @@ class InGameMenu extends Stage {
         return newButton;
     }
 
-    void addButton(String name, String styleName) {
-        addButton(new TextButton(name, uiSkin, styleName));
-    }
-
-    void addButton(String text) {
-        addButton(new TextButton(text, uiSkin));
+    void addToggleButton(String text) {
+        addButton(new TextButton(text, uiSkin, "toggle"));
     }
 
     private void addButton(TextButton button) {

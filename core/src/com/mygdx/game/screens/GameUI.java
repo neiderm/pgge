@@ -16,7 +16,6 @@
 
 package com.mygdx.game.screens;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -50,11 +49,9 @@ public class GameUI extends InGameMenu {
     private int msgLabelCounter;
     private int score; // my certain game the score resets every screen anyway so who cares
     private int screenTimer = DEFAULT_SCREEN_TIME;
-
-    // @dispoable
+    // disposable
     private Texture tpBackgnd;
     private Texture tpKnob;
-
     // too bad so sad package-private vars are messed w/ by gamescreeen
     boolean canExit; // exit sensor is tripped
     int prizeCount;
@@ -62,7 +59,7 @@ public class GameUI extends InGameMenu {
 
     GameUI() {
         //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
-        super(DEFAULT_UISKIN_JSON, "Paused");
+        super("Paused");
 
         // start with White, alpha==0 and fade to Black with alpha=1
         hudOverlayColor = new Color(1, 1, 1, 0);
@@ -70,8 +67,27 @@ public class GameUI extends InGameMenu {
         // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
         GameWorld.getInstance().setIsPaused(false);
 
-        setupOnscreenControls();
-        setupInGameMenu();
+        final int gsBTNwidth = GameWorld.VIRTUAL_WIDTH * 3 / 8;
+        final int gsBTNheight = GameWorld.VIRTUAL_HEIGHT * 3 / 8;
+        // placement relative to absolute center of screen ... i guess
+        final int gsBTNx = GameWorld.VIRTUAL_WIDTH / 2 - gsBTNwidth / 2;
+        final int gsBTNy = 0;
+
+        picButton = addImageButton(
+                gsBTNx , gsBTNy , gsBTNwidth, gsBTNheight, ButtonEventHandler.EVENT_A);
+
+        xButton = addImageButton( 3f * GameWorld.VIRTUAL_WIDTH / 4, 0,
+                GameWorld.VIRTUAL_WIDTH / 4, GameWorld.VIRTUAL_HEIGHT / 4,
+                ButtonEventHandler.EVENT_B);
+
+        addToggleButton("Resume");
+        addToggleButton("Restart");
+        addToggleButton("Quit");
+        addToggleButton("Camera");
+        addToggleButton("Debug Draw");
+        addNextButton();
+
+        onscreenMenuTbl.setVisible(false); // default not visible (Paused menu)
 
         addTouchPad(new ChangeListener() {
             @Override
@@ -104,15 +120,8 @@ public class GameUI extends InGameMenu {
     private void addTouchPad(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
-        int tpRadius = 100;
+        int tpRadius = 100;              // todo VIRTUAL WIDTH etc
         int knobRadius = 36;
-        float scale = Gdx.graphics.getDensity();
-
-        // fudge scaling to make UI controls visible on my HTC One M8
-        if (scale > 1) {
-            tpRadius = (int) (tpRadius * scale / 2f);
-            knobRadius = (int) (knobRadius * scale / 2);
-        }
 
         Pixmap button = new Pixmap(knobRadius * 2, knobRadius * 2, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 0.5f);
@@ -138,36 +147,6 @@ public class GameUI extends InGameMenu {
 
         button.dispose();
         background.dispose();
-    }
-
-    private void setupInGameMenu() {
-        addButton("Resume");
-        addButton("Restart");
-        addButton("Quit");
-        addButton("Camera");
-        addButton("Debug Draw");
-        addNextButton();
-
-        onscreenMenuTbl.setVisible(false); // default not visible (Paused menu)
-    }
-
-    private void setupOnscreenControls() {
-
-        final int gsBTNwidth = Gdx.graphics.getHeight() * 3 / 8;
-        final int gsBTNheight = Gdx.graphics.getHeight() * 3 / 8;
-        // placement relative to absolute center of screen ... i guess
-        final int gsBTNx = Gdx.graphics.getWidth() / 2 - gsBTNwidth / 2;
-        final int gsBTNy = 0;
-
-        picButton = addImageButton(
-                gsBTNx + 0f, gsBTNy - 0f,
-                gsBTNwidth, gsBTNheight,
-                ButtonEventHandler.EVENT_A);
-
-        xButton = addImageButton(
-                3f * Gdx.graphics.getWidth() / 4, 0,
-                Gdx.graphics.getWidth() / 4, Gdx.graphics.getHeight() / 4,
-                ButtonEventHandler.EVENT_B);
     }
 
     /*

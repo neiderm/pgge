@@ -40,17 +40,27 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public final class GameWorld implements Disposable {
 
     private static final String CLASS_STRING = "GameWorld";
-
-    private static final String DEFALT_SCREEN = "SelectScreen.json";
-
+    private static final String DEFAULT_SCREEN = "SelectScreen.json";
     // deserves a more unique name (in json too)
     public static final String LOCAL_PLAYER_FNAME = "Player";
-
+    // default font from gdx-skins
     public static final String DEFAULT_FONT_FNT = "data/default.fnt";
     public static final String DEFAULT_FONT_PNG = "data/default.png";
 
-    public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
-    public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
+    //  for working with ViewPort?
+    public static final int SCREEN_WIDTH = Gdx.graphics.getWidth();
+    public static final int SCREEN_HEIGHT = Gdx.graphics.getHeight();
+
+    // font is sized for libGdx default desktop screen size
+    private static final int DEFAULT_WIDTH = 640;
+    private static final int DEFAULT_HEIGHT = 480;
+    // Pixel 2
+    public static final int VIRTUAL_WIDTH = 1794;
+    public static final int VIRTUAL_HEIGHT = 1080;
+
+    public static final float FONT_X_SCALE = ((float) VIRTUAL_WIDTH / DEFAULT_WIDTH); // 2.80f;
+    public static final float FONT_Y_SCALE = ((float) VIRTUAL_HEIGHT / DEFAULT_HEIGHT); // 2.125
+
 
     public enum GAME_STATE_T {
         ROUND_NONE,
@@ -78,6 +88,10 @@ public final class GameWorld implements Disposable {
         return instance;
     }
 
+    public static void setInstance(GameWorld instance) {
+        GameWorld.instance = instance;
+    }
+
     void initialize(Game game) {
         this.game = game;
         // static subsystems initialized only once per application run
@@ -91,9 +105,9 @@ public final class GameWorld implements Disposable {
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
     public void showScreen() {
-        if (Gdx.files.internal(DEFALT_SCREEN).exists()) {
+        if (Gdx.files.internal(DEFAULT_SCREEN).exists()) {
 
-            getInstance().setSceneData(DEFALT_SCREEN);
+            getInstance().setSceneData(DEFAULT_SCREEN);
             getInstance().showScreen(new LoadingScreen(true, LoadingScreen.ScreenTypes.SETUP));
         } else {
             Gdx.app.log("SplashScreen",
@@ -160,8 +174,9 @@ public final class GameWorld implements Disposable {
     /*
      * set Select Screen data
      */
-    public void setSceneData(String path) {
-        setSceneData(path, null);
+    public void setSceneData(String fileName) {
+        sceneDataFile = fileName; // keep this persistent for screen restart/reloading
+        sceneData = SceneData.loadData(sceneDataFile, null);
     }
 
     /**
@@ -172,8 +187,6 @@ public final class GameWorld implements Disposable {
      */
     public void setSceneData(String fileName, String playerObjectName) {
 
-        String playerFeatureName = playerObjectName + ""; // quash lint warning re redundant variable
-///
         sceneDataFile = fileName; // keep this persistent for screen restart/reloading
 
         ModelInfo selectedModelInfo = null;
@@ -182,43 +195,26 @@ public final class GameWorld implements Disposable {
             // get the player model info from previous scene data
             selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
         }
-        sceneData = SceneData.loadData(sceneDataFile, playerFeatureName);
-///
-        // definately needs to be non-null here!
+        sceneData = SceneData.loadData(sceneDataFile, playerObjectName);
+        // definitely needs to be non-null here!
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
             sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
         }
     }
 
-    /*
-     * this is only for Select Screen, to set the "tag" on the player object name
-     * bah duplicated code
+    /**
+     * only for Select Screen, to set the "tag" on the player object name
+     *
+     * @param fileName          path to screen json file to load
+     * @param playerFeatureName player feature name
+     * @param selectedModelInfo player model info from previous screen
      */
-    public void setSceneData(String fileName, int idxRigSelection) {
+    public void setSceneData(String fileName, String playerFeatureName, ModelInfo selectedModelInfo) {
 
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get("Characters");
-        // first 3 Characters are on the platform - use currently selected index to retrieve
-        GameObject go = mg.getElement(idxRigSelection);
-        String playerObjectName = go.objectName;
-
-        // When loading from Select Screen, need to distinguish the name of the selected player
-        // object by an arbitrary character string to make sure locally added player model info
-        // doesn't bump into the user-designated model info sections in the screen json files
-        final String PLAYER_OBJECT_TAG = "P0_";
-        String playerFeatureName = PLAYER_OBJECT_TAG + playerObjectName;
-///
-        sceneDataFile = fileName; // keep this for screen restart reloading
-
-        ModelInfo selectedModelInfo = null;
-
-        if (null != playerObjectName) {
-            // get the  player model info from previous scene data
-            selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
-        }
+        sceneDataFile = fileName; // keep this persistent for screen restart/reloading
+        // now instantiate the new scene data
         sceneData = SceneData.loadData(fileName, playerFeatureName);
-///
 //        if (null != selectedModelInfo) ... don't care
         sceneData.modelInfo.put(playerFeatureName, selectedModelInfo);
     }
@@ -226,8 +222,8 @@ public final class GameWorld implements Disposable {
     /*
      * for screen reload/restart only .. assume data file is already set by previous caller
      */
-    public void reloadSceneData(String modelName) {
-        setSceneData(sceneDataFile, modelName);
+    public void reloadSceneData(String playerObjectName) {
+        setSceneData(sceneDataFile, playerObjectName);
     }
 
     public SceneData getSceneData() {
@@ -268,6 +264,6 @@ public final class GameWorld implements Disposable {
     public void dispose() {
         game.getScreen().dispose();
         PrimitivesBuilder.dispose(); //  call static method
-        instance = null;
+        setInstance(null);
     }
 }

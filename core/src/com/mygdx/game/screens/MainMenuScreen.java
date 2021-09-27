@@ -31,12 +31,14 @@ import com.mygdx.game.sceneLoader.GameFeature;
  * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
  */
 public class MainMenuScreen implements Screen {
-
-    private InGameMenu stage; // I think we need to extend stage (like did for GamePad) in order to Override keyDown
+    /*
+     * extend Stage in order to override keyDown?
+     */
+    private final InGameMenu stage = new InGameMenu();
 
     @Override
     public void render(float delta) {
-//        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -80,11 +82,9 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
-        final String bTypeToggle = "toggle";
-        stage = new InGameMenu();
         Gdx.input.setInputProcessor(stage);
-        stage.addButton("Bonus Level", bTypeToggle);
-        stage.addButton("Exit", bTypeToggle);
+        stage.addToggleButton("Bonus Level");
+        stage.addToggleButton("Exit");
         stage.addNextButton();
     }
 

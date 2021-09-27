@@ -36,6 +36,10 @@ import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
+import com.mygdx.game.sceneLoader.GameObject;
+import com.mygdx.game.sceneLoader.ModelGroup;
+import com.mygdx.game.sceneLoader.ModelInfo;
+import com.mygdx.game.sceneLoader.SceneData;
 
 /*
  * Player selects the Rig from a revolving platform.
@@ -46,9 +50,9 @@ import com.mygdx.game.sceneLoader.GameFeature;
 class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private static final String CLASS_STRING = "SelectScreen";
-
     private static final Array<String> stageNamesList = new Array<>();
-    private int actorCount = 0;
+
+    private final InGameMenu stage = new InGameMenu(); // disposable
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -60,11 +64,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     };
     private ImmutableArray<Entity> characters;
     private Entity platform;
+    private int actorCount = 0;
     private int idxRigSelection;
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
     private boolean isPaused;
-    private InGameMenu stage;
 
     @Override
     public void show() {
@@ -80,9 +84,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             platform = f.getEntity();
         }
 
-        stage = new InGameMenu();
-        Gdx.input.setInputProcessor(stage);
-
         // setup a screen/file selection menu (development only)
 //        FileHandle[] files = Gdx.files.local(SCREENS_DIR).list();
         final String SCREENS_DIR = "screens/";
@@ -93,21 +94,35 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             String fname = file.name();
             if (fname.matches("(.*).json($)")) {
                 String basename = fname.replaceAll(".json$", "");
-                stage.addButton(basename, "toggle");
+                stage.addToggleButton(basename);
 // specify the path+name for now until all screeen jsons are migrated to Screens_Dir
                 stageNamesList.add(SCREENS_DIR + fname);
             }
         }
         stage.addNextButton();
         stage.onscreenMenuTbl.setVisible(false);
+        Gdx.input.setInputProcessor(stage);
 
+        // disposables
         Pixmap pixmap;
-        Texture texture;
+        Texture texture; // AddImageButton() keeps the reference for disposal
         Color theColor = new Color(0, 1.0f, 0, 0.5f);
 
+        int nextbtnW = GameWorld.VIRTUAL_WIDTH / 4;
+        int nextbtnH = GameWorld.VIRTUAL_HEIGHT / 4;
+
+        pixmap = new Pixmap(nextbtnW, nextbtnH, Pixmap.Format.RGBA8888);
+        pixmap.setColor(theColor);
+        pixmap.fillRectangle(0, 0, nextbtnW, nextbtnH);
+        texture = new Texture(pixmap);
+        stage.addImageButton(texture,
+                (GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0,
+                InGameMenu.ButtonEventHandler.EVENT_A);
+        pixmap.dispose();
+
         Button button2 = new TextButton("Next", stage.uiSkin, "default");
-        button2.setSize(Gdx.graphics.getWidth() / 4.0f, Gdx.graphics.getHeight() / 4.0f);
-        button2.setPosition((Gdx.graphics.getWidth() / 2.0f) - (Gdx.graphics.getWidth() / 8.0f), 0);
+        button2.setSize(nextbtnW, nextbtnH);
+        button2.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
         button2.setColor(theColor);
         button2.addListener(new InputListener() {
 
@@ -124,23 +139,26 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         });
         stage.addActor(button2);
 
+
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;
+
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
         texture = new Texture(pixmap);
         stage.addImageButton(texture,
-                0, Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
-        pixmap.dispose();
+                0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
+        //pixmap.dispose();
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
         texture = new Texture(pixmap);
         stage.addImageButton(texture,
-                Gdx.graphics.getWidth() - (float) ARROW_EXT,
-                Gdx.graphics.getHeight() / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
+                GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
+                GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
+
         pixmap.dispose();
 
         stage.addLabel("Choose your Rig ... ", Color.WHITE);
@@ -227,7 +245,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
      */
-    private void updateRigs(float platformDegrees) {
+    private void updatePlatform(float platformDegrees) {
+
+        updateRotation();
 
         for (int n = 0; n < actorCount; n++) {
 
@@ -260,16 +280,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 transform.trn(down.set(0, SELECTED_RIG_OFFS_Y, 0));
             }
         }
-    }
-
-    private void updatePlatform(float platformDegrees) {
         Matrix4 transform = platform.getComponent(ModelComponent.class).modelInst.transform;
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
         transform.setTranslation(new Vector3(originCoordinate));
         transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
     }
 
-    // based on  InGameMenu. checkedUpDown()    
+    // based on InGameMenu. checkedUpDown()
     private int checkedUpDown(int step, int checkedIndex) {
 
         int selectedIndex = checkedIndex;
@@ -285,7 +302,28 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private Screen newLoadingScreen(String path) {
 
-        GameWorld.getInstance().setSceneData(path, idxRigSelection);
+        SceneData sd = GameWorld.getInstance().getSceneData();
+
+        ModelGroup mg = sd.modelGroups.get("Characters");
+        // first 3 Characters are on the platform - use currently selected index to retrieve
+        GameObject go = mg.getElement(idxRigSelection);
+        String playerObjectName = go.objectName;
+
+        // When loading from Select Screen, need to distinguish the name of the selected player
+        // object by an arbitrary character string to make sure locally added player model info
+        // doesn't bump into the user-designated model info sections in the screen json files
+        final String PLAYER_OBJECT_TAG = "P0_";
+        String playerFeatureName = PLAYER_OBJECT_TAG + playerObjectName;
+
+        ModelInfo selectedModelInfo = null;
+
+        if (null != playerObjectName) {
+            // get the player model info from previous scene (which should still be valid)
+            selectedModelInfo = sd.modelInfo.get(playerObjectName);
+        }
+
+        GameWorld.getInstance().setSceneData(path, playerFeatureName, selectedModelInfo);
+
         return new LoadingScreen();
     }
 
@@ -299,16 +337,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      */
     @Override
     public void render(float delta) {
-
-        updateRotation();
-        updateRigs(degreesInst);
-        updatePlatform(degreesInst);
-
         // plots debug graphics
         super.render(delta);
 
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
+
+        updatePlatform(degreesInst);
 
         if (isPaused) {
             idxMenuSelection = stage.setCheckedBox();

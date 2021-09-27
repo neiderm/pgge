@@ -26,14 +26,14 @@ import com.mygdx.game.GameWorld;
  */
 public class GamepadConfig implements Screen {
 
-    private InGameMenu stage; // extend stage (like did for GamePad) in order to Override keyDown?
+    private final InGameMenu stage = new InGameMenu(); // extend stage (like did for GamePad) in order to Override keyDown?
 
     GamepadConfig() { // mt
     }
 
     @Override
     public void render(float delta) {
-//        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -68,18 +68,21 @@ public class GamepadConfig implements Screen {
 
     @Override
     public void show() {
-        final String bType = "toggle";
-        stage = new InGameMenu();
         Gdx.input.setInputProcessor(stage);
 
-        stage.addButton("Microsoft X-Box 360 pad (Linux:USB)", bType);
+        stage.addToggleButton("iPega PG-9076 USB (Linux)");
         InputMapper.incrementNumberControlCfgTypes();
-        stage.addButton("Xbox 360 Controller (Win 2.4G or USB)", bType);
+//        stage.addToggleButton("iPega PG-9076 2.4 Ghz (Windows)");
+//        InputMapper.incrementNumberControlCfgTypes();
+        stage.addToggleButton("Xbox 360 Controller 2.4 Ghz or USB (Windows)");
         InputMapper.incrementNumberControlCfgTypes();
-        stage.addButton("Android B/T", bType);
+        stage.addToggleButton("Android B/T");
         InputMapper.incrementNumberControlCfgTypes();
-        stage.addButton("n45 Dual Analog Gamepad (USB)", bType); // IOS Linux (Windows apparently has stick axes reversed)
+        stage.addToggleButton("Belkin n45 Dual Analog USB Gamepad (IOS, Linux)");
         InputMapper.incrementNumberControlCfgTypes();
+        // IOS, Linux (Windows has axis 0 and axis1 reversed)
+//        stage.addToggleButton("n45 Dual Analog USB Gamepad (Windows)"); // for whatever reason Windows has axis 0 and axis1 reversed
+//        InputMapper.incrementNumberControlCfgTypes();
         stage.addNextButton();
     }
 
