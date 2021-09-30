@@ -27,7 +27,7 @@ public class DesktopLauncher {
 //		config.height = 540;
 
         config.width = GameWorld.VIRTUAL_WIDTH;
-        config.height = GameWorld.VIRTUAL_WIDTH;
+        config.height = GameWorld.VIRTUAL_HEIGHT;
 
         new LwjglApplication(new MyGdxGame(), config);
     }
