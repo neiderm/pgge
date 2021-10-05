@@ -102,14 +102,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         super.init();
 
         batch = new SpriteBatch();
+        camController = new CameraInputController(cam);
+
         debugPrintFont = new BitmapFont(Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
                 Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
-
         debugPrintFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
-
-        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
-
-        camController = new CameraInputController(cam);
 
         // "guiCam" etc. lifted from 'Learning_LibGDX_Game_Development_2nd_Edition' Ch. 14 example
         guiCam = new OrthographicCamera(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -123,41 +120,42 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         engine.addSystem(new FeatureSystem());
 
         GfxUtil.init();
+        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
+        pickedPlayer =
+                GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME).getEntity();
 
-        GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
-        pickedPlayer = pf.getEntity();
-        pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
-        final int health = 999; // should not go to 0
-        pickedPlayer.add(new StatusComponent(health));            // max damage
-
-        Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
+        if (null != pickedPlayer) {
+            pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
+            final int health = 999; // should not go to 0
+            pickedPlayer.add(new StatusComponent(health));            // max damage
+            Matrix4 playerTrnsfm = pickedPlayer.getComponent(ModelComponent.class).modelInst.transform;
         /*
          player character should be able to attach camera operator to arbitrary entity (e.g. guided missile control)
          The camera chaser is an entity with no visuals, but has transform and possibly AI for e.g.
          terrain following/collision-avoidance and possibly even collision body for physics interaction w/ world.
         */
-        chaserTransform = new Matrix4(); // hacky crap ... steering behavior construction will not instantiate this
+            chaserTransform = new Matrix4(); // hacky crap ... steering behavior construction will not instantiate this
 
-        chaserSteerable.setSteeringBehavior(new TrackerSB<>(
-                chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
+            chaserSteerable.setSteeringBehavior(new TrackerSB<>(
+                    chaserSteerable, playerTrnsfm, chaserTransform, new Vector3(0, 2, 0)));
 
-        cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt, playerTrnsfm);
+            cameraMan = new CameraMan(cam, camDefPosition, camDefLookAt, playerTrnsfm);
 
-        Entity cameraEntity = new Entity();
-        cameraEntity.add(new CharacterComponent(cameraMan));
-        engine.addEntity(cameraEntity);
+            Entity cameraEntity = new Entity();
+            cameraEntity.add(new CharacterComponent(cameraMan));
+            engine.addEntity(cameraEntity);
 
-        if (null != pickedPlayer) {
             if (null != pickedPlayer.getComponent(BulletComponent.class).body) {
                 playerUI = initPlayerUI();
             } else {
                 Gdx.app.log(CLASS_STRING, "pickedPlayer collision body can't be null");
             }
+            multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
+            Gdx.input.setInputProcessor(multiplexer);
         } else {
+            // we're toast
             Gdx.app.log(CLASS_STRING, "pickedPlayer can't be null");
         }
-        multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
-        Gdx.input.setInputProcessor(multiplexer);
     }
 
     /*
@@ -174,9 +172,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
          */
         return new GameUI() {
             // configures weapon to simulate energizing time on switch-over
-            private boolean withEnergizeDelay = true;
-            private CharacterController rigController;
-            private InputMapper.ControlBundle cbundle;
+            boolean withEnergizeDelay = true;
+            CharacterController rigController;
+            InputMapper.ControlBundle cbundle; // cbundle to be inherited from parent class and call updateControlBundle()?
+            // doesn't need new instance here, force it to create new instance below
+            GunPlatform gunPlatform;
 
             @Override
             protected void init() {
@@ -215,20 +215,12 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     multiplexer.removeProcessor(camController);
             }
 
-            // doesn't need new instance here, force it to create new instance below
-            GunPlatform gunPlatform;
-
             @Override
             protected void onSelectEvent() {
-// for now this menu is not a "full-fledged" actor with events fired to it  so here is not "select" event specific to the table
-// (eventually to-do table entries as  clickable/touchable buttons )
-                if (gunrack.isVisible()) {
-
-                    boolean changed = gunrack.onSelectMenu();
-
-                    if (changed) {
-                        gunPlatform = null;
-                    }
+// for now this menu is not a "full-fledged" actor with events fired to it so here is not "select" event specific to the table
+// (eventually to-do table entries as clickable/touchable buttons)
+                if (gunrack.isVisible() && gunrack.onSelectMenu()) {
+                    gunPlatform = null;
                 }
             }
 
@@ -237,8 +229,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 gunrack.onMenuEvent();
             }
 
-            private void modelApplyController() {
-
+            void modelApplyController() {
                 if (null == gunPlatform) {
                     gunPlatform = new GunPlatform(
                             pickedPlayer.getComponent(ModelComponent.class).modelInst,
@@ -246,6 +237,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             gunrack, withEnergizeDelay);
                     gunPlatform.setControlBundle(cbundle);
                 }
+                // the only external reference to mapper ... could be private in parent and updateControlBundle() from parent act()
                 mapper.updateControlBundle(cbundle); // sample axes and switches inputs
 
                 gunPlatform.updateControls(0 /* unused */);
@@ -288,7 +280,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             }
                             sc.lifeClock = lc;
                         }
-
                         if (0 == lc) {
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
@@ -346,9 +337,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
                 for (int n = 0; n < 4; n++) {
-
                     int damage = damageArray[n];
-
                     if (damage < 20) {
                         shldColorFG.set(Color.GREEN);
                     } else if (damage < 40) {
@@ -362,21 +351,16 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     } else {
                         isdead = true; // sc.lifeClock = 0; // shield is gone, rig destroyed
                     }
-
                     shldColorFG.a = 0.5f;
                     shapeRenderer.setColor(shldColorFG);
                     shapeRenderer.arc(cX, cY, radius, (4 - n) * 90.0f + 45.0f, 90.0f);
                 }
-
                 shldColorBG.set(0, 0, 0, 0.5f);
                 shapeRenderer.setColor(shldColorBG);
                 shapeRenderer.circle(x + radius, y + radius, radius * 7.0f / 8.0f);
-
                 shapeRenderer.setColor(Color.BLACK);
                 shapeRenderer.line(x + radius, y, x + radius, y + radius);
-
                 shapeRenderer.end();
-
                 return isdead;
             }
         };
