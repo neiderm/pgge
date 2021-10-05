@@ -53,6 +53,7 @@ public class Gunrack extends Table {
      */
     static class WeaponInstance {
         final int type;
+
         WeaponInstance(int type) {
             this.type = type;
         }
@@ -85,7 +86,6 @@ public class Gunrack extends Table {
         }
     }
 
-
     Gunrack(GameEvent hitDetectEvent, BitmapFont font) {
 
         this.hitDetectEvent = hitDetectEvent;
@@ -98,23 +98,20 @@ public class Gunrack extends Table {
         selectionLabel = new Label("wselect", new Label.LabelStyle(font, Color.CHARTREUSE));
         roundsLabel = new Label("rounds", new Label.LabelStyle(font, Color.TEAL));
 
-        this.setFillParent(true);
-
         selectionLabel.setVisible(false); // only see this when weaopon select menu active
-        this.add(selectionLabel);
-        this.bottom().left();
+        add(selectionLabel);
+        bottom().left();
 
-        this.add(roundsLabel).padRight(1);
-        this.roundsLabel.setVisible(false);
+        add(roundsLabel).padRight(1);
+        roundsLabel.setVisible(false);
 
-        this.setVisible(false);
+        setFillParent(true);
+        setVisible(false);
 //        this.setDebug(true);
-//        parent.addActor(this);
     }
 
     @Override
     public void act(float delta) {
-
         update();
     }
 
@@ -122,14 +119,13 @@ public class Gunrack extends Table {
      * act()
      */
     void update() {
-
-        roundsLabel.setVisible(false);
-
         int rounds = getRoundsAvailable();
 
         if (WeaponType.UNDEFINED != selectedWeapon && WeaponType.STANDARD_AMMO != selectedWeapon) {
             roundsLabel.setText("=" + rounds);
             roundsLabel.setVisible(true);
+        } else {
+            roundsLabel.setVisible(false);
         }
 
         Color clr = selectionLabel.getColor();
@@ -138,16 +134,14 @@ public class Gunrack extends Table {
         if (alpha > Gunrack.WPN_MENU_FADE_THRD) {
             alpha -= 0.001f;
         } else if (alpha > 0.10f) {
-// fade out until low threshold of visibility is reached
+            // fade out until low threshold of visibility is reached
             alpha -= 0.01f;
-
         } else {
             // menu timeout, make it disappear
             selectionLabel.setVisible(false);
             //  treat as is select button has been pressed (auto-select item at the menu pointer)
             menuSelection = menuPointer;
         }
-
         clr.a = alpha;
         selectionLabel.setColor(clr);
     }
@@ -155,15 +149,13 @@ public class Gunrack extends Table {
     void onMenuEvent() {
         // try to advance the selection
         menuPointer = menuPointer + 1;
-        if (menuPointer >= weaponsMenu.size /* nrAvailable */) {
+        if (menuPointer >= weaponsMenu.size) {
             menuPointer = 0;
         }
-
         // key is struck, so set start alpha of fadeout effect
         selectionLabel.setColor(menuColor.r, menuColor.g, menuColor.b, Gunrack.WPN_MENU_FADE_ALPH);
         selectionLabel.setText(getMenuInfo(menuPointer));
         selectionLabel.setVisible(true);
-
         this.setVisible(true);
     }
 
@@ -171,24 +163,19 @@ public class Gunrack extends Table {
      * forces a phony menu selection of 0 for chaning to std ammo after weapon rounds exhausted
      */
     void onSelectMenu(int value) {
-
         menuPointer = value;
         onSelectMenu(); // forces menu activation
     }
 
     boolean onSelectMenu() {
-//        if (bWepnMenuActive)
-        {
-            if (menuSelection != menuPointer) {
-                // selection updated - instead of hiding menu immediately, set color to indicate and let menu do "normal "fadeout
-                Color clr = selectionLabel.getColor();
-                clr.a = Gunrack.WPN_MENU_FADE_THRD;
-                menuSelection = menuPointer;
-            }
+        if (menuSelection != menuPointer) {
+            // selection updated - instead of hiding menu immediately, set color to indicate and let menu do "normal "fadeout
+            Color clr = selectionLabel.getColor();
+            clr.a = Gunrack.WPN_MENU_FADE_THRD;
+            menuSelection = menuPointer;
         }
 
         int w = selectedWeapon.ordinal();
-
         if (menuSelection != w) {
             WeaponType wt;
 
@@ -209,7 +196,9 @@ public class Gunrack extends Table {
         return false;
     }
 
-
+    /**
+     * @return number of weapons available
+     */
     int onWeaponAcquired(int weaponType) {
 
         WeaponSpec ws = null;
@@ -217,11 +206,9 @@ public class Gunrack extends Table {
         if (weaponType < weaponsSpecs.size) {
             ws = weaponsSpecs.get(weaponType);
         }
-
         if (null != ws) {
             ws.reset(); // got a refill !
         }
-
         return rebuildWeaponCache();
     }
 
@@ -235,8 +222,8 @@ public class Gunrack extends Table {
 
         int rounds = -1;
         WeaponSpec spec = null;
-
-        if (true /*WeaponType.UNDEFINED != selectedWeapon*/) {
+//        if (WeaponType.UNDEFINED != selectedWeapon)
+        {
             int iws = selectedWeapon.ordinal();
             spec = weaponsSpecs.get(iws);
         }
@@ -248,13 +235,10 @@ public class Gunrack extends Table {
 
     // for future use
     public GameEvent getHitDectector() {
-
         return this.hitDetectEvent;
     }
 
-
     int getRoundsAvailable() {
-
         int iwt = selectedWeapon.ordinal();
         return getRoundsAvailable(iwt);
     }
@@ -262,22 +246,20 @@ public class Gunrack extends Table {
     private int getRoundsAvailable(int index) {
 
         int rounds = 0;
-
         WeaponSpec spec = null;
 
         if (index >= 0 && index < weaponsSpecs.size) {
             spec = weaponsSpecs.get(index);
         }
-
         if (null != spec) {
-
             rounds = spec.roundsAvail;
         }
         return rounds;
     }
 
-    /*
-     * return text string descriptor (for display onscreen UI)
+    /**
+     * @param wtype weapon type
+     * @return text string descriptor (for display onscreen UI)
      */
     String getDescription(int wtype) {
         String mesg;
@@ -315,21 +297,21 @@ public class Gunrack extends Table {
         return mesg;
     }
 
-    /*
-     * returns nr weapons available
+    /**
+     * @return number of weapons available
      */
     private int rebuildWeaponCache() {
-// first reset the active cache and count ... actual array not doing much right now but is used for tracking the number of menu elements,
-        weaponsMenu = new Array<WeaponInstance>();
+        // first reset the active cache and count ... actual array not doing much right now but is
+        // used for tracking the number of menu elements,
+        weaponsMenu = new Array<>();
 
-// walk the spec list and add any weapon spec with any rounds remaining > 0
+        // walk the spec list and add any weapon spec with any rounds remaining > 0
         for (int i = 0; i < weaponsSpecs.size; i++) {
 
             WeaponSpec ws = weaponsSpecs.get(i);
 
             if (null != ws) {
                 if (i == 0) { // slot 0 always fully loaded w/ std ammo
-//                    ws.roundsCap = 9999; // no don't set this default here it is confusing!
                     ws.reset();
                 }
                 if (weaponsSpecs.get(i).roundsAvail > 0) {
