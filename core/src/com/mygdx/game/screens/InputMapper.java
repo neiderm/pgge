@@ -320,22 +320,24 @@ public class InputMapper {
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
 
-        if (getControlButton(vbutton) && (0 == virtualButtonDebounceCounts[switchIndex])) {
-            rv = true;
-            // controller may emit several down/up events on a "single" button press/release
-            virtualButtonDebounceCounts[switchIndex] = repeatPeriod;
-        }
-        // if user has let go of button, then reduce the countdown to the debounce time
-        if (!getControlButton(vbutton)) {
+        if (getControlButton(vbutton)) {
+            if (0 == virtualButtonDebounceCounts[switchIndex]) {
+                rv = true;
+                // controller may emit several down/up events on a "single" button press/release
+                virtualButtonDebounceCounts[switchIndex] = repeatPeriod;
+//                setControlButton(vbutton, false); // maybe
+            }
+        } else { // if (!getControlButton(vbutton)) {
+            // if user has let go of button, then reduce the countdown to the debounce time
             final int Debounce_Time = 15;
             if (virtualButtonDebounceCounts[switchIndex] > Debounce_Time) {
                 virtualButtonDebounceCounts[switchIndex] = Debounce_Time;
             }
-        }
-        if (!getControlButton(vbutton) || letRepeat) {
-            virtualButtonDebounceCounts[switchIndex] -= 2;
-            if (virtualButtonDebounceCounts[switchIndex] < 0) {
-                virtualButtonDebounceCounts[switchIndex] = 0;
+            if (letRepeat) {
+                virtualButtonDebounceCounts[switchIndex] -= 2;
+                if (virtualButtonDebounceCounts[switchIndex] < 0) {
+                    virtualButtonDebounceCounts[switchIndex] = 0;
+                }
             }
         }
         return rv;
@@ -374,20 +376,13 @@ public class InputMapper {
         private final float[] analogAxes = new float[MAX_AXES];
 
         public ControlBundle() {
-            setButtons();
+            setButtons(new CtrlButton(InputMapper.VirtualButtonCode.BTN_A), new CtrlButton());
         }
 
         void setButtons(CtrlButton... cbuttons) {
-
-            int copylen = cbuttons.length;
-
-            if (copylen < MAX_BUTTONS) {
-                System.arraycopy(cbuttons, 0, this.cbuttons, 0, copylen);
+            if (cbuttons.length < MAX_BUTTONS) {
+                System.arraycopy(cbuttons, 0, this.cbuttons, 0, cbuttons.length);
             }
-        }
-
-        void setButtons() {
-            setButtons(new CtrlButton(InputMapper.VirtualButtonCode.BTN_A), new CtrlButton());
         }
 
         CtrlButton getButton(int index) {
@@ -443,20 +438,18 @@ public class InputMapper {
         sampleAxis(InputMapper.VIRTUAL_R2_AXIS, cbundle);
 
         CtrlButton cbutton;
-        cbutton = cbundle.getButton(0);
+        // todo loopit
+        cbutton = cbundle.getButton(0); // todo: 0
         if (null != cbutton) {
-            cbundle.setCbuttonState(0,
-                    getControlButton(
-                            InputMapper.VirtualButtonCode.BTN_A, cbutton.isRepeated, cbutton.timeout));
+            boolean state = getControlButton(
+                    InputMapper.VirtualButtonCode.BTN_A, cbutton.isRepeated, cbutton.timeout);
+            cbundle.setCbuttonState(0, state);
         }
-        cbutton = cbundle.getButton(1);
+        cbutton = cbundle.getButton(1); // todo: 1
         if (null != cbutton) {
-            cbundle.setCbuttonState(1,
-                    getControlButton(
-                            InputMapper.VirtualButtonCode.BTN_B, cbutton.isRepeated, cbutton.timeout));
+            boolean state = getControlButton(InputMapper.VirtualButtonCode.BTN_B);
+            cbundle.setCbuttonState(1, state);
         }
-
-        cbundle.setCbuttonState(1, getControlButton(InputMapper.VirtualButtonCode.BTN_B));
     }
 
     private void print(String message) {
