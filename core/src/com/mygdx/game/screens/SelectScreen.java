@@ -52,8 +52,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final String CLASS_STRING = "SelectScreen";
     private static final Array<String> stageNamesList = new Array<>();
 
-    private final InGameMenu stage = new InGameMenu(); // disposable
-
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     // position them into equilateral triangle (sin/cos)
@@ -63,6 +61,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             new Vector3()
     };
     private ImmutableArray<Entity> characters;
+    private InGameMenu stage; // don't instantiate me here ... skips select platform
     private Entity platform;
     private int actorCount = 0;
     private int idxRigSelection;
@@ -74,7 +73,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     public void show() {
 
         super.init();
-
+        stage = new InGameMenu();
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
         actorCount = characters.size(); // should be 3!@!!!!
 
