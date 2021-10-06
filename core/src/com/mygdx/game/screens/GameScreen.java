@@ -99,7 +99,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         // must be done before any bullet object can be created .. I don't remember why the BulletWorld is only instanced once
         BulletWorld.getInstance().initialize();
 
-        super.init();
+        super.init(); // initialization in the base Screen class
 
         batch = new SpriteBatch();
         camController = new CameraInputController(cam);
@@ -208,7 +208,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             @Override
-            public void onCameraSwitch() {
+            public void onSwitchView() {
                 if (cameraMan.nextOpMode())
                     multiplexer.addProcessor(camController);
                 else
@@ -216,7 +216,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             @Override
-            protected void onSelectEvent() {
+            protected void onInputX() {
+                super.onInputX();
 // for now this menu is not a "full-fledged" actor with events fired to it so here is not "select" event specific to the table
 // (eventually to-do table entries as clickable/touchable buttons)
                 if (gunrack.isVisible() && gunrack.onSelectMenu()) {
@@ -225,7 +226,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
 
             @Override
-            protected void onMenuEvent() {
+            protected void onL1MenuOpen() {
                 gunrack.onMenuEvent();
             }
 
@@ -261,7 +262,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 // handle a (hopefully) small subset of control actions specific to the model or whatever
                 switch (GameWorld.getInstance().getRoundActiveState()) {
-                    //case ROUND_OVER_MORTE:
                     case ROUND_ACTIVE:
                     case ROUND_COMPLETE_WAIT:
                         StatusComponent sc = pickedPlayer.getComponent(StatusComponent.class);
@@ -281,17 +281,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             sc.lifeClock = lc;
                         }
                         if (0 == lc) {
-                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_MORTE);
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
-                        } else {
-                            // do controller to model update  only if in an appropriate valid game state
-                            if (!GameWorld.getInstance().getIsPaused()) {
-                                modelApplyController();
-                            }
+                            GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_KILLED);
+                        } else if (!GameWorld.getInstance().getIsPaused()) {
+                            // update model if game state is valid
+                            modelApplyController();
                         }
                         break;
-                    case ROUND_OVER_RESTART:
-                        // handled at end of render pass
                     default:
                         break;
                 }
@@ -381,7 +377,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             }
         }
     };
-
     /*
      * this is kind of a hack to test some ray casting
      */
@@ -422,33 +417,26 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     public void render(float delta) {
         // plots debug graphics
         super.render(delta);
-
         // put in any debug graphics to the render pipeline
-        chaserSteerable.update(delta);
-
         ModelComponent mc = pickedPlayer.getComponent(ModelComponent.class);
         if (null != mc) {
             GfxBatch.draw(
                     camDbgLineInstance.lineTo(mc.modelInst.transform.getTranslation(tmpPos),
                             chaserTransform.getTranslation(tmpV), Color.PURPLE));
         }
-
-        camController.update(); // this can probaly be pause as well
-
         BulletWorld.getInstance().update(delta, cam);
-
+        chaserSteerable.update(delta);
+        camController.update();
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
-
         // update entities queued for spawning
         runCleanerSpawner();
 
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART ==
-                GameWorld.getInstance().getRoundActiveState()) {
+        if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART == GameWorld.getInstance().getRoundActiveState()) {
 
             screenTeardown();
 
-            GameFeature localPlayer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME); // make tag a defined string
+            GameFeature localPlayer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
             if (null != localPlayer) {
                 GameWorld.getInstance().reloadSceneData(localPlayer.getObjectName());
             }
@@ -629,7 +617,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
     @Override
     public void show() {
-
         setup();
     }
 

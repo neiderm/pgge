@@ -68,7 +68,7 @@ public final class GameWorld implements Disposable {
         ROUND_OVER_RESTART,
         ROUND_OVER_QUIT,
         ROUND_OVER_TIMEOUT,
-        ROUND_OVER_MORTE,    // out of time or dead ... continue?
+        ROUND_OVER_KILLED,    // out of time or dead ... continue?
         ROUND_COMPLETE_WAIT, // @ completing the goal .. short pause (for effect)
         ROUND_COMPLETE_NEXT, // transition to next screen after arena complete
         ROUND_ACTIVATE_ON_ALL // dummy state for "unconditionally" activating features

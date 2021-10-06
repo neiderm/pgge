@@ -38,8 +38,8 @@ public class GameUI extends InGameMenu {
 
     private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
     private static final int TIME_LIMIT_WARN_SECS = 10;
-
     static final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
+
     private final Color hudOverlayColor;
     private final StringBuilder stringBuilder = new StringBuilder();
 
@@ -58,14 +58,7 @@ public class GameUI extends InGameMenu {
     int continueScreenTimeUp;
 
     GameUI() {
-        //this.getViewport().getCamera().update(); // GN: hmmm I can get the camera
         super("Paused");
-
-        // start with White, alpha==0 and fade to Black with alpha=1
-        hudOverlayColor = new Color(1, 1, 1, 0);
-
-        // hack ...assert default state for game-screen unpaused since use it as a visibility flag for on-screen menu!
-        GameWorld.getInstance().setIsPaused(false);
 
         final int gsBTNwidth = GameWorld.VIRTUAL_WIDTH * 3 / 8;
         final int gsBTNheight = GameWorld.VIRTUAL_HEIGHT * 3 / 8;
@@ -74,9 +67,9 @@ public class GameUI extends InGameMenu {
         final int gsBTNy = 0;
 
         picButton = addImageButton(
-                gsBTNx , gsBTNy , gsBTNwidth, gsBTNheight, ButtonEventHandler.EVENT_A);
+                gsBTNx, gsBTNy, gsBTNwidth, gsBTNheight, ButtonEventHandler.EVENT_A);
 
-        xButton = addImageButton( 3f * GameWorld.VIRTUAL_WIDTH / 4, 0,
+        xButton = addImageButton(3.0f * GameWorld.VIRTUAL_WIDTH / 4, 0,
                 GameWorld.VIRTUAL_WIDTH / 4, GameWorld.VIRTUAL_HEIGHT / 4,
                 ButtonEventHandler.EVENT_B);
 
@@ -87,7 +80,9 @@ public class GameUI extends InGameMenu {
         addToggleButton("Debug Draw");
         addNextButton();
 
-        onscreenMenuTbl.setVisible(false); // default not visible (Paused menu)
+        hudOverlayColor = new Color(1, 1, 1, 0); // screen-fade overlay
+        onscreenMenuTbl.setVisible(false); // default not visible (un-paused)
+        GameWorld.getInstance().setIsPaused(false); // default state for game-screen should be un-paused
 
         addTouchPad(new ChangeListener() {
             @Override
@@ -120,8 +115,8 @@ public class GameUI extends InGameMenu {
     private void addTouchPad(ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
-        int tpRadius = 100;              // todo VIRTUAL WIDTH etc
-        int knobRadius = 36;
+        int tpRadius = GameWorld.VIRTUAL_HEIGHT / 8;
+        int knobRadius = tpRadius / 3;
 
         Pixmap button = new Pixmap(knobRadius * 2, knobRadius * 2, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 0.5f);
@@ -129,21 +124,19 @@ public class GameUI extends InGameMenu {
         tpKnob = new Texture(button);
 
         touchpadStyle = new Touchpad.TouchpadStyle();
-
 //        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap background = new Pixmap(tpRadius * 2, tpRadius * 2, Pixmap.Format.RGBA8888);
-        background.setColor(1, 1, 1, .2f);
+        background.setColor(1, 1, 1, 0.2f);
         background.fillCircle(tpRadius, tpRadius, tpRadius);
 
         tpBackgnd = new Texture(background);
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(tpBackgnd));
         touchpadStyle.knob = new TextureRegionDrawable(new TextureRegion(tpKnob));
-
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
-        touchpad.setBounds(15, 15, tpRadius * 2f, tpRadius * 2f);
+        touchpad.setBounds(15, 15, tpRadius * 2.0f, tpRadius * 2.0f);
         touchpad.addListener(touchPadChangeListener);
-        this.addActor(touchpad);
+        addActor(touchpad);
 
         button.dispose();
         background.dispose();
@@ -162,7 +155,6 @@ public class GameUI extends InGameMenu {
         // no need to keep ref to texture for disposal (InGameMenu keeps reference list for disposal)
         Texture useTexture = new Texture(pixmap);
         ImageButton button = addImageButton(useTexture, btnX, btnY, ips);
-
         pixmap.dispose();
         return button;
     }
@@ -172,25 +164,22 @@ public class GameUI extends InGameMenu {
         int minutes = 0;
         int seconds = 0;
 
-        if (!GameWorld.getInstance().getIsPaused()) {
+        if (!onscreenMenuTbl.isVisible()) {
             screenTimer -= 1;
         }
 
         int screenTimerSecs = screenTimer / 60; // FPS
-
         if (screenTimerSecs > 0) {
             minutes = screenTimerSecs / 60;
             seconds = screenTimerSecs % 60;
         }
         stringBuilder.setLength(0);
-        stringBuilder.append(
-                String.format(
-                        Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
+        stringBuilder.append(String.format(
+                Locale.ENGLISH, "%02d", minutes)).append(":").append(String.format(Locale.ENGLISH, "%02d", seconds));
 
         if (screenTimerSecs <= TIME_LIMIT_WARN_SECS) {
             setLabelColor(timerLabel, Color.RED);
         }
-
         timerLabel.setText(stringBuilder);
     }
 
@@ -214,10 +203,6 @@ public class GameUI extends InGameMenu {
         setOverlayColor(hudOverlayColor.r, hudOverlayColor.g, hudOverlayColor.b, hudOverlayColor.a);
     }
 
-    void addScore(int points) {
-        score += points;
-    }
-
     void setScore(int points) {
         score = points;
     }
@@ -230,13 +215,36 @@ public class GameUI extends InGameMenu {
         return prizeCount;
     }
 
-    public void onCameraSwitch() { // mt
+    /**
+     * Event handlers can be overridden by Game Screen
+     */
+    protected void onSwitchView() { // mt
+    }
+
+    protected void onL1MenuOpen() { // mt
+    }
+
+    protected void onQuit() {
+        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+    }
+
+    protected void onRestart() {
+        GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
     }
 
     @Override
-    protected void onPauseEvent() {
+    protected void onInputX() {
+        if (onscreenMenuTbl.isVisible()) {
+            onPausedMenuX();
+        } else if (GameWorld.GAME_STATE_T.ROUND_OVER_KILLED == GameWorld.getInstance().getRoundActiveState()) {
+            onRestart();
+        }
+    }
 
-        if (GameWorld.getInstance().getIsPaused()) {
+    @Override
+    protected void onPausedMenuX() {
+
+        if (onscreenMenuTbl.isVisible()) {
             GameWorld.getInstance().setIsPaused(false);
 
             switch (getCheckedIndex()) {
@@ -244,38 +252,35 @@ public class GameUI extends InGameMenu {
                 case 0: // resume
                     break;
                 case 1: // restart
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                    onRestart();
                     break;
                 case 2: // quit
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                    onQuit();
                     break;
-                case 3: // camera
-                    onCameraSwitch();  // to put in GameUI interface and override
+                case 3: // camera included in menu for accessibility on TS
+                    onSwitchView(); // Game Screen overrides this
                     break;
                 case 4: // debug draw
                     BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
                     // has to reinitialize bullet world to set the flag
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
+                    onRestart();
                     break;
             }
         }
     }
 
     @Override
-    protected void onEscEvent() {
+    protected void onInputEsc() {
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
                 GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
-
-            if (!GameWorld.getInstance().getIsPaused()) {
-                GameWorld.getInstance().setIsPaused(true);
+            // if the menu is already visible, ESC/return acts as Quit
+            if (onscreenMenuTbl.isVisible()) {
+                onQuit();
             } else {
-                GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
+                GameWorld.getInstance().setIsPaused(true);
             }
         }
-    }
-
-    protected void onMenuEvent() { // mt
     }
 
     /**
@@ -289,7 +294,6 @@ public class GameUI extends InGameMenu {
         mesgLabel.setText(message);
         mesgLabel.setVisible(true);
     }
-
 
     public enum InputState {
         INP_NONE,
@@ -316,11 +320,12 @@ public class GameUI extends InGameMenu {
      * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
      * Stage then the caller will have to handle their own TS checking, e.g.:
      * todo: how Input.Keys.BACK generated in Android Q
-     *
-     * @return enum constant of the currently active input if any or INP_NONE
      */
-    private InputState getInputState() {
+    private void updateGetInputs() {
+
         InputState newInputState = incomingInputState;
+        incomingInputState = InputState.INP_NONE; // unlatch the input state
+
         if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
             newInputState = InputState.INP_A;
 
@@ -338,41 +343,22 @@ public class GameUI extends InGameMenu {
         }
 
         InputState debouncedInputState = InputState.INP_NONE;
-
         if (preInputState != newInputState) { // debounce
             debouncedInputState = newInputState;
         }
         preInputState = newInputState;
-        incomingInputState = InputState.INP_NONE; // unlatch the input state
 
-        return debouncedInputState;
-    }
-
-    private void updateGetInputs() {
-
-        int checkedBox = 0; // button default at top selection
-
-        InputState inp = getInputState();
-
-        if ((InputState.INP_A == inp)) {
-            if (GameWorld.getInstance().getIsPaused()) {
-                onPauseEvent();
-            } else {
-                if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == GameWorld.getInstance().getRoundActiveState()) {
-                    GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
-                } else {
-                    onSelectEvent(); // so it can be overriden
-                }
-            }
-        } else if (InputState.INP_START == inp) {
-            onEscEvent();
-        } else if (InputState.INP_SELECT == inp) {
-            onCameraSwitch();
-        } else if (InputState.INP_L1 == inp) {
-            onMenuEvent();
+        if ((InputState.INP_A == debouncedInputState)) {
+            onInputX();
+        } else if (InputState.INP_START == debouncedInputState) {
+            onInputEsc();
+        } else if (InputState.INP_SELECT == debouncedInputState) {
+            onSwitchView();
+        } else if (InputState.INP_L1 == debouncedInputState) {
+            onL1MenuOpen();
         }
-
-        if (GameWorld.getInstance().getIsPaused()) {
+        int checkedBox = 0; // button default at top selection
+        if (onscreenMenuTbl.isVisible()) {
             checkedBox = checkedUpDown();
         }
         setCheckedBox(checkedBox);
@@ -407,19 +393,12 @@ public class GameUI extends InGameMenu {
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_COMPLETE_NEXT);
                 }
                 break;
-            case ROUND_OVER_MORTE: // Continue to Restart transition is triggered by hit "Select" while in Continue State
+            case ROUND_OVER_KILLED: // Continue to Restart transition is triggered by InputX while in Continue state
                 if (screenTimer <= continueScreenTimeUp) {
                     screenTimer = 2 * 60; // FPS // screen transition: 2 seconds fadeout
                     GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT);
                 }
                 break;
-            case ROUND_COMPLETE_NEXT: // this state may be slightly superfluous
-                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
-                break;
-            case ROUND_OVER_QUIT:
-                GameWorld.getInstance().showScreen(); // goes to the default screen (startup splash/load)
-                break;
-            case ROUND_OVER_RESTART:
             default:
                 break;
         }
@@ -445,8 +424,6 @@ public class GameUI extends InGameMenu {
         setOverlayColor(0, 0, 0, 0);
         showOSC(false);
         showPauseMenu(false);
-        GameWorld.GAME_STATE_T ras = GameWorld.getInstance().getRoundActiveState();
-
         updateTimerLbl();
 
         if (msgLabelCounter > 0) {
@@ -454,41 +431,45 @@ public class GameUI extends InGameMenu {
         } else {
             mesgLabel.setVisible(false);
         }
-        if (GameWorld.GAME_STATE_T.ROUND_OVER_MORTE == ras) {
-            msgLabelCounter = 999;
-            stringBuilder.setLength(0);
-            mesgLabel.setText(stringBuilder.append("Continue? ").append((screenTimer - continueScreenTimeUp) / 60)); // FPS
-            mesgLabel.setVisible(true);
-            setOverlayColor(1, 0, 0, 0.5f); // red overlay
 
-            // hackity hack  the pick button is apparently the only means of generating "SELECT" event on touchscreen?
-            picButton.setVisible(GameWorld.getInstance().getIsTouchScreen());
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == ras) {
-
-            setLabelColor(itemsLabel, Color.GREEN);
-            stringBuilder.setLength(0);
-            itemsLabel.setText(stringBuilder.append("EXIT"));
-
-            stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == ras) {
-
-            stringBuilder.setLength(0);
-            itemsLabel.setText(
-                    stringBuilder.append(
-                            getPrizeCount()).append(" / ").append(SceneLoader.getNumberOfCrapiums()));
-
-            stringBuilder.setLength(0);
-            scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
-
-        } else if (GameWorld.GAME_STATE_T.ROUND_OVER_TIMEOUT == ras) {
-
-            playerInfoTbl.setVisible(false);
-            fadeScreen();
+        switch (GameWorld.getInstance().getRoundActiveState()) {
+            case ROUND_OVER_KILLED:
+                msgLabelCounter = 999;
+                stringBuilder.setLength(0);
+                mesgLabel.setText(stringBuilder.append("Continue? ").append((screenTimer - continueScreenTimeUp) / 60)); // FPS
+                mesgLabel.setVisible(true);
+                setOverlayColor(1, 0, 0, 0.5f); // red overlay
+                // todo the pick button is apparently the only means of generating "SELECT" event on touchscreen?
+                picButton.setVisible(GameWorld.getInstance().getIsTouchScreen());
+                break;
+            case ROUND_COMPLETE_WAIT:
+                setLabelColor(itemsLabel, Color.GREEN);
+                stringBuilder.setLength(0);
+                itemsLabel.setText(stringBuilder.append("EXIT"));
+                stringBuilder.setLength(0);
+                scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
+                break;
+            case ROUND_ACTIVE:
+                stringBuilder.setLength(0);
+                itemsLabel.setText(stringBuilder.append(
+                        getPrizeCount()).append(" / ").append(SceneLoader.getNumberOfCrapiums()));
+                stringBuilder.setLength(0);
+                scoreLabel.setText(stringBuilder.append(getScore())); // update score indicator
+                break;
+            case ROUND_OVER_TIMEOUT:
+                playerInfoTbl.setVisible(false);
+                fadeScreen();
+                break;
+            case ROUND_COMPLETE_NEXT:
+                GameWorld.getInstance().showScreen(new MainMenuScreen()); // tmp menu screen
+                break;
+            case ROUND_OVER_QUIT:
+                GameWorld.getInstance().showScreen(); // goes to the default screen (startup splash/load)
+                break;
+            default:
+                break;
         }
-        if (GameWorld.getInstance().getIsPaused()) {
+        if (GameWorld.getInstance().getIsPaused() /* onscreenMenuTbl.isVisible() NO! */) {
             setOverlayColor(0, 0, 1, 0.5f);
             showPauseMenu(true);
         } else if (GameWorld.getInstance().getIsTouchScreen()) {
