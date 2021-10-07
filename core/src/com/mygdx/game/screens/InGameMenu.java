@@ -49,6 +49,7 @@ import com.mygdx.game.GameWorld;
  */
 class InGameMenu extends Stage {
 
+    private final Table onscreenMenuTbl = new Table();
     private final Array<Texture> savedTextureRefs = new Array<>();
     private final Array<String> buttonNames = new Array<>();
 
@@ -56,34 +57,17 @@ class InGameMenu extends Stage {
     private Image overlayImage; // disposable
     private int previousIncrement;
     private int actorCount;
-
-    final Table onscreenMenuTbl = new Table();
-    final Table playerInfoTbl = new Table();
     // disposables
     private Texture overlayTexture;
     private BitmapFont menuFont;
-    private Texture buttonTexture;
 
-    Label scoreLabel;
-    Label itemsLabel;
-    Label timerLabel;
-    Label mesgLabel;
     Skin uiSkin;
     InputMapper mapper;
 
     /**
      * constructor for a menu that has a header label with the menu name
      * https://github.com/libgdx/libgdx/blob/master/tests/gdx-tests/src/com/badlogic/gdx/tests/UISimpleTest.java
-     *
-     * @param menuName menu name
      */
-    InGameMenu(String menuName) {
-
-        this();
-
-        onscreenMenuTbl.add(new Label(menuName, uiSkin)).fillX().uniformX();
-    }
-
     InGameMenu() {
         super();
         savedTextureRefs.clear();
@@ -97,35 +81,7 @@ class InGameMenu extends Stage {
         menuFont = skin.getFont(DEFAULT_FONT);
         menuFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
 
-        TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
-        textButtonStyle.font = skin.getFont(DEFAULT_FONT);
-        textButtonStyle.up = skin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.down = skin.newDrawable("white", Color.DARK_GRAY);
-        textButtonStyle.checked = skin.newDrawable("white", Color.BLUE);
-        textButtonStyle.over = skin.newDrawable("white", Color.LIGHT_GRAY);
-        skin.add("default", textButtonStyle);
         uiSkin = skin;
-
-        scoreLabel = new Label("0000", new Label.LabelStyle(menuFont, Color.WHITE));
-        playerInfoTbl.add(scoreLabel);
-
-        itemsLabel = new Label("0/3", new Label.LabelStyle(menuFont, Color.WHITE));
-        playerInfoTbl.add(itemsLabel);
-
-        timerLabel = new Label("0:15", new Label.LabelStyle(menuFont, Color.WHITE));
-        playerInfoTbl.add(timerLabel).padRight(1);
-
-        playerInfoTbl.row().expand();
-
-        mesgLabel = new Label("Continue? 9 ... ", new Label.LabelStyle(menuFont, Color.WHITE));
-        playerInfoTbl.add(mesgLabel).colspan(3);
-        mesgLabel.setVisible(false); // only see this in "Continue ..." screen
-
-        playerInfoTbl.row().bottom().left();
-        playerInfoTbl.setFillParent(true);
-        playerInfoTbl.setVisible(false);
-        addActor(playerInfoTbl);
-//        playerInfoTbl.setDebug(true);
 
         // transparent overlay layer
         Pixmap.setBlending(Pixmap.Blending.None);
@@ -152,12 +108,47 @@ class InGameMenu extends Stage {
         buttonGroup = new ButtonGroup<>();
         buttonGroup.setMaxCheckCount(1);
         buttonGroup.setMinCheckCount(1);
+    }
 
+    /**
+     * Create a selection menu
+     * @param menuName String name of menu, no name if empty string or null
+     * @param buttonNames String list of button names in order to be added
+     */
+    void createMenu(String menuName, String... buttonNames) {
         // add the menu table last so that it will always be over the overlay layer
         onscreenMenuTbl.setFillParent(true);
-        onscreenMenuTbl.setVisible(true);
         addActor(onscreenMenuTbl);
 //        onscreenMenuTbl.setDebug(true);
+        if ((null != menuName) && (menuName.length() > 0)) {
+            onscreenMenuTbl.add(new Label(menuName, uiSkin)).fillX().uniformX();
+        }
+        for (String name : buttonNames) {
+            addButton(new TextButton(name, uiSkin, "toggle"));
+        }
+        addNextButton();
+        setMenuVisibility(false);
+    }
+
+    void createMenu(String menuName, boolean visible, String... buttonNames) {
+        createMenu(menuName, buttonNames);
+        setMenuVisibility(visible);
+    }
+
+    private void addButton(TextButton button) {
+        buttonNames.add(button.getText().toString());
+        buttonGroup.add(button);
+        actorCount += 1;
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(button).fillX().uniformX();
+    }
+
+    void setMenuVisibility(boolean visible) {
+        onscreenMenuTbl.setVisible(visible);
+    }
+
+    boolean getMenuVisibility() {
+        return onscreenMenuTbl.isVisible();
     }
 
     void setLabelColor(Label label, Color c) {
@@ -170,18 +161,18 @@ class InGameMenu extends Stage {
         }
     }
 
-    /*
+    /**
      * add a label in the default font and style
      */
-    void addLabel(String labelText, Color labelColor) {
-        addActor(new Label(labelText, new Label.LabelStyle(menuFont, labelColor)));
+    void addLabel(String labelText) {
+        addActor(new Label(labelText, uiSkin));
     }
 
     /**
      * Add a "Next" button to an in-game menu. Button touch handler sets the virtual Control
      * Button in the Input Mapper.
      */
-    void addNextButton() {
+    private void addNextButton() {
         Button nextButton = new TextButton("Next", uiSkin, "default");
         nextButton.setColor(new Color(1, 0f, 0, 1.0f));
         // add a touch down listener to the Next button
@@ -271,18 +262,6 @@ class InGameMenu extends Stage {
         addActor(newButton);
         newButton.setPosition(posX, posY);
         return newButton;
-    }
-
-    void addToggleButton(String text) {
-        addButton(new TextButton(text, uiSkin, "toggle"));
-    }
-
-    private void addButton(TextButton button) {
-        buttonNames.add(button.getText().toString());
-        buttonGroup.add(button);
-        actorCount += 1;
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(button).fillX().uniformX();
     }
 
     int setCheckedBox() {
@@ -413,16 +392,6 @@ class InGameMenu extends Stage {
         return false;
     }
 
-    // event handlers to be overridden
-    protected void onSelectEvent() { // mt
-    }
-
-    protected void onPauseEvent() { // mt
-    }
-
-    protected void onEscEvent() { // mt
-    }
-
     /*
      * dispose textures of Actors that were added to the Stage by the client
      */
@@ -445,9 +414,6 @@ class InGameMenu extends Stage {
         }
         if (null != uiSkin) {
             uiSkin.dispose();
-        }
-        if (null != buttonTexture) {
-            buttonTexture.dispose();
         }
     }
 }

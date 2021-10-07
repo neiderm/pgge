@@ -21,7 +21,10 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -42,11 +45,16 @@ public class GameUI extends InGameMenu {
 
     private final Color hudOverlayColor;
     private final StringBuilder stringBuilder = new StringBuilder();
+    private final Table playerInfoTbl = new Table();
 
     private ImageButton picButton;
     private ImageButton xButton;
     private Touchpad touchpad;
-    private int msgLabelCounter;
+    private Label scoreLabel;
+    private Label itemsLabel;
+    private Label timerLabel;
+    private Label mesgLabel;
+
     private int score; // my certain game the score resets every screen anyway so who cares
     private int screenTimer = DEFAULT_SCREEN_TIME;
     // disposable
@@ -58,7 +66,7 @@ public class GameUI extends InGameMenu {
     int continueScreenTimeUp;
 
     GameUI() {
-        super("Paused");
+        super();
 
         final int gsBTNwidth = GameWorld.VIRTUAL_WIDTH * 3 / 8;
         final int gsBTNheight = GameWorld.VIRTUAL_HEIGHT * 3 / 8;
@@ -73,15 +81,12 @@ public class GameUI extends InGameMenu {
                 GameWorld.VIRTUAL_WIDTH / 4, GameWorld.VIRTUAL_HEIGHT / 4,
                 ButtonEventHandler.EVENT_B);
 
-        addToggleButton("Resume");
-        addToggleButton("Restart");
-        addToggleButton("Quit");
-        addToggleButton("Camera");
-        addToggleButton("Debug Draw");
-        addNextButton();
+        createInfoTable();
+
+        createMenu(
+                "Paused", "Resume", "Restart", "Quit", "Camera", "Debug Draw");
 
         hudOverlayColor = new Color(1, 1, 1, 0); // screen-fade overlay
-        onscreenMenuTbl.setVisible(false); // default not visible (un-paused)
         GameWorld.getInstance().setIsPaused(false); // default state for game-screen should be un-paused
 
         addTouchPad(new ChangeListener() {
@@ -99,7 +104,31 @@ public class GameUI extends InGameMenu {
     /*
      * so it can be overridden
      */
-    protected void init() { // mt
+    void init() { // mt
+    }
+
+    private void createInfoTable() {
+        /// to playerUI
+        scoreLabel = new Label("0000", uiSkin);
+        playerInfoTbl.add(scoreLabel);
+
+        itemsLabel = new Label("0/3", uiSkin);
+        playerInfoTbl.add(itemsLabel);
+
+        timerLabel = new Label("0:15", uiSkin);
+        playerInfoTbl.add(timerLabel).padRight(1);
+
+        playerInfoTbl.row().expand();
+
+        mesgLabel = new Label("Continue? 9 ... ", uiSkin);
+        playerInfoTbl.add(mesgLabel).colspan(3);
+        mesgLabel.setVisible(false); // only see this in "Continue ..." screen
+
+        playerInfoTbl.row().bottom().left();
+        playerInfoTbl.setFillParent(true);
+        playerInfoTbl.setVisible(false);
+        addActor(playerInfoTbl);
+//        playerInfoTbl.setDebug(true);
     }
 
     int getScreenTimer() {
@@ -164,8 +193,9 @@ public class GameUI extends InGameMenu {
         int minutes = 0;
         int seconds = 0;
 
-        if (!onscreenMenuTbl.isVisible()) {
-            screenTimer -= 1;
+        if (!getMenuVisibility()) {
+//        if (!onscreenMenuTbl.isVisible()) {
+            screenTimer -= 1;                  // why is it still counting down?
         }
 
         int screenTimerSecs = screenTimer / 60; // FPS
@@ -224,58 +254,53 @@ public class GameUI extends InGameMenu {
     protected void onL1MenuOpen() { // mt
     }
 
-    protected void onQuit() {
+    private void onQuit() {
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_QUIT);
     }
 
-    protected void onRestart() {
+    private void onRestart() {
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_RESTART);
     }
 
-    @Override
     protected void onInputX() {
-        if (onscreenMenuTbl.isVisible()) {
+        if (getMenuVisibility()) {
             onPausedMenuX();
         } else if (GameWorld.GAME_STATE_T.ROUND_OVER_KILLED == GameWorld.getInstance().getRoundActiveState()) {
             onRestart();
         }
     }
 
-    @Override
-    protected void onPausedMenuX() {
+    private void onPausedMenuX() {
+        // un-pause game state and invoke selected action
+        GameWorld.getInstance().setIsPaused(false);
 
-        if (onscreenMenuTbl.isVisible()) {
-            GameWorld.getInstance().setIsPaused(false);
-
-            switch (getCheckedIndex()) {
-                default:
-                case 0: // resume
-                    break;
-                case 1: // restart
-                    onRestart();
-                    break;
-                case 2: // quit
-                    onQuit();
-                    break;
-                case 3: // camera included in menu for accessibility on TS
-                    onSwitchView(); // Game Screen overrides this
-                    break;
-                case 4: // debug draw
-                    BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
-                    // has to reinitialize bullet world to set the flag
-                    onRestart();
-                    break;
-            }
+        switch (getCheckedIndex()) {
+            default:
+            case 0: // resume
+                break;
+            case 1: // restart
+                onRestart();
+                break;
+            case 2: // quit
+                onQuit();
+                break;
+            case 3: // camera included in menu for accessibility on TS
+                onSwitchView(); // Game Screen overrides this
+                break;
+            case 4: // debug draw
+                BulletWorld.USE_DDBUG_DRAW = !BulletWorld.USE_DDBUG_DRAW;
+                // has to reinitialize bullet world to set the flag
+                onRestart();
+                break;
         }
     }
 
-    @Override
-    protected void onInputEsc() {
+    private void onInputEsc() {
 
         if (GameWorld.GAME_STATE_T.ROUND_ACTIVE == GameWorld.getInstance().getRoundActiveState() ||
                 GameWorld.GAME_STATE_T.ROUND_COMPLETE_WAIT == GameWorld.getInstance().getRoundActiveState()) {
             // if the menu is already visible, ESC/return acts as Quit
-            if (onscreenMenuTbl.isVisible()) {
+            if (getMenuVisibility()) {
                 onQuit();
             } else {
                 GameWorld.getInstance().setIsPaused(true);
@@ -286,13 +311,16 @@ public class GameUI extends InGameMenu {
     /**
      * Display text string with a timed fadeout
      *
-     * @param message text string
-     * @param time    fadeout time
+     * @param message message text string
+     * @param timeout duration to display label
      */
-    void setMsgLabel(String message, int time) {
-        msgLabelCounter = time * 60;
-        mesgLabel.setText(message);
+    void setMsgLabel(String message, int timeout) {
+        setMsgLabel(message);
+        mesgLabel.addAction(Actions.sequence(Actions.delay(timeout), Actions.hide()));
         mesgLabel.setVisible(true);
+    }
+    private void setMsgLabel(String message) {
+        mesgLabel.setText(message);
     }
 
     public enum InputState {
@@ -357,8 +385,9 @@ public class GameUI extends InGameMenu {
         } else if (InputState.INP_L1 == debouncedInputState) {
             onL1MenuOpen();
         }
+
         int checkedBox = 0; // button default at top selection
-        if (onscreenMenuTbl.isVisible()) {
+        if (getMenuVisibility()) {
             checkedBox = checkedUpDown();
         }
         setCheckedBox(checkedBox);
@@ -414,8 +443,9 @@ public class GameUI extends InGameMenu {
     }
 
     private void showPauseMenu(boolean show) {
-// about 80% of the time, these are opposite to each other (menu goes up, on-screen-display down).
-        onscreenMenuTbl.setVisible(show);
+
+        setMenuVisibility(show);
+
         playerInfoTbl.setVisible(!show);
     }
 
@@ -425,16 +455,9 @@ public class GameUI extends InGameMenu {
         showOSC(false);
         showPauseMenu(false);
         updateTimerLbl();
-
-        if (msgLabelCounter > 0) {
-            msgLabelCounter -= 1;
-        } else {
-            mesgLabel.setVisible(false);
-        }
-
+// hmmm .. text strings being rebuilt each frame
         switch (GameWorld.getInstance().getRoundActiveState()) {
             case ROUND_OVER_KILLED:
-                msgLabelCounter = 999;
                 stringBuilder.setLength(0);
                 mesgLabel.setText(stringBuilder.append("Continue? ").append((screenTimer - continueScreenTimeUp) / 60)); // FPS
                 mesgLabel.setVisible(true);

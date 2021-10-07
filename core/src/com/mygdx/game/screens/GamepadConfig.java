@@ -20,6 +20,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
 
+import java.util.ArrayList;
+
 /**
  * Created by neiderm on 12/07/19.
  * Very crude controllers config, WIP
@@ -70,20 +72,22 @@ public class GamepadConfig implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(stage);
 
-        stage.addToggleButton("iPega PG-9076 USB (Linux)");
-        InputMapper.incrementNumberControlCfgTypes();
-//        stage.addToggleButton("iPega PG-9076 2.4 Ghz (Windows)");
-//        InputMapper.incrementNumberControlCfgTypes();
-        stage.addToggleButton("Xbox 360 Controller 2.4 Ghz or USB (Windows)");
-        InputMapper.incrementNumberControlCfgTypes();
-        stage.addToggleButton("Android B/T");
-        InputMapper.incrementNumberControlCfgTypes();
-        stage.addToggleButton("Belkin n45 Dual Analog USB Gamepad (IOS, Linux)");
-        InputMapper.incrementNumberControlCfgTypes();
-        // IOS, Linux (Windows has axis 0 and axis1 reversed)
-//        stage.addToggleButton("n45 Dual Analog USB Gamepad (Windows)"); // for whatever reason Windows has axis 0 and axis1 reversed
-//        InputMapper.incrementNumberControlCfgTypes();
-        stage.addNextButton();
+        String [] configNames = new String[] {
+                "iPega PG-9076 USB (Linux)",
+                "Xbox 360 Controller 2.4 Ghz or USB (Windows)",
+                "Android B/T",
+                "Belkin n45 Dual Analog USB Gamepad (IOS, Linux)"
+                //"n45 Dual Analog USB Gamepad (Windows)"
+                // "iPega PG-9076 2.4 Ghz (Windows)"
+        };
+
+        final ArrayList<String> namesList = new ArrayList<>();
+
+        for (String name : configNames){
+            namesList.add(name);
+            InputMapper.incrementNumberControlCfgTypes();
+        }
+        stage.createMenu(null, true, namesList.toArray(new String[0]));
     }
 
     @Override

@@ -31,7 +31,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -40,6 +39,8 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
+
+import java.util.ArrayList;
 
 /*
  * Player selects the Rig from a revolving platform.
@@ -50,7 +51,8 @@ import com.mygdx.game.sceneLoader.SceneData;
 class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private static final String CLASS_STRING = "SelectScreen";
-    private static final Array<String> stageNamesList = new Array<>();
+    private static final String SCREENS_DIR = "screens/";
+    private static final String DOT_JSON = ".json";
 
     private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -60,6 +62,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             new Vector3(),
             new Vector3()
     };
+    private ArrayList<String> stageNamesList; // needs re-instantiated at each screen invocation
     private ImmutableArray<Entity> characters;
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private Entity platform;
@@ -74,33 +77,30 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         super.init();
         stage = new InGameMenu();
+        Gdx.input.setInputProcessor(stage);
+
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
         actorCount = characters.size(); // should be 3!@!!!!
 
         GameFeature f = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
-
         if (null != f) {
             platform = f.getEntity();
         }
 
         // setup a screen/file selection menu (development only)
-//        FileHandle[] files = Gdx.files.local(SCREENS_DIR).list();
-        final String SCREENS_DIR = "screens/";
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
+        stageNamesList = new ArrayList<>();
 
         for (FileHandle file : files) {
             // stick the base-name (no path, no extension) into the menu
             String fname = file.name();
             if (fname.matches("(.*).json($)")) {
                 String basename = fname.replaceAll(".json$", "");
-                stage.addToggleButton(basename);
 // specify the path+name for now until all screeen jsons are migrated to Screens_Dir
-                stageNamesList.add(SCREENS_DIR + fname);
+                stageNamesList.add(basename);
             }
         }
-        stage.addNextButton();
-        stage.onscreenMenuTbl.setVisible(false);
-        Gdx.input.setInputProcessor(stage);
+        stage.createMenu(null, stageNamesList.toArray(new String[0]));
 
         // disposables
         Pixmap pixmap;
@@ -124,20 +124,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         button2.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
         button2.setColor(theColor);
         button2.addListener(new InputListener() {
-
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
                 return true;
             }
-
             @Override
             public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
                 stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
             }
         });
         stage.addActor(button2);
-
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;
@@ -148,7 +145,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         texture = new Texture(pixmap);
         stage.addImageButton(texture,
                 0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
-        //pixmap.dispose();
+        pixmap.dispose();
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
@@ -160,7 +157,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         pixmap.dispose();
 
-        stage.addLabel("Choose your Rig ... ", Color.WHITE);
+        stage.addLabel("Choose your Rig ... ");
 
         degreesSetp = 90 - idxRigSelection * platformIncDegrees();
     }
@@ -227,11 +224,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     // fixed amount to get the model pointing toward the viewer when selected
     private static final int TANK_MODEL_ORIENTATION = 90;
-
     // Rigs are positioned in terms of offset from Platform origin
-    // Platform height is buried in selectscreen.json unfortunately ("PlayerIsPlatform")
+    // Platform height is buried in Selectscreen unfortunately ("PlayerIsPlatform")
     private static final float PLATFORM_HEIGHT = 0.2f;
-
     private static final float SELECTED_RIG_OFFS_Y = 0.3f;
     private static final float UNSELECTED_RIG_OFFS_Y = 0.05f;
     // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
@@ -348,12 +343,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             idxMenuSelection = stage.setCheckedBox();
 
             if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                if (stageNamesList.size > 0) {
+                if (!stageNamesList.isEmpty()) {
                     String stagename = stageNamesList.get(idxMenuSelection);
-                    GameWorld.getInstance().showScreen(newLoadingScreen(stagename));
+                    GameWorld.getInstance().showScreen(newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
                 }
             } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 30)) {
-                stage.onscreenMenuTbl.setVisible(false);
+                stage.setMenuVisibility(false);
                 isPaused = false;
             }
         } else {
@@ -364,14 +359,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
 
             if ((stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 60))) {
-                if (stageNamesList.size > 0) {
-                    stage.onscreenMenuTbl.setVisible(true);
+                if (!stageNamesList.isEmpty()) {
+                    stage.setMenuVisibility(true);
                     isPaused = true;
                 } else {
                     Gdx.app.log(CLASS_STRING, "No screen files found!");
                 }
             } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone.json")); // LevelOne.json
+                GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone" + DOT_JSON)); // LevelOne.json
             }
         }
     }

@@ -21,6 +21,9 @@ import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.GameFeature;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
  * Created by neiderm on 12/18/17.
  * <p>
@@ -83,9 +86,13 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        stage.addToggleButton("Bonus Level");
-        stage.addToggleButton("Exit");
-        stage.addNextButton();
+        String [] configNames = new String[] {
+                "Bonus Level",
+                "Exit"
+        };
+        final ArrayList<String> namesList = new ArrayList<>();
+        Collections.addAll(namesList, configNames);
+        stage.createMenu(null, true, namesList.toArray(new String[0]));
     }
 
     @Override
