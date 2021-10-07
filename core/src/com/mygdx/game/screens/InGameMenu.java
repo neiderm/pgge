@@ -180,7 +180,7 @@ class InGameMenu extends Stage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
-                return false;
+                return true;
             }
 
             @Override
