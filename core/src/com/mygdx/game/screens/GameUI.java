@@ -193,9 +193,9 @@ public class GameUI extends InGameMenu {
         int minutes = 0;
         int seconds = 0;
 
-        if (!getMenuVisibility()) {
-//        if (!onscreenMenuTbl.isVisible()) {
-            screenTimer -= 1;                  // why is it still counting down?
+        // !onscreenMenuTbl.isVisible doesn't work here for some reason
+        if (!GameWorld.getInstance().getIsPaused()) {
+            screenTimer -= 1;
         }
 
         int screenTimerSecs = screenTimer / 60; // FPS
@@ -319,6 +319,7 @@ public class GameUI extends InGameMenu {
         mesgLabel.addAction(Actions.sequence(Actions.delay(timeout), Actions.hide()));
         mesgLabel.setVisible(true);
     }
+
     private void setMsgLabel(String message) {
         mesgLabel.setText(message);
     }
