@@ -31,7 +31,8 @@ public class FeatureAdaptor implements FeatureIntrf {
         FT_PLAYER,
         FT_ACTOR,
         FT_WEAAPON_0,
-        FT_WEAAPON_1
+        FT_WEAAPON_1,
+        FT_WEAAPON_2
     }
 
     public F_SUB_TYPE_T fSubType;
