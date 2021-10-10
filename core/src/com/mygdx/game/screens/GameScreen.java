@@ -162,6 +162,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      * handle weapon pickups
      */
     private void onWeaponAcquired(int wtype) {
+        // weaponsMenuSize =
         gunrack.onWeaponAcquired(wtype);
         playerUI.setMsgLabel(gunrack.getDescription(wtype), 2);
     }
@@ -201,11 +202,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     @Override
                     public void act(float delta) {
                         super.act(delta);
-                        // do update stuff, gun platform etc. ?
-                        if (getRoundsAvailable() <= 0) { // note to self how can be -1 ?  (it's the default in WeaponSpec class)
-                            // force phony events for weapon acquire, menu, and select std ammo
-                            onWeaponAcquired(0);// std. ammo - it flushes the spent one and forces the menu order to be rebuilt
-                            onSelectMenu(0); // forces menu selection pointer
+                        // check for new platform or exhausted weapon
+                        if (getRoundsAvailable() <= 0) {
+                            // selected weapon has no rounds available - initialize and reset to standard ammo
+                            resetStandard();
+
                             // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
                             makeGunPlatform(false);
                         }
@@ -225,9 +226,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             @Override
             protected void onInputX() {
                 super.onInputX();
-// for now this menu is not a "full-fledged" actor with events fired to it so here is not "select" event specific to the table
-// (eventually to-do table entries as clickable/touchable buttons)
-                if (gunrack.isVisible() && gunrack.onSelectMenu()) {
+                // if the gunrack menu is active then the selected weapon will be enabled
+                // returns true if menu is active and a new weapon has been selected
+                if (gunrack.onInputX()) {
                     gunPlatform = null;
                 }
             }
@@ -237,7 +238,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 gunrack.onMenuEvent();
             }
 
-            private void modelApplyController(/* InputMapper.ControlBundle cbundle */) {
+            private void updateModelSpace(/* InputMapper.ControlBundle cbundle */) {
                 // the only external reference to mapper ... could be private in parent and updateControlBundle() from parent act()
                 mapper.updateControlBundle(cbundle); // sample axes and switches inputs
 
@@ -286,9 +287,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         if (0 == lc) {
                             continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_KILLED);
+
                         } else if (!GameWorld.getInstance().getIsPaused()) {
                             // update model if game state is valid
-                            modelApplyController();
+                            updateModelSpace();
                         }
                         break;
                     default:

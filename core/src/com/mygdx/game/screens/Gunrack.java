@@ -153,7 +153,7 @@ public class Gunrack extends Table {
      */
     private int setSelection(int mp) {
         menuSelection = mp;
-        return menuSelection; 
+        return menuSelection;
     }
 
     /**
@@ -173,15 +173,12 @@ public class Gunrack extends Table {
         this.setVisible(true);
     }
 
-    void onSelectMenu(int value) {
-        menuPointer = value;
-        onSelectMenu(); // forces menu activation
-    }
     /**
      * Handle X input on weapon menu
+     *
      * @return true if menu is active and a new weapon has been selected, otherwise false
      */
-    boolean onSelectMenu() {
+    boolean updateMenu() {
         if (menuSelection != menuPointer) {
             // selection updated - instead of hiding menu immediately, set color to indicate and let menu do "normal "fadeout
             Color clr = selectionLabel.getColor();
@@ -211,6 +208,22 @@ public class Gunrack extends Table {
             return true;
         }
         return false;
+    }
+
+    boolean onInputX() {
+        if (isVisible()) {
+            return updateMenu();
+        }
+        return false;
+    }
+
+    /**
+     * initialize and reset to standard ammo
+     */
+    void resetStandard() {
+        menuPointer = 0;
+        onWeaponAcquired(menuPointer);
+        updateMenu(); // forces menu activation
     }
 
     /**
