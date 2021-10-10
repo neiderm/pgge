@@ -17,6 +17,8 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.scenes.scene2d.Action;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Array;
@@ -37,8 +39,7 @@ public class Gunrack extends Table {
     }
 
     private static final float WPN_MENU_FADE_ALPH = 0.9f; // alpha value at which change the rate of menu fadeout effect
-    private static final float WPN_MENU_FADE_THRD = 0.8f; // alpha value at which change the rate of menu fadeout effect
-    private static final Color menuColor = new Color(Color.WHITE);
+
     private final Array<WeaponSpec> weaponsSpecs = new Array<>();
     private final GameEvent hitDetectEvent; // because it needs to be passed to gunPlatfrom ... sue me
     private final Label selectionLabel;
@@ -126,23 +127,6 @@ public class Gunrack extends Table {
         } else {
             roundsLabel.setVisible(false);
         }
-
-        Color clr = selectionLabel.getColor();
-        float alpha = clr.a;
-
-        if (alpha > Gunrack.WPN_MENU_FADE_THRD) {
-            alpha -= 0.001f;
-        } else if (alpha > 0.10f) {
-            // fade out until low threshold of visibility is reached
-            alpha -= 0.01f;
-        } else {
-            // menu timeout, make it disappear
-            selectionLabel.setVisible(false);
-            //  select the item at the menu pointer
-            setSelection(menuPointer);
-        }
-        clr.a = alpha;
-        selectionLabel.setColor(clr);
     }
 
     /**
@@ -156,6 +140,8 @@ public class Gunrack extends Table {
         return menuSelection;
     }
 
+    private static Color SelectMenuColor = new Color(Color.WHITE);
+
     /**
      * handle the weapon menu input
      */
@@ -167,9 +153,26 @@ public class Gunrack extends Table {
             menuPointer = 0;
         }
         // key is struck, so set start alpha of fadeout effect
-        selectionLabel.setColor(menuColor.r, menuColor.g, menuColor.b, Gunrack.WPN_MENU_FADE_ALPH);
+        SelectMenuColor.a = Gunrack.WPN_MENU_FADE_ALPH;
+        selectionLabel.setColor(SelectMenuColor);
         selectionLabel.setText(getMenuInfo(menuPointer));
-        selectionLabel.setVisible(true);
+        selectionLabel.clearActions();
+
+        // when the menu times out, it is hidden and the selected weapon is activated
+        Action setMenuSelection = new Action() {
+            public boolean act(float delta) {
+                menuSelection = menuPointer;
+                return true;
+            }
+        };
+        selectionLabel.addAction(Actions.sequence(
+                Actions.show(),
+                Actions.delay(2.0f),
+                Actions.alpha(0.1f, 0.75f),
+                setMenuSelection,
+                Actions.hide())
+        );
+
         this.setVisible(true);
     }
 
@@ -180,31 +183,35 @@ public class Gunrack extends Table {
      */
     boolean updateMenu() {
         if (menuSelection != menuPointer) {
-            // selection updated - instead of hiding menu immediately, set color to indicate and let menu do "normal "fadeout
-            Color clr = selectionLabel.getColor();
-            clr.a = Gunrack.WPN_MENU_FADE_THRD;
-            menuSelection = menuPointer;
+            // menu item is selected (X controller button) - restart menu fade
+            menuSelection = menuPointer; // set the selection
+
+            // similar to action on menu select key, but no setMenuSelection()
+            selectionLabel.addAction(Actions.sequence(
+                    Actions.show(),
+                    Actions.delay(2.0f),
+                    Actions.alpha(0.1f, 0.75f),
+                    // setMenuSelection, .. selection already has been set ... does it matter?
+                    Actions.hide())
+            );
         }
 
-        int w = selectedWeapon.ordinal();
-        if (menuSelection != w) {
-            WeaponType wt;
+        if (menuSelection != selectedWeapon.ordinal()) {
 
             switch (menuSelection) {
                 case 0:
-                    wt = WeaponType.STANDARD_AMMO;
+                    selectedWeapon = WeaponType.STANDARD_AMMO;
                     break;
                 case 1:
-                    wt = WeaponType.HI_IMPACT_PRJ;
+                    selectedWeapon = WeaponType.HI_IMPACT_PRJ;
                     break;
                 case 2:
-                    wt = WeaponType.PLASMA_GRENADES;
+                    selectedWeapon = WeaponType.PLASMA_GRENADES;
                     break;
                 default:
-                    wt = WeaponType.UNDEFINED;
+                    selectedWeapon = WeaponType.UNDEFINED;
                     break;
             }
-            this.selectedWeapon = wt;
             return true;
         }
         return false;
