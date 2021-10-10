@@ -172,11 +172,19 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
          */
         return new GameUI() {
             // configures weapon to simulate energizing time on switch-over
-            boolean withEnergizeDelay = true;
-            CharacterController rigController;
-            InputMapper.ControlBundle cbundle; // cbundle to be inherited from parent class and call updateControlBundle()?
-            // doesn't need new instance here, force it to create new instance below
-            GunPlatform gunPlatform;
+            private CharacterController rigController;
+            private InputMapper.ControlBundle cbundle; // cbundle to be inherited from parent class and call updateControlBundle()?
+            // can't properly instantiate gun platform until screen initialization is complete
+            private GunPlatform gunPlatform;
+
+            private void makeGunPlatform(boolean withEnergizeDelay) {
+                gunPlatform = new GunPlatform(
+                        pickedPlayer.getComponent(ModelComponent.class).modelInst,
+                        pickedPlayer.getComponent(BulletComponent.class).shape,
+                        gunrack, withEnergizeDelay);
+
+                gunPlatform.setControlBundle(cbundle);
+            }
 
             @Override
             protected void init() {
@@ -191,16 +199,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
                 gunrack = new Gunrack(hitDetectEvent, debugPrintFont) {
                     @Override
-                    public void act(float delta) { // mt
+                    public void act(float delta) {
                         super.act(delta);
                         // do update stuff, gun platform etc. ?
                         if (getRoundsAvailable() <= 0) { // note to self how can be -1 ?  (it's the default in WeaponSpec class)
                             // force phony events for weapon acquire, menu, and select std ammo
                             onWeaponAcquired(0);// std. ammo - it flushes the spent one and forces the menu order to be rebuilt
                             onSelectMenu(0); // forces menu selection pointer
-
-                            gunPlatform = null;
-                            withEnergizeDelay = false; // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
+                            // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
+                            makeGunPlatform(false);
                         }
                     }
                 };
@@ -230,17 +237,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 gunrack.onMenuEvent();
             }
 
-            void modelApplyController() {
-                if (null == gunPlatform) {
-                    gunPlatform = new GunPlatform(
-                            pickedPlayer.getComponent(ModelComponent.class).modelInst,
-                            pickedPlayer.getComponent(BulletComponent.class).shape,
-                            gunrack, withEnergizeDelay);
-                    gunPlatform.setControlBundle(cbundle);
-                }
+            private void modelApplyController(/* InputMapper.ControlBundle cbundle */) {
                 // the only external reference to mapper ... could be private in parent and updateControlBundle() from parent act()
                 mapper.updateControlBundle(cbundle); // sample axes and switches inputs
 
+                if (null == gunPlatform) {
+                    makeGunPlatform(true);
+                }
                 gunPlatform.updateControls(0 /* unused */);
 
                 //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
