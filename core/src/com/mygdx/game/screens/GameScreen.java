@@ -259,6 +259,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 rigController.updateControls(0 /* unused */);
             }
 
+            final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
+
             @Override
             public void act(float delta) {
 
@@ -285,7 +287,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             sc.lifeClock = lc;
                         }
                         if (0 == lc) {
-                            continueScreenTimeUp = getScreenTimer() - GameUI.SCREEN_CONTINUE_TIME;
+                            continueScreenTimeUp = getScreenTimer() - SCREEN_CONTINUE_TIME;
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_KILLED);
 
                         } else if (!GameWorld.getInstance().getIsPaused()) {
@@ -294,6 +296,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         }
                         break;
                     default:
+                        gunrack.setVisible(false);
                         break;
                 }
                 updateRays();

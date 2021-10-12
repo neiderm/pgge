@@ -41,7 +41,6 @@ public class GameUI extends InGameMenu {
 
     private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
     private static final int TIME_LIMIT_WARN_SECS = 10;
-    static final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
 
     private final Color hudOverlayColor;
     private final StringBuilder stringBuilder = new StringBuilder();
