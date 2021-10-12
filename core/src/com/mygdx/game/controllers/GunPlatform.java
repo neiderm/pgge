@@ -194,7 +194,7 @@ public class GunPlatform extends CharacterController {
                 default:
                 case UNDEFINED:
                 case STANDARD_AMMO:
-                    Entity target = gunrack.getHitDectector().getEntity();
+                    Entity target = gunrack.getHitDetector().getEntity();
                     if (null != target) {
                         CompCommon.spawnNewGameObject(
                                 new Vector3(0.1f, 0.1f, 0.1f), trans,
@@ -212,6 +212,12 @@ public class GunPlatform extends CharacterController {
                             new Vector3(0.1f, 0.1f, 0.1f), trans,
                             new PhysProjectile(vFprj),
                             "sphere", 0.2f);
+                    break;
+                case PLASMA_GRENADES:
+                    CompCommon.spawnNewGameObject(
+                            new Vector3(0.1f, 0.1f, 0.1f), trans,
+                            new PhysProjectile(vFprj),
+                            "capsule", 0.2f);
                     break;
             }
         }

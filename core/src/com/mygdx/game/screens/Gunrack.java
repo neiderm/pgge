@@ -38,76 +38,88 @@ public class Gunrack extends Table {
         UNDEFINED
     }
 
-    private static final float WPN_MENU_FADE_ALPH = 0.9f; // alpha value at which change the rate of menu fadeout effect
-
+    // contains all possible weapon types, and rounds count - any with rounds > 0 are added to the menu
     private final Array<WeaponSpec> weaponsSpecs = new Array<>();
-    private final GameEvent hitDetectEvent; // because it needs to be passed to gunPlatfrom ... sue me
+
+    private final GameEvent hitDetectEvent; // because it needs to be passed to gunPlatform
     private final Label selectionLabel;
     private final Label roundsLabel;
 
     private int menuPointer;
     private int menuSelection;
-    private WeaponType selectedWeapon = WeaponType.UNDEFINED; // weapon array element 0 ^H^H^H -1 is a hack to force it to be (re)initialized
+    private WeaponType selectedWeapon;
     private Array<WeaponInstance> weaponsMenu;
 
-    /*
-     * need some kind of type in order to put the menu items in an array
+    /**
+     * Object definition for an element of the weapon menu
+     * Superfluous ... todo menu to be array of object WeaponType
      */
     static class WeaponInstance {
-        final int type;
+        final WeaponType weaponType;
 
-        WeaponInstance(int type) {
-            this.type = type;
+        WeaponInstance(WeaponType type) {
+            this.weaponType = type;
         }
     }
 
     static class WeaponSpec {
-        private int roundsCap; // should default to 0
+        WeaponType weaponType;
+        private String descriptionText;
+        private String buttonLabelText;
+        private int roundsCap = 1; // default is to have at least 1 round available
         private int roundsAvail;
 
-        void reset() {
-            roundsAvail = roundsCap;
+        WeaponSpec() {
+            this(WeaponType.STANDARD_AMMO, "Standard Ammo", 999999999);
+            reset();
         }
 
         WeaponSpec(int roundsCap) {
             this.roundsCap = roundsCap;
         }
 
-        WeaponSpec(int roundsCap, boolean reset) {
+        WeaponSpec(WeaponType weaponType, String descriptionText, int roundsCap) {
             this.roundsCap = roundsCap;
-            if (reset) {
-                reset();
-            }
+//            this.roundsAvail = 0; // caller resets it if desired
+            this.weaponType = weaponType;
+            this.descriptionText = descriptionText;
+            this.buttonLabelText = descriptionText.substring(0, 5).toUpperCase();
         }
 
-        int fire() {
+        private int fire() {
             if (roundsAvail > 0) {
                 roundsAvail -= 1;
             }
             return roundsAvail;
+        }
+
+        void reset() {
+            roundsAvail = roundsCap;
         }
     }
 
     Gunrack(GameEvent hitDetectEvent, BitmapFont font) {
 
         this.hitDetectEvent = hitDetectEvent;
-        // always add a Standard Ammo weapon spec
-        weaponsSpecs.add(new WeaponSpec(5555, true)); // std ammo
-// todo - - need to be added when the item is acquired!
-        weaponsSpecs.add(new WeaponSpec(5)); // where to set this "const" value?
-        weaponsSpecs.add(new WeaponSpec(10)); // where to set this "const" value?
-
-        // weaponsMenuSize =
-        onWeaponAcquired(0);
+        // always add a Standard Ammo weapon spec at index 0
+        weaponsSpecs.add(new WeaponSpec()); // std ammo
+        weaponsSpecs.add(new WeaponSpec(WeaponType.HI_IMPACT_PRJ, "Hi Impact Projectile", 5));
+        weaponsSpecs.add(new WeaponSpec(WeaponType.PLASMA_GRENADES, "Plasma Grenades", 10));
 
         selectionLabel = new Label("wselect", new Label.LabelStyle(font, Color.CHARTREUSE));
-        selectionLabel.setVisible(false); // only see this when weaopon select menu active
+        selectionLabel.setVisible(false); // only see this when weapon select menu active
         add(selectionLabel);
         bottom().left();
 
         roundsLabel = new Label("rounds", new Label.LabelStyle(font, Color.TEAL));
         add(roundsLabel).padRight(1);
         roundsLabel.setVisible(false);
+
+        // setSelection
+        menuPointer = 0;
+        menuSelection = 0;
+        selectedWeapon = WeaponType.STANDARD_AMMO;
+        onWeaponAcquired(selectedWeapon.ordinal());
 
         setFillParent(true);
         setVisible(false);
@@ -119,10 +131,8 @@ public class Gunrack extends Table {
         // make sure Actions get invoked!
         super.act(delta);
 
-        int rounds = getRoundsAvailable();
-
         if (WeaponType.UNDEFINED != selectedWeapon && WeaponType.STANDARD_AMMO != selectedWeapon) {
-            roundsLabel.setText("=" + rounds);
+            roundsLabel.setText("=" + getRoundsAvailable());
             roundsLabel.setVisible(true);
         } else {
             roundsLabel.setVisible(false);
@@ -140,8 +150,6 @@ public class Gunrack extends Table {
         return menuSelection;
     }
 
-    private static Color SelectMenuColor = new Color(Color.WHITE);
-
     /**
      * handle the weapon menu input
      */
@@ -153,15 +161,20 @@ public class Gunrack extends Table {
             menuPointer = 0;
         }
         // key is struck, so set start alpha of fadeout effect
-        SelectMenuColor.a = Gunrack.WPN_MENU_FADE_ALPH;
-        selectionLabel.setColor(SelectMenuColor);
-        selectionLabel.setText(getMenuInfo(menuPointer));
+        final float WPN_MENU_FADE_ALPH = 0.9f; // alpha value at which change the rate of menu fadeout effect
+        Color selectMenuColor = new Color(Color.WHITE);
+        selectMenuColor.a = WPN_MENU_FADE_ALPH;
+        selectionLabel.setColor(selectMenuColor);
+
+        WeaponType wtype = weaponsMenu.get(menuPointer).weaponType;
+        selectionLabel.setText(getWeaponSpec(wtype.ordinal(), false).buttonLabelText);
         selectionLabel.clearActions();
 
         // when the menu times out, it is hidden and the selected weapon is activated
         Action setMenuSelection = new Action() {
             public boolean act(float delta) {
                 menuSelection = menuPointer;
+                onInputX(); // send key-event to enable the selection
                 return true;
             }
         };
@@ -172,7 +185,6 @@ public class Gunrack extends Table {
                 setMenuSelection,
                 Actions.hide())
         );
-
         this.setVisible(true);
     }
 
@@ -181,44 +193,33 @@ public class Gunrack extends Table {
      *
      * @return true if menu is active and a new weapon has been selected, otherwise false
      */
-    boolean updateMenu() {
+    private boolean updateMenu() {
+
+        WeaponType wtype = weaponsMenu.get(menuPointer).weaponType;
+
         if (menuSelection != menuPointer) {
-            // menu item is selected (X controller button) - restart menu fade
             menuSelection = menuPointer; // set the selection
-
-            // similar to action on menu select key, but no setMenuSelection()
-            selectionLabel.addAction(Actions.sequence(
-                    Actions.show(),
-                    Actions.delay(2.0f),
-                    Actions.alpha(0.1f, 0.75f),
-                    // setMenuSelection, .. selection already has been set ... does it matter?
-                    Actions.hide())
-            );
-        }
-
-        if (menuSelection != selectedWeapon.ordinal()) {
-
-            switch (menuSelection) {
-                case 0:
-                    selectedWeapon = WeaponType.STANDARD_AMMO;
-                    break;
-                case 1:
-                    selectedWeapon = WeaponType.HI_IMPACT_PRJ;
-                    break;
-                case 2:
-                    selectedWeapon = WeaponType.PLASMA_GRENADES;
-                    break;
-                default:
-                    selectedWeapon = WeaponType.UNDEFINED;
-                    break;
+            // menu item is selected (X controller button) - restart menu fade
+            if (WeaponType.STANDARD_AMMO != wtype) {
+                // similar to action on menu select key, but no setMenuSelection()
+                selectionLabel.addAction(Actions.sequence(
+                        Actions.show(),
+                        Actions.delay(2.0f),
+                        Actions.alpha(0.1f, 0.75f),
+                        // setMenuSelection, .. selection already has been set ... does it matter?
+                        Actions.hide())
+                );
             }
+        }
+        if (menuSelection != selectedWeapon.ordinal()) {
+            selectedWeapon = getWeaponSpec(wtype.ordinal(), false).weaponType;
             return true;
         }
         return false;
     }
 
     boolean onInputX() {
-        if (isVisible()) {
+        if (selectionLabel.isVisible()) {
             return updateMenu();
         }
         return false;
@@ -234,22 +235,35 @@ public class Gunrack extends Table {
     }
 
     /**
-     * @return number of weapons available
+     * @return number of rounds available
      */
     int onWeaponAcquired(int weaponType) {
 
-        WeaponSpec ws = null;
-
+        WeaponSpec newWS = null;
+        int rounds = 0;
         if (weaponType < weaponsSpecs.size) {
-            ws = weaponsSpecs.get(weaponType);
+            newWS = weaponsSpecs.get(weaponType);
         }
-        if (null != ws) {
-            ws.reset(); // initialize rounds count etc.
+        if (null != newWS) {
+            newWS.reset(); // initialize rounds count etc.
+            rounds = newWS.roundsAvail;
         }
-        // weaponsMenuSize =
-        return rebuildWeaponCache();
-    }
+        // reset the menu
+        weaponsMenu = new Array<>();
 
+        // walk the spec list and add any weapon spec with any rounds remaining > 0
+        for (WeaponSpec ws : weaponsSpecs) {
+            if (null != ws) {
+                if (ws.weaponType == WeaponType.STANDARD_AMMO) { // slot 0 always fully loaded w/ std ammo
+                    ws.reset();
+                }
+                if (ws.roundsAvail > 0) {
+                    weaponsMenu.add(new WeaponInstance(ws.weaponType));
+                }
+            }
+        }
+        return rounds;
+    }
 
     public WeaponType getSelectedWeapon() {
 
@@ -259,12 +273,8 @@ public class Gunrack extends Table {
     public int fireWeapon() {
 
         int rounds = -1;
-        WeaponSpec spec = null;
-//        if (WeaponType.UNDEFINED != selectedWeapon)
-        {
-            int iws = selectedWeapon.ordinal();
-            spec = weaponsSpecs.get(iws);
-        }
+
+        WeaponSpec spec = weaponsSpecs.get(selectedWeapon.ordinal());
         if (null != spec) {
             rounds = spec.fire();
         }
@@ -272,94 +282,38 @@ public class Gunrack extends Table {
     }
 
     // for future use
-    public GameEvent getHitDectector() {
+    public GameEvent getHitDetector() {
         return this.hitDetectEvent;
     }
 
     int getRoundsAvailable() {
-        int iwt = selectedWeapon.ordinal();
-        return getRoundsAvailable(iwt);
+        return getRoundsAvailable(selectedWeapon.ordinal());
     }
 
     private int getRoundsAvailable(int index) {
-
-        int rounds = 0;
-        WeaponSpec spec = null;
-
-        if (index >= 0 && index < weaponsSpecs.size) {
-            spec = weaponsSpecs.get(index);
-        }
-        if (null != spec) {
-            rounds = spec.roundsAvail;
-        }
-        return rounds;
+        return getWeaponSpec(index, false).roundsAvail;
     }
 
     /**
-     * @param wtype weapon type
+     * @param index weapon type
      * @return text string descriptor (for display onscreen UI)
      */
-    String getDescription(int wtype) {
-        String mesg;
-        int rounds = getRoundsAvailable(wtype);
-// TODO: make is a String[]
-        switch (wtype) {
-            default:
-            case 0:
-                mesg = "STANDARD AMMO";
-                break;
-            case 1:
-                mesg = "HI IMPACT PROJECTILE (" + rounds + ")";
-                break;
-            case 2:
-                mesg = "PLASMA GRENADES (" + rounds + ")";
-                break;
-        }
-        return mesg;
+    String getDescription(int index) {
+        WeaponSpec spec = getWeaponSpec(index, false);
+        return spec.descriptionText + " (" + getRoundsAvailable(index) + ")";
+
     }
 
-    /*
-     * return text string descriptor (for weapon menu onscreen UI)
-     */
-    private String getMenuInfo(int wtype) {
+    private WeaponSpec getWeaponSpec(int index, boolean doReset) {
 
-        String mesg;
-        int rounds = getRoundsAvailable(wtype);
-
-        switch (wtype) {
-            default:
-            case 0:
-                mesg = "STD AMMO";
-                break;
-            case 1:
-                mesg = "HI IMPACT PRJ (" + rounds + ")";
-                break;
-        }
-        return mesg;
-    }
-
-    /**
-     * @return number of weapons available
-     */
-    private int rebuildWeaponCache() {
-        // first reset the active cache and count ... actual array not doing much right now but is
-        // used for tracking the number of menu elements,
-        weaponsMenu = new Array<>();
-
-        // walk the spec list and add any weapon spec with any rounds remaining > 0
-        for (int i = 0; i < weaponsSpecs.size; i++) {
-
-            WeaponSpec ws = weaponsSpecs.get(i);
-
-            if (null != ws) {
-                if (i == 0) { // slot 0 always fully loaded w/ std ammo
-                    ws.reset();
-                }
-                if (weaponsSpecs.get(i).roundsAvail > 0) {
-                    weaponsMenu.add(new WeaponInstance(i));
-                }
+        WeaponSpec ws = weaponsSpecs.get(index);
+        if (null != ws) {
+            if (doReset) {
+                ws.reset();
             }
+        } else {
+            ws = new WeaponSpec(); // std ammo
         }
-        return weaponsMenu.size;
+        return ws;
     }
 }
