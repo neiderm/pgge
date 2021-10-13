@@ -18,7 +18,6 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.controllers.PovDirection;
 import com.mygdx.game.GameWorld;
 
 import java.util.Arrays;
@@ -275,10 +274,13 @@ public class InputMapper {
             switch (GameWorld.getInstance().getControllerMode()) {
                 default:
                 case 0: // Linux USB (PG9076)
+                    // WASD==11,12,13,14
                 case 1: // Windows USB (2.4G ?)
                 case 2: // Android B/T
+                    // PG9076 19,20,21,22
                     break;
                 case 3: // PC USB (N45)
+                    // WASD==11,12,13,14
                     // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
                     int val = newButtonState ? 1 : 0;
                     if (VirtualButtonCode.BTN_L2 == vbCode) {
@@ -593,32 +595,7 @@ public class InputMapper {
                 return false;
             }
 
-            /*
-             * Virtualize POV (dpad) as an axis.
-             * POV may not be reported on all platform, e.g. Android reports the dpad as axes.
-             * todo POV to be removed with libGDX Controllers > 2.0
-             */
-            @Override
-            public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
-                print("#" + indexOf(controller) + ", POV " + povIndex + ": " + value);
 
-                Arrays.fill(rawAxes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
-
-                if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    rawAxes[0] = -1;
-                }
-                if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    rawAxes[0] = +1;
-                }
-                if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    rawAxes[1] = -1;
-                }
-                if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    rawAxes[1] = +1;
-                }
-                System.arraycopy(rawAxes, 0, analogAxes, 0, MAX_AXES);
-                return false;
-            }
         });
     }
 }
