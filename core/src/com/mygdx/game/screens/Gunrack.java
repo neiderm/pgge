@@ -74,10 +74,6 @@ public class Gunrack extends Table {
             reset();
         }
 
-        WeaponSpec(int roundsCap) {
-            this.roundsCap = roundsCap;
-        }
-
         WeaponSpec(WeaponType weaponType, String descriptionText, int roundsCap) {
             this.roundsCap = roundsCap;
 //            this.roundsAvail = 0; // caller resets it if desired
@@ -106,10 +102,11 @@ public class Gunrack extends Table {
         weaponsSpecs.add(new WeaponSpec(WeaponType.HI_IMPACT_PRJ, "Hi Impact Projectile", 5));
         weaponsSpecs.add(new WeaponSpec(WeaponType.PLASMA_GRENADES, "Plasma Grenades", 10));
 
+        row().expand().bottom().left();
+
         selectionLabel = new Label("wselect", new Label.LabelStyle(font, Color.CHARTREUSE));
         selectionLabel.setVisible(false); // only see this when weapon select menu active
         add(selectionLabel);
-        bottom().left();
 
         roundsLabel = new Label("rounds", new Label.LabelStyle(font, Color.TEAL));
         add(roundsLabel).padRight(1);
@@ -301,7 +298,6 @@ public class Gunrack extends Table {
     String getDescription(int index) {
         WeaponSpec spec = getWeaponSpec(index, false);
         return spec.descriptionText + " (" + getRoundsAvailable(index) + ")";
-
     }
 
     private WeaponSpec getWeaponSpec(int index, boolean doReset) {
