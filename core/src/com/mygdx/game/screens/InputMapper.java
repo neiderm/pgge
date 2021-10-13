@@ -270,6 +270,12 @@ public class InputMapper {
             if (VirtualButtonCode.BTN_RIGHT == vbCode) {
                 analogAxes[VIRTUAL_AD_AXIS] = newButtonState ? 1 : 0;
             }
+            if (VirtualButtonCode.BTN_UP == vbCode) {
+                analogAxes[VIRTUAL_WS_AXIS] = newButtonState ? (-1) : 0;
+            }
+            if (VirtualButtonCode.BTN_DOWN == vbCode) {
+                analogAxes[VIRTUAL_WS_AXIS] = newButtonState ? 1 : 0;
+            }
 
             switch (GameWorld.getInstance().getControllerMode()) {
                 default:
@@ -471,40 +477,58 @@ public class InputMapper {
         // controller identification is not consistent between platforms
         switch (GameWorld.getInstance().getControllerMode()) {
             default:
-            case 0: // Ipega PG-9076 Linux USB
+            case 0: // Ipega PG-9076 Linux USB, PS3 Controller (Linux b/t)
             case 1: // Windows (USB, B/T)
                 virtualButtonCodes[0] = VirtualButtonCode.BTN_A;
                 virtualButtonCodes[1] = VirtualButtonCode.BTN_B;
                 virtualButtonCodes[2] = VirtualButtonCode.BTN_X;
                 virtualButtonCodes[3] = VirtualButtonCode.BTN_Y;
-                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1;
-                virtualButtonCodes[5] = VirtualButtonCode.BTN_R1;
-                virtualButtonCodes[6] = VirtualButtonCode.BTN_SELECT;
-                virtualButtonCodes[7] = VirtualButtonCode.BTN_START;
+
+                virtualButtonCodes[4] = VirtualButtonCode.BTN_SELECT; // Select (view)
+                virtualButtonCodes[6] = VirtualButtonCode.BTN_START; // Start (menu)
+
+                virtualButtonCodes[9] = VirtualButtonCode.BTN_L1;
+                virtualButtonCodes[10] = VirtualButtonCode.BTN_L2;
+
+                virtualButtonCodes[11]= VirtualButtonCode.BTN_UP;
+                virtualButtonCodes[12]= VirtualButtonCode.BTN_DOWN;
+                virtualButtonCodes[13]= VirtualButtonCode.BTN_LEFT;
+                virtualButtonCodes[14]= VirtualButtonCode.BTN_RIGHT;
                 // Turbo?
                 break;
             case 2: // Android
+                virtualButtonCodes[19]= VirtualButtonCode.BTN_UP;
+                virtualButtonCodes[20]= VirtualButtonCode.BTN_DOWN;
+                virtualButtonCodes[21]= VirtualButtonCode.BTN_LEFT;
+                virtualButtonCodes[22]= VirtualButtonCode.BTN_RIGHT;
+
                 virtualButtonCodes[96] = VirtualButtonCode.BTN_A;
                 virtualButtonCodes[97] = VirtualButtonCode.BTN_B;
                 virtualButtonCodes[99] = VirtualButtonCode.BTN_X;
                 virtualButtonCodes[100] = VirtualButtonCode.BTN_Y;
+
                 virtualButtonCodes[102] = VirtualButtonCode.BTN_L1;
                 virtualButtonCodes[103] = VirtualButtonCode.BTN_R1;
-                virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT;
-                virtualButtonCodes[108] = VirtualButtonCode.BTN_START;
+                virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT; // Back
+                virtualButtonCodes[108] = VirtualButtonCode.BTN_START; // Start
                 break;
             case 3: // Belkin n45 Linux/Windows USB
                 virtualButtonCodes[0] = VirtualButtonCode.BTN_A; // B1
                 virtualButtonCodes[1] = VirtualButtonCode.BTN_B; // B2
                 virtualButtonCodes[2] = VirtualButtonCode.BTN_X; // B3
                 virtualButtonCodes[3] = VirtualButtonCode.BTN_Y; // B4
-                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1; // T3
-                virtualButtonCodes[6] = VirtualButtonCode.BTN_R1; // T1
-                virtualButtonCodes[5] = VirtualButtonCode.BTN_L2; // T4  (virtualize as L2/R2 axis)
-                virtualButtonCodes[7] = VirtualButtonCode.BTN_R2; // T2  (virtualize as L2/R2 axis)
-                virtualButtonCodes[8] = VirtualButtonCode.BTN_ESC;    // 3rd function button
-                virtualButtonCodes[9] = VirtualButtonCode.BTN_SELECT; // MOUSE
-                virtualButtonCodes[10] = VirtualButtonCode.BTN_START; // ENTER
+
+                virtualButtonCodes[4] = VirtualButtonCode.BTN_ESC; // ESC (3rd menu button)
+                virtualButtonCodes[5] = VirtualButtonCode.BTN_SELECT; // MOUSE
+                virtualButtonCodes[6] = VirtualButtonCode.BTN_START; // ENTER
+
+                virtualButtonCodes[9] = VirtualButtonCode.BTN_L1;
+                virtualButtonCodes[10] = VirtualButtonCode.BTN_L2;
+
+                virtualButtonCodes[11]= VirtualButtonCode.BTN_UP;
+                virtualButtonCodes[12]= VirtualButtonCode.BTN_DOWN;
+                virtualButtonCodes[13]= VirtualButtonCode.BTN_LEFT;
+                virtualButtonCodes[14]= VirtualButtonCode.BTN_RIGHT;
                 break;
         }
 
@@ -549,20 +573,16 @@ public class InputMapper {
                     analogAxes[idx] = rawAxes[idx];
                 }
 
-                // android dpad analog axes
-                final int DPAD_X_AXIS = 6;
-                final int DPAD_Y_AXIS = 7;
-
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                        // Linux USB (Ipega PG-9076)
+                        // Linux USB (Ipega PG-9076) "X360 Controller"
                     case 0:
                         // L2/R2 are analog (positive-range only)
-                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[2];
+                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[4];
                         analogAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
                         // set the X1 and Y1 axes
-                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[4];
+                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[2];
+                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[3];
                         break;
                     // Windows (USB, B/T)
                     case 1:
@@ -575,11 +595,6 @@ public class InputMapper {
                         break;
                     // Android (B/T)
                     case 2:
-                        // Android reports Dpad as axes - set it only if it was actually moved?
-                        if ((DPAD_X_AXIS == axisIndex) || (DPAD_Y_AXIS == axisIndex)) {
-                            analogAxes[VIRTUAL_AD_AXIS] = rawAxes[DPAD_X_AXIS];
-                            analogAxes[VIRTUAL_WS_AXIS] = rawAxes[DPAD_Y_AXIS];
-                        }
                         // L2/R2 are analog axes range [0:1.0]
                         analogAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
                         analogAxes[VIRTUAL_R2_AXIS] = rawAxes[4];
@@ -589,6 +604,9 @@ public class InputMapper {
                         // swap the X1 and Y1 axes  todo: Windos but not Linux?
                         analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
                         analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
+
+                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[4];
+                        analogAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
                         break;
                 }
 //                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
