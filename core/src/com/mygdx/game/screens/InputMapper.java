@@ -479,6 +479,7 @@ public class InputMapper {
             default:
             case 0: // Ipega PG-9076 Linux USB, PS3 Controller (Linux b/t)
             case 1: // Windows (USB, B/T)
+            case 3: // Belkin n45 Linux USB
                 virtualButtonCodes[0] = VirtualButtonCode.BTN_A;
                 virtualButtonCodes[1] = VirtualButtonCode.BTN_B;
                 virtualButtonCodes[2] = VirtualButtonCode.BTN_X;
@@ -494,7 +495,6 @@ public class InputMapper {
                 virtualButtonCodes[12]= VirtualButtonCode.BTN_DOWN;
                 virtualButtonCodes[13]= VirtualButtonCode.BTN_LEFT;
                 virtualButtonCodes[14]= VirtualButtonCode.BTN_RIGHT;
-                // Turbo?
                 break;
             case 2: // Android
                 virtualButtonCodes[19]= VirtualButtonCode.BTN_UP;
@@ -511,24 +511,6 @@ public class InputMapper {
                 virtualButtonCodes[103] = VirtualButtonCode.BTN_R1;
                 virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT; // Back
                 virtualButtonCodes[108] = VirtualButtonCode.BTN_START; // Start
-                break;
-            case 3: // Belkin n45 Linux/Windows USB
-                virtualButtonCodes[0] = VirtualButtonCode.BTN_A; // B1
-                virtualButtonCodes[1] = VirtualButtonCode.BTN_B; // B2
-                virtualButtonCodes[2] = VirtualButtonCode.BTN_X; // B3
-                virtualButtonCodes[3] = VirtualButtonCode.BTN_Y; // B4
-
-                virtualButtonCodes[4] = VirtualButtonCode.BTN_ESC; // ESC (3rd menu button)
-                virtualButtonCodes[5] = VirtualButtonCode.BTN_SELECT; // MOUSE
-                virtualButtonCodes[6] = VirtualButtonCode.BTN_START; // ENTER
-
-                virtualButtonCodes[9] = VirtualButtonCode.BTN_L1;
-                virtualButtonCodes[10] = VirtualButtonCode.BTN_L2;
-
-                virtualButtonCodes[11]= VirtualButtonCode.BTN_UP;
-                virtualButtonCodes[12]= VirtualButtonCode.BTN_DOWN;
-                virtualButtonCodes[13]= VirtualButtonCode.BTN_LEFT;
-                virtualButtonCodes[14]= VirtualButtonCode.BTN_RIGHT;
                 break;
         }
 
@@ -575,7 +557,10 @@ public class InputMapper {
 
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                        // Linux USB (Ipega PG-9076) "X360 Controller"
+                    case 1:
+                        // Windows (USB, B/T) "ShanWan PS3/PC Wired GamePad"
+                        break;
+                    // Linux: "X360 Controller" "PS3 Controller" (Ipega PG-9076 USB, PS3 B/T)
                     case 0:
                         // L2/R2 are analog (positive-range only)
                         analogAxes[VIRTUAL_L2_AXIS] = rawAxes[4];
@@ -584,16 +569,7 @@ public class InputMapper {
                         analogAxes[VIRTUAL_X1_AXIS] = rawAxes[2];
                         analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[3];
                         break;
-                    // Windows (USB, B/T)
-                    case 1:
-                        // swap the WS and AD axes
-                        analogAxes[VIRTUAL_AD_AXIS] = rawAxes[1];
-                        analogAxes[VIRTUAL_WS_AXIS] = rawAxes[0];
-                        // swap the X1 and Y1 axes
-                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
-                        break;
-                    // Android (B/T)
+                    // Android (B/T) "PG-9076"
                     case 2:
                         // L2/R2 are analog axes range [0:1.0]
                         analogAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
@@ -609,7 +585,7 @@ public class InputMapper {
                         analogAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
                         break;
                 }
-//                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
+                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
                 return false;
             }
 
