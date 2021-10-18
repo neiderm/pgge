@@ -27,10 +27,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -107,34 +103,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         Texture texture; // AddImageButton() keeps the reference for disposal
         Color theColor = new Color(0, 1.0f, 0, 0.5f);
 
-        int nextbtnW = GameWorld.VIRTUAL_WIDTH / 4;
-        int nextbtnH = GameWorld.VIRTUAL_HEIGHT / 4;
-
-        pixmap = new Pixmap(nextbtnW, nextbtnH, Pixmap.Format.RGBA8888);
-        pixmap.setColor(theColor);
-        pixmap.fillRectangle(0, 0, nextbtnW, nextbtnH);
-        texture = new Texture(pixmap);
-        stage.addImageButton(texture,
-                (GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0,
-                InGameMenu.ButtonEventHandler.EVENT_A);
-        pixmap.dispose();
-
-        Button button2 = new TextButton("Next", stage.uiSkin, "default");
-        button2.setSize(nextbtnW, nextbtnH);
-        button2.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
-        button2.setColor(theColor);
-        button2.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
-                return true;
-            }
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-            }
-        });
-        stage.addActor(button2);
+        stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;

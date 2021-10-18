@@ -20,7 +20,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.signals.Signal;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -91,7 +90,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private OrthographicCamera guiCam;
     private SpriteBatch batch = new SpriteBatch();
     private GameUI playerUI;
-    private InputMultiplexer multiplexer;
     private Entity pickedPlayer;
     private Gunrack gunrack;
 
@@ -150,8 +148,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             } else {
                 Gdx.app.log(CLASS_STRING, "pickedPlayer collision body can't be null");
             }
-            multiplexer = new InputMultiplexer(playerUI); // make sure get a new one since there will be a new Stage instance ;)
-            Gdx.input.setInputProcessor(multiplexer);
         } else {
             // we're toast
             Gdx.app.log(CLASS_STRING, "pickedPlayer can't be null");
@@ -259,7 +255,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 rigController.updateControls(0 /* unused */);
             }
 
-            final int SCREEN_CONTINUE_TIME = 10 * 60; // FPS
+            final int screenContinueTime = 10 * 60; // FPS
 
             @Override
             public void act(float delta) {
@@ -287,7 +283,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             sc.lifeClock = lc;
                         }
                         if (0 == lc) {
-                            continueScreenTimeUp = getScreenTimer() - SCREEN_CONTINUE_TIME;
+                            continueScreenTimeUp = getScreenTimer() - screenContinueTime;
                             GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_OVER_KILLED);
 
                         } else if (!GameWorld.getInstance().getIsPaused()) {
