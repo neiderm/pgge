@@ -18,10 +18,7 @@ package com.mygdx.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.Controllers;
-import com.badlogic.gdx.controllers.PovDirection;
 import com.mygdx.game.GameWorld;
-
-import java.util.Arrays;
 
 /**
  * Created by neiderm on 6/28/2018.
@@ -30,80 +27,29 @@ import java.util.Arrays;
 Tested Controllers:
 
 -----------------------------
-Belkin Nostromo n45
-"Nostromo Nostromo n45 Dual Analog Gamepad" (Linux, IOS)
-"Nostromo n45 Dual Analog Gamepad" (Win 10?)
- note: dPad reported as POV (WIN10/Linux)
-       dPad not reported on MacBook
-
-       [5]                       [7]
-       [4]                       [6]
-
-       [U]
-   [L]  # [R]                   B4[3]
-      [D]     [8][9][10]   B3[2]  #  B2[1]
-                                B1[0]
-         1-          2-
-      0- #  0+   3-  #  3+
-         1+          2+
-
-      ESC=8 MOUSE=9 ENTER=10
+Belkin Nostromo n45 (USB)
+"Nostromo n45 Dual Analog Gamepad"  (Linux)
+"Nostromo N45"  (Win 10)
 
 -----------------------------
 IPEGA PG-9076
-"Xbox 360 Controller for Windows" (connected USB Win10)
-"Microsoft X-Box 360 pad"   (connected USB Linux)
-"PG-9076"  (connected B/T Android)
- note: dPad reported as POV (Win/Linux)
- note: dPad reported as axes 6+7 (Android)
-
-  b4==L1      b5==R1
- Ax2==L2(+)  Ax5==R2(+)       Note on front anlg switches:  1==Down  -1==Up  (0 in the middle  ... wow)
-
-                 Y[3]
- 6==Select   X[2] #  B[1]
- 7==Start        A[0]
-
-  LR Axis0    Axis3
-  UD Axis1    Axis4
+"ShanWan PS3/PC Wired GamePad"  (USB Win 10)
+"X360 Controller"  (USB Linux)
+"SHANWAN PS3/PC Gamepad"  (2.4 gHz Linux)
+"Ipega PG-9069 - Bluetooth Gamepad"  (B/T Linux)
+"PG-9076"  (B/T Android)                     retest
 
 -----------------------------
 MYGT MY-C04
-"Xbox 360 Controller for Windows" (Win10)
-"MYGT Controller" (Android)
- note: 2.4 Gz interface, USB port is charge-only
- note: dPad reported as POV (Win10)
-
-   4==L1       5==R1
- Ax4==L2(+)  Ax4==R2(-)
-
-                 Y[3]
- 6==Back     X[2] #  B[1]
- 7==Start        A[0]
-
- LR  Axis1    Axis3
- UD  Axis0    Axis2
+"ShanWan PS3/PC Wired GamePad"  (Win10 2.4 gHz)
+"MYGT Controller"  (Android)
+ note: 2.4 Gz or B/T (USB port is charging only)
 
 -----------------------------
 Sony Wireless Controller
-"PLAYSTATION(R)3 Controller" (connected by USB WIN10)
-"Sony PLAYSTATION(R)3 Controller" (connected by USB IOS, Linux)
-
-   9==L1      10==R1
- Ax4==L2     Ax5==R2
-
- 4==SELECT
- 5==PS
- 6==START
-
- LR  BT13/BT14
- LR  BT11/BT12
-
------------------------------
-Android:
- L2->Ax5(+)  R2->Ax4(+)
- Dpad is Axis 6 (L-/R+) & 7 (U-/D+)
------------------------------
+"PLAYSTATION(R)3 Controller" (USB WIN10)    retest
+"PS3 Controller"  (USB Linux - after plug USB, LEDs [1:4] flash, push PS button, LED 1 solid, connected)
+"PS3 Controller"  (B/T Linux)
 */
 
 public class InputMapper {
@@ -271,14 +217,21 @@ public class InputMapper {
             if (VirtualButtonCode.BTN_RIGHT == vbCode) {
                 analogAxes[VIRTUAL_AD_AXIS] = newButtonState ? 1 : 0;
             }
+            if (VirtualButtonCode.BTN_UP == vbCode) {
+                analogAxes[VIRTUAL_WS_AXIS] = newButtonState ? (-1) : 0;
+            }
+            if (VirtualButtonCode.BTN_DOWN == vbCode) {
+                analogAxes[VIRTUAL_WS_AXIS] = newButtonState ? 1 : 0;
+            }
 
             switch (GameWorld.getInstance().getControllerMode()) {
                 default:
-                case 0: // Linux USB (PG9076)
-                case 1: // Windows USB (2.4G ?)
-                case 2: // Android B/T
+                case 0:
+                case 1:
+                case 2:
                     break;
                 case 3: // PC USB (N45)
+                    // WASD==11,12,13,14
                     // L2/R2 show up as buttons - virtualize as 2 independent axes ranging [0:+1]
                     int val = newButtonState ? 1 : 0;
                     if (VirtualButtonCode.BTN_L2 == vbCode) {
@@ -469,40 +422,40 @@ public class InputMapper {
         // controller identification is not consistent between platforms
         switch (GameWorld.getInstance().getControllerMode()) {
             default:
-            case 0: // Ipega PG-9076 Linux USB
-            case 1: // Windows (USB, B/T)
+            case 0:
+            case 1:
+            case 3:
                 virtualButtonCodes[0] = VirtualButtonCode.BTN_A;
                 virtualButtonCodes[1] = VirtualButtonCode.BTN_B;
                 virtualButtonCodes[2] = VirtualButtonCode.BTN_X;
                 virtualButtonCodes[3] = VirtualButtonCode.BTN_Y;
-                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1;
-                virtualButtonCodes[5] = VirtualButtonCode.BTN_R1;
-                virtualButtonCodes[6] = VirtualButtonCode.BTN_SELECT;
-                virtualButtonCodes[7] = VirtualButtonCode.BTN_START;
-                // Turbo?
+
+                virtualButtonCodes[4] = VirtualButtonCode.BTN_SELECT; // Select (view)
+                virtualButtonCodes[6] = VirtualButtonCode.BTN_START; // Start (menu)
+
+                virtualButtonCodes[9] = VirtualButtonCode.BTN_L1;
+                virtualButtonCodes[10] = VirtualButtonCode.BTN_L2;
+
+                virtualButtonCodes[11] = VirtualButtonCode.BTN_UP;
+                virtualButtonCodes[12] = VirtualButtonCode.BTN_DOWN;
+                virtualButtonCodes[13] = VirtualButtonCode.BTN_LEFT;
+                virtualButtonCodes[14] = VirtualButtonCode.BTN_RIGHT;
                 break;
             case 2: // Android
+                virtualButtonCodes[19] = VirtualButtonCode.BTN_UP;
+                virtualButtonCodes[20] = VirtualButtonCode.BTN_DOWN;
+                virtualButtonCodes[21] = VirtualButtonCode.BTN_LEFT;
+                virtualButtonCodes[22] = VirtualButtonCode.BTN_RIGHT;
+
                 virtualButtonCodes[96] = VirtualButtonCode.BTN_A;
                 virtualButtonCodes[97] = VirtualButtonCode.BTN_B;
                 virtualButtonCodes[99] = VirtualButtonCode.BTN_X;
                 virtualButtonCodes[100] = VirtualButtonCode.BTN_Y;
+
                 virtualButtonCodes[102] = VirtualButtonCode.BTN_L1;
                 virtualButtonCodes[103] = VirtualButtonCode.BTN_R1;
-                virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT;
-                virtualButtonCodes[108] = VirtualButtonCode.BTN_START;
-                break;
-            case 3: // Belkin n45 Linux/Windows USB
-                virtualButtonCodes[0] = VirtualButtonCode.BTN_A; // B1
-                virtualButtonCodes[1] = VirtualButtonCode.BTN_B; // B2
-                virtualButtonCodes[2] = VirtualButtonCode.BTN_X; // B3
-                virtualButtonCodes[3] = VirtualButtonCode.BTN_Y; // B4
-                virtualButtonCodes[4] = VirtualButtonCode.BTN_L1; // T3
-                virtualButtonCodes[6] = VirtualButtonCode.BTN_R1; // T1
-                virtualButtonCodes[5] = VirtualButtonCode.BTN_L2; // T4  (virtualize as L2/R2 axis)
-                virtualButtonCodes[7] = VirtualButtonCode.BTN_R2; // T2  (virtualize as L2/R2 axis)
-                virtualButtonCodes[8] = VirtualButtonCode.BTN_ESC;    // 3rd function button
-                virtualButtonCodes[9] = VirtualButtonCode.BTN_SELECT; // MOUSE
-                virtualButtonCodes[10] = VirtualButtonCode.BTN_START; // ENTER
+                virtualButtonCodes[109] = VirtualButtonCode.BTN_SELECT; // Back
+                virtualButtonCodes[108] = VirtualButtonCode.BTN_START; // Start
                 break;
         }
 
@@ -547,76 +500,19 @@ public class InputMapper {
                     analogAxes[idx] = rawAxes[idx];
                 }
 
-                // android dpad analog axes
-                final int DPAD_X_AXIS = 6;
-                final int DPAD_Y_AXIS = 7;
-
                 switch (GameWorld.getInstance().getControllerMode()) {
                     default:
-                        // Linux USB (Ipega PG-9076)
                     case 0:
-                        // L2/R2 are analog (positive-range only)
-                        analogAxes[VIRTUAL_L2_AXIS] = rawAxes[2];
-                        analogAxes[VIRTUAL_R2_AXIS] = rawAxes[5];
-                        // set the X1 and Y1 axes
-                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[4];
-                        break;
-                    // Windows (USB, B/T)
                     case 1:
-                        // swap the WS and AD axes
-                        analogAxes[VIRTUAL_AD_AXIS] = rawAxes[1];
-                        analogAxes[VIRTUAL_WS_AXIS] = rawAxes[0];
-                        // swap the X1 and Y1 axes
-                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
+                    case 3:
                         break;
-                    // Android (B/T)
                     case 2:
-                        // Android reports Dpad as axes - set it only if it was actually moved?
-                        if ((DPAD_X_AXIS == axisIndex) || (DPAD_Y_AXIS == axisIndex)) {
-                            analogAxes[VIRTUAL_AD_AXIS] = rawAxes[DPAD_X_AXIS];
-                            analogAxes[VIRTUAL_WS_AXIS] = rawAxes[DPAD_Y_AXIS];
-                        }
-                        // L2/R2 are analog axes range [0:1.0]
+                        // Android: swap the L2 and R2 axes
                         analogAxes[VIRTUAL_L2_AXIS] = rawAxes[5];
                         analogAxes[VIRTUAL_R2_AXIS] = rawAxes[4];
                         break;
-                    // Linux USB (BELKIN NOSTROMO n45)
-                    case 3:
-                        // swap the X1 and Y1 axes  todo: Windos but not Linux?
-                        analogAxes[VIRTUAL_X1_AXIS] = rawAxes[3];
-                        analogAxes[VIRTUAL_Y1_AXIS] = rawAxes[2];
-                        break;
                 }
 //                print("#" + indexOf(controller) + ", rawAxes " + axisIndex + ": " + value);
-                return false;
-            }
-
-            /*
-             * Virtualize POV (dpad) as an axis.
-             * POV may not be reported on all platform, e.g. Android reports the dpad as axes.
-             * todo POV to be removed with libGDX Controllers > 2.0
-             */
-            @Override
-            public boolean povMoved(Controller controller, int povIndex, PovDirection value) {
-                print("#" + indexOf(controller) + ", POV " + povIndex + ": " + value);
-
-                Arrays.fill(rawAxes, 0); // set all 0, then update 1 or 2 axes depending on POV direction
-
-                if (value == PovDirection.west || value == PovDirection.southWest || value == PovDirection.northWest) {
-                    rawAxes[0] = -1;
-                }
-                if (value == PovDirection.east || value == PovDirection.southEast || value == PovDirection.northEast) {
-                    rawAxes[0] = +1;
-                }
-                if (value == PovDirection.north || value == PovDirection.northWest || value == PovDirection.northEast) {
-                    rawAxes[1] = -1;
-                }
-                if (value == PovDirection.south || value == PovDirection.southWest || value == PovDirection.southEast) {
-                    rawAxes[1] = +1;
-                }
-                System.arraycopy(rawAxes, 0, analogAxes, 0, MAX_AXES);
                 return false;
             }
         });

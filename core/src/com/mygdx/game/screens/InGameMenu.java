@@ -84,10 +84,9 @@ class InGameMenu extends Stage {
         uiSkin = skin;
 
         // transparent overlay layer
-        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap =
                 new Pixmap(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
-//        pixmap.setBlending(Pixmap.Blending.None);
+        pixmap.setBlending(Pixmap.Blending.None);
         pixmap.setColor(1, 1, 1, 1); // default alpha 0 but set all color bits 1
         pixmap.fillRectangle(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
 
