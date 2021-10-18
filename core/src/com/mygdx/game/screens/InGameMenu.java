@@ -26,7 +26,6 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ButtonGroup;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
@@ -111,7 +110,8 @@ class InGameMenu extends Stage {
 
     /**
      * Create a selection menu
-     * @param menuName String name of menu, no name if empty string or null
+     *
+     * @param menuName    String name of menu, no name if empty string or null
      * @param buttonNames String list of button names in order to be added
      */
     void createMenu(String menuName, String... buttonNames) {
@@ -125,7 +125,11 @@ class InGameMenu extends Stage {
         for (String name : buttonNames) {
             addButton(new TextButton(name, uiSkin, "toggle"));
         }
-        addNextButton();
+        TextButton tb =
+                makeTextButton("Next", new Color(1, 0f, 0, 1.0f), ButtonEventHandler.EVENT_A);
+        onscreenMenuTbl.row();
+        onscreenMenuTbl.add(tb).fillX().uniformX();
+
         setMenuVisibility(false);
     }
 
@@ -167,30 +171,6 @@ class InGameMenu extends Stage {
         addActor(new Label(labelText, uiSkin));
     }
 
-    /**
-     * Add a "Next" button to an in-game menu. Button touch handler sets the virtual Control
-     * Button in the Input Mapper.
-     */
-    private void addNextButton() {
-        Button nextButton = new TextButton("Next", uiSkin, "default");
-        nextButton.setColor(new Color(1, 0f, 0, 1.0f));
-        // add a touch down listener to the Next button
-        nextButton.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
-                return true;
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-            }
-        });
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(nextButton).fillX().uniformX();
-    }
-
     /*
      * key/touch event handlers
      */
@@ -200,6 +180,37 @@ class InGameMenu extends Stage {
         EVENT_B,
         EVENT_LEFT,
         EVENT_RIGHT
+    }
+
+    private TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+        TextButton button = new TextButton(btnText, uiSkin, "default");
+        button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
+        button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
+        button.setColor(theColor);
+        button.addListener(new InputListener() {
+            final ButtonEventHandler binding = inputBinding;
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if (ButtonEventHandler.EVENT_A == binding) {
+                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                }
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+
+                if (ButtonEventHandler.EVENT_A == binding) {
+                    mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+                }
+            }
+        });
+        return button;
+    }
+
+    void addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+        addActor(makeTextButton(btnText, theColor, inputBinding));
     }
 
     /**
@@ -267,7 +278,7 @@ class InGameMenu extends Stage {
         return setCheckedBox(checkedUpDown());
     }
 
-    int setCheckedBox(int checked) {
+    private int setCheckedBox(int checked) {
         if (buttonNames.size > 0) {
             String name = buttonNames.get(checked);
             buttonGroup.setChecked(name);
@@ -279,7 +290,7 @@ class InGameMenu extends Stage {
         return buttonGroup.getCheckedIndex();
     }
 
-    int checkedUpDown() {
+    private int checkedUpDown() {
 
         int step = mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
         int selectedIndex = buttonGroup.getCheckedIndex();
@@ -398,6 +409,18 @@ class InGameMenu extends Stage {
         for (Texture tex : savedTextureRefs) {
             tex.dispose();
         }
+    }
+
+    @Override
+    public void act(float delta) {
+
+        super.act(delta);
+
+        int checkedBox = 0; // button default at top selection
+        if (getMenuVisibility()) {
+            checkedBox = checkedUpDown();
+        }
+        setCheckedBox(checkedBox);
     }
 
     @Override

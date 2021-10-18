@@ -16,6 +16,8 @@
 
 package com.mygdx.game.screens;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -41,8 +43,10 @@ public class GameUI extends InGameMenu {
 
     private static final int DEFAULT_SCREEN_TIME = 60 * 60; // FPS
     private static final int TIME_LIMIT_WARN_SECS = 10;
+    private static final int EIGHTH_SCREEN_WIDTH = GameWorld.VIRTUAL_HEIGHT / 8; // 1794/6=299
+    private static final int TOUCHPAD_RADIUS = EIGHTH_SCREEN_WIDTH;
 
-    private final Color hudOverlayColor;
+    private final Color hudOverlayColor = new Color(1, 1, 1, 0); // screen fade overlay;
     private final StringBuilder stringBuilder = new StringBuilder();
     private final Table playerInfoTbl = new Table();
 
@@ -59,25 +63,27 @@ public class GameUI extends InGameMenu {
     // disposable
     private Texture tpBackgnd;
     private Texture tpKnob;
-    // too bad so sad package-private vars are messed w/ by gamescreeen
+
     boolean canExit; // exit sensor is tripped
     int prizeCount;
     int continueScreenTimeUp;
+    InputMultiplexer multiplexer;
 
     GameUI() {
         super();
 
-        final int gsBTNwidth = GameWorld.VIRTUAL_WIDTH * 3 / 8;
-        final int gsBTNheight = GameWorld.VIRTUAL_HEIGHT * 3 / 8;
-        // placement relative to absolute center of screen ... i guess
-        final int gsBTNx = GameWorld.VIRTUAL_WIDTH / 2 - gsBTNwidth / 2;
+        final int gsBTNwidth = GameWorld.VIRTUAL_WIDTH - (TOUCHPAD_RADIUS * 2);
+        final int gsBTNheight = TOUCHPAD_RADIUS * 2;
+        final int gsBTNx = TOUCHPAD_RADIUS * 2; // touch pad diameter is 2 * eighth
         final int gsBTNy = 0;
 
+        // fills bottom of display right (or left..eventually) of gamepad
         picButton = addImageButton(
                 gsBTNx, gsBTNy, gsBTNwidth, gsBTNheight, ButtonEventHandler.EVENT_A);
 
-        xButton = addImageButton(3.0f * GameWorld.VIRTUAL_WIDTH / 4, 0,
-                GameWorld.VIRTUAL_WIDTH / 4, GameWorld.VIRTUAL_HEIGHT / 4,
+        // fills all/most of the screen above gamepad
+        xButton = addImageButton(0, TOUCHPAD_RADIUS * 2.0f,
+                GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT - (TOUCHPAD_RADIUS * 2),
                 ButtonEventHandler.EVENT_B);
 
         createInfoTable();
@@ -85,10 +91,9 @@ public class GameUI extends InGameMenu {
         createMenu(
                 "Paused", "Resume", "Restart", "Quit", "Camera", "Debug Draw");
 
-        hudOverlayColor = new Color(1, 1, 1, 0); // screen-fade overlay
         GameWorld.getInstance().setIsPaused(false); // default state for game-screen should be un-paused
 
-        addTouchPad(new ChangeListener() {
+        addTouchPad(TOUCHPAD_RADIUS, new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 Touchpad t = (Touchpad) actor;
@@ -96,6 +101,10 @@ public class GameUI extends InGameMenu {
                 mapper.setAxis(1, t.getKnobPercentY() * (-1));
             }
         });
+
+        multiplexer = new InputMultiplexer(this);
+        Gdx.input.setInputProcessor(multiplexer);
+
         // anything else a sub-class needs to do can be overridden
         init();
     }
@@ -140,29 +149,26 @@ public class GameUI extends InGameMenu {
      * https://stackoverflow.com/questions/27757944/libgdx-drawing-semi-transparent-circle-on-pixmap
      * https://gamedev.stackexchange.com/questions/127733/libgdx-how-to-handle-touchpad-input/127937#127937
      */
-    private void addTouchPad(ChangeListener touchPadChangeListener) {
+    private void addTouchPad(int radius, ChangeListener touchPadChangeListener) {
 
         Touchpad.TouchpadStyle touchpadStyle;
-        int tpRadius = GameWorld.VIRTUAL_HEIGHT / 8;
-        int knobRadius = tpRadius / 3;
+        int knobRadius = radius / 3;
 
         Pixmap button = new Pixmap(knobRadius * 2, knobRadius * 2, Pixmap.Format.RGBA8888);
         button.setColor(1, 0, 0, 0.5f);
         button.fillCircle(knobRadius, knobRadius, knobRadius);
         tpKnob = new Texture(button);
 
-        touchpadStyle = new Touchpad.TouchpadStyle();
-//        Pixmap.setBlending(Pixmap.Blending.None);
-        Pixmap background = new Pixmap(tpRadius * 2, tpRadius * 2, Pixmap.Format.RGBA8888);
+        Pixmap background = new Pixmap(radius * 2, radius * 2, Pixmap.Format.RGBA8888);
         background.setColor(1, 1, 1, 0.2f);
-        background.fillCircle(tpRadius, tpRadius, tpRadius);
-
+        background.fillCircle(radius, radius, radius);
         tpBackgnd = new Texture(background);
+        touchpadStyle = new Touchpad.TouchpadStyle();
         touchpadStyle.background = new TextureRegionDrawable(new TextureRegion(tpBackgnd));
         touchpadStyle.knob = new TextureRegionDrawable(new TextureRegion(tpKnob));
         touchpad = new Touchpad(10, touchpadStyle);
         //setBounds(x,y,width,height)
-        touchpad.setBounds(15, 15, tpRadius * 2.0f, tpRadius * 2.0f);
+        touchpad.setBounds(15, 15, radius * 2.0f, radius * 2.0f);
         touchpad.addListener(touchPadChangeListener);
         addActor(touchpad);
 
@@ -176,7 +182,6 @@ public class GameUI extends InGameMenu {
     private ImageButton addImageButton(
             float btnX, float btnY, int btnWidth, int btnHeight, final ButtonEventHandler ips
     ) {
-//        Pixmap.setBlending(Pixmap.Blending.None);
         Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
@@ -347,9 +352,10 @@ public class GameUI extends InGameMenu {
      * input state and return it. If no change, returns NONE.
      * Touch screen input can be fired in from Stage but if the Screen is not using TS inputs thru
      * Stage then the caller will have to handle their own TS checking, e.g.:
+     * isTouched = Gdx.input.isTouched(0);
      * todo: how Input.Keys.BACK generated in Android Q
      */
-    private void updateGetInputs() {
+    private void updateDiscreteInputs() {
 
         InputState newInputState = incomingInputState;
         incomingInputState = InputState.INP_NONE; // unlatch the input state
@@ -386,11 +392,11 @@ public class GameUI extends InGameMenu {
             onL1MenuOpen();
         }
 
-        int checkedBox = 0; // button default at top selection
-        if (getMenuVisibility()) {
-            checkedBox = checkedUpDown();
-        }
-        setCheckedBox(checkedBox);
+//        int checkedBox = 0; // button default at top selection
+//        if (getMenuVisibility()) {
+//            checkedBox = checkedUpDown();
+//        }
+//        setCheckedBox(checkedBox);
     }
 
     /*
@@ -443,9 +449,7 @@ public class GameUI extends InGameMenu {
     }
 
     private void showPauseMenu(boolean show) {
-
         setMenuVisibility(show);
-
         playerInfoTbl.setVisible(!show);
     }
 
@@ -503,7 +507,7 @@ public class GameUI extends InGameMenu {
     @Override
     public void act(float delta) {
         super.act(delta);
-        updateGetInputs();
+        updateDiscreteInputs();
         updateScreenTransition();
         updateUI();
     }
