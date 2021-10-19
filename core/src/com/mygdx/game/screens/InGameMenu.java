@@ -266,7 +266,7 @@ class InGameMenu extends Stage {
         return newButton;
     }
 
-    private ImageButton addImageButton(Texture tex, float posX, float posY) {
+    ImageButton addImageButton(Texture tex, float posX, float posY) {
         TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
         ImageButton newButton = new ImageButton(myTexRegionDrawable);
         addActor(newButton);
@@ -382,6 +382,7 @@ class InGameMenu extends Stage {
                 (KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP))) {
             mapper.setAxis(axisSetIndexY, 0);
         }
+/// are these needed>
         // action buttons
         if (Input.Keys.SPACE == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
@@ -399,6 +400,7 @@ class InGameMenu extends Stage {
         if (Input.Keys.SHIFT_RIGHT == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
         }
+//////////
         return false;
     }
 

@@ -23,11 +23,13 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.BulletWorld;
@@ -46,12 +48,12 @@ public class GameUI extends InGameMenu {
     private static final int EIGHTH_SCREEN_WIDTH = GameWorld.VIRTUAL_HEIGHT / 8; // 1794/6=299
     private static final int TOUCHPAD_RADIUS = EIGHTH_SCREEN_WIDTH;
 
-    private final Color hudOverlayColor = new Color(1, 1, 1, 0); // screen fade overlay;
+    private final Color hudOverlayColor;
     private final StringBuilder stringBuilder = new StringBuilder();
     private final Table playerInfoTbl = new Table();
 
-    private ImageButton picButton;
-    private ImageButton xButton;
+    private ImageButton buttonA;
+    private ImageButton buttonB;
     private Touchpad touchpad;
     private Label scoreLabel;
     private Label itemsLabel;
@@ -78,19 +80,110 @@ public class GameUI extends InGameMenu {
         final int gsBTNy = 0;
 
         // fills bottom of display right (or left..eventually) of gamepad
-        picButton = addImageButton(
-                gsBTNx, gsBTNy, gsBTNwidth, gsBTNheight, ButtonEventHandler.EVENT_A);
+        buttonA = addImageButton(gsBTNx, gsBTNy, gsBTNwidth, gsBTNheight);
+//, ButtonEventHandler.EVENT_A
+        buttonA.addListener(
+                new ActorGestureListener() {
+                    @Override
+                    public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                    }
+
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                        mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+                    }
+
+                    @Override
+                    public void pan(InputEvent event, float x, float y, float deltaX, float deltaY) {
+//                        if (Math.abs(deltaX) > Math.abs(deltaY))
+                        {
+                            final int THRSH = 5;
+                            // r2l2active = true
+                            if (deltaX < (-THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_R2_AXIS, 0);
+                                mapper.setAxis(InputMapper.VIRTUAL_L2_AXIS, 1);
+                            } else if (deltaX > (+THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_R2_AXIS, 1);
+                                mapper.setAxis(InputMapper.VIRTUAL_L2_AXIS, 0);
+                            }
+                        }
+                    }
+
+                    /*
+                    a fling could start a timer and apply the R2/L2 axes and then 0 the axis at time up
+                     */
+                    @Override
+                    public void panStop(InputEvent event, float x, float y, int pointer, int button) {
+                        // if r2l2active
+                        mapper.setAxis(InputMapper.VIRTUAL_R2_AXIS, 0);
+                        mapper.setAxis(InputMapper.VIRTUAL_L2_AXIS, 0);
+                    }
+                });
 
         // fills all/most of the screen above gamepad
-        xButton = addImageButton(0, TOUCHPAD_RADIUS * 2.0f,
-                GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT - (TOUCHPAD_RADIUS * 2),
-                ButtonEventHandler.EVENT_B);
+        buttonB = addImageButton(0, TOUCHPAD_RADIUS * 2.0f,
+                GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT - (TOUCHPAD_RADIUS * 2));
+//                ButtonEventHandler.EVENT_B
+        buttonB.addListener(
+                new ActorGestureListener() {
+                    // B is brake/flip/jump so there is no need to be too picky about discriminating it from
+                    // other sources of touch down
+                    @Override
+                    public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
+                        // bpushed  = true;
+                    }
+
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                        // if (bpushed){
+                        mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+                    }
+
+                    @Override
+                    public void fling(InputEvent event, float velocityX, float velocityY, int button) {
+                        if ((velocityX > 0.1f) && (velocityX > velocityY)) {
+                            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, true);
+                        }
+                    }
+
+                    /*
+                    try pan in X and Y direction for axes X2/Y2 (turret)
+                     */
+                    @Override
+                    public void pan(InputEvent event, float x, float y, float deltaX, float deltaY) {
+//                        if (Math.abs(deltaX) > Math.abs(deltaY))
+                        {
+                            final int THRSH = 5;
+                            // X1Y1active = true
+                            if (deltaX < (-THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_X1_AXIS, -1);
+                            } else if (deltaX > (+THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_X1_AXIS, +1);
+                            }
+                            if (deltaY < (-THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_Y1_AXIS, -1);
+                            } else if (deltaY > (+THRSH)) {
+                                mapper.setAxis(InputMapper.VIRTUAL_Y1_AXIS, +1);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void panStop(InputEvent event, float x, float y, int pointer, int button) {
+                        // if r2l2active
+                        mapper.setAxis(InputMapper.VIRTUAL_X1_AXIS, 0);
+                        mapper.setAxis(InputMapper.VIRTUAL_Y1_AXIS, 0);
+                    }
+                });
 
         createInfoTable();
 
         createMenu(
                 "Paused", "Resume", "Restart", "Quit", "Camera", "Debug Draw");
 
+        hudOverlayColor = new Color(1, 1, 1, 0); // screen-fade overlay
         GameWorld.getInstance().setIsPaused(false); // default state for game-screen should be un-paused
 
         addTouchPad(TOUCHPAD_RADIUS, new ChangeListener() {
@@ -179,15 +272,12 @@ public class GameUI extends InGameMenu {
     /*
      * make simple outlined button and bind an input event handler to it
      */
-    private ImageButton addImageButton(
-            float btnX, float btnY, int btnWidth, int btnHeight, final ButtonEventHandler ips
-    ) {
+    private ImageButton addImageButton(float btnX, float btnY, int btnWidth, int btnHeight) {
         Pixmap pixmap = new Pixmap(btnWidth, btnHeight, Pixmap.Format.RGBA8888);
         pixmap.setColor(1, 1, 1, .3f);
         pixmap.drawRectangle(0, 0, btnWidth, btnHeight);
         // no need to keep ref to texture for disposal (InGameMenu keeps reference list for disposal)
-        Texture useTexture = new Texture(pixmap);
-        ImageButton button = addImageButton(useTexture, btnX, btnY, ips);
+        ImageButton button = addImageButton(new Texture(pixmap), btnX, btnY);
         pixmap.dispose();
         return button;
     }
@@ -374,6 +464,7 @@ public class GameUI extends InGameMenu {
 
         } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_L1)) {
             newInputState = InputState.INP_L1;
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false); // hmmm
         }
 
         InputState debouncedInputState = InputState.INP_NONE;
@@ -444,8 +535,8 @@ public class GameUI extends InGameMenu {
             show = false;
         }
         touchpad.setVisible(show);
-        xButton.setVisible(show);
-        picButton.setVisible(show);
+        buttonB.setVisible(show);
+        buttonA.setVisible(show);
     }
 
     private void showPauseMenu(boolean show) {
@@ -467,7 +558,7 @@ public class GameUI extends InGameMenu {
                 mesgLabel.setVisible(true);
                 setOverlayColor(1, 0, 0, 0.5f); // red overlay
                 // todo the pick button is apparently the only means of generating "SELECT" event on touchscreen?
-                picButton.setVisible(GameWorld.getInstance().getIsTouchScreen());
+                buttonA.setVisible(GameWorld.getInstance().getIsTouchScreen());
                 break;
             case ROUND_COMPLETE_WAIT:
                 setLabelColor(itemsLabel, Color.GREEN);
