@@ -48,15 +48,15 @@ public final class GameWorld implements Disposable {
     public static final String DEFAULT_FONT_PNG = "data/default.png";
 
     //  for working with ViewPort?
-    public static final int SCREEN_WIDTH = Gdx.graphics.getWidth();
-    public static final int SCREEN_HEIGHT = Gdx.graphics.getHeight();
+//    public static final int SCREEN_WIDTH = Gdx.graphics.getWidth();
+//    public static final int SCREEN_HEIGHT = Gdx.graphics.getHeight();
 
     // font is sized for libGdx default desktop screen size
     private static final int DEFAULT_WIDTH = 640;
     private static final int DEFAULT_HEIGHT = 480;
-    // Pixel 2
-    public static final int VIRTUAL_WIDTH = 1794;
-    public static final int VIRTUAL_HEIGHT = 1080;
+    //
+    public static final int VIRTUAL_WIDTH = Gdx.graphics.getWidth();
+    public static final int VIRTUAL_HEIGHT = Gdx.graphics.getHeight();
 
     public static final float FONT_X_SCALE = ((float) VIRTUAL_WIDTH / DEFAULT_WIDTH); // 2.80f;
     public static final float FONT_Y_SCALE = ((float) VIRTUAL_HEIGHT / DEFAULT_HEIGHT); // 2.125
