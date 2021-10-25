@@ -44,7 +44,7 @@ import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
 public class SceneLoader implements Disposable {
 
-    private static final String _FILE_ = "SceneLoader"; // is there a better way?
+    private static final String CLASS_STRING = "SceneLoader";
 
     // Model Group names
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
@@ -63,17 +63,19 @@ public class SceneLoader implements Disposable {
          * runtime since it will change the value for all instances of the class.
          * ... or so they say ;)
          */
-        assets = new AssetManager();
+        if (null != sd) {
+            assets = new AssetManager();
 
-        for (String key : sd.modelInfo.keySet()) {
+            for (String key : sd.modelInfo.keySet()) {
 
-            String fn = sd.modelInfo.get(key).fileName;
+                String fn = sd.modelInfo.get(key).fileName;
 
-            if (null != fn) {
-                if (fn.contains(".png") || fn.contains(".jpg")) {
-                    assets.load(fn, Texture.class);
-                } else if (fn.contains(".g3d")) {
-                    assets.load(fn, Model.class);
+                if (null != fn) {
+                    if (fn.contains(".png") || fn.contains(".jpg")) {
+                        assets.load(fn, Texture.class);
+                    } else if (fn.contains(".g3d")) {
+                        assets.load(fn, Model.class);
+                    }
                 }
             }
         }
@@ -110,11 +112,10 @@ public class SceneLoader implements Disposable {
          */
         ModelGroup umg = sd.modelGroups.get(USER_MODEL_PARTS);
 
-        if (null != umg) { // may or may not be define in scene data
-
-            if (null != userModel) {
-                Gdx.app.log(_FILE_, "tex Model not been disposed properly?");
-            }
+        if (null != umg) { // may or may not be defined in scene data
+//            if (null != userModel) {
+//                Gdx.app.log(CLASS_STRING, "tex Model not been disposed properly?");
+//            }
             userModel = makeUserModel(umg); // stores reference to model in the dummy ModelInfo block
             /*
              * use the dummy ModelInfo block to store reference to the newly-constructed model
@@ -186,7 +187,7 @@ public class SceneLoader implements Disposable {
 
     private static void buildModelGroup(Engine engine, String key) {
 
-        Gdx.app.log(_FILE_, "modelGroup = " + key);
+        Gdx.app.log(CLASS_STRING, "modelGroup = " + key);
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get(key);
@@ -214,20 +215,20 @@ public class SceneLoader implements Disposable {
         numberOfCrapiums = 0;
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-        /*
-         * build the model groups
-         */
-        for (String key : sd.modelGroups.keySet()) {
-            Gdx.app.log(_FILE_, key);
-            // skip this model group it is built from scratch during asset loading (not loaded from g3db)
-            if (key.equals(USER_MODEL_PARTS)) {
-                continue; // how to remove Model Group ?
+        if (null != sd) {
+            // build the model groups
+            for (String key : sd.modelGroups.keySet()) {
+                Gdx.app.log(CLASS_STRING, key);
+                // skip this model group it is built from scratch during asset loading (not loaded from g3db)
+                if (key.equals(USER_MODEL_PARTS)) {
+                    continue; // how to remove Model Group ?
+                }
+                if (key.equals(LOCAL_PLAYER_MGRP)) { // mt
+                }
+                if (key.equals(STATIC_OBJECTS)) { // mt
+                }
+                buildModelGroup(engine, key);
             }
-            if (key.equals(LOCAL_PLAYER_MGRP)) { // mt
-            }
-            if (key.equals(STATIC_OBJECTS)) { // mt
-            }
-            buildModelGroup(engine, key);
         }
     }
 
@@ -299,14 +300,13 @@ public class SceneLoader implements Disposable {
     @Override
     public void dispose() {
 
-        // The Model owns the meshes and textures, to dispose of these, the Model has to be disposed. Therefor, the Model must outlive all its ModelInstances
-        //  Disposing the file will automatically make all instances invalid!
-        assets.dispose();
-
-        /* be careful this one isn't constructed unless defined in json */
+        if (null != assets) {
+            assets.dispose();
+        }
+        // dispose and set the static variable to null
         if (null != userModel) {
             userModel.dispose();
-            userModel = null;
+//            userModel = null;
         }
     }
 }
