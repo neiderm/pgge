@@ -27,6 +27,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -62,11 +64,21 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private ImmutableArray<Entity> characters;
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private Entity platform;
-    private int actorCount = 0;
+    private int actorCount;
     private int idxRigSelection;
     private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
-    private boolean isPaused;
+    private Label theLabel;
+    private ImageButton leftButton;
+    private ImageButton rightButton;
+    private _ScreenType screenType;
+    private String stagename;
+
+    private enum _ScreenType {
+        TITLE,
+        LEVEL,
+        ARMOR
+    }
 
     @Override
     public void show() {
@@ -77,6 +89,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
         actorCount = characters.size(); // should be 3!@!!!!
+        screenType = _ScreenType.TITLE;
+
+        // hide the armor units (translate several units on the Y axis)
+        for (Entity e : characters){
+            Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
+            transform.setToTranslation(0, 10, 0);
+        }
 
         GameFeature f = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
         if (null != f) {
@@ -85,7 +104,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         // setup a screen/file selection menu (development only)
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
-        stageNamesList = new ArrayList<>();
+        stageNamesList = new ArrayList<>(); //  must be re-instantiated at each screen invocation
 
         for (FileHandle file : files) {
             // stick the base-name (no path, no extension) into the menu
@@ -112,7 +131,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
         texture = new Texture(pixmap);
-        stage.addImageButton(texture,
+
+        leftButton = stage.addImageButton(texture,
                 0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
         pixmap.dispose();
 
@@ -120,15 +140,22 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
         texture = new Texture(pixmap);
-        stage.addImageButton(texture,
+
+        rightButton = stage.addImageButton(texture,
                 GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
                 GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
 
         pixmap.dispose();
 
-        stage.addLabel("Choose your Rig ... ");
+        leftButton.setVisible(false);
+        rightButton.setVisible(false);
+
+        theLabel = new Label("Goon Squad!", stage.uiSkin);
+        stage.addActor(theLabel);
 
         degreesSetp = 90 - idxRigSelection * platformIncDegrees();
+        degreesInst = degreesSetp; // no movement at screen start
+        degreesInst = 0; // does 90 degree rotation
     }
 
     /*
@@ -179,7 +206,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         float kP = 0.2f;
         float step = (degreesSetp - degreesInst) * kP; // step = error * kP
 
-        if (Math.abs(step) > 0.01) { // deadband around control point, Q-A-D lock to the setpoint and suppress ringing, normally done by integral term
+        if (Math.abs(step) > 0.01f) { // deadband around control point, Q-A-D lock to the setpoint and suppress ringing, normally done by integral term
             if (Math.abs(degreesStep) < 2) { // output is ramped up from 0 to this value, after which 100% of step is accepted
                 int sign = (degreesStep < 0) ? -1 : 1;
                 degreesStep += 0.1f * sign;
@@ -191,16 +218,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    // fixed amount to get the model pointing toward the viewer when selected
-    private static final int TANK_MODEL_ORIENTATION = 90;
-    // Rigs are positioned in terms of offset from Platform origin
-    // Platform height is buried in Selectscreen unfortunately ("PlayerIsPlatform")
-    private static final float PLATFORM_HEIGHT = 0.2f;
-    private static final float SELECTED_RIG_OFFS_Y = 0.3f;
-    private static final float UNSELECTED_RIG_OFFS_Y = 0.05f;
-    // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
-    private static final float RIG_PLACEMENT_RADIUS_SCALAR = 1.1f;
-
     private float platformIncDegrees() {
         return (360.0f / actorCount);
     }
@@ -210,6 +227,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      */
     private void updatePlatform(float platformDegrees) {
 
+        // fixed amount to get the model pointing toward the viewer when selected
+        final int ROTATE_FORWARD_ANGLE = 90;
+        // Rigs are positioned in terms of offset from Platform origin
+        // Platform height is buried in Selectscreen unfortunately ("PlayerIsPlatform")
+        final float PLATFORM_HEIGHT = 0.2f;
+        final float SELECTED_RIG_OFFS_Y = 0.3f;
+        final float UNSELECTED_RIG_OFFS_Y = 0.05f;
+        // scalar applies to x/y (cos/sin) terms to "push" the Rigs slightly out from the origin
+        final float RIG_PLACEMENT_RADIUS_SCALAR = 1.1f;
+
         updateRotation();
 
         for (int n = 0; n < actorCount; n++) {
@@ -218,7 +245,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             float positionDegrees = platformIncDegrees() * n;
 
             // final rotation of unit is Platform Degrees plus angular rotation to orient unit relative to platform
-            float orientionDegrees = positionDegrees - platformDegrees - TANK_MODEL_ORIENTATION;
+            float orientionDegrees = positionDegrees - platformDegrees - ROTATE_FORWARD_ANGLE;
 
             Vector3 position = positions[n]; // not actually using the position[] values right now
 
@@ -306,37 +333,55 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-        updatePlatform(degreesInst);
+        switch (screenType) {
+            default:
+            case TITLE:
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                    stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+                    screenType = _ScreenType.LEVEL;
+                    theLabel.setText("Select Level");
+                    stagename = "vr_zone";
 
-        if (isPaused) {
-            idxMenuSelection = stage.setCheckedBox();
+                    if (!stageNamesList.isEmpty()) {
+                        stage.setMenuVisibility(true);
+                    } else {
+                        Gdx.app.log(CLASS_STRING, "No screen files found!");
+                    }
+                }
+                break;
 
-            if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                if (!stageNamesList.isEmpty()) {
-                    String stagename = stageNamesList.get(idxMenuSelection);
+            case LEVEL:
+                idxMenuSelection = stage.setCheckedBox();
+
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                    stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+                    if (!stageNamesList.isEmpty()) {
+                        stagename = stageNamesList.get(idxMenuSelection);
+                        stage.setMenuVisibility(false);
+                        screenType = _ScreenType.ARMOR;
+                        leftButton.setVisible(true);
+                        rightButton.setVisible(true);
+                        theLabel.setText("Select Armor Unit");
+                    } else {
+                        Gdx.app.log(CLASS_STRING, "No screen files found!");
+                    }
+                } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)) {
+                    stage.setMenuVisibility(false);
+                }
+                break;
+
+            case ARMOR:
+                updatePlatform(degreesInst);
+                int step = getStep();
+                idxRigSelection = checkedUpDown(step, idxRigSelection);
+                // Necessary to increment the degrees because we are controlling to it like a setpoint
+                // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
+                degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
+
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     GameWorld.getInstance().showScreen(newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
                 }
-            } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 30)) {
-                stage.setMenuVisibility(false);
-                isPaused = false;
-            }
-        } else {
-            int step = getStep();
-            idxRigSelection = checkedUpDown(step, idxRigSelection);
-            // Necessary to increment the degrees because we are controlling to it like a setpoint
-            // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-            degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
-
-            if ((stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START, false, 60))) {
-                if (!stageNamesList.isEmpty()) {
-                    stage.setMenuVisibility(true);
-                    isPaused = true;
-                } else {
-                    Gdx.app.log(CLASS_STRING, "No screen files found!");
-                }
-            } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                GameWorld.getInstance().showScreen(newLoadingScreen("vr_zone" + DOT_JSON)); // LevelOne.json
-            }
+                break;
         }
     }
 

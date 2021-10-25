@@ -27,6 +27,7 @@ import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.screens.LoadingScreen;
 import com.mygdx.game.screens.ReduxScreen;
+import com.mygdx.game.screens.SplashScreen;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /**
@@ -40,7 +41,7 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public final class GameWorld implements Disposable {
 
     private static final String CLASS_STRING = "GameWorld";
-    private static final String DEFAULT_SCREEN = "SelectScreen.json";
+    public static final String DEFAULT_SCREEN = "SelectScreen.json";
     // deserves a more unique name (in json too)
     public static final String LOCAL_PLAYER_FNAME = "Player";
     // default font from gdx-skins
@@ -60,7 +61,6 @@ public final class GameWorld implements Disposable {
 
     public static final float FONT_X_SCALE = ((float) VIRTUAL_WIDTH / DEFAULT_WIDTH); // 2.80f;
     public static final float FONT_Y_SCALE = ((float) VIRTUAL_HEIGHT / DEFAULT_HEIGHT); // 2.125
-
 
     public enum GAME_STATE_T {
         ROUND_NONE,
@@ -97,8 +97,8 @@ public final class GameWorld implements Disposable {
         // static subsystems initialized only once per application run
         Bullet.init();
         PrimitivesBuilder.init();
-
-        showScreen(); // show loading/splash screen
+        // show splash screen
+        showScreen(new SplashScreen());
     }
 
     /*
@@ -106,13 +106,11 @@ public final class GameWorld implements Disposable {
      */
     public void showScreen() {
         if (Gdx.files.internal(DEFAULT_SCREEN).exists()) {
-
-            getInstance().setSceneData(DEFAULT_SCREEN);
-            getInstance().showScreen(new LoadingScreen(true, LoadingScreen.ScreenTypes.SETUP));
+            setSceneData(DEFAULT_SCREEN);
+            showScreen(new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
         } else {
-            Gdx.app.log("SplashScreen",
-                    "Select Screen data not found, loading Test Screen");
-            getInstance().showScreen(new ReduxScreen());
+            Gdx.app.log(CLASS_STRING, DEFAULT_SCREEN + " file not found, loading test screen");
+            showScreen(new ReduxScreen());
         }
     }
 

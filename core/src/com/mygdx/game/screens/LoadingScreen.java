@@ -36,32 +36,38 @@ public class LoadingScreen implements Screen {
     private final InGameMenu stage = new InGameMenu();
 
     private int loadCounter = 0;
-    private int screenTimer = (int) (60 * 2.9f); //fps*sec
+    private int screenTimer = 60 * 3; //fps*sec
     private boolean isLoaded;
-    private boolean shouldPause;
+    private float alpha = 1.0f;
     private ScreenTypes screenType;
     private Screen newScreen;
     private Texture ttrBackDrop; // reference to selected texture (does not need disposed)
+
+    private static final StringBuilder stringBuilder = new StringBuilder();
+    private static final Color fadeoutColor = new Color(0, 0, 0, 0);
+    private static final Color splashBarColor = new Color(Color.BLACK);
+    private static final Color loadBarColor = new Color(255, 0, 0, 1);
 
     // disposables
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
     private Texture ttrSplash;
     private Texture ttrLoad;
-    private SpriteBatch spriteBatch;
-    private BitmapFont bitmapFont;
+    private SpriteBatch spriteBatch = new SpriteBatch();
+    private BitmapFont bitmapFont = new BitmapFont(
+            Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
+            Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
 
     public enum ScreenTypes {
         SETUP,
         LEVEL
     }
 
-    public LoadingScreen(boolean shouldPause, ScreenTypes screenType) {
-        this.shouldPause = shouldPause;
+    public LoadingScreen(ScreenTypes screenType) {
         this.screenType = screenType;
     }
 
     LoadingScreen() {
-        this(true, ScreenTypes.LEVEL);
+        this(ScreenTypes.LEVEL);
     }
 
     @Override
@@ -81,28 +87,18 @@ public class LoadingScreen implements Screen {
         }
         ttrBackDrop = ttrLoad;
         ttrSplash = new Texture("splash-screen.png");
-        spriteBatch = new SpriteBatch();
-
-        bitmapFont = new BitmapFont(
-                Gdx.files.internal(GameWorld.DEFAULT_FONT_FNT),
-                Gdx.files.internal(GameWorld.DEFAULT_FONT_PNG), false);
+//        spriteBatch = new SpriteBatch();
 
         bitmapFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
-
         isLoaded = false;
     }
 
-    /*
-     * re-use the String Builder instance
-     */
-    private final StringBuilder stringBuilder = new StringBuilder();
-    /*
-     * alpha persistent for fadeout
-     */
-    private float alpha = 1.0f;
-
     @Override
     public void render(float delta) {
+
+        final float barWidth = 20.0f;
+        final float barLocX = GameWorld.VIRTUAL_WIDTH / 4.0f;
+        final float barLocY = (GameWorld.VIRTUAL_HEIGHT / 2.0f) - 5;
 
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -112,10 +108,13 @@ public class LoadingScreen implements Screen {
         stage.draw();
         Gdx.input.setInputProcessor(stage);
 
+        if (screenTimer > 0) {
+            screenTimer -= 1;
+        }
+
         spriteBatch.begin();
         spriteBatch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        bitmapFont.draw(spriteBatch, stringBuilder,
-                GameWorld.VIRTUAL_WIDTH / 4.0f, (GameWorld.VIRTUAL_HEIGHT / 5.0f) * 3);
+        bitmapFont.draw(spriteBatch, stringBuilder, barLocX, (GameWorld.VIRTUAL_HEIGHT / 5.0f) * 3);
         spriteBatch.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -123,30 +122,23 @@ public class LoadingScreen implements Screen {
         if (ScreenTypes.SETUP == screenType) {
             if (!isLoaded) {
                 // show loading bar
-                shapeRenderer.setColor(new Color(Color.BLACK)); // only while loading
-                shapeRenderer.rect(
-                        (GameWorld.VIRTUAL_WIDTH / 4.0f), (GameWorld.VIRTUAL_HEIGHT / 2.0f) - 5,
-                        20.0f + loadCounter, 1);
+                shapeRenderer.setColor(splashBarColor);
+                shapeRenderer.rect(barLocX, barLocY, barWidth + loadCounter, 1);
             } else {
                 // fade screen?
                 if (screenTimer > 0 && screenTimer < 60) {
                     alpha -= 1.0f / 60;
-                    shapeRenderer.setColor(new Color(0, 0, 0, 1 - alpha));
-                    shapeRenderer.rect(0, 0,
-                            GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+                    fadeoutColor.a = alpha;
+                    shapeRenderer.setColor(fadeoutColor);
+                    shapeRenderer.rect(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
                 }
             }
         } else {
-            shapeRenderer.setColor(new Color(255, 0, 0, 1));
-            shapeRenderer.rect(
-                    (GameWorld.VIRTUAL_WIDTH / 4f), (GameWorld.VIRTUAL_HEIGHT / 2f) - 5,
-                    20f + loadCounter, 10);
+            shapeRenderer.setColor(loadBarColor);
+            shapeRenderer.rect(barLocX, barLocY, barWidth + loadCounter, 10);
         }
         shapeRenderer.end();
 
-        if (screenTimer > 0) {
-            screenTimer -= 1;
-        }
         /*
          * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
          */
@@ -168,38 +160,25 @@ public class LoadingScreen implements Screen {
                 isLoaded = true;
             }
         } else { // is loaded
-            if (ScreenTypes.SETUP == screenType) {
-                if (screenTimer > 0) {
-                    // mt
-                } else {
-                    ttrBackDrop = ttrSplash;
-                    stringBuilder.setLength(0);
-                    stringBuilder.append("Tap to Start!");
-                }
-            } else {
-                screenTimer = 0;
-                stringBuilder.setLength(0);
-                stringBuilder.append("Ready!");
-            }
-            // simple polling for a tap on the touch screen
             // one-time check for TS input (determines whether or not to show touchpad control)
             boolean isTouched = Gdx.input.isTouched(0);
-
             // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
-            // (but once global "isTouchscreen" is set, don't clear it ;)
+            // Once global "isTouchscreen" is set, don't clear it
             if (!GameWorld.getInstance().getIsTouchScreen() && isTouched) {
                 GameWorld.getInstance().setIsTouchScreen(true);
             }
 
-            if (0 == screenTimer || !shouldPause) {
+            if (ScreenTypes.LEVEL == screenType) {
+                screenTimer = 0;
+                stringBuilder.setLength(0);
+                stringBuilder.append("Ready!");
+
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A) || isTouched) {
                     GameWorld.getInstance().showScreen(newScreen);
-                } else if ((ScreenTypes.SETUP == screenType) &&
-                        // first loading screen ends w/ splash - menu option to load gamepad config menu
-                        (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)
-                                || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)))) {
-                    GameWorld.getInstance().showScreen(new GamepadConfig());
                 }
+            } else {
+                // just do it
+                GameWorld.getInstance().showScreen(newScreen);
             }
         }
     }
