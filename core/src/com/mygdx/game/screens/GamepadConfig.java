@@ -48,9 +48,9 @@ public class GamepadConfig implements Screen {
                 || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)) // analog stick-right, hackamathang
         ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
-            GameWorld.getInstance().setSceneData("SelectScreen.json"); // maybe
+            GameWorld.getInstance().setSceneData(GameWorld.DEFAULT_SCREEN);
             GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
-                    new LoadingScreen(false, LoadingScreen.ScreenTypes.SETUP));
+                    new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
         }
     }
 
@@ -72,18 +72,16 @@ public class GamepadConfig implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(stage);
 
-        String [] configNames = new String[] {
-                "iPega PG-9076 USB (Linux)",
-                "Xbox 360 Controller 2.4 Ghz or USB (Windows)",
-                "Android B/T",
-                "Belkin n45 Dual Analog USB Gamepad (IOS, Linux)"
-                //"n45 Dual Analog USB Gamepad (Windows)"
-                // "iPega PG-9076 2.4 Ghz (Windows)"
+        String[] configNames = new String[]{
+                "PC (BT, 2.4 gHz, USB)",
+                "N/A",
+                "Android (BT)",
+                "N/A"
         };
 
         final ArrayList<String> namesList = new ArrayList<>();
 
-        for (String name : configNames){
+        for (String name : configNames) {
             namesList.add(name);
             InputMapper.incrementNumberControlCfgTypes();
         }
