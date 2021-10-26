@@ -358,7 +358,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private int idxMenuSelection;
     private Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
     private Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
-    private float cubeVelocity = 0.01f;
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -443,10 +442,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 // hide cube
                 if (cubePositionVec.x < 20) {
                     // since x could start at zero, an additional summed amount ensure non-zero multiplicand
-//                    cubePositionVec.y = (+1) *((cubePositionVec.y + 0.01f) * 1.10f);
-//                    modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
-                    cubeVelocity *= 1.10f; // todo setToTranslation() can't be used - need to apply scale in cube model
-                    modelCompCube.modelInst.transform.translate(cubeVelocity, 0, 0);
+                    cubePositionVec.x = (+1) *((cubePositionVec.x + 0.001f) * 1.10f);
+                    modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
                 } else {
                     // enable next button ...
 
