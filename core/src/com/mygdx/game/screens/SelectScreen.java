@@ -30,6 +30,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -53,18 +54,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final String SCREENS_DIR = "screens/";
     private static final String DOT_JSON = ".json";
 
-    private final Vector3 originCoordinate = new Vector3(0, 0, 0);
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    // position them into equilateral triangle (sin/cos)
-    private final Vector3[] positions = new Vector3[]{
-            new Vector3(),
-            new Vector3(),
-            new Vector3()
-    };
     private ArrayList<String> stageNamesList; // needs re-instantiated at each screen invocation
     private ImmutableArray<Entity> characters;
     private InGameMenu stage; // don't instantiate me here ... skips select platform
-    private Entity platform;
     private int actorCount;
     private int idxRigSelection;
     private int touchPadDx; // globalized for "debouncing" swipe event
@@ -74,12 +67,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private ImageButton rightButton;
     private _ScreenType screenType;
     private String stagename;
-    private Entity logoEntity = null;
-    private Entity cubeEntity = null;
+    private Entity logoEntity;
+    private Entity cubeEntity;
+    private Entity platform;
+    private TextButton nextButton;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final float LOGO_START_PT_Y = 10.0f;//tbd
     private static final float LOGO_END_PT_Y = 0.8f; // see z-dimension of LogoText in cubetest.blend
+    private static final float PLATFORM_START_PT_Y = -50.0f;//tbd
+    private static final float PLATFORM_END_PT_Y = -0.1f;
 
     private enum _ScreenType {
         TITLE,
@@ -116,6 +113,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         if (null != f) {
             platform = f.getEntity();
         }
+        Matrix4 pTransform = platform.getComponent(ModelComponent.class).modelInst.transform;
+        pTransform.setToTranslation(new Vector3(0, PLATFORM_START_PT_Y, 0));
 
         // setup a screen/file selection menu (development only)
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
@@ -136,7 +135,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         Texture texture; // AddImageButton() keeps the reference for disposal
         Color theColor = new Color(0, 1.0f, 0, 0.5f);
 
-        stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
+        nextButton = stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
+        nextButton.setVisible(false);
 
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;
@@ -259,11 +259,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return (360.0f / actorCount);
     }
 
+    private Vector3 tmpRigVec3 = new Vector3();
+
     /*
      * platformDegrees: currently commanded (absolute) orientation of platform
      */
     private void updatePlatform(float platformDegrees) {
-
         // fixed amount to get the model pointing toward the viewer when selected
         final int ROTATE_FORWARD_ANGLE = 90;
         // Rigs are positioned in terms of offset from Platform origin
@@ -277,31 +278,22 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         updateRotation();
 
         for (int n = 0; n < actorCount; n++) {
-
             // angular offset of unit to position it relative to platform
             float positionDegrees = platformIncDegrees() * n;
-
             // final rotation of unit is Platform Degrees plus angular rotation to orient unit relative to platform
             float orientionDegrees = positionDegrees - platformDegrees - ROTATE_FORWARD_ANGLE;
 
-            Vector3 position = positions[n]; // not actually using the position[] values right now
-
             // add Platform Degrees to the unit angular position on platform
-            double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of vehicles around a circle
-
-            position.x = (float) Math.cos(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
-
-            position.y = (PLATFORM_HEIGHT / 2) + UNSELECTED_RIG_OFFS_Y; // raise slightly above platform
-
-            position.z = (float) Math.sin(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
+            double rads = Math.toRadians(positionDegrees + platformDegrees); // distribute number of rigs around a circle
+            tmpRigVec3.x = (float) Math.cos(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
+            tmpRigVec3.y = (PLATFORM_HEIGHT / 2) + UNSELECTED_RIG_OFFS_Y; // raise slightly above platform
+            tmpRigVec3.z = (float) Math.sin(rads) * RIG_PLACEMENT_RADIUS_SCALAR;
 
             Entity e = characters.get(n);
-
             Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
             transform.setToTranslation(0, 0, 0);
             transform.setToRotation(down.set(0, 1, 0), positionDegrees + orientionDegrees);
-            transform.trn(position);
-            transform.trn(originCoordinate);
+            transform.trn(tmpRigVec3);
 
             if (idxRigSelection == n) { // raise selected for arbitrary effect ;)
                 transform.trn(down.set(0, SELECTED_RIG_OFFS_Y, 0));
@@ -309,8 +301,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         }
         Matrix4 transform = platform.getComponent(ModelComponent.class).modelInst.transform;
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
-        transform.setTranslation(new Vector3(originCoordinate));
-        transform.trn(0, -0.1f, 0); // arbitrary additional trn() of platform for no real reason
+        transform.trn(0, PLATFORM_END_PT_Y, 0);
     }
 
     // based on InGameMenu. checkedUpDown()
@@ -358,6 +349,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private int idxMenuSelection;
     private Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
     private Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
+    private Vector3 platformPositionVec = new Vector3(); // tmp vector for reuse
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -378,28 +370,30 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
         modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
 
+        float error;
+
         switch (screenType) {
             default:
             case TITLE:
                 // swipe-in the logo text block ...
-                float error = logoPositionVec.y - LOGO_END_PT_Y;
-                final float kP = 0.10f;
-                final float THR = 0.001f * (LOGO_START_PT_Y - LOGO_END_PT_Y);
-                // /* positionVector.y > LOGO_END_PT_Y */  .. simpler?
-                if (error > THR) {
-                    logoPositionVec.y = logoPositionVec.y - (error * kP);
+                error = logoPositionVec.y - LOGO_END_PT_Y;
+                final float kPlogo = 0.10f;
+                if ((logoPositionVec.y > LOGO_END_PT_Y) && (error > kPlogo)) {
+                    logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
                 } else {
-                    // once title text in place ...
+                    // lock title text in place ...
                     logoPositionVec.y = LOGO_END_PT_Y;
                     //enable Next button
-
+                    nextButton.setVisible(true);
                 }
                 modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
 
-                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                if (nextButton.isVisible() &&
+                        stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
                     screenType = _ScreenType.LEVEL;
                     stagename = "vr_zone"; // set the default
+                    nextButton.setVisible(false);
                 }
                 break;
 
@@ -411,25 +405,23 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
                     modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
                 } else {
-                    // once title text in place ...
+                    // once title text is out of the way ...
 //                        if (!stageNamesList.isEmpty()) {
                     stage.setMenuVisibility(true);
                     theLabel.setText("Select a mission");
                     theLabel.setVisible(true);
                     // enable next button ...
-
+                    nextButton.setVisible(true);
                 }
-                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
+                        && nextButton.isVisible()) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
-
+                    nextButton.setVisible(false);
                     if (!stageNamesList.isEmpty()) {
                         stagename = stageNamesList.get(idxMenuSelection);
                         stage.setMenuVisibility(false);
                         screenType = _ScreenType.ARMOR;
-                        leftButton.setVisible(true);
-                        rightButton.setVisible(true);
-                        theLabel.setText("Select Armor Unit");
-                        theLabel.setVisible(true);
+                        theLabel.setVisible(false);
                     } else {
                         Gdx.app.log(CLASS_STRING, "No screen files found!");
                     }
@@ -439,24 +431,47 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case ARMOR:
-                // hide cube
+                Matrix4 pTransform = platform.getComponent(ModelComponent.class).modelInst.transform;
+                pTransform.getTranslation(platformPositionVec);
+
+                if (platformPositionVec.y < PLATFORM_END_PT_Y) {
+                    // swipe-in the logo text block ...
+                    error = PLATFORM_END_PT_Y - platformPositionVec.y;
+                    final float kPplatform = 0.10f;
+                    // if present position is Less Than (going up ... )
+                    if ( (error > kPplatform) && (platformPositionVec.y < PLATFORM_END_PT_Y)) {
+                        platformPositionVec.y = platformPositionVec.y + (error * kPplatform);
+                    } else {
+                        // lock title text in place ...
+                        platformPositionVec.y = PLATFORM_END_PT_Y;
+                    }
+                    pTransform.setToTranslation(platformPositionVec);
+                } else {
+                    // enable UI
+                    nextButton.setVisible(true);
+                    leftButton.setVisible(true);
+                    rightButton.setVisible(true);
+                    theLabel.setText("Select Armor Unit");
+                    theLabel.setVisible(true);
+                }
+                // update hide the cube
                 if (cubePositionVec.x < 20) {
                     // since x could start at zero, an additional summed amount ensure non-zero multiplicand
-                    cubePositionVec.x = (+1) *((cubePositionVec.x + 0.001f) * 1.10f);
+                    cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
                     modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
-                } else {
-                    // enable next button ...
-
                 }
-                updatePlatform(degreesInst);
-                int step = getStep();
-                idxRigSelection = checkedUpDown(step, idxRigSelection);
-                // Necessary to increment the degrees because we are controlling to it like a setpoint
-                // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-                degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
 
-                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                    GameWorld.getInstance().showScreen(newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+                if (nextButton.isVisible()) {
+                    updatePlatform(degreesInst);
+                    int step = getStep();
+                    idxRigSelection = checkedUpDown(step, idxRigSelection);
+                    // Necessary to increment the degrees because we are controlling to it like a setpoint
+                    // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
+                    degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
+
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        GameWorld.getInstance().showScreen(newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+                    }
                 }
                 break;
         }

@@ -1,48 +1,11 @@
 {
 "modelGroups": {
-	"TextureObjects": {
-		"elements": [
-			{
-				"scale": {
-					"x": 200,
-					"y": 200,
-					"z": 200
-				},
-				"objectName": "skySphere",
-				"isShadowed": false
-			},
-			{
-				"instanceData": [
-					{
-						"translation": {
-							"x": 0,
-							"y": 10,
-							"z": 0
-						}
-					}
-				],
-				"scale": {
-					"x": 4,
-					"y": 0.2,
-					"z": 4
-				},
-				"objectName": "boxTex",
-				"featureName": "PlayerIsPlatform",
-				"isPlayer": true
-			}
-		],
-		"modelName": "UserMeshesModel"
-	},
 	"InstancedModelMeshes": {
 		"elements": [
 			{
 				"instanceData": [
 					{
-						"translation": {
-							"x": 0,
-							"y": 0,
-							"z": 0
-						}
+						"translation": {}
 					}
 				],
 				"objectName": "TitleText"
@@ -50,17 +13,44 @@
 			{
 				"instanceData": [
 					{
-						"translation": {
-							"x": 0,
-							"y": 0,
-							"z": 0
-						}
+						"translation": {}
 					}
 				],
 				"objectName": "Cube"
 			}
 		],
 		"modelName": "StaticObjects"
+	},
+	"TextureObjects": {
+		"elements": [
+			{
+				"isShadowed": false,
+				"objectName": "skySphere",
+				"scale": {
+					"x": 200,
+					"y": 200,
+					"z": 200
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 10
+						}
+					}
+				],
+				"objectName": "boxTex",
+				"scale": {
+					"x": 4,
+					"y": 0.2,
+					"z": 4
+				},
+				"featureName": "PlayerIsPlatform",
+				"isPlayer": true
+			}
+		],
+		"modelName": "UserMeshesModel"
 	},
 	"Characters": {
 		"elements": [
@@ -107,11 +97,11 @@
 	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
-	"Jeep_Renegade_2016": {
-		"fileName": "tanks/Jeep_Renegade_2016.g3db"
-	},
 	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
+	},
+	"Jeep_Renegade_2016": {
+		"fileName": "tanks/Jeep_Renegade_2016.g3db"
 	}
 }
 }
