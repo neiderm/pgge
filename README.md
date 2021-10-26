@@ -96,8 +96,15 @@ https://www.turbosquid.com/3d-models/3d-offroad-car-1328883
 Open offroadcar.blend
 Export OBJ Z-Forward Y-Up Scale 0.35
 
-"Red Sand Texture"
+Red Sand Texture
 https://www.flickr.com/photos/maleny_steve/8899498324
+
+Streaky Metal 1 PBR Material
+https://freepbr.com/materials/streaky-metal1/
+
+Sharpshooter Regular
+License Free for personal use
+https://www.1001fonts.com/sharpshooter-font.html
 
 
 Things to investigate:
