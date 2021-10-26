@@ -12,6 +12,15 @@
 				"isShadowed": false
 			},
 			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 10,
+							"z": 0
+						}
+					}
+				],
 				"scale": {
 					"x": 4,
 					"y": 0.2,
@@ -23,6 +32,35 @@
 			}
 		],
 		"modelName": "UserMeshesModel"
+	},
+	"InstancedModelMeshes": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 0,
+							"z": 0
+						}
+					}
+				],
+				"objectName": "TitleText"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 0,
+							"y": 0,
+							"z": 0
+						}
+					}
+				],
+				"objectName": "Cube"
+			}
+		],
+		"modelName": "StaticObjects"
 	},
 	"Characters": {
 		"elements": [
@@ -71,6 +109,9 @@
 	},
 	"Jeep_Renegade_2016": {
 		"fileName": "tanks/Jeep_Renegade_2016.g3db"
+	},
+	"StaticObjects": {
+		"fileName": "data/cubetest.g3dj"
 	}
 }
 }

@@ -24,6 +24,7 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -73,6 +74,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private ImageButton rightButton;
     private _ScreenType screenType;
     private String stagename;
+    private Entity textEntity = null;
+
+    private static final String STATIC_OBJECTS = "InstancedModelMeshes";
 
     private enum _ScreenType {
         TITLE,
@@ -92,7 +96,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         screenType = _ScreenType.TITLE;
 
         // hide the armor units (translate several units on the Y axis)
-        for (Entity e : characters){
+        for (Entity e : characters) {
             Matrix4 transform = e.getComponent(ModelComponent.class).modelInst.transform;
             transform.setToTranslation(0, 10, 0);
         }
@@ -150,8 +154,22 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         leftButton.setVisible(false);
         rightButton.setVisible(false);
 
-        theLabel = new Label("Goon Squad!", stage.uiSkin);
+        theLabel = new Label("I need aligned!", stage.uiSkin);
         stage.addActor(theLabel);
+        theLabel.setVisible(false);
+
+// grab a handle to the title text entity
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        GameObject gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(0);
+
+        for (Entity e : engine.getEntitiesFor(Family.all(ModelComponent.class).get())) {
+            ModelComponent modelComponent = e.getComponent(ModelComponent.class);
+            Node nnn = modelComponent.modelInst.nodes.get(0);
+            if (nnn.id.equals(gameObject.objectName)) {
+                textEntity = e;
+                break;
+            }
+        }
 
         degreesSetp = 90 - idxRigSelection * platformIncDegrees();
         degreesInst = degreesSetp; // no movement at screen start
@@ -339,8 +357,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
                     screenType = _ScreenType.LEVEL;
-                    theLabel.setText("Select Level");
-                    stagename = "vr_zone";
+                    theLabel.setText("Select a mission");
+                    theLabel.setVisible(true);
+                    stagename = "vr_zone"; // set the default
+
+                    // hide title text
+                    ModelComponent modelComponent = textEntity.getComponent(ModelComponent.class);
+                    modelComponent.modelInst.transform.setToTranslation(0, 0, 10);
 
                     if (!stageNamesList.isEmpty()) {
                         stage.setMenuVisibility(true);
@@ -362,6 +385,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         leftButton.setVisible(true);
                         rightButton.setVisible(true);
                         theLabel.setText("Select Armor Unit");
+                        theLabel.setVisible(true);
+
+                        // show platform
+                        ModelComponent modelComponent = platform.getComponent(ModelComponent.class);
+                        modelComponent.modelInst.transform.setToTranslation(0, 0, 0);
+
                     } else {
                         Gdx.app.log(CLASS_STRING, "No screen files found!");
                     }
