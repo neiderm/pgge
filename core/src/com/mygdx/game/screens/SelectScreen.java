@@ -74,14 +74,25 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private ImageButton rightButton;
     private _ScreenType screenType;
     private String stagename;
-    private Entity textEntity = null;
+    private Entity logoEntity = null;
+    private Entity cubeEntity = null;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
+    private static final float LOGO_START_PT_Y = 10.0f;//tbd
+    private static final float LOGO_END_PT_Y = 0.8f; // see z-dimension of LogoText in cubetest.blend
 
     private enum _ScreenType {
         TITLE,
         LEVEL,
         ARMOR
+    }
+
+    /**
+     * bah .. determined more or less by arbitrary order in model info STATIC_OBJECTS of json file
+     */
+    private enum _ModelNodes {
+        LOGO,
+        CUBE
     }
 
     @Override
@@ -115,7 +126,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             String fname = file.name();
             if (fname.matches("(.*).json($)")) {
                 String basename = fname.replaceAll(".json$", "");
-// specify the path+name for now until all screeen jsons are migrated to Screens_Dir
                 stageNamesList.add(basename);
             }
         }
@@ -158,18 +168,27 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.addActor(theLabel);
         theLabel.setVisible(false);
 
-// grab a handle to the title text entity
+        // grab a handle to selected entities
         SceneData sd = GameWorld.getInstance().getSceneData();
-        GameObject gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(0);
 
         for (Entity e : engine.getEntitiesFor(Family.all(ModelComponent.class).get())) {
             ModelComponent modelComponent = e.getComponent(ModelComponent.class);
             Node nnn = modelComponent.modelInst.nodes.get(0);
+
+            GameObject gameObject;
+
+            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(_ModelNodes.LOGO.ordinal());
             if (nnn.id.equals(gameObject.objectName)) {
-                textEntity = e;
-                break;
+                logoEntity = e;
+            }
+            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(_ModelNodes.CUBE.ordinal());
+            if (nnn.id.equals(gameObject.objectName)) {
+                cubeEntity = e;
             }
         }
+        // position title text out of view
+        ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
+        modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
 
         degreesSetp = 90 - idxRigSelection * platformIncDegrees();
         degreesInst = degreesSetp; // no movement at screen start
@@ -337,6 +356,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     // do not convert me to a local variable ... jdoc tag?
     private int idxMenuSelection;
+    private Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
+    private Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
+    private float cubeVelocity = 0.01f;
 
     /*
      * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
@@ -351,33 +373,56 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
+        ModelComponent modelCompLogo = logoEntity.getComponent(ModelComponent.class);
+        modelCompLogo.modelInst.transform.getTranslation(logoPositionVec);
+
+        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
+        modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
+
         switch (screenType) {
             default:
             case TITLE:
+                // swipe-in the logo text block ...
+                float error = logoPositionVec.y - LOGO_END_PT_Y;
+                final float kP = 0.10f;
+                final float THR = 0.001f * (LOGO_START_PT_Y - LOGO_END_PT_Y);
+                // /* positionVector.y > LOGO_END_PT_Y */  .. simpler?
+                if (error > THR) {
+                    logoPositionVec.y = logoPositionVec.y - (error * kP);
+                } else {
+                    // once title text in place ...
+                    logoPositionVec.y = LOGO_END_PT_Y;
+                    //enable Next button
+
+                }
+                modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
+
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
                     screenType = _ScreenType.LEVEL;
-                    theLabel.setText("Select a mission");
-                    theLabel.setVisible(true);
                     stagename = "vr_zone"; // set the default
-
-                    // hide title text
-                    ModelComponent modelComponent = textEntity.getComponent(ModelComponent.class);
-                    modelComponent.modelInst.transform.setToTranslation(0, 0, 10);
-
-                    if (!stageNamesList.isEmpty()) {
-                        stage.setMenuVisibility(true);
-                    } else {
-                        Gdx.app.log(CLASS_STRING, "No screen files found!");
-                    }
                 }
                 break;
 
             case LEVEL:
                 idxMenuSelection = stage.setCheckedBox();
+                // hide title text
+                if (logoPositionVec.x < 10) {
+                    // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+                    logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
+                    modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
+                } else {
+                    // once title text in place ...
+//                        if (!stageNamesList.isEmpty()) {
+                    stage.setMenuVisibility(true);
+                    theLabel.setText("Select a mission");
+                    theLabel.setVisible(true);
+                    // enable next button ...
 
+                }
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+
                     if (!stageNamesList.isEmpty()) {
                         stagename = stageNamesList.get(idxMenuSelection);
                         stage.setMenuVisibility(false);
@@ -386,11 +431,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         rightButton.setVisible(true);
                         theLabel.setText("Select Armor Unit");
                         theLabel.setVisible(true);
-
-                        // show platform
-                        ModelComponent modelComponent = platform.getComponent(ModelComponent.class);
-                        modelComponent.modelInst.transform.setToTranslation(0, 0, 0);
-
                     } else {
                         Gdx.app.log(CLASS_STRING, "No screen files found!");
                     }
@@ -400,6 +440,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case ARMOR:
+                // hide cube
+                if (cubePositionVec.x < 20) {
+                    // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+//                    cubePositionVec.y = (+1) *((cubePositionVec.y + 0.01f) * 1.10f);
+//                    modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
+                    cubeVelocity *= 1.10f; // todo setToTranslation() can't be used - need to apply scale in cube model
+                    modelCompCube.modelInst.transform.translate(cubeVelocity, 0, 0);
+                } else {
+                    // enable next button ...
+
+                }
                 updatePlatform(degreesInst);
                 int step = getStep();
                 idxRigSelection = checkedUpDown(step, idxRigSelection);
