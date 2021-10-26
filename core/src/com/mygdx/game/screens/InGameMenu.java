@@ -209,8 +209,10 @@ class InGameMenu extends Stage {
         return button;
     }
 
-    void addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
-        addActor(makeTextButton(btnText, theColor, inputBinding));
+    TextButton addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+        TextButton tButton = makeTextButton(btnText, theColor, inputBinding);
+        addActor(tButton);
+        return tButton;
     }
 
     /**
