@@ -38,6 +38,8 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         timer = 0; //stay on splash screen for minimum time
     }
 
+    private boolean wasTouched;
+
     @Override
     public void render(float delta) {
         // plots debug graphics
@@ -56,18 +58,19 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         batch.draw(ttrSplash, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         batch.end();
 
-        // one-time check for TS input (determine wether to show touchpad controll)
-        boolean isTouched = Gdx.input.isTouched(0);
-
+        // allow detected TS input to advance past splash screen once minimum time elapses
+        if (!wasTouched) {
+            wasTouched = Gdx.input.isTouched(0);
+        }
         // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
         // (but once global "isTouchscreen" is set, don't clear it ;)
-        if (!GameWorld.getInstance().getIsTouchScreen() && isTouched) {
+        if (!GameWorld.getInstance().getIsTouchScreen() && wasTouched) {
             GameWorld.getInstance().setIsTouchScreen(true);
         }
 
-        if ((timer > MAX_SP_SCREEN_TIME)
-                || ((timer > MIN_SP_SCREEN_TIME)
-                && stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A))) {
+        boolean isA = (wasTouched || stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A));
+
+        if ((timer > MAX_SP_SCREEN_TIME) || ((timer > MIN_SP_SCREEN_TIME) && isA)) {
             // if no data file found, go into test screen
             if (Gdx.files.internal(DATA_FILE_NAME).exists()) {
                 GameWorld.getInstance().setSceneData(DATA_FILE_NAME);
