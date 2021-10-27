@@ -28,9 +28,11 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -60,11 +62,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private int actorCount;
     private int idxRigSelection;
-    private int touchPadDx; // globalized for "debouncing" swipe event
     private int dPadYaxis;
     private Label theLabel;
     private ImageButton leftButton;
     private ImageButton rightButton;
+    private ImageButton gestureButton;
     private ScreenType screenType;
     private String stagename;
     private Entity logoEntity;
@@ -81,7 +83,33 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private enum ScreenType {
         TITLE,
         LEVEL,
-        ARMOR
+        ARMOR,
+        INVALID
+    }
+
+    private class SetupScreen {
+        ScreenType screenType;
+
+        void update() { // MT
+        }
+
+        SetupScreen() {
+            this(ScreenType.INVALID);
+        }
+
+        SetupScreen(ScreenType screenType) {
+            this.screenType = screenType;
+        }
+    }
+
+    class TitleScreen extends SetupScreen {
+        TitleScreen() {
+            this.screenType = ScreenType.INVALID;
+        }
+
+        @Override
+        void update() { // MT
+        }
     }
 
     /**
@@ -118,11 +146,15 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         stageNamesList = createScreensMenu();
 
+        // first add the swipe overlay (bottom?)
+        addSwipeOverlay();
+
         // disposables
         Pixmap pixmap;
         Texture texture; // AddImageButton() keeps the reference for disposal
-        Color theColor = new Color(0, 1.0f, 0, 0.5f);
+        Color theColor = new Color(0, 0f, 0, 0f);
 
+        theColor.set(0, 1.0f, 0, 0.5f);
         nextButton = stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
         nextButton.setVisible(false);
 
@@ -146,7 +178,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         rightButton = stage.addImageButton(texture,
                 GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
                 GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
-
         pixmap.dispose();
 
         leftButton.setVisible(false);
@@ -199,28 +230,49 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return namesArray;
     }
 
+    /**
+     * @brief create gesture overlay
+     * @details create a transparent button to overlay the screen and handle pan left/right event
+     * @return
+     */
+    void addSwipeOverlay(){
+        Pixmap pixmap = new Pixmap(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
+        Color theColor = new Color(0, 0f, 0, 0f);
+        pixmap.setColor(theColor);
+        pixmap.fill();
+        gestureButton = stage.addImageButton(new Texture(pixmap), 0, 0);
+        pixmap.dispose();
+        gestureButton.setVisible(false);
+        gestureButton.addListener(
+                new ActorGestureListener() {
+                    @Override
+                    public void pan(InputEvent event, float x, float y, float deltaX, float deltaY) {
+//                        if (Math.abs(deltaX) > Math.abs(deltaY))
+                        {
+                            final int THRSH = 5;
+                            // r2l2active = true
+                            if (deltaX < (-THRSH)) {
+                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, -1);
+                            } else if (deltaX > (+THRSH)) {
+                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, +1);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void panStop(InputEvent event, float x, float y, int pointer, int button) {
+                        // if r2l2active
+                        stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, 0);
+                    }
+                }
+        );
+    }
     /*
      * dPad X axis + touch-swipe (left/right)
      */
     private int getStep() {
 
         int axis = stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS);
-
-        if (Gdx.input.isTouched()) {
-            // make sure not in a swipe event already
-            if (0 == touchPadDx) {
-                touchPadDx = Gdx.input.getDeltaX();
-
-                if (touchPadDx < -1) {
-                    axis = -1;
-                } else if (touchPadDx > 1) {
-                    axis = 1;
-                }
-            }
-        } else {
-            touchPadDx = 0; // clear any swipe event in progress
-        }
-
         if (0 == axis) { // if input is inactive
             /* key is released ... not necessary but for debugging */
             dPadYaxis = 0; // de-latch previous input state
@@ -451,6 +503,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     nextButton.setVisible(true);
                     leftButton.setVisible(true);
                     rightButton.setVisible(true);
+                    gestureButton.setVisible(true);
                     theLabel.setText("Select Armor Unit");
                     theLabel.setVisible(true);
                 }
