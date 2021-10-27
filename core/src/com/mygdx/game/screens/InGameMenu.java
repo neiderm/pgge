@@ -53,12 +53,13 @@ class InGameMenu extends Stage {
     private final Array<String> buttonNames = new Array<>();
 
     private ButtonGroup<TextButton> buttonGroup;
-    private Image overlayImage; // disposable
-    private int previousIncrement;
-    private int actorCount;
     // disposables
+    private Image overlayImage;
     private Texture overlayTexture;
     private BitmapFont menuFont;
+
+    private int previousIncrement;
+    private int actorCount;
 
     Skin uiSkin;
     InputMapper mapper;
@@ -115,6 +116,8 @@ class InGameMenu extends Stage {
      * @param buttonNames String list of button names in order to be added
      */
     void createMenu(String menuName, String... buttonNames) {
+
+        onscreenMenuTbl.clear();
         // add the menu table last so that it will always be over the overlay layer
         onscreenMenuTbl.setFillParent(true);
         addActor(onscreenMenuTbl);
@@ -225,7 +228,6 @@ class InGameMenu extends Stage {
     ImageButton addImageButton(
             Texture tex, float posX, float posY, final ButtonEventHandler inputBinding) {
 
-        savedTextureRefs.add(tex);
         final ImageButton newButton = addImageButton(tex, posX, posY);
 
         newButton.addListener(
@@ -273,9 +275,15 @@ class InGameMenu extends Stage {
         ImageButton newButton = new ImageButton(myTexRegionDrawable);
         addActor(newButton);
         newButton.setPosition(posX, posY);
+        savedTextureRefs.add(tex);
+
         return newButton;
     }
 
+    /**
+     * name: updateMenuSelection
+     * @return
+     */
     int setCheckedBox() {
         return setCheckedBox(checkedUpDown());
     }
@@ -384,32 +392,32 @@ class InGameMenu extends Stage {
                 (KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP))) {
             mapper.setAxis(axisSetIndexY, 0);
         }
-/// are these needed>
-        // action buttons
-        if (Input.Keys.SPACE == keycode) {
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-        }
-        if (Input.Keys.CONTROL_LEFT == keycode) {
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
-        }
-        // UI/menu activation buttons
-        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
-        }
-        if (Input.Keys.TAB == keycode) {
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
-        }
-        if (Input.Keys.SHIFT_RIGHT == keycode) {
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
-        }
-//////////
+///// are these needed>
+//        // action buttons
+//        if (Input.Keys.SPACE == keycode) {
+//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+//        }
+//        if (Input.Keys.CONTROL_LEFT == keycode) {
+//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+//        }
+//        // UI/menu activation buttons
+//        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
+//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
+//        }
+//        if (Input.Keys.TAB == keycode) {
+//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
+//        }
+//        if (Input.Keys.SHIFT_RIGHT == keycode) {
+//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
+//        }
+////////////
         return false;
     }
 
     /*
      * dispose textures of Actors that were added to the Stage by the client
      */
-    private void clearShapeRefs() {
+    private void clearTextureRefs() {
         for (Texture tex : savedTextureRefs) {
             tex.dispose();
         }
@@ -430,7 +438,7 @@ class InGameMenu extends Stage {
     @Override
     public void dispose() {
 
-        clearShapeRefs();
+        clearTextureRefs();
 
         if (null != overlayTexture) {
             overlayTexture.dispose();
