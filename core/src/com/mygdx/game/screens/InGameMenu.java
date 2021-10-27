@@ -392,25 +392,25 @@ class InGameMenu extends Stage {
                 (KEY_CODE_POV_DOWN == keycode && !Gdx.input.isKeyPressed(KEY_CODE_POV_UP))) {
             mapper.setAxis(axisSetIndexY, 0);
         }
-///// are these needed>
-//        // action buttons
-//        if (Input.Keys.SPACE == keycode) {
-//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-//        }
-//        if (Input.Keys.CONTROL_LEFT == keycode) {
-//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
-//        }
-//        // UI/menu activation buttons
-//        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
-//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
-//        }
-//        if (Input.Keys.TAB == keycode) {
-//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
-//        }
-//        if (Input.Keys.SHIFT_RIGHT == keycode) {
-//            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
-//        }
-////////////
+/// are these needed ... yes!
+        // action buttons
+        if (Input.Keys.SPACE == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+        }
+        if (Input.Keys.CONTROL_LEFT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, false);
+        }
+        // UI/menu activation buttons
+        if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, false);
+        }
+        if (Input.Keys.TAB == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_SELECT, false);
+        }
+        if (Input.Keys.SHIFT_RIGHT == keycode) {
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false);
+        }
+//////////
         return false;
     }
 
