@@ -62,11 +62,6 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         if (!wasTouched) {
             wasTouched = Gdx.input.isTouched(0);
         }
-        // set global status of touch screen for dynamic configuring of UI on-screen touchpad etc.
-        // (but once global "isTouchscreen" is set, don't clear it ;)
-        if (!GameWorld.getInstance().getIsTouchScreen() && wasTouched) {
-            GameWorld.getInstance().setIsTouchScreen(true);
-        }
 
         boolean isA = (wasTouched || stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A));
 
