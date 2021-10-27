@@ -65,7 +65,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Label theLabel;
     private ImageButton leftButton;
     private ImageButton rightButton;
-    private _ScreenType screenType;
+    private ScreenType screenType;
     private String stagename;
     private Entity logoEntity;
     private Entity cubeEntity;
@@ -78,7 +78,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final float PLATFORM_START_PT_Y = -50.0f;//tbd
     private static final float PLATFORM_END_PT_Y = -0.1f;
 
-    private enum _ScreenType {
+    private enum ScreenType {
         TITLE,
         LEVEL,
         ARMOR
@@ -87,7 +87,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     /**
      * bah .. determined more or less by arbitrary order in model info STATIC_OBJECTS of json file
      */
-    private enum _ModelNodes {
+    private enum ModelNodes {
         LOGO,
         CUBE
     }
@@ -101,7 +101,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
         actorCount = characters.size(); // should be 3!@!!!!
-        screenType = _ScreenType.TITLE;
+        screenType = ScreenType.TITLE;
 
         // hide the armor units (translate several units on the Y axis)
         for (Entity e : characters) {
@@ -116,19 +116,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         Matrix4 pTransform = platform.getComponent(ModelComponent.class).modelInst.transform;
         pTransform.setToTranslation(new Vector3(0, PLATFORM_START_PT_Y, 0));
 
-        // setup a screen/file selection menu (development only)
-        FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
-        stageNamesList = new ArrayList<>(); //  must be re-instantiated at each screen invocation
-
-        for (FileHandle file : files) {
-            // stick the base-name (no path, no extension) into the menu
-            String fname = file.name();
-            if (fname.matches("(.*).json($)")) {
-                String basename = fname.replaceAll(".json$", "");
-                stageNamesList.add(basename);
-            }
-        }
-        stage.createMenu(null, stageNamesList.toArray(new String[0]));
+        stageNamesList = createScreensMenu();
 
         // disposables
         Pixmap pixmap;
@@ -177,11 +165,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
             GameObject gameObject;
 
-            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(_ModelNodes.LOGO.ordinal());
+            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(ModelNodes.LOGO.ordinal());
             if (nnn.id.equals(gameObject.objectName)) {
                 logoEntity = e;
             }
-            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(_ModelNodes.CUBE.ordinal());
+            gameObject = sd.modelGroups.get(STATIC_OBJECTS).getElement(ModelNodes.CUBE.ordinal());
             if (nnn.id.equals(gameObject.objectName)) {
                 cubeEntity = e;
             }
@@ -193,6 +181,22 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         degreesSetp = 90 - idxRigSelection * platformIncDegrees();
         degreesInst = degreesSetp; // no movement at screen start
         degreesInst = 0; // does 90 degree rotation
+    }
+
+    private ArrayList<String> createScreensMenu() {
+        ArrayList<String> namesArray = new ArrayList<>();
+        FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
+
+        for (FileHandle file : files) {
+            // stick the base-name (no path, no extension) into the menu
+            String fname = file.name();
+            if (fname.matches("(.*).json($)")) {
+                String basename = fname.replaceAll(".json$", "");
+                namesArray.add(basename);
+            }
+        }
+        stage.createMenu(null, namesArray.toArray(new String[0]));
+        return namesArray;
     }
 
     /*
@@ -302,6 +306,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         Matrix4 transform = platform.getComponent(ModelComponent.class).modelInst.transform;
         transform.setToRotation(down.set(0, 1, 0), 360 - platformDegrees);
         transform.trn(0, PLATFORM_END_PT_Y, 0);
+
+        int step = getStep();
+        idxRigSelection = checkedUpDown(step, idxRigSelection);
+        // Necessary to increment the degrees because we are controlling to it like a setpoint
+        // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
+        degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
     }
 
     // based on InGameMenu. checkedUpDown()
@@ -321,41 +331,33 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Screen newLoadingScreen(String path) {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
-
         ModelGroup mg = sd.modelGroups.get("Characters");
         // first 3 Characters are on the platform - use currently selected index to retrieve
-        GameObject go = mg.getElement(idxRigSelection);
-        String playerObjectName = go.objectName;
+        String playerObjectName = mg.getElement(idxRigSelection).objectName;
 
         // When loading from Select Screen, need to distinguish the name of the selected player
         // object by an arbitrary character string to make sure locally added player model info
         // doesn't bump into the user-designated model info sections in the screen json files
         final String PLAYER_OBJECT_TAG = "P0_";
-        String playerFeatureName = PLAYER_OBJECT_TAG + playerObjectName;
-
         ModelInfo selectedModelInfo = null;
+        String playerFeatureName = PLAYER_OBJECT_TAG;
 
         if (null != playerObjectName) {
             // get the player model info from previous scene (which should still be valid)
             selectedModelInfo = sd.modelInfo.get(playerObjectName);
+            playerFeatureName += playerObjectName;
+            GameWorld.getInstance().setSceneData(path, playerFeatureName, selectedModelInfo);
+        } else {
+            Gdx.app.log(CLASS_STRING, "Error: Player Objet Name may not be null!");
         }
-
-        GameWorld.getInstance().setSceneData(path, playerFeatureName, selectedModelInfo);
-
         return new LoadingScreen();
     }
 
     // do not convert me to a local variable ... jdoc tag?
-    private int idxMenuSelection;
     private Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
     private Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
     private Vector3 platformPositionVec = new Vector3(); // tmp vector for reuse
 
-    /*
-     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-     * "Note that using a StringBuilder is highly recommended against string concatenation in your
-     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
-     */
     @Override
     public void render(float delta) {
         // plots debug graphics
@@ -370,14 +372,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
         modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
 
-        float error;
-
         switch (screenType) {
             default:
             case TITLE:
                 // swipe-in the logo text block ...
-                error = logoPositionVec.y - LOGO_END_PT_Y;
                 final float kPlogo = 0.10f;
+                float error = logoPositionVec.y - LOGO_END_PT_Y;
                 if ((logoPositionVec.y > LOGO_END_PT_Y) && (error > kPlogo)) {
                     logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
                 } else {
@@ -391,17 +391,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (nextButton.isVisible() &&
                         stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
-                    screenType = _ScreenType.LEVEL;
+                    screenType = ScreenType.LEVEL;
                     stagename = "vr_zone"; // set the default
                     nextButton.setVisible(false);
                 }
                 break;
 
             case LEVEL:
-                idxMenuSelection = stage.setCheckedBox();
+                int idxMenuSelection = stage.setCheckedBox(); // stage.updateMenuSelection()
                 // hide title text
                 if (logoPositionVec.x < 10) {
-                    // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+                    // since x could start at zero, an additional summed amount ensures non-zero multiplicand
                     logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
                     modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
                 } else {
@@ -420,7 +420,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     if (!stageNamesList.isEmpty()) {
                         stagename = stageNamesList.get(idxMenuSelection);
                         stage.setMenuVisibility(false);
-                        screenType = _ScreenType.ARMOR;
+                        screenType = ScreenType.ARMOR;
                         theLabel.setVisible(false);
                     } else {
                         Gdx.app.log(CLASS_STRING, "No screen files found!");
@@ -439,7 +439,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     error = PLATFORM_END_PT_Y - platformPositionVec.y;
                     final float kPplatform = 0.10f;
                     // if present position is Less Than (going up ... )
-                    if ( (error > kPplatform) && (platformPositionVec.y < PLATFORM_END_PT_Y)) {
+                    if ((error > kPplatform) && (platformPositionVec.y < PLATFORM_END_PT_Y)) {
                         platformPositionVec.y = platformPositionVec.y + (error * kPplatform);
                     } else {
                         // lock title text in place ...
@@ -463,11 +463,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
                 if (nextButton.isVisible()) {
                     updatePlatform(degreesInst);
-                    int step = getStep();
-                    idxRigSelection = checkedUpDown(step, idxRigSelection);
-                    // Necessary to increment the degrees because we are controlling to it like a setpoint
-                    // rotating past 360 must not wrap around to o0, it must go to e.g. 480, 600 etc. maybe this is wonky)
-                    degreesSetp -= platformIncDegrees() * step;   // negated (matches to left/right of object nearest to front of view)
 
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         GameWorld.getInstance().showScreen(newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
