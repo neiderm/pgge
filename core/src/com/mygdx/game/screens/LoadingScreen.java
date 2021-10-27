@@ -43,14 +43,13 @@ public class LoadingScreen implements Screen {
     private Screen newScreen;
     private Texture ttrBackDrop; // reference to selected texture (does not need disposed)
 
-    private static final StringBuilder stringBuilder = new StringBuilder();
     private static final Color fadeoutColor = new Color(0, 0, 0, 0);
     private static final Color splashBarColor = new Color(Color.BLACK);
     private static final Color loadBarColor = new Color(255, 0, 0, 1);
 
     // disposables
+    private static final Texture ttrSplash = new Texture("splash-screen.png");
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-    private Texture ttrSplash;
     private Texture ttrLoad;
     private SpriteBatch spriteBatch = new SpriteBatch();
     private BitmapFont bitmapFont = new BitmapFont(
@@ -86,12 +85,14 @@ public class LoadingScreen implements Screen {
                 break;
         }
         ttrBackDrop = ttrLoad;
-        ttrSplash = new Texture("splash-screen.png");
-//        spriteBatch = new SpriteBatch();
-
         bitmapFont.getData().setScale(GameWorld.FONT_X_SCALE, GameWorld.FONT_Y_SCALE);
         isLoaded = false;
     }
+
+    private static final String STR_READY = "Ready!";
+    private static final String STR_PRESENTING = "Presenting ... ";
+    private static final String STR_LOADING = "Loading ... ";
+    private String labelString = "invalid";
 
     @Override
     public void render(float delta) {
@@ -114,7 +115,7 @@ public class LoadingScreen implements Screen {
 
         spriteBatch.begin();
         spriteBatch.draw(ttrBackDrop, 0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        bitmapFont.draw(spriteBatch, stringBuilder, barLocX, (GameWorld.VIRTUAL_HEIGHT / 5.0f) * 3);
+        bitmapFont.draw(spriteBatch, labelString, barLocX, (GameWorld.VIRTUAL_HEIGHT / 5.0f) * 3);
         spriteBatch.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
@@ -140,16 +141,14 @@ public class LoadingScreen implements Screen {
         shapeRenderer.end();
 
         /*
-         * make sure loadNewScreen() not called until rendering pass ... hide() destroys everything!
+         * make sure showScreen() not called until rendering pass ... hide() calls dispose()!
          */
         if (!isLoaded) {
 
             if (ScreenTypes.SETUP == screenType) {
-                stringBuilder.setLength(0);
-                stringBuilder.append("Presenting ... ");
+                labelString = STR_PRESENTING;
             } else {
-                stringBuilder.setLength(0);
-                stringBuilder.append("Loading ... ");
+                labelString = STR_LOADING;
             }
             // make the bar up to half the screen width
             loadCounter =
@@ -170,14 +169,14 @@ public class LoadingScreen implements Screen {
 
             if (ScreenTypes.LEVEL == screenType) {
                 screenTimer = 0;
-                stringBuilder.setLength(0);
-                stringBuilder.append("Ready!");
+                labelString = STR_READY;
 
-                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A) || isTouched) {
+                if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
+                        || Gdx.input.isTouched(0)) {
                     GameWorld.getInstance().showScreen(newScreen);
                 }
             } else {
-                // just do it
+                // show setup screen immediately
                 GameWorld.getInstance().showScreen(newScreen);
             }
         }
