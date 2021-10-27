@@ -282,6 +282,11 @@ public class GameUI extends InGameMenu {
         return button;
     }
 
+    /**
+     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
+     * "Note that using a StringBuilder is highly recommended against string concatenation in your
+     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
+     */
     private void updateTimerLbl() {
 
         int minutes = 0;
@@ -452,9 +457,9 @@ public class GameUI extends InGameMenu {
 
         if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
             newInputState = InputState.INP_A;
-
-        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_B)) {
-            newInputState = InputState.INP_B;
+// unused
+//        } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_B)) {
+//            newInputState = InputState.INP_B;
 
         } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)) {
             newInputState = InputState.INP_START;
@@ -464,7 +469,7 @@ public class GameUI extends InGameMenu {
 
         } else if (mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_L1)) {
             newInputState = InputState.INP_L1;
-            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false); // hmmm
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_L1, false); // for gesture input
         }
 
         InputState debouncedInputState = InputState.INP_NONE;
@@ -482,12 +487,6 @@ public class GameUI extends InGameMenu {
         } else if (InputState.INP_L1 == debouncedInputState) {
             onL1MenuOpen();
         }
-
-//        int checkedBox = 0; // button default at top selection
-//        if (getMenuVisibility()) {
-//            checkedBox = checkedUpDown();
-//        }
-//        setCheckedBox(checkedBox);
     }
 
     /*
@@ -550,7 +549,7 @@ public class GameUI extends InGameMenu {
         showOSC(false);
         showPauseMenu(false);
         updateTimerLbl();
-// hmmm .. text strings being rebuilt each frame
+        // text strings rebuilt each frame - see note on updateTimerLbl() re use of StringBuilder
         switch (GameWorld.getInstance().getRoundActiveState()) {
             case ROUND_OVER_KILLED:
                 stringBuilder.setLength(0);
