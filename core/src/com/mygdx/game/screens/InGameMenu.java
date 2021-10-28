@@ -185,7 +185,7 @@ class InGameMenu extends Stage {
         EVENT_RIGHT
     }
 
-    private TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+    TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
         TextButton button = new TextButton(btnText, uiSkin, "default");
         button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
         button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
@@ -282,7 +282,7 @@ class InGameMenu extends Stage {
 
     /**
      * name: updateMenuSelection
-     * @return
+     * @return checked selection
      */
     int setCheckedBox() {
         return setCheckedBox(checkedUpDown());
