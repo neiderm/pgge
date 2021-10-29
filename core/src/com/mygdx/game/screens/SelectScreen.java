@@ -71,10 +71,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Entity logoEntity;
     private Entity cubeEntity;
     private Entity platform;
-    private TextButton nextButton;
     private RigSelect rigSelect;
     private ScreenType screenType = ScreenType.INVALID;
     private Table armorSelectTable;
+    private Table titleSelectTable;
     private Texture leftBtexture;
     private Texture rightBtexture;
 
@@ -143,13 +143,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         stageNamesList = createScreenslist();
 
-        Color theColor = new Color(0, 0f, 0, 0f);
-        theColor.set(0, 1.0f, 0, 0.5f);
-        nextButton = stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
-        nextButton.setVisible(false);
-
         createArmorSelectTable();
 
+        createTitleTable();
+
+        // label added to stage tbd
         theLabel = new Label("I need aligned!", stage.uiSkin);
         stage.addActor(theLabel);
         theLabel.setVisible(false);
@@ -198,6 +196,31 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ImageButton newButton = new ImageButton(myTexRegionDrawable);
         newButton.setPosition(posX, posY);
         return newButton;
+    }
+
+    private void createTitleTable() {
+        titleSelectTable = new Table();
+        titleSelectTable.setFillParent(true);
+
+        TextButton button = new TextButton("Next", stage.uiSkin, "default");
+        button.setColor(new Color(0, 1f, 0, 1.0f));
+        button.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                return true;
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+            }
+        });
+        titleSelectTable.add(button);
+        titleSelectTable.row().bottom(); // todo bottom alignment
+
+        titleSelectTable.setVisible(false);
+        stage.addActor(titleSelectTable);
     }
 
     private void createArmorSelectTable() {
@@ -346,17 +369,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
                 } else {
                     logoPositionVec.y = LOGO_END_PT_Y; // snap title block to end point
-                    //enable Next button
-                    nextButton.setVisible(true);
+                    titleSelectTable.setVisible(true);
                 }
                 modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
 
-                if (nextButton.isVisible() &&
+                if (titleSelectTable.isVisible() &&
                         stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
                     screenType = ScreenType.LEVEL;
                     stagename = "vr_zone"; // set the default
-                    nextButton.setVisible(false);
+                    titleSelectTable.setVisible(false);
                 }
                 break;
 
@@ -373,19 +395,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     stage.setMenuVisibility(true);
                     theLabel.setText("Select a mission");
                     theLabel.setVisible(true);
-                    // enable next button ...
-                    nextButton.setVisible(true);
                 }
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
-                        && nextButton.isVisible()) {
+                        && stage.getMenuVisibility()) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
-                    nextButton.setVisible(false);
-                    if (!stageNamesList.isEmpty()) {
-                        stagename = stageNamesList.get(idxMenuSelection);
-                        stage.setMenuVisibility(false);
-                        screenType = ScreenType.ARMOR;
-                        theLabel.setVisible(false);
-                    }
+                    stagename = stageNamesList.get(idxMenuSelection);
+                    stage.setMenuVisibility(false);
+                    screenType = ScreenType.ARMOR;
+                    theLabel.setVisible(false); // label parent is stage, not the menu table :(
                 }
                 break;
 
