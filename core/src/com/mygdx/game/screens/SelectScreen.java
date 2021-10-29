@@ -24,16 +24,19 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -64,8 +67,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private int dPadYaxis;
     private Label theLabel;
-    private ImageButton leftButton;
-    private ImageButton rightButton;
     private String stagename;
     private Entity logoEntity;
     private Entity cubeEntity;
@@ -74,6 +75,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private RigSelect rigSelect;
     private ScreenType screenType = ScreenType.INVALID;
     private Table armorSelectTable;
+    private Texture leftBtexture;
+    private Texture rightBtexture;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final float LOGO_START_PT_Y = 10.0f;//tbd
@@ -190,6 +193,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return namesArray;
     }
 
+    private ImageButton mkImageButton(Texture tex, float posX, float posY) {
+        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
+        ImageButton newButton = new ImageButton(myTexRegionDrawable);
+        newButton.setPosition(posX, posY);
+        return newButton;
+    }
+
     private void createArmorSelectTable() {
 
         armorSelectTable = new Table();
@@ -205,37 +215,70 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         final int ARROW_MID = ARROW_EXT / 2;
 
         Color theColor = new Color(0, 0f, 0, 0f);
-        theColor.set(0, 1.0f, 0, 0.5f);
+        theColor.set(1, 0, 0, 0.5f);
         Pixmap pixmap;
-        Texture texture;
+
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
-        texture = new Texture(pixmap); // disposed by stored ref
+        leftBtexture = new Texture(pixmap); // disposed by stored ref
+        ImageButton leftButton = mkImageButton(leftBtexture, 0, GameWorld.VIRTUAL_HEIGHT / 2.0f);
+        leftButton.addListener(
+                new InputListener() {
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, true);
+                        return true; // for touch up?
+                    }
 
-        leftButton = stage.addImageButton(texture,
-                0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
-        leftButton.setVisible(false);//?
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, false);
+                    }
+                });
         pixmap.dispose();
+        armorSelectTable.add(leftButton);
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
-        texture = new Texture(pixmap);
+        rightBtexture = new Texture(pixmap);
+        ImageButton rightButton = mkImageButton(rightBtexture, GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT, GameWorld.VIRTUAL_HEIGHT / 2.0f);
+        rightButton.addListener(
+                new InputListener() {
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, true);
+                        return true; // for touch up?
+                    }
 
-        rightButton = stage.addImageButton(texture,
-                GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
-                GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
-        rightButton.setVisible(false);//?
+                    @Override
+                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, false);
+                    }
+                });
         pixmap.dispose();
+        armorSelectTable.add(rightButton);
 
         armorSelectTable.row().expand().bottom();
 
-        TextButton tb = stage.makeTextButton(
-                "Next", new Color(1, 0f, 0, 1.0f), InGameMenu.ButtonEventHandler.EVENT_A);
-//        armorSelectTable.add(tb).fillX().uniformX();
+        TextButton button = new TextButton("Next", stage.uiSkin, "default");
+        button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
+        button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
+        button.setColor(new Color(0, 1f, 0, 1.0f));
+        button.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
+                return true;
+            }
 
-        armorSelectTable.add(tb);
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
+            }
+        });
+        armorSelectTable.add(button);
         armorSelectTable.row().bottom();
 
         armorSelectTable.setVisible(false);
@@ -302,8 +345,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if ((logoPositionVec.y > LOGO_END_PT_Y) && (error > kPlogo)) {
                     logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
                 } else {
-                    // lock title text in place ...
-                    logoPositionVec.y = LOGO_END_PT_Y;
+                    logoPositionVec.y = LOGO_END_PT_Y; // snap title block to end point
                     //enable Next button
                     nextButton.setVisible(true);
                 }
@@ -320,7 +362,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
             case LEVEL:
                 int idxMenuSelection = stage.setCheckedBox(); // stage.updateMenuSelection()
-                // hide title text
+                // move title text off screen
                 if (logoPositionVec.x < 10) {
                     // since x could start at zero, an additional summed amount ensures non-zero multiplicand
                     logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
@@ -343,23 +385,15 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         stage.setMenuVisibility(false);
                         screenType = ScreenType.ARMOR;
                         theLabel.setVisible(false);
-                    } else {
-                        Gdx.app.log(CLASS_STRING, "No screen files found!");
                     }
-                } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START)) {
-                    stage.setMenuVisibility(false);
                 }
                 break;
 
             case ARMOR:
+                // if in position, then enable UI
                 if (!rigSelect.updatePlatformPosition()) {
-                    /*
-                     * do not know why visibility doesn't propogate from parent
-                     */
-                    leftButton.setVisible(true);
-                    rightButton.setVisible(true);
+                    // enable UI and update platform
                     armorSelectTable.setVisible(true);
-
                     rigSelect.updatePlatformRotation(getStep());
 
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
@@ -381,7 +415,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     public void render(float delta) {
         // plots debug graphics
         super.render(delta);
-
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
@@ -397,6 +430,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
         shapeRenderer.dispose();
         stage.dispose();
+        leftBtexture.dispose();
+        rightBtexture.dispose();
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }
