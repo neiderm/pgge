@@ -31,6 +31,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
 import com.mygdx.game.GameWorld;
@@ -65,14 +66,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Label theLabel;
     private ImageButton leftButton;
     private ImageButton rightButton;
-    private ImageButton gestureButton;
     private String stagename;
     private Entity logoEntity;
     private Entity cubeEntity;
     private Entity platform;
     private TextButton nextButton;
-    private RigSelect setupScreens;
+    private RigSelect rigSelect;
     private ScreenType screenType = ScreenType.INVALID;
+    private Table armorSelectTable;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
     private static final float LOGO_START_PT_Y = 10.0f;//tbd
@@ -95,9 +96,31 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     @Override
     public void show() {
-
         super.init();
         stage = new InGameMenu();
+        stage.addListener(
+                new ActorGestureListener() {
+                    @Override
+                    public void pan(InputEvent event, float x, float y, float deltaX, float deltaY) {
+//                        if (Math.abs(deltaX) > Math.abs(deltaY))
+                        {
+                            final int THRSH = 5;
+                            // r2l2active = true
+                            if (deltaX < (-THRSH)) {
+                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, -1);
+                            } else if (deltaX > (+THRSH)) {
+                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, +1);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void panStop(InputEvent event, float x, float y, int pointer, int button) {
+                        // if r2l2active
+                        stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, 0);
+                    }
+                }
+        );
         Gdx.input.setInputProcessor(stage);
 
         ImmutableArray<Entity> characters = engine.getEntitiesFor(Family.all(CharacterComponent.class).get());
@@ -113,49 +136,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             platform = f.getEntity();
         }
 
-        setupScreens = new RigSelect(platform, characters);
+        rigSelect = new RigSelect(platform, characters);
 
-        stageNamesList = createScreensMenu();
+        stageNamesList = createScreenslist();
 
-        /*
-         * swipe overlay (image button with event handler) MUST be added to table (otherwise it
-         * consumes events directed at the other input buttons)
-         */
-        addSwipeOverlay();
-
-        // disposables
-        Pixmap pixmap;
-        Texture texture; // AddImageButton() keeps the reference for disposal
         Color theColor = new Color(0, 0f, 0, 0f);
-
         theColor.set(0, 1.0f, 0, 0.5f);
         nextButton = stage.addTextButton("Next", theColor, InGameMenu.ButtonEventHandler.EVENT_A);
         nextButton.setVisible(false);
 
-        final int ARROW_EXT = 64; // extent of arrow tile (height/width)
-        final int ARROW_MID = ARROW_EXT / 2;
-
-        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
-        pixmap.setColor(theColor);
-        pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
-        texture = new Texture(pixmap);
-
-        leftButton = stage.addImageButton(texture,
-                0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
-        pixmap.dispose();
-
-        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
-        pixmap.setColor(theColor);
-        pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
-        texture = new Texture(pixmap);
-
-        rightButton = stage.addImageButton(texture,
-                GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
-                GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
-        pixmap.dispose();
-
-        leftButton.setVisible(false);
-        rightButton.setVisible(false);
+        createArmorSelectTable();
 
         theLabel = new Label("I need aligned!", stage.uiSkin);
         stage.addActor(theLabel);
@@ -184,7 +174,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
     }
 
-    private ArrayList<String> createScreensMenu() {
+    private ArrayList<String> createScreenslist() {
         ArrayList<String> namesArray = new ArrayList<>();
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
 
@@ -200,41 +190,56 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return namesArray;
     }
 
-    /**
-     * create gesture overlay
-     * create a transparent button to overlay the screen and handle pan left/right event
-     */
-    private void addSwipeOverlay() {
-        Pixmap pixmap = new Pixmap(GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT, Pixmap.Format.RGBA8888);
-        Color theColor = new Color(0, 0f, 0, 0f);
-        pixmap.setColor(theColor);
-        pixmap.fill();
-        gestureButton = stage.addImageButton(new Texture(pixmap), 0, 0);
-        pixmap.dispose();
-        gestureButton.setVisible(false);
-        gestureButton.addListener(
-                new ActorGestureListener() {
-                    @Override
-                    public void pan(InputEvent event, float x, float y, float deltaX, float deltaY) {
-//                        if (Math.abs(deltaX) > Math.abs(deltaY))
-                        {
-                            final int THRSH = 5;
-                            // r2l2active = true
-                            if (deltaX < (-THRSH)) {
-                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, -1);
-                            } else if (deltaX > (+THRSH)) {
-                                stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, +1);
-                            }
-                        }
-                    }
+    private void createArmorSelectTable() {
 
-                    @Override
-                    public void panStop(InputEvent event, float x, float y, int pointer, int button) {
-                        // if r2l2active
-                        stage.mapper.setAxis(InputMapper.VIRTUAL_AD_AXIS, 0);
-                    }
-                }
-        );
+        armorSelectTable = new Table();
+        armorSelectTable.setFillParent(true);
+
+        Label armorLabel = new Label("Select armor unit", stage.uiSkin);
+        armorSelectTable.add(armorLabel);
+        armorSelectTable.row().expand();
+
+//        addActor(xxxx);
+//        xxxx.setDebug(true);
+        final int ARROW_EXT = 64; // extent of arrow tile (height/width)
+        final int ARROW_MID = ARROW_EXT / 2;
+
+        Color theColor = new Color(0, 0f, 0, 0f);
+        theColor.set(0, 1.0f, 0, 0.5f);
+        Pixmap pixmap;
+        Texture texture;
+        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
+        pixmap.setColor(theColor);
+        pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
+        texture = new Texture(pixmap); // disposed by stored ref
+
+        leftButton = stage.addImageButton(texture,
+                0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
+        leftButton.setVisible(false);//?
+        pixmap.dispose();
+
+        pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
+        pixmap.setColor(theColor);
+        pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
+        texture = new Texture(pixmap);
+
+        rightButton = stage.addImageButton(texture,
+                GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT,
+                GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_RIGHT);
+        rightButton.setVisible(false);//?
+        pixmap.dispose();
+
+        armorSelectTable.row().expand().bottom();
+
+        TextButton tb = stage.makeTextButton(
+                "Next", new Color(1, 0f, 0, 1.0f), InGameMenu.ButtonEventHandler.EVENT_A);
+//        armorSelectTable.add(tb).fillX().uniformX();
+
+        armorSelectTable.add(tb);
+        armorSelectTable.row().bottom();
+
+        armorSelectTable.setVisible(false);
+        stage.addActor(armorSelectTable);
     }
 
     /*
@@ -261,7 +266,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get("Characters");
         // first 3 Characters are on the platform - use currently selected index to retrieve
-        String playerObjectName = mg.getElement(setupScreens.getSelectedIndex()).objectName;
+        String playerObjectName = mg.getElement(rigSelect.getSelectedIndex()).objectName;
 
         // When loading from Select Screen, need to distinguish the name of the selected player
         // object by an arbitrary character string to make sure locally added player model info
@@ -347,29 +352,26 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case ARMOR:
-                if (!setupScreens.updatePlatformPosition()) {
-                    // in position - uenable UI
-                    nextButton.setVisible(true);
+                if (!rigSelect.updatePlatformPosition()) {
+                    /*
+                     * do not know why visibility doesn't propogate from parent
+                     */
                     leftButton.setVisible(true);
                     rightButton.setVisible(true);
-                    gestureButton.setVisible(true);
-                    theLabel.setText("Select Armor Unit");
-                    theLabel.setVisible(true);
+                    armorSelectTable.setVisible(true);
+
+                    rigSelect.updatePlatformRotation(getStep());
+
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        GameWorld.getInstance().showScreen(
+                                newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+                    }
                 }
                 // update hide the cube
                 if (cubePositionVec.x < 20) {
                     // since x could start at zero, an additional summed amount ensure non-zero multiplicand
                     cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
                     modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
-                }
-
-                if (nextButton.isVisible()) {
-                    setupScreens.updatePlatformRotation(getStep());
-
-                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                        GameWorld.getInstance().showScreen(
-                                newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
-                    }
                 }
                 break;
         }
