@@ -50,16 +50,14 @@ class InGameMenu extends Stage {
 
     private final Table onscreenMenuTbl = new Table();
     private final Array<Texture> savedTextureRefs = new Array<>();
-    private final Array<String> buttonNames = new Array<>();
 
     private ButtonGroup<TextButton> buttonGroup;
+    private int previousIncrement;
+
     // disposables
     private Image overlayImage;
     private Texture overlayTexture;
     private BitmapFont menuFont;
-
-    private int previousIncrement;
-    private int actorCount;
 
     Skin uiSkin;
     InputMapper mapper;
@@ -103,21 +101,21 @@ class InGameMenu extends Stage {
         addActor(overlayTbl);
         setOverlayColor(0, 0, 0, 0);
 //        overlayTbl.setDebug(true);
-
-        buttonGroup = new ButtonGroup<>();
-        buttonGroup.setMaxCheckCount(1);
-        buttonGroup.setMinCheckCount(1);
     }
 
     /**
      * Create a selection menu
      *
-     * @param menuName    String name of menu, no name if empty string or null
-     * @param buttonNames String list of button names in order to be added
+     * @param menuName String name of menu, no name if empty string or null
+     * @param strNames String list of button names in order to be added
      */
-    void createMenu(String menuName, String... buttonNames) {
+    void createMenu(String menuName, String... strNames) {
 
         onscreenMenuTbl.clear();
+        buttonGroup = new ButtonGroup<>();
+        buttonGroup.setMaxCheckCount(1);
+        buttonGroup.setMinCheckCount(1);
+
         // add the menu table last so that it will always be over the overlay layer
         onscreenMenuTbl.setFillParent(true);
         addActor(onscreenMenuTbl);
@@ -125,11 +123,12 @@ class InGameMenu extends Stage {
         if ((null != menuName) && (menuName.length() > 0)) {
             onscreenMenuTbl.add(new Label(menuName, uiSkin)).fillX().uniformX();
         }
-        for (String name : buttonNames) {
+        for (String name : strNames) {
+            // adds the button to the Button Group
             addButton(new TextButton(name, uiSkin, "toggle"));
         }
         TextButton tb =
-                makeTextButton("Next", new Color(1, 0f, 0, 1.0f), ButtonEventHandler.EVENT_A);
+                makeTextButton("Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(tb).fillX().uniformX();
 
@@ -142,9 +141,8 @@ class InGameMenu extends Stage {
     }
 
     private void addButton(TextButton button) {
-        buttonNames.add(button.getText().toString());
+
         buttonGroup.add(button);
-        actorCount += 1;
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(button).fillX().uniformX();
     }
@@ -185,7 +183,7 @@ class InGameMenu extends Stage {
         EVENT_RIGHT
     }
 
-    TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+    private TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
         TextButton button = new TextButton(btnText, uiSkin, "default");
         button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
         button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
@@ -282,6 +280,7 @@ class InGameMenu extends Stage {
 
     /**
      * name: updateMenuSelection
+     *
      * @return checked selection
      */
     int setCheckedBox() {
@@ -289,9 +288,9 @@ class InGameMenu extends Stage {
     }
 
     private int setCheckedBox(int checked) {
-        if (buttonNames.size > 0) {
-            String name = buttonNames.get(checked);
-            buttonGroup.setChecked(name);
+        if (null != buttonGroup) {
+            Label label = buttonGroup.getButtons().get(checked).getLabel();
+            buttonGroup.setChecked(label.getText().toString());
         }
         return checked;
     }
@@ -303,18 +302,23 @@ class InGameMenu extends Stage {
     private int checkedUpDown() {
 
         int step = mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
-        int selectedIndex = buttonGroup.getCheckedIndex();
+        int selectedIndex = 999999999;
 
-        if (0 == previousIncrement) {
-            selectedIndex += step;
-        }
-        previousIncrement = step;
+        if (null != buttonGroup) {
+            int actorCount = buttonGroup.getButtons().size;
+            selectedIndex = buttonGroup.getCheckedIndex();
 
-        if (selectedIndex >= actorCount) {
-            selectedIndex = (actorCount - 1);
-        }
-        if (selectedIndex < 0) {
-            selectedIndex = 0;
+            if (0 == previousIncrement) {
+                selectedIndex += step;
+            }
+            previousIncrement = step;
+
+            if (selectedIndex >= actorCount) {
+                selectedIndex = (actorCount - 1);
+            }
+            if (selectedIndex < 0) {
+                selectedIndex = 0;
+            }
         }
         return selectedIndex;
     }
@@ -355,6 +359,9 @@ class InGameMenu extends Stage {
         }
         if (Input.Keys.CONTROL_LEFT == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_B, true);
+        }
+        if (Input.Keys.BACKSPACE == keycode) { // in a UI context, triangle button is often Back
+            mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, true);
         }
         if (Input.Keys.ESCAPE == keycode || Input.Keys.BACK == keycode) {
             mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_START, true);
