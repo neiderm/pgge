@@ -66,13 +66,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private ArrayList<String> stageNamesList; // needs re-instantiated at each screen invocation
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private int dPadYaxis;
-    private Label theLabel;
     private String stagename;
     private Entity logoEntity;
     private Entity cubeEntity;
     private Entity platform;
     private RigSelect rigSelect;
-    private ScreenType screenType = ScreenType.INVALID;
+    private MenuType menuType = MenuType.INVALID;
     private Table armorSelectTable;
     private Table titleSelectTable;
     private Texture leftBtexture;
@@ -82,9 +81,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final float LOGO_START_PT_Y = 10.0f;//tbd
     private static final float LOGO_END_PT_Y = 0.8f; // see z-dimension of LogoText in cubetest.blend
 
-    private enum ScreenType {
+    private enum MenuType {
         TITLE,
-        LEVEL,
+        CONFIG, // select levels/controller/sound
+        LEVELS,
+        CONTROLLER,
+        SOUND,
         ARMOR,
         INVALID
     }
@@ -141,16 +143,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         rigSelect = new RigSelect(platform, characters);
 
-        stageNamesList = createScreenslist();
-
+        stage.setMenuVisibility(false);// should visible==false be default? see InGameMenu()
         createArmorSelectTable();
-
         createTitleTable();
-
-        // label added to stage tbd
-        theLabel = new Label("I need aligned!", stage.uiSkin);
-        stage.addActor(theLabel);
-        theLabel.setVisible(false);
 
         // grab a handle to selected entities
         SceneData sd = GameWorld.getInstance().getSceneData();
@@ -170,7 +165,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 cubeEntity = e;
             }
         }
-        // position title text out of view
+        // position title block to start point
         ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
         modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
     }
@@ -187,8 +182,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 namesArray.add(basename);
             }
         }
-        stage.createMenu(null, namesArray.toArray(new String[0]));
+        stage.createMenu("Select a mission", true, namesArray.toArray(new String[0]));
         return namesArray;
+    }
+
+    private void createControllerConfig() {
+        // unfortunately Input Mapper is hard coded for this order of system configurations
+        String[] configNames = new String[]{
+                "PC (BT, 2.4 gHz, USB)", // PC
+                "foo", // tbd IOS?
+                "Android (BT)", // Android BlueTooth
+                "bar" // unused
+        };
+        stage.createMenu("System?", true, configNames);
     }
 
     private ImageButton mkImageButton(Texture tex, float posX, float posY) {
@@ -201,6 +207,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private void createTitleTable() {
         titleSelectTable = new Table();
         titleSelectTable.setFillParent(true);
+
+        //         stage.createMenu(null, true, "1p Start", "Options");
 
         TextButton button = new TextButton("Next", stage.uiSkin, "default");
         button.setColor(new Color(0, 1f, 0, 1.0f));
@@ -359,7 +367,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
         modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
 
-        switch (screenType) {
+        switch (menuType) {
             default:
             case TITLE:
                 // swipe-in the logo text block ...
@@ -373,37 +381,84 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 }
                 modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
 
-                if (titleSelectTable.isVisible() &&
-                        stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                    stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
-                    screenType = ScreenType.LEVEL;
-                    stagename = "vr_zone"; // set the default
-                    titleSelectTable.setVisible(false);
+                if (titleSelectTable.isVisible()) {
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // debounce me
+                        titleSelectTable.setVisible(false);
+                        menuType = MenuType.CONFIG;
+                    }
                 }
                 break;
 
-            case LEVEL:
-                int idxMenuSelection = stage.setCheckedBox(); // stage.updateMenuSelection()
+            case CONFIG:
+                int selectIndex = stage.setCheckedBox(); // stage.updateMenuSelection()
                 // move title text off screen
                 if (logoPositionVec.x < 10) {
                     // since x could start at zero, an additional summed amount ensures non-zero multiplicand
                     logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
                     modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
-                } else {
+                    // if menu not visible then show it ...
+                } else if (!stage.getMenuVisibility()) {
                     // once title text is out of the way ...
-//                        if (!stageNamesList.isEmpty()) {
-                    stage.setMenuVisibility(true);
-                    theLabel.setText("Select a mission");
-                    theLabel.setVisible(true);
+                    stage.createMenu(null, true, "Screens", "Options");
                 }
+                if (stage.getMenuVisibility()) {
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+
+                        stage.setMenuVisibility(false);
+
+                        switch (selectIndex) {
+                            default:
+                            case 0:
+                                menuType = MenuType.LEVELS;
+                                stageNamesList = createScreenslist();
+                                break;
+                            case 1:
+                                menuType = MenuType.CONTROLLER;
+                                createControllerConfig();
+                                break;
+                        }
+                    }
+                    else
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
+                        stage.setMenuVisibility(false);
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
+
+                        // position title block to start point
+                        ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
+                        modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
+                        menuType = MenuType.TITLE;
+                    }
+                }
+                break;
+
+            case LEVELS:
+                int levelIndex = stage.setCheckedBox();
+
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
                         && stage.getMenuVisibility()) {
-                    stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
-                    stagename = stageNamesList.get(idxMenuSelection);
+                    stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                     stage.setMenuVisibility(false);
-                    screenType = ScreenType.ARMOR;
-                    theLabel.setVisible(false); // label parent is stage, not the menu table :(
+                    stagename = stageNamesList.get(levelIndex);
+                    menuType = MenuType.ARMOR;
                 }
+                break;
+
+            case CONTROLLER:
+                int ctrsIndex = stage.setCheckedBox();
+                if (stage.getMenuVisibility()) {
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        stage.setMenuVisibility(false);
+                        GameWorld.getInstance().setControllerMode(ctrsIndex);
+                        GameWorld.getInstance().setSceneData(GameWorld.DEFAULT_SCREEN);
+                        GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
+                                new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
+                    }
+                }
+                break;
+
+            case SOUND:
                 break;
 
             case ARMOR:
@@ -416,6 +471,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         GameWorld.getInstance().showScreen(
                                 newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+                    }
+                    else
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
+                        armorSelectTable.setVisible(false);
+//                        menuType = MenuType.CONFIG;
+                        // reset/remove platform
                     }
                 }
                 // update hide the cube
