@@ -90,7 +90,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final float LOGO_END_PT_X1 = 10.0f; // exit, stage right!
     private static final float LOGO_END_PT_Y1 = LOGO_END_PT_Y0;
 
-    private static final float CUBE_START_PT_X = -20;
+    private static final float CUBE_START_PT_X = -20.0f;
     private static final float CUBE_START_PT_Y = 0;
 
     private static final float CUBE_END_PT_X0 = 0;
@@ -248,13 +248,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         logoSelectTable.add(button);
         logoSelectTable.row().bottom(); // todo bottom alignment
 
-        // position cube to start point
-//        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
-//        modelCompCube.modelInst.transform.setToTranslation(CUBE_START_PT_X, CUBE_START_PT_Y, 0);
+        /*
+         * position cube to start point
+         */
+        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
+        modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
+        cubePositionVec.x = CUBE_START_PT_X;
+        modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
         cubeEndPtX = CUBE_END_PT_X0;
         cubeEndPtY = CUBE_END_PT_Y0;
 
-        // position logo block to start point
+        /*
+         * position logo block to start point
+         */
         ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
         modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
         // hold the logo in place by setting target coordinates equal to start location
@@ -413,22 +419,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
      * handle UI
      */
     private void handleUI() {
-
-        ModelComponent modelCompLogo = logoEntity.getComponent(ModelComponent.class);
-        modelCompLogo.modelInst.transform.getTranslation(logoPositionVec);
-
-        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
-        modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
         /*
         update animations (only moves if startpoint!=endpoint)
          */
+        // update Logo
+        ModelComponent modelCompLogo = logoEntity.getComponent(ModelComponent.class);
+        modelCompLogo.modelInst.transform.getTranslation(logoPositionVec);
         // update Logo Y (decelerates)
         final float kPlogo = 0.10f;
-        float error = logoPositionVec.y - logoEndPtY;
-        if ((logoPositionVec.y > logoEndPtY) && (error > kPlogo)) {
-            logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
+        float errorL = logoPositionVec.y - logoEndPtY;
+        if ((logoPositionVec.y > logoEndPtY) && (errorL > kPlogo)) {
+            logoPositionVec.y = logoPositionVec.y - (errorL * kPlogo);
         } else {
-            logoPositionVec.y = logoEndPtY; // snap title block to end point
+            logoPositionVec.y = logoEndPtY; // snap to end point
         }
         // update Logo X (accelerates)
         if (logoPositionVec.x < logoEndPtX) {
@@ -436,8 +439,15 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
             modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
             // if menu not visible then show it ...
+        } else {
+            logoPositionVec.x = logoEndPtX; // snap to end point
         }
         modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
+
+        // update Cube
+        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
+        modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
+
 
         switch (menuType) {
             default:
@@ -446,6 +456,16 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case TITLE:
+                // Cube X (decelerates)
+                final float kPcube = 0.10f;
+                float errorC = cubeEndPtX - cubePositionVec.x;
+                if ((cubePositionVec.x < cubeEndPtX) && (errorC > kPcube)) {
+                    cubePositionVec.x = cubePositionVec.x + (errorC * kPcube);
+                } else {
+                    cubePositionVec.x = cubeEndPtX; // snap title block to end point
+                }
+                modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
+
                 if (logoSelectTable.isVisible()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // debounce me
@@ -494,6 +514,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         stage.setMenuVisibility(false);
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
                         createLogoMenu();
+
+                        // how to do ESR animation from here?
                     }
                     //if selection has been made ...
                     if (_selectIndex > -1) {
