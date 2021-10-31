@@ -84,16 +84,25 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final float LOGO_START_PT_X = 0;
     private static final float LOGO_START_PT_Y = 20.0f;
 
-    private static final float LOGO_END_PT_X0 = 0;
+    private static final float LOGO_END_PT_X0 = LOGO_START_PT_X;
     private static final float LOGO_END_PT_Y0 = 0.8f; // see z-dimension of LogoText in cubetest.blend
 
     private static final float LOGO_END_PT_X1 = 10.0f; // exit, stage right!
     private static final float LOGO_END_PT_Y1 = LOGO_END_PT_Y0;
 
+    private static final float CUBE_START_PT_X = -20;
+    private static final float CUBE_START_PT_Y = 0;
+
+    private static final float CUBE_END_PT_X0 = 0;
+    private static final float CUBE_END_PT_Y0 = CUBE_START_PT_Y;
+
+    private static final float CUBE_END_PT_X1 = 20.0f; // exit, stage right!
+    private static final float CUBE_END_PT_Y1 = CUBE_END_PT_Y0;
+
     private float logoEndPtX;
     private float logoEndPtY;
-//    private float cubeEndPtX;
-//    private float cubeEndPtY;
+    private float cubeEndPtX;
+    private float cubeEndPtY;
 
     private enum MenuType {
         TITLE,
@@ -240,12 +249,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         logoSelectTable.row().bottom(); // todo bottom alignment
 
         // position cube to start point
-//        final float CUBE_START_X = 20.0f;
-//        cubeEndPtY = 0.8f; // see z-dimension of LogoText in cubetest.blend
-//        cubeEndPtX = 0;
 //        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
-//        modelCompCube.modelInst.transform.setToTranslation(CUBE_START_X, 0, 0);
-
+//        modelCompCube.modelInst.transform.setToTranslation(CUBE_START_PT_X, CUBE_START_PT_Y, 0);
+        cubeEndPtX = CUBE_END_PT_X0;
+        cubeEndPtY = CUBE_END_PT_Y0;
 
         // position logo block to start point
         ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
@@ -400,6 +407,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return new LoadingScreen();
     }
 
+    private int _selectIndex = -1; // hackish ... get Action to work
+
+    /**
+     * handle UI
+     */
     private void handleUI() {
 
         ModelComponent modelCompLogo = logoEntity.getComponent(ModelComponent.class);
@@ -410,7 +422,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         /*
         update animations (only moves if startpoint!=endpoint)
          */
-        // update Y (decelerates)
+        // update Logo Y (decelerates)
         final float kPlogo = 0.10f;
         float error = logoPositionVec.y - logoEndPtY;
         if ((logoPositionVec.y > logoEndPtY) && (error > kPlogo)) {
@@ -418,7 +430,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         } else {
             logoPositionVec.y = logoEndPtY; // snap title block to end point
         }
-        // update X (accelerates)
+        // update Logo X (accelerates)
         if (logoPositionVec.x < logoEndPtX) {
             // since x could start at zero, an additional summed amount ensures non-zero multiplicand
             logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
@@ -437,13 +449,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (logoSelectTable.isVisible()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // debounce me
+
                         logoSelectTable.setVisible(false);
                         // set the endpoint of logo block to initiate animation
                         logoEndPtX = LOGO_END_PT_X1;
                         logoEndPtY = LOGO_END_PT_Y1;
                         // setup Action to handle menu transition
                         logoSelectTable.clearActions();
-                        final Action menuHideAction = new Action() {
+                        final Action logoMenuHideAction = new Action() {
                             public boolean act(float delta) {
                                 menuType = MenuType.CONFIG;
                                 return true;
@@ -453,14 +466,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                 Actions.sequence(
                                         Actions.delay(1.5f), // wait for block in position
                                         // block moved off screen in position, enable menu and start logo block animation
-                                        menuHideAction
+                                        logoMenuHideAction
                                 ));
                     }
                 }
                 break;
 
             case CONFIG:
-                int selectIndex = stage.setCheckedBox(); // stage.updateMenuSelection()
+                final int selectIndex = stage.setCheckedBox(); // stage.updateMenuSelection()
 
                 if (!stage.getMenuVisibility()) {
                     // once logo block is out of the way ...
@@ -469,26 +482,44 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+                        // initiate hide actions
+                        stage.setMenuVisibility(false);  // why not hiding?
+                        // initiate cube exit stage right
+                        cubeEndPtX = CUBE_END_PT_X1;
+                        cubeEndPtY = CUBE_END_PT_Y1;
+// grab index
+                        _selectIndex = selectIndex;
 
-                        stage.setMenuVisibility(false);
-
-// can cube remove animation be done in here somewhere?
-
-                        switch (selectIndex) {
-                            default:
-                            case 0:
-                                menuType = MenuType.LEVELS;
-                                stageNamesList = createScreensMenu();
-                                break;
-                            case 1:
-                                menuType = MenuType.CONTROLLER;
-                                createControllerMenu();
-                                break;
-                        }
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.setMenuVisibility(false);
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
                         createLogoMenu();
+                    }
+                    //if selection has been made ...
+                    if (_selectIndex > -1) {
+                        // update cube animation
+                        if (cubePositionVec.x < cubeEndPtX) {
+                            // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+                            cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
+                            modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
+                            // why not hiding?
+                            stage.setMenuVisibility(false);
+                        } else {
+                            // cube in position .. proceed with menu selection
+                            switch (_selectIndex) {
+                                default:
+                                case 0:
+                                    menuType = MenuType.LEVELS;
+                                    stageNamesList = createScreensMenu();
+                                    break;
+                                case 1:
+                                    menuType = MenuType.CONTROLLER;
+                                    createControllerMenu();
+                                    break;
+                            }
+                            // bah
+                            _selectIndex = -1; // hackish ... get Action to work
+                        }
                     }
                 }
                 break;
@@ -529,20 +560,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     rigSelect.updatePlatformRotation(getStep());
 
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+
                         GameWorld.getInstance().showScreen(
                                 newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
+
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
                         armorSelectTable.setVisible(false);
 //                        menuType = MenuType.CONFIG;
                         // reset/remove platform
                     }
-                }
-                // update hide the cube
-                if (cubePositionVec.x < 20) {
-                    // since x could start at zero, an additional summed amount ensure non-zero multiplicand
-                    cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
-                    modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
                 }
                 break;
         }
