@@ -29,8 +29,10 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -73,13 +75,25 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private RigSelect rigSelect;
     private MenuType menuType = MenuType.INVALID;
     private Table armorSelectTable;
-    private Table titleSelectTable;
+    private Table logoSelectTable;
     private Texture leftBtexture;
     private Texture rightBtexture;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
-    private static final float LOGO_START_PT_Y = 10.0f;//tbd
-    private static final float LOGO_END_PT_Y = 0.8f; // see z-dimension of LogoText in cubetest.blend
+
+    private static final float LOGO_START_PT_X = 0;
+    private static final float LOGO_START_PT_Y = 20.0f;
+
+    private static final float LOGO_END_PT_X0 = 0;
+    private static final float LOGO_END_PT_Y0 = 0.8f; // see z-dimension of LogoText in cubetest.blend
+
+    private static final float LOGO_END_PT_X1 = 10.0f; // exit, stage right!
+    private static final float LOGO_END_PT_Y1 = LOGO_END_PT_Y0;
+
+    private float logoEndPtX;
+    private float logoEndPtY;
+//    private float cubeEndPtX;
+//    private float cubeEndPtY;
 
     private enum MenuType {
         TITLE,
@@ -103,6 +117,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     public void show() {
         super.init();
         stage = new InGameMenu();
+        stage.setMenuVisibility(false);// should visible==false be default? see InGameMenu()
         stage.addListener(
                 new ActorGestureListener() {
                     @Override
@@ -143,10 +158,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         rigSelect = new RigSelect(platform, characters);
 
-        stage.setMenuVisibility(false);// should visible==false be default? see InGameMenu()
-        createArmorSelectTable();
-        createTitleTable();
-
         // grab a handle to selected entities
         SceneData sd = GameWorld.getInstance().getSceneData();
 
@@ -165,12 +176,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 cubeEntity = e;
             }
         }
-        // position title block to start point
-        ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
-        modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
     }
 
-    private ArrayList<String> createScreenslist() {
+    private ArrayList<String> createScreensMenu() {
         ArrayList<String> namesArray = new ArrayList<>();
         FileHandle[] files = Gdx.files.internal(SCREENS_DIR).list();
 
@@ -186,7 +194,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return namesArray;
     }
 
-    private void createControllerConfig() {
+    private void createControllerMenu() {
         // unfortunately Input Mapper is hard coded for this order of system configurations
         String[] configNames = new String[]{
                 "PC (BT, 2.4 gHz, USB)", // PC
@@ -204,9 +212,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return newButton;
     }
 
-    private void createTitleTable() {
-        titleSelectTable = new Table();
-        titleSelectTable.setFillParent(true);
+    private void createLogoMenu() {
+
+        menuType = MenuType.TITLE;
+        logoSelectTable = new Table();
+        logoSelectTable.setVisible(false);
+        logoSelectTable.setFillParent(true);
+        stage.addActor(logoSelectTable);
 
         //         stage.createMenu(null, true, "1p Start", "Options");
 
@@ -224,17 +236,49 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
             }
         });
-        titleSelectTable.add(button);
-        titleSelectTable.row().bottom(); // todo bottom alignment
+        logoSelectTable.add(button);
+        logoSelectTable.row().bottom(); // todo bottom alignment
 
-        titleSelectTable.setVisible(false);
-        stage.addActor(titleSelectTable);
+        // position cube to start point
+//        final float CUBE_START_X = 20.0f;
+//        cubeEndPtY = 0.8f; // see z-dimension of LogoText in cubetest.blend
+//        cubeEndPtX = 0;
+//        ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
+//        modelCompCube.modelInst.transform.setToTranslation(CUBE_START_X, 0, 0);
+
+
+        // position logo block to start point
+        ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
+        modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
+        // hold the logo in place by setting target coordinates equal to start location
+        logoEndPtX = LOGO_START_PT_X;
+        logoEndPtY = LOGO_START_PT_Y; // 0.8f; // see z-dimension of LogoText in cubetest.blend
+
+        // start logo animation upon completing time delay Action
+        final Action animLogo = new Action() {
+
+            public boolean act(float delta) {
+                // set the endpoint of logo block to initiate animation
+                logoEndPtX = LOGO_END_PT_X0;
+                logoEndPtY = LOGO_END_PT_Y0;
+                return true;
+            }
+        };
+        logoSelectTable.addAction(Actions.sequence(
+                Actions.delay(1.0f), // wait for block in position
+                // block in position, enable menu and start logo block animation
+                Actions.show(),
+                animLogo
+        ));
     }
 
     private void createArmorSelectTable() {
 
+        menuType = MenuType.ARMOR;
         armorSelectTable = new Table();
+        armorSelectTable.setVisible(false);
         armorSelectTable.setFillParent(true);
+        stage.addActor(armorSelectTable);
 
         Label armorLabel = new Label("Select armor unit", stage.uiSkin);
         armorSelectTable.add(armorLabel);
@@ -311,9 +355,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         });
         armorSelectTable.add(button);
         armorSelectTable.row().bottom();
-
-        armorSelectTable.setVisible(false);
-        stage.addActor(armorSelectTable);
     }
 
     /*
@@ -366,40 +407,63 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
         modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
+        /*
+        update animations (only moves if startpoint!=endpoint)
+         */
+        // update Y (decelerates)
+        final float kPlogo = 0.10f;
+        float error = logoPositionVec.y - logoEndPtY;
+        if ((logoPositionVec.y > logoEndPtY) && (error > kPlogo)) {
+            logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
+        } else {
+            logoPositionVec.y = logoEndPtY; // snap title block to end point
+        }
+        // update X (accelerates)
+        if (logoPositionVec.x < logoEndPtX) {
+            // since x could start at zero, an additional summed amount ensures non-zero multiplicand
+            logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
+            modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
+            // if menu not visible then show it ...
+        }
+        modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
 
         switch (menuType) {
             default:
-            case TITLE:
-                // swipe-in the logo text block ...
-                final float kPlogo = 0.10f;
-                float error = logoPositionVec.y - LOGO_END_PT_Y;
-                if ((logoPositionVec.y > LOGO_END_PT_Y) && (error > kPlogo)) {
-                    logoPositionVec.y = logoPositionVec.y - (error * kPlogo);
-                } else {
-                    logoPositionVec.y = LOGO_END_PT_Y; // snap title block to end point
-                    titleSelectTable.setVisible(true);
-                }
-                modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
+            case INVALID:
+                createLogoMenu();
+                break;
 
-                if (titleSelectTable.isVisible()) {
+            case TITLE:
+                if (logoSelectTable.isVisible()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // debounce me
-                        titleSelectTable.setVisible(false);
-                        menuType = MenuType.CONFIG;
+                        logoSelectTable.setVisible(false);
+                        // set the endpoint of logo block to initiate animation
+                        logoEndPtX = LOGO_END_PT_X1;
+                        logoEndPtY = LOGO_END_PT_Y1;
+                        // setup Action to handle menu transition
+                        logoSelectTable.clearActions();
+                        final Action menuHideAction = new Action() {
+                            public boolean act(float delta) {
+                                menuType = MenuType.CONFIG;
+                                return true;
+                            }
+                        };
+                        logoSelectTable.addAction(
+                                Actions.sequence(
+                                        Actions.delay(1.5f), // wait for block in position
+                                        // block moved off screen in position, enable menu and start logo block animation
+                                        menuHideAction
+                                ));
                     }
                 }
                 break;
 
             case CONFIG:
                 int selectIndex = stage.setCheckedBox(); // stage.updateMenuSelection()
-                // move title text off screen
-                if (logoPositionVec.x < 10) {
-                    // since x could start at zero, an additional summed amount ensures non-zero multiplicand
-                    logoPositionVec.x = (logoPositionVec.x + 0.01f) * 1.10f;
-                    modelCompLogo.modelInst.transform.setToTranslation(logoPositionVec);
-                    // if menu not visible then show it ...
-                } else if (!stage.getMenuVisibility()) {
-                    // once title text is out of the way ...
+
+                if (!stage.getMenuVisibility()) {
+                    // once logo block is out of the way ...
                     stage.createMenu(null, true, "Screens", "Options");
                 }
                 if (stage.getMenuVisibility()) {
@@ -408,27 +472,23 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
                         stage.setMenuVisibility(false);
 
+// can cube remove animation be done in here somewhere?
+
                         switch (selectIndex) {
                             default:
                             case 0:
                                 menuType = MenuType.LEVELS;
-                                stageNamesList = createScreenslist();
+                                stageNamesList = createScreensMenu();
                                 break;
                             case 1:
                                 menuType = MenuType.CONTROLLER;
-                                createControllerConfig();
+                                createControllerMenu();
                                 break;
                         }
-                    }
-                    else
-                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
+                    } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.setMenuVisibility(false);
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
-
-                        // position title block to start point
-                        ModelComponent modelComponent = logoEntity.getComponent(ModelComponent.class);
-                        modelComponent.modelInst.transform.setToTranslation(0, LOGO_START_PT_Y, 0);
-                        menuType = MenuType.TITLE;
+                        createLogoMenu();
                     }
                 }
                 break;
@@ -441,7 +501,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                     stage.setMenuVisibility(false);
                     stagename = stageNamesList.get(levelIndex);
-                    menuType = MenuType.ARMOR;
+                    createArmorSelectTable();
                 }
                 break;
 
@@ -471,9 +531,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         GameWorld.getInstance().showScreen(
                                 newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
-                    }
-                    else
-                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
+                    } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
                         armorSelectTable.setVisible(false);
 //                        menuType = MenuType.CONFIG;
@@ -509,8 +567,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
         shapeRenderer.dispose();
         stage.dispose();
-        leftBtexture.dispose();
-        rightBtexture.dispose();
+        if (null != leftBtexture) {
+            leftBtexture.dispose();
+        }
+        if (null != rightBtexture) {
+            rightBtexture.dispose();
+        }
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }
