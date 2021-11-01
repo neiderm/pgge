@@ -507,6 +507,32 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // grab index
                         saveSelIndex = stage.setCheckedBox();
 
+                        stage.onscreenMenuTbl.clearActions();
+                        final Action cfgMenuHideAction = new Action() {
+                            public boolean act(float delta) {
+                                // cube in position .. proceed with menu selection
+                                switch (saveSelIndex) {
+                                    default:
+                                    case 0:
+                                        menuType = MenuType.LEVELS;
+                                        stageNamesList = createScreensMenu();
+                                        break;
+                                    case 1:
+                                        menuType = MenuType.CONTROLLER;
+                                        createControllerMenu();
+                                        break;
+                                }
+                                return true;
+                            }
+                        };
+                        stage.onscreenMenuTbl.addAction(
+                                Actions.sequence(
+                                        Actions.hide(),
+                                        Actions.delay(1.0f), // wait for block in position
+                                        // block moved off screen in position, enable menu and start logo block animation
+                                        cfgMenuHideAction
+                                ));
+
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.setMenuVisibility(false);
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
@@ -515,29 +541,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // how to do ESR animation from here?
                     }
                 }
-                //if selection has been made ...
-                if (saveSelIndex > -1) {
-                    // update cube animation
-                    if (cubePositionVec.x < cubeEndPtX) {
-                        // since x could start at zero, an additional summed amount ensure non-zero multiplicand
-                        cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
-                        modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
-                    } else {
-                        // cube in position .. proceed with menu selection
-                        switch (saveSelIndex) {
-                            default:
-                            case 0:
-                                menuType = MenuType.LEVELS;
-                                stageNamesList = createScreensMenu();
-                                break;
-                            case 1:
-                                menuType = MenuType.CONTROLLER;
-                                createControllerMenu();
-                                break;
-                        }
-                        // bah
-                        saveSelIndex = -1; // hackish ... get Action to work
-                    }
+                // update cube animation
+                if (cubePositionVec.x < cubeEndPtX) {
+                    // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+                    cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
+                    modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
                 }
                 break;
 
