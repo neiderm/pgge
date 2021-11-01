@@ -472,25 +472,23 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
                 if (logoSelectTable.isVisible()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // debounce me
-
-                        logoSelectTable.setVisible(false);
-                        // set the endpoint of logo block to initiate animation
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
+                        // set the endpoint of block to initiate animation
                         logoEndPtX = LOGO_END_PT_X1;
                         logoEndPtY = LOGO_END_PT_Y1;
                         // setup Action to handle menu transition
                         logoSelectTable.clearActions();
-                        final Action logoMenuHideAction = new Action() {
-                            public boolean act(float delta) {
-                                createConfigMenu();
-                                return true;
-                            }
-                        };
                         logoSelectTable.addAction(
                                 Actions.sequence(
-                                        Actions.delay(1.5f), // wait for block in position
+                                        Actions.hide(),
+                                        Actions.delay(1.0f), // wait for block in position
                                         // block moved off screen in position, enable menu and start logo block animation
-                                        logoMenuHideAction
+                                        new Action() {
+                                            public boolean act(float delta) {
+                                                createConfigMenu();
+                                                return true;
+                                            }
+                                        }
                                 ));
                     }
                 }
@@ -500,62 +498,55 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
-                        // initiate hide actions
-                        stage.setMenuVisibility(false);
+                        // set the endpoint of block to initiate animation
                         cubeEndPtX = CUBE_END_PT_X1;
                         cubeEndPtY = CUBE_END_PT_Y1;
                         // grab index
                         saveSelIndex = stage.setCheckedBox();
-
+                        // setup Action to handle menu transition
                         stage.onscreenMenuTbl.clearActions();
-                        final Action cfgMenuHideAction = new Action() {
-                            public boolean act(float delta) {
-                                // cube in position .. proceed with menu selection
-                                switch (saveSelIndex) {
-                                    default:
-                                    case 0:
-                                        menuType = MenuType.LEVELS;
-                                        stageNamesList = createScreensMenu();
-                                        break;
-                                    case 1:
-                                        menuType = MenuType.CONTROLLER;
-                                        createControllerMenu();
-                                        break;
-                                }
-                                return true;
-                            }
-                        };
                         stage.onscreenMenuTbl.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
-                                        // block moved off screen in position, enable menu and start logo block animation
-                                        cfgMenuHideAction
+                                        // block in position .. proceed with menu transition
+                                        new Action() {
+                                            public boolean act(float delta) {
+                                                switch (saveSelIndex) {
+                                                    default:
+                                                    case 0:
+                                                        menuType = MenuType.LEVELS;
+                                                        stageNamesList = createScreensMenu();
+                                                        break;
+                                                    case 1:
+                                                        menuType = MenuType.CONTROLLER;
+                                                        createControllerMenu();
+                                                        break;
+                                                }
+                                                return true;
+                                            }
+                                        }
                                 ));
-
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
-                        // initiate hide actions
-                        stage.setMenuVisibility(false);
+                        // set the endpoint of block to initiate animation
                         cubeEndPtX = CUBE_END_PT_X1;
                         cubeEndPtY = CUBE_END_PT_Y1;
                         // grab index
                         saveSelIndex = stage.setCheckedBox();
-
+                        // setup Action to handle menu transition
                         stage.onscreenMenuTbl.clearActions();
-                        final Action cfgMenuHideAction = new Action() {
-                            public boolean act(float delta) {
-                                // cube in position .. proceed with menu selection
-                                createLogoMenu();
-                                return true;
-                            }
-                        };
                         stage.onscreenMenuTbl.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
-                                        // block moved off screen in position, enable menu and start logo block animation
-                                        cfgMenuHideAction
+                                        // block in position .. proceed with menu transition
+                                        new Action() {
+                                            public boolean act(float delta) {
+                                                createLogoMenu();
+                                                return true;
+                                            }
+                                        }
                                 ));
                     }
                 }
