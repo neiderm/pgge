@@ -105,7 +105,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private float cubeEndPtY;
 
     private enum MenuType {
-        TITLE,
+        LOGO,
         CONFIG, // select levels/controller/sound
         LEVELS,
         CONTROLLER,
@@ -223,7 +223,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private void createLogoMenu() {
 
-        menuType = MenuType.TITLE;
+        menuType = MenuType.LOGO;
         logoSelectTable = new Table();
         logoSelectTable.setVisible(false);
         logoSelectTable.setFillParent(true);
@@ -285,7 +285,12 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ));
     }
 
-    private void createArmorSelectTable() {
+    private void createConfigMenu() {
+        menuType = MenuType.CONFIG;
+        stage.createMenu(null, true, "Screens", "Options");
+    }
+
+    private void createArmorMenu() {
 
         menuType = MenuType.ARMOR;
         armorSelectTable = new Table();
@@ -413,7 +418,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         return new LoadingScreen();
     }
 
-    private int _selectIndex = -1; // hackish ... get Action to work
+    private int saveSelIndex = -1; // hackish ... get Action to work
 
     /**
      * handle UI
@@ -448,14 +453,13 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         ModelComponent modelCompCube = cubeEntity.getComponent(ModelComponent.class);
         modelCompCube.modelInst.transform.getTranslation(cubePositionVec);
 
-
         switch (menuType) {
             default:
             case INVALID:
                 createLogoMenu();
                 break;
 
-            case TITLE:
+            case LOGO:
                 // Cube X (decelerates)
                 final float kPcube = 0.10f;
                 float errorC = cubeEndPtX - cubePositionVec.x;
@@ -478,7 +482,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         logoSelectTable.clearActions();
                         final Action logoMenuHideAction = new Action() {
                             public boolean act(float delta) {
-                                menuType = MenuType.CONFIG;
+                                createConfigMenu();
                                 return true;
                             }
                         };
@@ -493,22 +497,15 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case CONFIG:
-                final int selectIndex = stage.setCheckedBox(); // stage.updateMenuSelection()
-
-                if (!stage.getMenuVisibility()) {
-                    // once logo block is out of the way ...
-                    stage.createMenu(null, true, "Screens", "Options");
-                }
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // hmmm debounce me
+                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                         // initiate hide actions
-                        stage.setMenuVisibility(false);  // why not hiding?
-                        // initiate cube exit stage right
+                        stage.setMenuVisibility(false);
                         cubeEndPtX = CUBE_END_PT_X1;
                         cubeEndPtY = CUBE_END_PT_Y1;
-// grab index
-                        _selectIndex = selectIndex;
+                        // grab index
+                        saveSelIndex = stage.setCheckedBox();
 
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
                         stage.setMenuVisibility(false);
@@ -517,31 +514,29 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
                         // how to do ESR animation from here?
                     }
-                    //if selection has been made ...
-                    if (_selectIndex > -1) {
-                        // update cube animation
-                        if (cubePositionVec.x < cubeEndPtX) {
-                            // since x could start at zero, an additional summed amount ensure non-zero multiplicand
-                            cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
-                            modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
-                            // why not hiding?
-                            stage.setMenuVisibility(false);
-                        } else {
-                            // cube in position .. proceed with menu selection
-                            switch (_selectIndex) {
-                                default:
-                                case 0:
-                                    menuType = MenuType.LEVELS;
-                                    stageNamesList = createScreensMenu();
-                                    break;
-                                case 1:
-                                    menuType = MenuType.CONTROLLER;
-                                    createControllerMenu();
-                                    break;
-                            }
-                            // bah
-                            _selectIndex = -1; // hackish ... get Action to work
+                }
+                //if selection has been made ...
+                if (saveSelIndex > -1) {
+                    // update cube animation
+                    if (cubePositionVec.x < cubeEndPtX) {
+                        // since x could start at zero, an additional summed amount ensure non-zero multiplicand
+                        cubePositionVec.x = (cubePositionVec.x + 0.01f) * 1.10f;
+                        modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
+                    } else {
+                        // cube in position .. proceed with menu selection
+                        switch (saveSelIndex) {
+                            default:
+                            case 0:
+                                menuType = MenuType.LEVELS;
+                                stageNamesList = createScreensMenu();
+                                break;
+                            case 1:
+                                menuType = MenuType.CONTROLLER;
+                                createControllerMenu();
+                                break;
                         }
+                        // bah
+                        saveSelIndex = -1; // hackish ... get Action to work
                     }
                 }
                 break;
@@ -554,7 +549,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                     stage.setMenuVisibility(false);
                     stagename = stageNamesList.get(levelIndex);
-                    createArmorSelectTable();
+                    createArmorMenu();
                 }
                 break;
 
