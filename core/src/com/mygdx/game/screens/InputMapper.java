@@ -124,14 +124,8 @@ public class InputMapper {
 
     private final float[] analogAxes = new float[MAX_AXES];
 
-    @SuppressWarnings("unused") // e.g. connectedCtrl.getPov(0);
-    private Controller connectedCtrl;
 
     InputMapper() {
-        // connected controller .. not used for much anything right now
-        final int CONTROLLER_ZERO = 0; // presently only 1 player is supported
-        connectedCtrl = getConnectedCtrl(CONTROLLER_ZERO);
-
         setControllerButtonMapping();
     }
 
@@ -168,21 +162,6 @@ public class InputMapper {
         if (axisIndex < MAX_AXES) {
             analogAxes[axisIndex] = axisValue;
         }
-    }
-
-    private static Controller getConnectedCtrl(int selectControl) {
-        // If a controller is connected, find it and grab a link to it
-        Controller connectedCtrl = null;
-        int i = 0;
-        for (Controller controller : Controllers.getControllers()) {
-            Gdx.app.log(
-                    "InputMapper", "using connected controller " + controller.getName());
-            if (i++ == selectControl) {
-                connectedCtrl = controller;
-                break;
-            }
-        }
-        return connectedCtrl;
     }
 
     /**
@@ -268,7 +247,7 @@ public class InputMapper {
      * @param repeatPeriod period of repetition if held down, otherwise sets the debounce time if letRepeat==false
      * @return state of tested button
      */
-    boolean getControlButton(VirtualButtonCode vbutton, boolean letRepeat, int repeatPeriod) {
+    private boolean getControlButton(VirtualButtonCode vbutton, boolean letRepeat, int repeatPeriod) {
 
         int switchIndex = vbutton.ordinal();
         boolean rv = false;
