@@ -534,11 +534,29 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                 ));
 
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
-                        stage.setMenuVisibility(false);
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_Y, false); // unlatch
-                        createLogoMenu();
+                        // initiate hide actions
+                        stage.setMenuVisibility(false);
+                        cubeEndPtX = CUBE_END_PT_X1;
+                        cubeEndPtY = CUBE_END_PT_Y1;
+                        // grab index
+                        saveSelIndex = stage.setCheckedBox();
 
-                        // how to do ESR animation from here?
+                        stage.onscreenMenuTbl.clearActions();
+                        final Action cfgMenuHideAction = new Action() {
+                            public boolean act(float delta) {
+                                // cube in position .. proceed with menu selection
+                                createLogoMenu();
+                                return true;
+                            }
+                        };
+                        stage.onscreenMenuTbl.addAction(
+                                Actions.sequence(
+                                        Actions.hide(),
+                                        Actions.delay(1.0f), // wait for block in position
+                                        // block moved off screen in position, enable menu and start logo block animation
+                                        cfgMenuHideAction
+                                ));
                     }
                 }
                 // update cube animation
