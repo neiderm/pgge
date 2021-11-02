@@ -185,7 +185,21 @@ class InGameMenu extends Stage {
         EVENT_RIGHT
     }
 
-    private TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+    /**
+     * Add a Text Button to the Stage (not all that useful, prefer Buttons to be contained in a Table)
+     *
+     * @param btnText      String
+     * @param theColor     Color
+     * @param inputBinding ButtonEventHandler
+     * @return TextButton
+     */
+    private TextButton addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
+        TextButton tButton = makeTextButton(btnText, theColor, inputBinding);
+        addActor(tButton);
+        return tButton;
+    }
+
+    TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
         TextButton button = new TextButton(btnText, uiSkin, "default");
         button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
         button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
@@ -210,12 +224,6 @@ class InGameMenu extends Stage {
             }
         });
         return button;
-    }
-
-    TextButton addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
-        TextButton tButton = makeTextButton(btnText, theColor, inputBinding);
-        addActor(tButton);
-        return tButton;
     }
 
     /**

@@ -218,23 +218,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         logoSelectTable.setVisible(false);
         logoSelectTable.setFillParent(true);
         stage.addActor(logoSelectTable);
-
         //         stage.createMenu(null, true, "1p Start", "Options");
 
-        TextButton button = new TextButton("Next", stage.uiSkin, "default");
-        button.setColor(new Color(0, 1f, 0, 1.0f));
-        button.addListener(new InputListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, true);
-                return true;
-            }
-
-            @Override
-            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false);
-            }
-        });
+        TextButton button = stage.makeTextButton(
+                "Next", new Color(0, 1f, 0, 1.0f), InGameMenu.ButtonEventHandler.EVENT_A);
         logoSelectTable.add(button);
         logoSelectTable.row().bottom(); // todo bottom alignment
 
