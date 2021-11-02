@@ -109,60 +109,49 @@ class InGameMenu extends Stage {
      * @param menuName String name of menu, no name if empty string or null
      * @param strNames String list of button names in order to be added
      */
-    void createMenu(String menuName, String... strNames) {
+    Table createMenu(String menuName, String... strNames) {
 
-        createMenu(new Table(), menuName, strNames);
-    }
-
-    void createMenu(Table aTable, String menuName, String... strNames) {
-
-        if (null != onscreenMenuTbl){
+        if (null != onscreenMenuTbl) {
             onscreenMenuTbl.remove();
         }
-        onscreenMenuTbl = aTable;
-
         buttonGroup = new ButtonGroup<>();
         buttonGroup.setMaxCheckCount(1);
         buttonGroup.setMinCheckCount(1);
 
-        onscreenMenuTbl.setFillParent(true);
-        addActor(onscreenMenuTbl);
-//        onscreenMenuTbl.setDebug(true);
+        Table aTable = new Table();
+        aTable.setFillParent(true);
+//        aTable.setVisible(true); // localized control of visibility
+        addActor(aTable);
+//        aTable.setDebug(true);
         if ((null != menuName) && (menuName.length() > 0)) {
-            onscreenMenuTbl.add(new Label(menuName, uiSkin)).fillX().uniformX();
+            aTable.add(new Label(menuName, uiSkin)).fillX().uniformX();
         }
         for (String name : strNames) {
             // adds the button to the Button Group
-            addButton(new TextButton(name, uiSkin, "toggle"));
+            addButton(aTable, new TextButton(name, uiSkin, "toggle"));
         }
-        TextButton tb = makeTextButton(
-                "Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(tb).fillX().uniformX();
-
-        setMenuVisibility(false);
+        TextButton tb = makeTextButton("Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
+        aTable.row();
+        aTable.add(tb).fillX().uniformX();
+        onscreenMenuTbl = aTable;
+        return aTable;
     }
 
-    void createMenu(String menuName, boolean visible, String... buttonNames) {
-        createMenu(menuName, buttonNames);
-        setMenuVisibility(visible);
-    }
-
-    private void addButton(TextButton button) {
+    private void addButton(Table table, TextButton button) {
 
         buttonGroup.add(button);
-        onscreenMenuTbl.row();
-        onscreenMenuTbl.add(button).fillX().uniformX();
+        table.row();
+        table.add(button).fillX().uniformX();
     }
 
     void setMenuVisibility(boolean visible) {
-        if (null != onscreenMenuTbl){
+        if (null != onscreenMenuTbl) {
             onscreenMenuTbl.setVisible(visible);
         }
     }
 
     boolean getMenuVisibility() {
-        if (null != onscreenMenuTbl){
+        if (null != onscreenMenuTbl) {
             return onscreenMenuTbl.isVisible();
         }
         return false;
@@ -296,11 +285,11 @@ class InGameMenu extends Stage {
      *
      * @return checked selection
      */
-    int setCheckedBox() {
-        return setCheckedBox(checkedUpDown());
+    int updateMenuSelection() {
+        return updateMenuSelection(checkedUpDown());
     }
 
-    private int setCheckedBox(int checked) {
+    private int updateMenuSelection(int checked) {
         if (null != buttonGroup) {
             Label label = buttonGroup.getButtons().get(checked).getLabel();
             buttonGroup.setChecked(label.getText().toString());
@@ -452,7 +441,7 @@ class InGameMenu extends Stage {
         if (getMenuVisibility()) {
             checkedBox = checkedUpDown();
         }
-        setCheckedBox(checkedBox);
+        updateMenuSelection(checkedBox);
     }
 
     @Override

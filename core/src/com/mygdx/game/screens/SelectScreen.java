@@ -24,7 +24,6 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
@@ -38,7 +37,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -77,8 +75,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Table menuTable;
     private Table armorSelectTable;
     private Table logoSelectTable;
-    private Texture leftBtexture;
-    private Texture rightBtexture;
 
     private static final String STATIC_OBJECTS = "InstancedModelMeshes";
 
@@ -200,7 +196,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 namesArray.add(basename);
             }
         }
-        stage.createMenu("Select a mission", true, namesArray.toArray(new String[0]));
+        stage.createMenu("Select a mission", namesArray.toArray(new String[0]));
         return namesArray;
     }
 
@@ -212,14 +208,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 "Android (BT)", // Android BlueTooth
                 "bar" // unused
         };
-        stage.createMenu("System?", true, configNames);
-    }
-
-    private ImageButton mkImageButton(Texture tex, float posX, float posY) {
-        TextureRegionDrawable myTexRegionDrawable = new TextureRegionDrawable(new TextureRegion(tex));
-        ImageButton newButton = new ImageButton(myTexRegionDrawable);
-        newButton.setPosition(posX, posY);
-        return newButton;
+        stage.createMenu("System?", configNames);
     }
 
     private void createLogoMenu() {
@@ -287,10 +276,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     }
 
     private void createConfigMenu() {
-        menuTable = new Table();
         menuType = MenuType.CONFIG;
-        stage.createMenu( menuTable, null, "Screens", "Options");
-        stage.setMenuVisibility(true);
+        menuTable = stage.createMenu(null, "Screens", "Options");
     }
 
     private void createArmorMenu() {
@@ -305,8 +292,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         armorSelectTable.add(armorLabel);
         armorSelectTable.row().expand();
 
-//        addActor(xxxx);
-//        xxxx.setDebug(true);
         final int ARROW_EXT = 64; // extent of arrow tile (height/width)
         final int ARROW_MID = ARROW_EXT / 2;
 
@@ -317,42 +302,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, ARROW_MID, ARROW_EXT, ARROW_EXT, ARROW_EXT, 0);
-        leftBtexture = new Texture(pixmap); // disposed by stored ref
-        ImageButton leftButton = mkImageButton(leftBtexture, 0, GameWorld.VIRTUAL_HEIGHT / 2.0f);
-        leftButton.addListener(
-                new InputListener() {
-                    @Override
-                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, true);
-                        return true; // for touch up?
-                    }
-
-                    @Override
-                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_LEFT, false);
-                    }
-                });
+        ImageButton leftButton = stage.addImageButton(
+                new Texture(pixmap), // disposed by stored ref
+                0, GameWorld.VIRTUAL_HEIGHT / 2.0f, InGameMenu.ButtonEventHandler.EVENT_LEFT);
         pixmap.dispose();
         armorSelectTable.add(leftButton);
 
         pixmap = new Pixmap(ARROW_EXT, ARROW_EXT, Pixmap.Format.RGBA8888);
         pixmap.setColor(theColor);
         pixmap.fillTriangle(0, 0, 0, ARROW_EXT, ARROW_EXT, ARROW_MID);
-        rightBtexture = new Texture(pixmap);
-        ImageButton rightButton = mkImageButton(rightBtexture, GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT, GameWorld.VIRTUAL_HEIGHT / 2.0f);
-        rightButton.addListener(
-                new InputListener() {
-                    @Override
-                    public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, true);
-                        return true; // for touch up?
-                    }
-
-                    @Override
-                    public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
-                        stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_RIGHT, false);
-                    }
-                });
+        ImageButton rightButton = stage.addImageButton(
+                new Texture(pixmap), // disposed by stored ref
+                GameWorld.VIRTUAL_WIDTH - (float) ARROW_EXT, GameWorld.VIRTUAL_HEIGHT / 2.0f,
+                InGameMenu.ButtonEventHandler.EVENT_RIGHT);
         pixmap.dispose();
         armorSelectTable.add(rightButton);
 
@@ -505,7 +467,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         cubeEndPtX = CUBE_END_PT_X1;
                         cubeEndPtY = CUBE_END_PT_Y1;
                         // grab index
-                        saveSelIndex = stage.setCheckedBox();
+                        saveSelIndex = stage.updateMenuSelection();
                         // setup Action to handle menu transition
                         menuTable.clearActions();
                         menuTable.addAction(
@@ -536,7 +498,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         cubeEndPtX = CUBE_END_PT_X1;
                         cubeEndPtY = CUBE_END_PT_Y1;
                         // grab index
-                        saveSelIndex = stage.setCheckedBox();
+                        saveSelIndex = stage.updateMenuSelection();
                         // setup Action to handle menu transition
                         menuTable.clearActions();
                         menuTable.addAction(
@@ -562,7 +524,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case LEVELS:
-                int levelIndex = stage.setCheckedBox();
+                int levelIndex = stage.updateMenuSelection();
 
                 if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
                         && stage.getMenuVisibility()) {
@@ -574,10 +536,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case CONTROLLER:
-                int ctrsIndex = stage.setCheckedBox();
+                int ctrsIndex = stage.updateMenuSelection();
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-                        stage.setMenuVisibility(false);
+                        stage.setMenuVisibility(false); // doesn't matter - new Screen
                         GameWorld.getInstance().setControllerMode(ctrsIndex);
                         GameWorld.getInstance().setSceneData(GameWorld.DEFAULT_SCREEN);
                         GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
@@ -632,12 +594,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
         shapeRenderer.dispose();
         stage.dispose();
-        if (null != leftBtexture) {
-            leftBtexture.dispose();
-        }
-        if (null != rightBtexture) {
-            rightBtexture.dispose();
-        }
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }

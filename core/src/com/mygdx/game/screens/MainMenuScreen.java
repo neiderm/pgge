@@ -48,7 +48,7 @@ public class MainMenuScreen implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.setCheckedBox();
+        int idxCurSel = stage.updateMenuSelection();
 
         if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
             // pass along the local player object name
@@ -86,13 +86,13 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        String [] configNames = new String[] {
+        String[] configNames = new String[]{
                 "Bonus Level",
                 "Exit"
         };
         final ArrayList<String> namesList = new ArrayList<>();
         Collections.addAll(namesList, configNames);
-        stage.createMenu(null, true, namesList.toArray(new String[0]));
+        stage.createMenu(null, namesList.toArray(new String[0]));
     }
 
     @Override

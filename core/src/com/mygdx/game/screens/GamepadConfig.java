@@ -42,7 +42,7 @@ public class GamepadConfig implements Screen {
         stage.act();
         stage.draw();
 
-        int idxCurSel = stage.setCheckedBox();
+        int idxCurSel = stage.updateMenuSelection();
 
         if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)
                 || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)) // analog stick-right, hackamathang
@@ -85,7 +85,7 @@ public class GamepadConfig implements Screen {
             namesList.add(name);
             InputMapper.incrementNumberControlCfgTypes();
         }
-        stage.createMenu(null, true, namesList.toArray(new String[0]));
+        stage.createMenu(null, namesList.toArray(new String[0]));
     }
 
     @Override
