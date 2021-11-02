@@ -48,7 +48,7 @@ import com.mygdx.game.GameWorld;
  */
 class InGameMenu extends Stage {
 
-    private final Table onscreenMenuTbl = new Table();
+    private Table onscreenMenuTbl;
     private final Array<Texture> savedTextureRefs = new Array<>();
 
     private ButtonGroup<TextButton> buttonGroup;
@@ -111,12 +111,20 @@ class InGameMenu extends Stage {
      */
     void createMenu(String menuName, String... strNames) {
 
-        onscreenMenuTbl.clear();
+        createMenu(new Table(), menuName, strNames);
+    }
+
+    void createMenu(Table aTable, String menuName, String... strNames) {
+
+        if (null != onscreenMenuTbl){
+            onscreenMenuTbl.remove();
+        }
+        onscreenMenuTbl = aTable;
+
         buttonGroup = new ButtonGroup<>();
         buttonGroup.setMaxCheckCount(1);
         buttonGroup.setMinCheckCount(1);
 
-        // add the menu table last so that it will always be over the overlay layer
         onscreenMenuTbl.setFillParent(true);
         addActor(onscreenMenuTbl);
 //        onscreenMenuTbl.setDebug(true);
@@ -127,8 +135,8 @@ class InGameMenu extends Stage {
             // adds the button to the Button Group
             addButton(new TextButton(name, uiSkin, "toggle"));
         }
-        TextButton tb =
-                makeTextButton("Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
+        TextButton tb = makeTextButton(
+                "Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
         onscreenMenuTbl.row();
         onscreenMenuTbl.add(tb).fillX().uniformX();
 
@@ -148,11 +156,16 @@ class InGameMenu extends Stage {
     }
 
     void setMenuVisibility(boolean visible) {
-        onscreenMenuTbl.setVisible(visible);
+        if (null != onscreenMenuTbl){
+            onscreenMenuTbl.setVisible(visible);
+        }
     }
 
     boolean getMenuVisibility() {
-        return onscreenMenuTbl.isVisible();
+        if (null != onscreenMenuTbl){
+            return onscreenMenuTbl.isVisible();
+        }
+        return false;
     }
 
     void setLabelColor(Label label, Color c) {

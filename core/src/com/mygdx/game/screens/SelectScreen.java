@@ -74,6 +74,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Entity platform;
     private RigSelect rigSelect;
     private MenuType menuType = MenuType.INVALID;
+    private Table menuTable;
     private Table armorSelectTable;
     private Table logoSelectTable;
     private Texture leftBtexture;
@@ -286,8 +287,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     }
 
     private void createConfigMenu() {
+        menuTable = new Table();
         menuType = MenuType.CONFIG;
-        stage.createMenu(null, true, "Screens", "Options");
+        stage.createMenu( menuTable, null, "Screens", "Options");
+        stage.setMenuVisibility(true);
     }
 
     private void createArmorMenu() {
@@ -504,8 +507,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // grab index
                         saveSelIndex = stage.setCheckedBox();
                         // setup Action to handle menu transition
-                        stage.onscreenMenuTbl.clearActions();
-                        stage.onscreenMenuTbl.addAction(
+                        menuTable.clearActions();
+                        menuTable.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
@@ -535,8 +538,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // grab index
                         saveSelIndex = stage.setCheckedBox();
                         // setup Action to handle menu transition
-                        stage.onscreenMenuTbl.clearActions();
-                        stage.onscreenMenuTbl.addAction(
+                        menuTable.clearActions();
+                        menuTable.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
