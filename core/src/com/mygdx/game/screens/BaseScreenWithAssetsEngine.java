@@ -18,6 +18,7 @@ package com.mygdx.game.screens;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -25,6 +26,8 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
+import com.mygdx.game.sceneLoader.ModelInfo;
+import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.RenderSystem;
 
@@ -34,22 +37,17 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
 
     private GfxBatch gfxBatch;
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
-    private SceneLoader sceneLoader;
-    private DirectionalShadowLight shadowLight;
-    private final Vector3 lightDirection = new Vector3(0.5f, -1.0f, 0f);
-
+    // Scene Loader construction right away because it kicks off new Asset Manager (background) loading process
+    private SceneLoader sceneLoader = new SceneLoader();
     // field of view should be in the range of 60 to 70 degrees
     PerspectiveCamera cam =
             new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
+    // handle to audio track, if loaded
+    Music music;
 
-    BaseScreenWithAssetsEngine(){
-        // Scene Loader construction right away because it kicks off new Asset Manager (background) loading process
-        this.sceneLoader = new SceneLoader();
-    }
-
-/*
- * common init to tie together engine and scene loader
- */
+    /*
+     * Initialize Engine and Scene Loader
+     */
     public void init() {
         // been using same light setup as ever
         //  https://xoppa.github.io/blog/loading-a-scene-with-libgdx/
@@ -57,23 +55,18 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         Environment environment = new Environment();
         environment.set(
                 new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-//        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, lightDirection));
 
-        environment.remove(shadowLight);
-
-        shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
-        shadowLight.set(0.8f, 0.8f, 0.8f, lightDirection);
+        DirectionalShadowLight shadowLight = new DirectionalShadowLight(1024, 1024, 120, 120, 1f, 300);
+        shadowLight.set(0.8f, 0.8f, 0.8f, new Vector3(0.5f, -1.0f, 0f));
         environment.add(shadowLight);
         environment.shadowMap = shadowLight;
+        gfxBatch = new GfxBatch(environment, cam);
 
         engine = new Engine();
+        SceneLoader.buildScene(engine);
 
         renderSystem = new RenderSystem(shadowLight, environment, cam);
         engine.addSystem(renderSystem);
-
-        gfxBatch = new GfxBatch(environment, cam);
-
-        SceneLoader.buildScene(engine);
 
         // point the camera to platform
         final Vector3 camPosition = new Vector3(0, 1.2f, 3.2f);
@@ -85,9 +78,23 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
-  }
 
-@Override
+        // load audio track
+        final String AUDIO_TRACK = "Audio_Track";
+        // grab a handle to selected entities
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        if (null != sd){
+            ModelInfo mi = sd.modelInfo.get(AUDIO_TRACK);
+            if (null != mi){
+                String audioTrack = mi.fileName;
+                if (null != audioTrack){
+                    music = SceneLoader.getAssets().get(audioTrack, Music.class);
+                }
+            }
+        }
+    }
+
+    @Override
     public void render(float deltaTime) {
 
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -98,18 +105,18 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         gfxBatch.update(deltaTime);
     }
 
-    /** Called when this screen should release all resources. */
     @Override
-    public void dispose (){
+    public void dispose() {
 
         engine.removeSystem(renderSystem); // make the system dispose its stuff
-
         gfxBatch.dispose();
-
         //  screens that load assets must calls assetLoader.dispose() !
         if (null != sceneLoader) {
             sceneLoader.dispose();
             sceneLoader = null;
         }
+        if (null != music){
+            music.dispose();
+        }
     }
- }
+}
