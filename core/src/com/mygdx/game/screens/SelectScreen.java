@@ -212,6 +212,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     }
 
     private void createLogoMenu() {
+        // restart audio track
+        // if null != music
+        music.stop();
+        music.play();
 
         menuType = MenuType.LOGO;
         logoSelectTable = new Table();

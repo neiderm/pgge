@@ -102,6 +102,9 @@
 	},
 	"Jeep_Renegade_2016": {
 		"fileName": "tanks/Jeep_Renegade_2016.g3db"
+	},
+	"Audio_Track": {
+		"fileName": "audio/Track_2.ogg"
 	}
 }
 }

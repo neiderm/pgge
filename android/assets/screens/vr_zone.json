@@ -3,13 +3,13 @@
 	"UserMeshezMdlGrupe": {
 		"elements": [
 			{
+				"isShadowed": false,
 				"objectName": "skySphere",
 				"scale": {
 					"x": 200,
 					"y": 200,
 					"z": 200
-				},
-				"isShadowed": false
+				}
 			},
 			{
 				"instanceData": [
@@ -34,15 +34,15 @@
 						}
 					}
 				],
+				"isPickable": true,
+				"mass": 5.1,
 				"objectName": "sphereCharacter",
 				"scale": {
 					"x": 1,
 					"y": 1,
 					"z": 1
 				},
-				"mass": 5.1,
 				"meshShape": "btSphereShape",
-				"isPickable": true,
 				"isCharacter": true
 			},
 			{
@@ -55,15 +55,15 @@
 						}
 					}
 				],
+				"mass": 1,
 				"objectName": "boxTex",
 				"scale": {
 					"x": 2,
 					"y": 2,
 					"z": 2
 				},
-				"mass": 1,
-				"meshShape": "btBoxShape",
-				"isShootable": true
+				"isShootable": true,
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -75,15 +75,15 @@
 						}
 					}
 				],
+				"mass": 1,
 				"objectName": "boxTex",
 				"scale": {
 					"x": 2,
 					"y": 2,
 					"z": 2
 				},
-				"mass": 1,
-				"meshShape": "btBoxShape",
-				"isShootable": true
+				"isShootable": true,
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -95,15 +95,15 @@
 						}
 					}
 				],
+				"mass": 1,
 				"objectName": "boxTex",
 				"scale": {
 					"x": 2,
 					"y": 2,
 					"z": 2
 				},
-				"mass": 1,
-				"meshShape": "btBoxShape",
-				"isShootable": true
+				"isShootable": true,
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -115,15 +115,15 @@
 						}
 					}
 				],
+				"mass": 1,
 				"objectName": "boxTex",
 				"scale": {
 					"x": 2,
 					"y": 2,
 					"z": 2
 				},
-				"mass": 1,
-				"meshShape": "btBoxShape",
-				"isShootable": true
+				"isShootable": true,
+				"meshShape": "btBoxShape"
 			}
 		],
 		"modelName": "UserMeshesModel"
@@ -147,8 +147,8 @@
 						}
 					}
 				],
-				"objectName": "Crate.001",
 				"mass": 0.1,
+				"objectName": "Crate.001",
 				"meshShape": "btBoxShape"
 			}
 		],
@@ -185,10 +185,10 @@
 					{
 						"adaptr": {
 							"class": "com.mygdx.game.features.ExitSensor",
-							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vS": {
 								"x": 2.7
-							}
+							},
+							"activateOnState": "ROUND_COMPLETE_WAIT"
 						}
 					}
 				],
@@ -223,16 +223,16 @@
 						}
 					}
 				],
+				"isPickable": true,
+				"mass": 0.1,
 				"objectName": "box",
-				"featureName": "MineBombThng",
 				"scale": {
 					"x": 0.5,
 					"y": 0.5,
 					"z": 0.5
 				},
-				"mass": 0.1,
-				"meshShape": "btBoxShape",
-				"isPickable": true
+				"featureName": "MineBombThng",
+				"meshShape": "btBoxShape"
 			},
 			{
 				"instanceData": [
@@ -248,21 +248,21 @@
 						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.ExitSensor",
-							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vS": {
 								"x": 1
-							}
+							},
+							"activateOnState": "ROUND_COMPLETE_WAIT"
 						}
 					}
 				],
+				"mass": 5.1,
 				"objectName": "box",
-				"featureName": "ExitGreenBoxExitSensor",
 				"scale": {
 					"x": 0.5,
 					"y": 0.5,
 					"z": 0.5
 				},
-				"mass": 5.1,
+				"featureName": "ExitGreenBoxExitSensor",
 				"meshShape": "btBoxShape"
 			},
 			{
@@ -303,12 +303,12 @@
 					}
 				],
 				"objectName": "box",
-				"featureName": "Crapium1",
 				"scale": {
 					"x": 0.95,
 					"y": 0.95,
 					"z": 0.95
-				}
+				},
+				"featureName": "Crapium1"
 			},
 			{
 				"instanceData": [
@@ -339,16 +339,16 @@
 						}
 					}
 				],
+				"isPickable": true,
 				"objectName": "box",
-				"featureName": "OhNo",
 				"scale": {
 					"x": 1,
 					"y": 0.5,
 					"z": 1.5
 				},
+				"featureName": "OhNo",
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isPickable": true
+				"isKinematic": true
 			},
 			{
 				"instanceData": [
@@ -379,16 +379,16 @@
 						}
 					}
 				],
+				"isPickable": true,
 				"objectName": "box",
-				"featureName": "OhNo",
 				"scale": {
 					"x": 1,
 					"y": 0.5,
 					"z": 1.5
 				},
+				"featureName": "OhNo",
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isPickable": true
+				"isKinematic": true
 			},
 			{
 				"instanceData": [
@@ -419,16 +419,16 @@
 						}
 					}
 				],
+				"isPickable": true,
 				"objectName": "box",
-				"featureName": "InTheSky",
 				"scale": {
 					"x": 1,
 					"y": 0.5,
 					"z": 1.5
 				},
+				"featureName": "InTheSky",
 				"meshShape": "btBoxShape",
-				"isKinematic": true,
-				"isPickable": true
+				"isKinematic": true
 			},
 			{
 				"instanceData": [
@@ -450,12 +450,12 @@
 					}
 				],
 				"objectName": "sphere",
-				"featureName": "OutOfBounds",
 				"scale": {
 					"x": 50,
 					"y": 50,
 					"z": 50
-				}
+				},
+				"featureName": "OutOfBounds"
 			}
 		]
 	},
@@ -491,6 +491,9 @@
 	},
 	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
+	},
+	"Audio_Track": {
+		"fileName": "audio/Track_5.ogg"
 	}
 }
 }
