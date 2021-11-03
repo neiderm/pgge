@@ -18,6 +18,7 @@ package com.mygdx.game.sceneLoader;
 import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -75,6 +76,9 @@ public class SceneLoader implements Disposable {
                         assets.load(fn, Texture.class);
                     } else if (fn.contains(".g3d")) {
                         assets.load(fn, Model.class);
+                    }
+                    else if (fn.contains(".ogg")) {
+                        assets.load(fn, Music.class);
                     }
                 }
             }
