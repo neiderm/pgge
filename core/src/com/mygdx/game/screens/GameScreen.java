@@ -145,6 +145,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
             if (null != pickedPlayer.getComponent(BulletComponent.class).body) {
                 playerUI = initPlayerUI();
+                // restart audio track
+                if (null != music) {
+                    music.stop();
+                    music.play();
+                }
             } else {
                 Gdx.app.log(CLASS_STRING, "pickedPlayer collision body can't be null");
             }
@@ -227,6 +232,18 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 if (gunrack.onInputX()) {
                     gunPlatform = null;
                 }
+            }
+
+            @Override
+            void onPaused() {
+                super.onPaused();
+                music.pause();
+            }
+
+            @Override
+            void onUnPaused() {
+                super.onUnPaused();
+                music.play();
             }
 
             @Override
