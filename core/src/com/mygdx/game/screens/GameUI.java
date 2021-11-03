@@ -180,8 +180,7 @@ public class GameUI extends InGameMenu {
 
         createInfoTable();
 
-        createMenu(
-                "Paused", "Resume", "Restart", "Quit", "Camera", "Debug Draw");
+        createMenu("Paused", "Resume", "Restart", "Quit", "Camera", "Debug Draw");
 
         hudOverlayColor = new Color(1, 1, 1, 0); // screen-fade overlay
         GameWorld.getInstance().setIsPaused(false); // default state for game-screen should be un-paused
@@ -369,9 +368,19 @@ public class GameUI extends InGameMenu {
         }
     }
 
+    // to be overridden
+    void onPaused() {
+        GameWorld.getInstance().setIsPaused(true);
+    }
+
+    // to be overridden
+    void onUnPaused() {
+        GameWorld.getInstance().setIsPaused(false);
+    }
+
     private void onPausedMenuX() {
         // un-pause game state and invoke selected action
-        GameWorld.getInstance().setIsPaused(false);
+        onUnPaused();
 
         switch (getCheckedIndex()) {
             default:
@@ -402,7 +411,7 @@ public class GameUI extends InGameMenu {
             if (getMenuVisibility()) {
                 onQuit();
             } else {
-                GameWorld.getInstance().setIsPaused(true);
+                onPaused();
             }
         }
     }
