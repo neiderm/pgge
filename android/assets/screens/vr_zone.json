@@ -489,11 +489,11 @@
 	"Scene": {
 		"fileName": "data/vr_zone.g3db"
 	},
+	"Audio_Track_0": {
+		"fileName": "audio/Track_5.ogg"
+	},
 	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
-	},
-	"Audio_Track": {
-		"fileName": "audio/Track_5.ogg"
 	}
 }
 }

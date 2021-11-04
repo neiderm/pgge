@@ -20,6 +20,7 @@ import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -45,6 +46,7 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.sceneLoader.SceneLoader;
 
 import java.util.ArrayList;
 
@@ -182,6 +184,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 cubeEntity = e;
             }
         }
+
+        // starts with Track 13
+        music.play();
     }
 
     private ArrayList<String> createScreensMenu() {
@@ -212,10 +217,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     }
 
     private void createLogoMenu() {
-        // restart audio track
-        // if null != music
-        music.stop();
-        music.play();
 
         menuType = MenuType.LOGO;
         logoSelectTable = new Table();
@@ -269,6 +270,26 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private void createConfigMenu() {
         menuType = MenuType.CONFIG;
         menuTable = stage.createMenu(null, "Screens", "Options");
+
+        music.dispose();
+
+        // load audio track
+        final String AUDIO_TRACK = "Audio_Track_1";
+        // grab a handle to selected entities
+        SceneData sd = GameWorld.getInstance().getSceneData();
+        if (null != sd) {
+            ModelInfo mi = sd.modelInfo.get(AUDIO_TRACK);
+            if (null != mi) {
+                String audioTrack = mi.fileName;
+                if (null != audioTrack) {
+                    music = SceneLoader.getAssets().get(audioTrack, Music.class);
+
+                    if (null != music) {
+                        music.play();
+                    }
+                }
+            }
+        }
     }
 
     private void createArmorMenu() {
@@ -429,6 +450,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 if (logoSelectTable.isVisible()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
+                        // stop music
+                        if (null != music) {
+                            music.stop();
+                        }
                         // set the endpoint of block to initiate animation
                         logoEndPtX = LOGO_END_PT_X1;
                         logoEndPtY = LOGO_END_PT_Y1;

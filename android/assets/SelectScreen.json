@@ -94,6 +94,12 @@
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReference_derskySphereHere"
 	},
+	"Audio_Track_1": {
+		"fileName": "audio/Track_2.ogg"
+	},
+	"Audio_Track_0": {
+		"fileName": "audio/Track_13.ogg"
+	},
 	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
 	},
@@ -102,9 +108,6 @@
 	},
 	"Jeep_Renegade_2016": {
 		"fileName": "tanks/Jeep_Renegade_2016.g3db"
-	},
-	"Audio_Track": {
-		"fileName": "audio/Track_2.ogg"
 	}
 }
 }

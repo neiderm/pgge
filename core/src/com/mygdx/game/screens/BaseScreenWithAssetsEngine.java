@@ -80,7 +80,7 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         cam.update();
 
         // load audio track
-        final String AUDIO_TRACK = "Audio_Track";
+        final String AUDIO_TRACK = "Audio_Track_0";
         // grab a handle to selected entities
         SceneData sd = GameWorld.getInstance().getSceneData();
         if (null != sd){
