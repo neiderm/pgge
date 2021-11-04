@@ -312,6 +312,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         break;
                     default:
                         gunrack.setVisible(false);
+
+                        if (null != music) {
+                            music.stop();
+                        }
                         break;
                 }
                 updateRays();
