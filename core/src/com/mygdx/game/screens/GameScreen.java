@@ -237,7 +237,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             @Override
             void onPaused() {
                 super.onPaused();
-                music.pause();
+                if (null != music) {
+                    music.pause();
+                }
             }
 
             @Override
@@ -429,11 +431,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private final SteeringEntity chaserSteerable = new SteeringEntity();
     private Matrix4 chaserTransform;
 
-    /*
-     * https://xoppa.github.io/blog/3d-frustum-culling-with-libgdx/
-     * "Note that using a StringBuilder is highly recommended against string concatenation in your
-     * render method. The StringBuilder will create less garbage, causing almost no hick-ups due to garbage collection."
-     */
     @Override
     public void render(float delta) {
         // plots debug graphics
