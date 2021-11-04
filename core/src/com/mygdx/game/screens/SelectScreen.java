@@ -61,6 +61,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private static final String CLASS_STRING = "SelectScreen";
     private static final String SCREENS_DIR = "screens/";
     private static final String DOT_JSON = ".json";
+private static final String STAGE_1 = "vr_zone";
 
     private final Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
     private final Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
@@ -74,7 +75,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private Entity platform;
     private RigSelect rigSelect;
     private MenuType menuType = MenuType.INVALID;
-    private Table menuTable;
+    private Table configMenuTable;
     private Table armorSelectTable;
     private Table logoSelectTable;
 
@@ -113,6 +114,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         INVALID
     }
 
+    private enum LogoMenuItems {
+        P1START,
+        CSETUP
+    }
+    private enum ConfigMenuItems {
+        LEVEL1,
+        PASSWORD
+    }
     /**
      * bah .. determined more or less by arbitrary order in model info STATIC_OBJECTS of json file
      */
@@ -219,17 +228,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
     private void createLogoMenu() {
 
         menuType = MenuType.LOGO;
-        logoSelectTable = new Table();
-        logoSelectTable.setVisible(false);
-        logoSelectTable.setFillParent(true);
-        stage.addActor(logoSelectTable);
-        //         stage.createMenu(null, true, "1p Start", "Options");
-
-        TextButton button = stage.makeTextButton(
-                "Next", new Color(0, 1f, 0, 1.0f), InGameMenu.ButtonEventHandler.EVENT_A);
-        logoSelectTable.add(button);
-        logoSelectTable.row().bottom(); // todo bottom alignment
-
         /*
          * position cube to start point
          */
@@ -248,6 +246,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         // hold the logo in place by setting target coordinates equal to start location
         logoEndPtX = LOGO_START_PT_X;
         logoEndPtY = LOGO_START_PT_Y; // 0.8f; // see z-dimension of LogoText in cubetest.blend
+
+        logoSelectTable = stage.createMenu(null, "1p Start", "Options");
 
         // start logo animation upon completing time delay Action
         final Action animLogo = new Action() {
@@ -269,11 +269,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private void createConfigMenu() {
         menuType = MenuType.CONFIG;
-        menuTable = stage.createMenu(null, "Screens", "Options");
+        configMenuTable = stage.createMenu(null, "Stage 1", "Password");
 
+        // load next audio track
         music.dispose();
-
-        // load audio track
         final String AUDIO_TRACK = "Audio_Track_1";
         // grab a handle to selected entities
         SceneData sd = GameWorld.getInstance().getSceneData();
@@ -454,6 +453,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         if (null != music) {
                             music.stop();
                         }
+                        // grab index
+                        saveSelIndex = stage.updateMenuSelection();
+
                         // set the endpoint of block to initiate animation
                         logoEndPtX = LOGO_END_PT_X1;
                         logoEndPtY = LOGO_END_PT_Y1;
@@ -466,7 +468,17 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                         // block moved off screen in position, enable menu and start logo block animation
                                         new Action() {
                                             public boolean act(float delta) {
-                                                createConfigMenu();
+                                                switch (saveSelIndex) {
+                                                    default:
+                                                    case 0: // P1START
+                                                        menuType = MenuType.CONFIG;
+                                                        createConfigMenu();
+                                                        break;
+                                                    case 1: // CSETUP
+                                                        menuType = MenuType.CONTROLLER;
+                                                        createControllerMenu();
+                                                        break;
+                                                }
                                                 return true;
                                             }
                                         }
@@ -485,8 +497,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // grab index
                         saveSelIndex = stage.updateMenuSelection();
                         // setup Action to handle menu transition
-                        menuTable.clearActions();
-                        menuTable.addAction(
+                        configMenuTable.clearActions();
+                        configMenuTable.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
@@ -495,13 +507,14 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                             public boolean act(float delta) {
                                                 switch (saveSelIndex) {
                                                     default:
-                                                    case 0:
+                                                    case 0: // LEVEL 1
+                                                        stage.setMenuVisibility(false);
+                                                        stagename = STAGE_1;
+                                                        createArmorMenu();
+                                                        break;
+                                                    case 1: // PASSWORD
                                                         menuType = MenuType.LEVELS;
                                                         stageNamesList = createScreensMenu();
-                                                        break;
-                                                    case 1:
-                                                        menuType = MenuType.CONTROLLER;
-                                                        createControllerMenu();
                                                         break;
                                                 }
                                                 return true;
@@ -516,8 +529,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                         // grab index
                         saveSelIndex = stage.updateMenuSelection();
                         // setup Action to handle menu transition
-                        menuTable.clearActions();
-                        menuTable.addAction(
+                        configMenuTable.clearActions();
+                        configMenuTable.addAction(
                                 Actions.sequence(
                                         Actions.hide(),
                                         Actions.delay(1.0f), // wait for block in position
