@@ -135,24 +135,18 @@ public class SceneLoader implements Disposable {
          * create the player Model group using the special Game Feature defined by the loader, or get
          * localplayer model group if one is defined in json (which also needs to know which object name
          * to load).
-         * is Player flag is hack to tell object builder to grab the entity of the player and store it in the
-         * global player feature.
          */
-        GameFeature playerFeature =
-                GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
-
-        String localPlayerObjectname;
+        GameFeature playerFeature = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
         if (null != playerFeature) {
-            localPlayerObjectname = playerFeature.getObjectName();
 
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
-            if (null != tmg) {  // select screen doesnt define a player group
+            if (null != tmg) {  // Select screen does not define a player group
                 GameObject gameObject = tmg.getElement(0); // snhould be only 1!
                 gameObject.mass = 5.1f;   // should be from the model or something
                 gameObject.isPlayer = true; ////////////////// bah look at me hack
-                gameObject.objectName = localPlayerObjectname;
+                gameObject.objectName = playerFeature.getObjectName();
             }
         }
     }
