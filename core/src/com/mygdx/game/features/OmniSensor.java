@@ -127,7 +127,7 @@ public class OmniSensor extends FeatureAdaptor {
         float boundsDst2 = bounds.dst2(sensorOrigin);
 
         if (null == target) {
-            GameFeature playerFeature = GameWorld.getInstance().getFeature("Player");
+            GameFeature playerFeature = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
             if (null != playerFeature) {
 
                 target = playerFeature.getEntity();
