@@ -62,6 +62,11 @@ public final class GameWorld implements Disposable {
     public static final float FONT_X_SCALE = ((float) VIRTUAL_WIDTH / DEFAULT_WIDTH); // 2.80f;
     public static final float FONT_Y_SCALE = ((float) VIRTUAL_HEIGHT / DEFAULT_HEIGHT); // 2.125
 
+    private SceneData sceneData;
+    private String sceneDataFile;
+    private Game game;
+    private int screenIndex;
+
     public enum GAME_STATE_T {
         ROUND_NONE,
         ROUND_ACTIVE,
@@ -76,10 +81,6 @@ public final class GameWorld implements Disposable {
 
     private static GameWorld instance;
 
-    private SceneData sceneData;
-    private String sceneDataFile;
-    private Game game;
-
     // created lazily and cached for later usage.
     public static GameWorld getInstance() {
         if (null == instance) {
@@ -88,12 +89,10 @@ public final class GameWorld implements Disposable {
         return instance;
     }
 
-    public static void setInstance(GameWorld instance) {
-        GameWorld.instance = instance;
-    }
-
     void initialize(Game game) {
         this.game = game;
+        screenIndex = 0;
+
         // static subsystems initialized only once per application run
         Bullet.init();
         PrimitivesBuilder.init();
@@ -105,20 +104,20 @@ public final class GameWorld implements Disposable {
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
     public void showScreen() {
-        if (Gdx.files.internal(DEFAULT_SCREEN).exists()) {
-            setSceneData(DEFAULT_SCREEN);
+        String fileName = DEFAULT_SCREEN;
+        if (Gdx.files.internal(fileName).exists()) {
+            setSceneData(fileName);
             showScreen(new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
         } else {
-            Gdx.app.log(CLASS_STRING, DEFAULT_SCREEN + " file not found, loading test screen");
+            Gdx.app.log(CLASS_STRING, fileName + " not found, using Test Screen");
             showScreen(new ReduxScreen());
         }
     }
 
     public void showScreen(Screen screen) {
-        if (null == game) {
-            return;
+        if (null != game) {
+            game.setScreen(screen); // calls screen.hide() on the current screen
         }
-        game.setScreen(screen); // calls screen.hide() on the current screen
     }
 
     /*
@@ -193,7 +192,11 @@ public final class GameWorld implements Disposable {
             // get the player model info from previous scene data
             selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
         }
+        /*
+         * now you can load the new scene data
+         */
         sceneData = SceneData.loadData(sceneDataFile, playerObjectName);
+
         // definitely needs to be non-null here!
         if (null != selectedModelInfo) {
             // set the player object model info in new scene data isntance
@@ -205,16 +208,16 @@ public final class GameWorld implements Disposable {
      * only for Select Screen, to set the "tag" on the player object name
      *
      * @param fileName          path to screen json file to load
-     * @param playerFeatureName player feature name
+     * @param playerObjectName  player feature name
      * @param selectedModelInfo player model info from previous screen
      */
-    public void setSceneData(String fileName, String playerFeatureName, ModelInfo selectedModelInfo) {
+    public void setSceneData(String fileName, String playerObjectName, ModelInfo selectedModelInfo) {
 
         sceneDataFile = fileName; // keep this persistent for screen restart/reloading
-        // now instantiate the new scene data
-        sceneData = SceneData.loadData(fileName, playerFeatureName);
+
+        sceneData = SceneData.loadData(fileName, playerObjectName);
 //        if (null != selectedModelInfo) ... don't care
-        sceneData.modelInfo.put(playerFeatureName, selectedModelInfo);
+        sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
     }
 
     /*
@@ -235,7 +238,11 @@ public final class GameWorld implements Disposable {
      * @return Game Feature
      */
     public GameFeature getFeature(String featureName) {
-        return sceneData.features.get(featureName);
+        GameFeature ff = null;
+        if (null != sceneData) {
+            ff = sceneData.features.get(featureName);
+        }
+        return ff;
     }
 
     public void addSpawner(GameObject object) {
@@ -262,6 +269,6 @@ public final class GameWorld implements Disposable {
     public void dispose() {
         game.getScreen().dispose();
         PrimitivesBuilder.dispose(); //  call static method
-        setInstance(null);
+        instance = null;
     }
 }
