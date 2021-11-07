@@ -65,7 +65,7 @@ public class LoadingScreen implements Screen {
         this.screenType = screenType;
     }
 
-    LoadingScreen() {
+    public LoadingScreen() {
         this(ScreenTypes.LEVEL);
     }
 
@@ -151,9 +151,9 @@ public class LoadingScreen implements Screen {
                 labelString = STR_LOADING;
             }
             // make the bar up to half the screen width
-            loadCounter =
-                    (int) (GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress());
+            loadCounter = (int) (GameWorld.VIRTUAL_WIDTH * 0.5f * SceneLoader.getAssets().getProgress());
 
+// todo if resource file missing, .... need exception handler here
             if (SceneLoader.getAssets().update()) {
                 SceneLoader.doneLoading();
                 isLoaded = true;
