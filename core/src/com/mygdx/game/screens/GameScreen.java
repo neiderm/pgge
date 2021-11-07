@@ -119,8 +119,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
 
         GfxUtil.init();
         GameWorld.getInstance().setRoundActiveState(GameWorld.GAME_STATE_T.ROUND_ACTIVE);
-        pickedPlayer =
-                GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME).getEntity();
+        pickedPlayer = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME).getEntity();
 
         if (null != pickedPlayer) {
             pickedPlayer.remove(PickRayComponent.class); // tmp ... stop picking yourself ...
@@ -178,6 +177,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             private InputMapper.ControlBundle cbundle; // cbundle to be inherited from parent class and call updateControlBundle()?
             // can't properly instantiate gun platform until screen initialization is complete
             private GunPlatform gunPlatform;
+
+            //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
+            GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
             private void makeGunPlatform(boolean withEnergizeDelay) {
                 gunPlatform = new GunPlatform(
@@ -245,7 +247,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             @Override
             void onUnPaused() {
                 super.onUnPaused();
-                music.play();
+                if (null != music) {
+                    music.play();
+                }
             }
 
             @Override
@@ -262,13 +266,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 }
                 gunPlatform.updateControls(0 /* unused */);
 
-                //  control driving rig, hackage for auto-accelerator mode (only on screen where it is set as playerfeature userdata)
-                GameFeature pf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
-
                 // user data is hacked in flag applied on levels that set the player Rig to have auto-forward movement
                 float yInput = cbundle.getAxis(InputMapper.VIRTUAL_WS_AXIS);
                 if (Math.abs(yInput) < 0.4f) {
-                    // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reverseing/brake power?
+                    // forces forward motion but doesn't affect reverse, idfk provide "bucket" of reversing/brake power?
                     cbundle.setAxis(InputMapper.VIRTUAL_WS_AXIS, (-1) * pf.userData / 100.0f); // percent
                 }
                 rigController.updateControls(0 /* unused */);
