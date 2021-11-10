@@ -597,6 +597,9 @@
 	},
 	"StaticObjects": {
 		"fileName": "areeners/crapium.g3db"
+	},
+	"Audio_Track_0": {
+		"fileName": "audio/Track_6.ogg"
 	}
 }
 }
