@@ -41,7 +41,13 @@ import com.mygdx.game.util.PrimitivesBuilder;
 public final class GameWorld implements Disposable {
 
     private static final String CLASS_STRING = "GameWorld";
-    public static final String DEFAULT_SCREEN = "SelectScreen.json";
+    private static final String DEFAULT_SCREEN = "SelectScreen.json";
+
+    //  screen names in some kind of order
+    private static String[] strScreensList = new String[]{
+            "vr_zone", "nextgen", "goonpatrol", "shootme", "caps", "gbr", "GameData"
+    };
+
     // deserves a more unique name (in json too)
     public static final String LOCAL_PLAYER_FNAME = "Player";
     // default font from gdx-skins
@@ -91,7 +97,6 @@ public final class GameWorld implements Disposable {
 
     void initialize(Game game) {
         this.game = game;
-        screenIndex = 0;
 
         // static subsystems initialized only once per application run
         Bullet.init();
@@ -100,6 +105,18 @@ public final class GameWorld implements Disposable {
         showScreen(new SplashScreen());
     }
 
+    public static int getIndexOfScreen(String name){
+
+        int index = 0;
+
+        for (String string : strScreensList){
+            if (string.equals( name)){
+                break;
+            }
+            index += 1;
+        }
+        return index;
+    }
     /*
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
@@ -112,6 +129,31 @@ public final class GameWorld implements Disposable {
             Gdx.app.log(CLASS_STRING, fileName + " not found, using Test Screen");
             showScreen(new ReduxScreen());
         }
+    }
+
+    private void showScreen(String featureName) {
+
+        String levelName = strScreensList[0]; // use as default (make sure its populated)
+
+        if (screenIndex < strScreensList.length){
+            levelName = strScreensList[screenIndex];
+        }
+        else{
+            Gdx.app.log(CLASS_STRING, "index " + screenIndex + " out of bounds");
+        }
+        final String FILE_NAME = "screens/" + levelName + ".json";
+
+        screenIndex += 1;
+
+        setSceneData(FILE_NAME, featureName);
+        showScreen(new LoadingScreen());
+    }
+
+    public void showScreen(String featureName, int index) {
+
+        screenIndex = index;
+
+        showScreen(featureName);
     }
 
     public void showScreen(Screen screen) {

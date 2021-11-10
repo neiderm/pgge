@@ -19,7 +19,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
@@ -60,8 +59,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private static final String CLASS_STRING = "SelectScreen";
     private static final String SCREENS_DIR = "screens/";
-    private static final String DOT_JSON = ".json";
-private static final String STAGE_1 = "vr_zone";
 
     private final Vector3 logoPositionVec = new Vector3(); // tmp vector for reuse
     private final Vector3 cubePositionVec = new Vector3(); // tmp vector for reuse
@@ -69,7 +66,7 @@ private static final String STAGE_1 = "vr_zone";
     private ArrayList<String> stageNamesList; // needs re-instantiated at each screen invocation
     private InGameMenu stage; // don't instantiate me here ... skips select platform
     private int dPadYaxis;
-    private String stagename;
+    private String stageName;
     private Entity logoEntity;
     private Entity cubeEntity;
     private Entity platform;
@@ -118,10 +115,12 @@ private static final String STAGE_1 = "vr_zone";
         P1START,
         CSETUP
     }
+
     private enum ConfigMenuItems {
         LEVEL1,
         PASSWORD
     }
+
     /**
      * bah .. determined more or less by arbitrary order in model info STATIC_OBJECTS of json file
      */
@@ -370,28 +369,18 @@ private static final String STAGE_1 = "vr_zone";
         return axis;
     }
 
-    private Screen newLoadingScreen(String path) {
+    private void newLoadingScreen(int index) {
 
         SceneData sd = GameWorld.getInstance().getSceneData();
         ModelGroup mg = sd.modelGroups.get("Characters");
         // first 3 Characters are on the platform - use currently selected index to retrieve
         String playerObjectName = mg.getElement(rigSelect.getSelectedIndex()).objectName;
 
-        // When loading from Select Screen, need to distinguish the name of the selected player
-        // object by an arbitrary character string to make sure locally added player model info
-        // doesn't bump into the user-designated model info sections in the screen json files
-        final String PLAYER_OBJECT_TAG = "P0_";
-        String playerFeatureName = PLAYER_OBJECT_TAG;
-
         if (null != playerObjectName) {
-            // get the player model info from previous scene (which should still be valid)
-            ModelInfo selectedModelInfo = sd.modelInfo.get(playerObjectName);
-            playerFeatureName += playerObjectName;
-            GameWorld.getInstance().setSceneData(path, playerFeatureName, selectedModelInfo);
+            GameWorld.getInstance().showScreen(playerObjectName, index);
         } else {
-            Gdx.app.log(CLASS_STRING, "Error: Player Objet Name may not be null!");
+            Gdx.app.log(CLASS_STRING, "Error: Player Object Name may not be null!");
         }
-        return new LoadingScreen();
     }
 
     private int saveSelIndex = -1; // hackish ... get Action to work
@@ -509,7 +498,6 @@ private static final String STAGE_1 = "vr_zone";
                                                     default:
                                                     case 0: // LEVEL 1
                                                         stage.setMenuVisibility(false);
-                                                        stagename = STAGE_1;
                                                         createArmorMenu();
                                                         break;
                                                     case 1: // PASSWORD
@@ -559,8 +547,8 @@ private static final String STAGE_1 = "vr_zone";
                         && stage.getMenuVisibility()) {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                     stage.setMenuVisibility(false);
-                    stagename = stageNamesList.get(levelIndex);
-                    createArmorMenu();
+                    stageName = stageNamesList.get(levelIndex);
+                    createArmorMenu( /* level index */ );
                 }
                 break;
 
@@ -570,9 +558,7 @@ private static final String STAGE_1 = "vr_zone";
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.setMenuVisibility(false); // doesn't matter - new Screen
                         GameWorld.getInstance().setControllerMode(ctrsIndex);
-                        GameWorld.getInstance().setSceneData(GameWorld.DEFAULT_SCREEN);
-                        GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
-                                new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
+                        GameWorld.getInstance().showScreen();
                     }
                 }
                 break;
@@ -588,9 +574,12 @@ private static final String STAGE_1 = "vr_zone";
                     rigSelect.updatePlatformRotation(getStep());
 
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        int index = 0;
+                        if (null != stageName && stageName.length() > 0) {
 
-                        GameWorld.getInstance().showScreen(
-                                newLoadingScreen(SCREENS_DIR + stagename + DOT_JSON));
+                            index = GameWorld.getIndexOfScreen(stageName);
+                        }
+                        newLoadingScreen(index);
 
                     } else if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_Y)) {
 

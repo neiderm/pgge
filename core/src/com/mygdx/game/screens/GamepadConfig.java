@@ -48,9 +48,7 @@ public class GamepadConfig implements Screen {
                 || (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS)) // analog stick-right, hackamathang
         ) {
             GameWorld.getInstance().setControllerMode(idxCurSel);
-            GameWorld.getInstance().setSceneData(GameWorld.DEFAULT_SCREEN);
-            GameWorld.getInstance().showScreen( /* ScreenEnum screenEnum, Object... params */
-                    new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
+            GameWorld.getInstance().showScreen();
         }
     }
 
