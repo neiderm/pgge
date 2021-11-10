@@ -48,8 +48,6 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
-        final String DATA_FILE_NAME = "SelectScreen.json";
-
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -66,22 +64,11 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         boolean isA = (wasTouched || stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A));
 
         if ((timer > MAX_SP_SCREEN_TIME) || ((timer > MIN_SP_SCREEN_TIME) && isA)) {
-            // if no data file found, go into test screen
-            if (Gdx.files.internal(DATA_FILE_NAME).exists()) {
-                GameWorld.getInstance().setSceneData(DATA_FILE_NAME);
-                GameWorld.getInstance().showScreen(new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
-            } else {
-                Gdx.app.log("Splash Screen", DATA_FILE_NAME + " not found, using Test Screen");
-                GameWorld.getInstance().showScreen(new ReduxScreen());
-            }
+
+            GameWorld.getInstance().showScreen();
+
         } else {
             timer += 1;
-
-            // menu option to load gamepad config menu
-            if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_START) ||
-                    (0 != stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS))) {
-                GameWorld.getInstance().showScreen(new GamepadConfig());
-            }
         }
     }
 
@@ -117,7 +104,6 @@ public class SplashScreen extends BaseScreenWithAssetsEngine {
         ttrSplash.dispose();
         batch.dispose();
         stage.dispose();
-
         // screens that load assets must calls assetLoader.dispose() !
         super.dispose();
     }
