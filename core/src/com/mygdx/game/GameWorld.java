@@ -131,7 +131,7 @@ public final class GameWorld implements Disposable {
         }
     }
 
-    private void showScreen(String featureName) {
+    public void showScreen(String featureName) {
 
         String levelName = strScreensList[0]; // use as default (make sure its populated)
 

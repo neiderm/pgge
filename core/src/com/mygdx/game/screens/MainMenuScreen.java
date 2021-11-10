@@ -21,9 +21,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.GameFeature;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 /**
  * Created by neiderm on 12/18/17.
  * <p>
@@ -39,10 +36,21 @@ public class MainMenuScreen implements Screen {
      */
     private final InGameMenu stage = new InGameMenu();
 
+    private String featureName;
+
+    MainMenuScreen() {
+        // get the local player object name from previous screen scene data
+        GameFeature gf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
+
+        if (null != gf) {
+            featureName = gf.getObjectName();
+        }
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        Gdx.gl.glClearColor(66.0f / 255, 66.0f / 255, 231.0f / 255, 1.f);
+        Gdx.gl.glClearColor(0, 0, 0, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         stage.act();
@@ -51,25 +59,10 @@ public class MainMenuScreen implements Screen {
         int idxCurSel = stage.updateMenuSelection();
 
         if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
-            // pass along the local player object name
-            GameFeature gf =
-                    GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
-            String featureName = null;
-
-            if (null != gf) {
-                featureName = gf.getObjectName();
-            }
-            switch (idxCurSel) {
-                default:
-                case 0:
-                    // set scene for Bonus Level
-                    GameWorld.getInstance().setSceneData("GameData.json", featureName);
-                    GameWorld.getInstance().showScreen(new LoadingScreen(/* should_pause=true, type=Level */));
-                    break;
-                case 1:
-                    GameWorld.getInstance().showScreen(); // show the default screen
-                    break;
+            if (0 == idxCurSel) {
+                // set scene for Bonus Level
+                GameWorld.getInstance().showScreen(featureName);
             }
         }
     }
@@ -86,13 +79,7 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        String[] configNames = new String[]{
-                "Bonus Level",
-                "Exit"
-        };
-        final ArrayList<String> namesList = new ArrayList<>();
-        Collections.addAll(namesList, configNames);
-        stage.createMenu(null, namesList.toArray(new String[0]));
+        stage.createMenu("Areena Completed", "Score");
     }
 
     @Override
