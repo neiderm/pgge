@@ -17,6 +17,7 @@ package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.sceneLoader.GameFeature;
@@ -37,8 +38,12 @@ public class MainMenuScreen implements Screen {
     private final InGameMenu stage = new InGameMenu();
 
     private String featureName;
+    private Music bgMusic;
 
     MainMenuScreen() {
+
+        bgMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/Track_15.ogg"));
+
         // get the local player object name from previous screen scene data
         GameFeature gf = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
 
@@ -79,15 +84,18 @@ public class MainMenuScreen implements Screen {
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
-        stage.createMenu("Areena Completed", "Score");
+        stage.createMenu("Arena Completed", "Score");
+        bgMusic.play();
     }
 
     @Override
     public void pause() {        // empty
+//        bgMusic.pause(); // todo try android hiding
     }
 
     @Override
     public void resume() {        // empty
+//        bgMusic.play(); // // todo try android hiding
     }
 
     @Override
@@ -97,6 +105,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void dispose() {
+        bgMusic.dispose();
         stage.dispose();
     }
 }
