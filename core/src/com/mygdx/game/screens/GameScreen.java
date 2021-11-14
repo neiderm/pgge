@@ -209,7 +209,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         if (getRoundsAvailable() <= 0) {
                             // selected weapon has no rounds available - initialize and reset to standard ammo
                             resetStandard();
-
                             // no energizing time required if switch to std. ammo due to 0 ammo (or starting new round)
                             makeGunPlatform(false);
                         }
@@ -230,9 +229,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             protected void onInputX() {
                 super.onInputX();
                 // if the gunrack menu is active then the selected weapon will be enabled
-                // returns true if menu is active and a new weapon has been selected
                 if (gunrack.onInputX()) {
-                    gunPlatform = null;
+                    // a new weapon has been selected, null the old one (will be regenerated on main thread)
+                    gunPlatform.destroy();
+                    gunPlatform = null; // triggers platform re-init on main thread
                 }
             }
 
@@ -311,12 +311,15 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                             updateModelSpace();
                         }
                         break;
-                    default:
+                    case ROUND_OVER_QUIT:
+                        gunPlatform.destroy();
                         gunrack.setVisible(false);
 
                         if (null != music) {
                             music.stop();
                         }
+                        break;
+                    default:
                         break;
                 }
                 updateRays();

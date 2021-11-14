@@ -16,6 +16,8 @@
 package com.mygdx.game.controllers;
 
 import com.badlogic.ashley.core.Entity;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Matrix4;
@@ -57,6 +59,8 @@ public class GunPlatform extends CharacterController {
     private float rBarrel;
 
     private static final int BUTTON_0 = 0;
+    public String fxfile;
+    private Sound firefx;
 
     public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
 
@@ -88,6 +92,23 @@ public class GunPlatform extends CharacterController {
             gunNode = mi.getNode(strBarrelNode, true);  // recursive
             gunIndex = index;
         }
+
+        fxfile = "small-pulse-cannon-fire.ogg";
+        switch (gunrack.getSelectedWeapon()) {
+            default:
+            case UNDEFINED:
+            case STANDARD_AMMO:
+                fxfile = "small-pulse-cannon-fire.ogg";
+                break;
+            case HI_IMPACT_PRJ:
+                fxfile = "heavy-pulse-cannon-fire.ogg";
+                break;
+            case PLASMA_GRENADES:
+                fxfile = "2heavy-pulse-cannon-fire.ogg";
+                break;
+        }
+// todo: needs to be in try/catch
+        firefx = Gdx.audio.newSound(Gdx.files.internal("sfx/" + fxfile));
     }
 
     @Override
@@ -143,24 +164,9 @@ public class GunPlatform extends CharacterController {
             }
         }
 
-        /*
-         *set the basic gun sight vector, but is definately not onesizefitsall
-         */
-        prjectileS0.set(0, 0.6f, 0 - 1.3f);
-        prjectileS0.rotate(xAxis, rBarrel);
-        prjectileS0.rotate(yAxis, rTurret);
-
-        if (button0) {
-            if (null != gunrack && gunrack.fireWeapon() >= 0) {
-                //if (gunrack.fireWeapon() >= 0)
-                {
-                    // a shot can be fired
-                    fireProjectile(mi.transform, gunrack.getSelectedWeapon());
-                }
-            } else {
-                // gunrack is null, but a standard projectile can still be fired
-                fireProjectile(mi.transform, Gunrack.WeaponType.UNDEFINED);
-            }
+        if (button0 && (gunrack.fireWeapon() >= 0)) {
+            // a shot can be fired
+            fireProjectile(mi.transform, gunrack.getSelectedWeapon());
         }
     }
 
@@ -174,6 +180,10 @@ public class GunPlatform extends CharacterController {
     private void fireProjectile(Matrix4 srcTrnsfm, Gunrack.WeaponType weapon) {
 
         if (null != srcTrnsfm) {
+
+            prjectileS0.set(0, 0.6f, 0 - 1.3f);
+            prjectileS0.rotate(xAxis, rBarrel);
+            prjectileS0.rotate(yAxis, rTurret);
 
             srcTrnsfm.getRotation(qBody);
             ModelInstanceEx.rotateRad(prjectileS0, qBody); // rotate the resulting offset vector to orientation of Rig
@@ -189,6 +199,11 @@ public class GunPlatform extends CharacterController {
             // set unit vector for direction of travel for theoretical projectile fired perfectly in forward direction
             float mag = -0.15f; // scale accordingly for magnitidue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
+
+            if (null != firefx) {
+                firefx.stop();
+                firefx.play();
+            }
 
             switch (weapon) {
                 default:
@@ -220,6 +235,13 @@ public class GunPlatform extends CharacterController {
                             "capsule", 0.2f);
                     break;
             }
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (null != firefx) {
+            firefx.dispose();
         }
     }
 }
