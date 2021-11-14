@@ -31,4 +31,7 @@ public class CharacterController implements ControllerAbstraction {
 
     public void updateControls(float time) { // implements abstract method
     }
+
+    public void destroy(){ // MT override it
+    }
 }
