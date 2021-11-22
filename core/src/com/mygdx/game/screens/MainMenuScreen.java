@@ -85,7 +85,10 @@ public class MainMenuScreen implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(stage);
         stage.createMenu("Arena Completed", "Score");
-        bgMusic.play();
+        if (null != bgMusic){
+            bgMusic.setLooping(true);
+            bgMusic.play();
+        }
     }
 
     @Override
@@ -105,7 +108,9 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        bgMusic.dispose();
+        if (null != bgMusic){
+            bgMusic.dispose();
+        }
         stage.dispose();
     }
 }

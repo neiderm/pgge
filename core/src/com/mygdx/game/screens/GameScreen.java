@@ -146,7 +146,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 playerUI = initPlayerUI();
                 // restart audio track
                 if (null != music) {
-                    music.stop();
+                    music.setLooping(true);
                     music.play();
                 }
             } else {
