@@ -59,7 +59,7 @@ public class GunPlatform extends CharacterController {
     private float rBarrel;
 
     private static final int BUTTON_0 = 0;
-    public String fxfile;
+    private String fxfile;
     private Sound firefx;
 
     public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
@@ -107,8 +107,11 @@ public class GunPlatform extends CharacterController {
                 fxfile = "2heavy-pulse-cannon-fire.ogg";
                 break;
         }
-// todo: needs to be in try/catch
-        firefx = Gdx.audio.newSound(Gdx.files.internal("sfx/" + fxfile));
+        try {
+            firefx = Gdx.audio.newSound(Gdx.files.internal("sfx/" + fxfile));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override
