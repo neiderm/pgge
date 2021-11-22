@@ -25,6 +25,7 @@ import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
 import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.screens.LoadingScreen;
 import com.mygdx.game.screens.ReduxScreen;
 import com.mygdx.game.screens.SplashScreen;
@@ -68,6 +69,7 @@ public final class GameWorld implements Disposable {
     public static final float FONT_X_SCALE = ((float) VIRTUAL_WIDTH / DEFAULT_WIDTH); // 2.80f;
     public static final float FONT_Y_SCALE = ((float) VIRTUAL_HEIGHT / DEFAULT_HEIGHT); // 2.125
 
+    private SceneLoader sceneLoader;
     private SceneData sceneData;
     private String sceneDataFile;
     private Game game;
@@ -105,25 +107,37 @@ public final class GameWorld implements Disposable {
         showScreen(new SplashScreen());
     }
 
-    public static int getIndexOfScreen(String name){
+    public SceneLoader newSceneLoader() {
+        sceneLoader = new SceneLoader(sceneData);
+        return getSceneLoader();
+    }
+
+    public SceneLoader getSceneLoader() {
+        return sceneLoader;
+    }
+
+
+    public static int getIndexOfScreen(String name) {
 
         int index = 0;
 
-        for (String string : strScreensList){
-            if (string.equals( name)){
+        for (String string : strScreensList) {
+            if (string.equals(name)) {
                 break;
             }
             index += 1;
         }
         return index;
     }
+
     /*
      * any screen that has more than trivial setup should be deferred thru the loading screen!
      */
     public void showScreen() {
         String fileName = DEFAULT_SCREEN;
         if (Gdx.files.internal(fileName).exists()) {
-            setSceneData(fileName);
+            sceneDataFile = fileName; // keep this persistent for screen restart/reloading
+            sceneData = SceneData.loadData(sceneDataFile, null);
             showScreen(new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
         } else {
             Gdx.app.log(CLASS_STRING, fileName + " not found, using Test Screen");
@@ -135,10 +149,9 @@ public final class GameWorld implements Disposable {
 
         String levelName = strScreensList[0]; // use as default (make sure its populated)
 
-        if (screenIndex < strScreensList.length){
+        if (screenIndex < strScreensList.length) {
             levelName = strScreensList[screenIndex];
-        }
-        else{
+        } else {
             Gdx.app.log(CLASS_STRING, "index " + screenIndex + " out of bounds");
         }
         final String FILE_NAME = "screens/" + levelName + ".json";
@@ -210,13 +223,6 @@ public final class GameWorld implements Disposable {
         roundActiveState = state;
     }
 
-    /*
-     * set Select Screen data
-     */
-    public void setSceneData(String fileName) {
-        sceneDataFile = fileName; // keep this persistent for screen restart/reloading
-        sceneData = SceneData.loadData(sceneDataFile, null);
-    }
 
     /**
      * passes along the player object name and path to next screen json
@@ -224,7 +230,7 @@ public final class GameWorld implements Disposable {
      * @param fileName         name of json file to load
      * @param playerObjectName if not null, previous scene player object data is reloaded to new screen.
      */
-    public void setSceneData(String fileName, String playerObjectName) {
+    private void setSceneData(String fileName, String playerObjectName) {
 
         sceneDataFile = fileName; // keep this persistent for screen restart/reloading
 
@@ -244,22 +250,6 @@ public final class GameWorld implements Disposable {
             // set the player object model info in new scene data isntance
             sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
         }
-    }
-
-    /**
-     * only for Select Screen, to set the "tag" on the player object name
-     *
-     * @param fileName          path to screen json file to load
-     * @param playerObjectName  player feature name
-     * @param selectedModelInfo player model info from previous screen
-     */
-    public void setSceneData(String fileName, String playerObjectName, ModelInfo selectedModelInfo) {
-
-        sceneDataFile = fileName; // keep this persistent for screen restart/reloading
-
-        sceneData = SceneData.loadData(fileName, playerObjectName);
-//        if (null != selectedModelInfo) ... don't care
-        sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
     }
 
     /*

@@ -36,9 +36,11 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
     protected Engine engine;
 
     private GfxBatch gfxBatch;
-    private RenderSystem renderSystem; //for invoking removeSystem (dispose)
+    private RenderSystem renderSystem; // for invoking removeSystem (dispose)
+
     // Scene Loader construction right away because it kicks off new Asset Manager (background) loading process
-    private SceneLoader sceneLoader = new SceneLoader();
+    private SceneLoader sceneLoader = GameWorld.getInstance().newSceneLoader();
+
     // field of view should be in the range of 60 to 70 degrees
     PerspectiveCamera cam =
             new PerspectiveCamera(67, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
@@ -98,7 +100,7 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
     public void render(float deltaTime) {
 
         Gdx.gl.glViewport(0, 0, GameWorld.VIRTUAL_WIDTH, GameWorld.VIRTUAL_HEIGHT);
-        Gdx.gl.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+        Gdx.gl.glClearColor(0, 0, 0, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         engine.update(deltaTime);
@@ -114,9 +116,6 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         if (null != sceneLoader) {
             sceneLoader.dispose();
             sceneLoader = null;
-        }
-        if (null != music){
-            music.dispose();
         }
     }
 }
