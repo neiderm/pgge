@@ -19,6 +19,7 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -35,6 +36,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.util.PrimitivesBuilder;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
@@ -52,13 +54,23 @@ public class SceneLoader implements Disposable {
     private static final String USER_MODEL_PARTS = "UserModelPartsNodes";
     private static final String USER_MODEL_INFO = "UserMeshesModel";
     private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
+    private static final String SFX_GAME = "sfxGame";
 
     //    private static boolean useTestObjects = true;
     private static AssetManager assets; // see comment below on instantiating it
     private static Model userModel;
 
-    public SceneLoader() {
-        SceneData sd = GameWorld.getInstance().getSceneData();
+    public static class SoundInfo {
+        public Sound sfx;
+        SoundInfo(Sound sfx) {
+            this.sfx = sfx;
+        }
+    }
+
+    private static final HashMap<String, SoundInfo> sfxGameCache = new HashMap<>();
+
+
+    public SceneLoader(SceneData sd) {
         /*
          * Assigning a value to a static field in a constructor could cause unreliable behavior at
          * runtime since it will change the value for all instances of the class.
@@ -76,13 +88,34 @@ public class SceneLoader implements Disposable {
                         assets.load(fn, Texture.class);
                     } else if (fn.contains(".g3d")) {
                         assets.load(fn, Model.class);
-                    }
-                    else if (fn.contains(".ogg")) {
+                    } else if (fn.contains(".ogg")) {
                         assets.load(fn, Music.class);
                     }
                 }
             }
+            /*
+             * special sauce to organize and retrieve audio files
+             */
+            HashMap<String, ModelGroup> mgrps = sd.modelGroups;
+
+            final String key = SFX_GAME;
+
+            ModelGroup sfGameGroup = mgrps.get(key);
+
+            final String ff = "sfx/";
+
+            for (GameObject gg : sfGameGroup.elements) {
+                String fn = ff + gg.objectName;
+
+                if (fn.contains(".ogg")) {
+                    assets.load(fn, Sound.class);
+                }
+            }
         }
+    }
+
+    public SoundInfo getSoundInfo(String key) {
+        return sfxGameCache.get(key);
     }
 
     public static AssetManager getAssets() {
@@ -110,6 +143,18 @@ public class SceneLoader implements Disposable {
                 }
             }
         }
+
+        ModelGroup sfxGame = sd.modelGroups.get(SFX_GAME);
+
+        for (GameObject gg : sfxGame.elements) {
+
+            String ff = "sfx/" + gg.objectName;
+            Sound theSound = assets.get(ff, Sound.class);
+
+            String key = gg.featureName.substring(0, 3);
+            sfxGameCache.put(key, new SoundInfo(theSound));
+        }
+
         /*
          * simple parts model bult up from instances created by Model Builder .part() ... only need
          * built on Screen Loading (should not be disposed on screen restart)
@@ -143,9 +188,9 @@ public class SceneLoader implements Disposable {
             ModelGroup tmg = sd.modelGroups.get(LOCAL_PLAYER_MGRP);
 
             if (null != tmg) {  // Select screen does not define a player group
-                GameObject gameObject = tmg.getElement(0); // snhould be only 1!
+                GameObject gameObject = tmg.getElement(0);
                 gameObject.mass = 5.1f;   // should be from the model or something
-                gameObject.isPlayer = true; ////////////////// bah look at me hack
+                gameObject.isPlayer = true;
                 gameObject.objectName = playerFeature.getObjectName();
             }
         }

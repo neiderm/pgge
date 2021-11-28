@@ -16,7 +16,6 @@
 package com.mygdx.game.controllers;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
@@ -25,10 +24,12 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
+import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.features.SensProjectile;
+import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.screens.Gunrack;
 import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -59,7 +60,6 @@ public class GunPlatform extends CharacterController {
     private float rBarrel;
 
     private static final int BUTTON_0 = 0;
-    private String fxfile;
     private Sound firefx;
 
     public GunPlatform(ModelInstance mi, btCollisionShape bs, Gunrack gunrack, boolean delay) {
@@ -93,25 +93,25 @@ public class GunPlatform extends CharacterController {
             gunIndex = index;
         }
 
-        fxfile = "small-pulse-cannon-fire.ogg";
+        String key = "010";
+
         switch (gunrack.getSelectedWeapon()) {
             default:
             case UNDEFINED:
             case STANDARD_AMMO:
-                fxfile = "small-pulse-cannon-fire.ogg";
+                key = "010";
                 break;
             case HI_IMPACT_PRJ:
-                fxfile = "heavy-pulse-cannon-fire.ogg";
+                key = "011";
                 break;
             case PLASMA_GRENADES:
-                fxfile = "2heavy-pulse-cannon-fire.ogg";
+                key = "012";
                 break;
         }
-        try {
-            firefx = Gdx.audio.newSound(Gdx.files.internal("sfx/" + fxfile));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+
+        SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
+        SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
+        firefx = sinfo.sfx;
     }
 
     @Override
@@ -242,9 +242,6 @@ public class GunPlatform extends CharacterController {
     }
 
     @Override
-    public void destroy() {
-        if (null != firefx) {
-            firefx.dispose();
-        }
+    public void destroy() { // MT
     }
 }
