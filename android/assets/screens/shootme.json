@@ -282,6 +282,9 @@
 	},
 	"Tank": {
 		"fileName": "tanks/panzerwagen.g3db"
+	},
+	"Audio_Track_0": {
+		"fileName": "audio/shootme.ogg"
 	}
 }
 }
