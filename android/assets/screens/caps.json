@@ -1,53 +1,171 @@
 {
 "modelGroups": {
-	"LocalPlayer": {
+	"InstancedModelMeshes": {
 		"elements": [
 			{
-				"objectName": "LocalPlayerObjectName",
 				"instanceData": [
 					{
 						"translation": {
-							"x": 0,
-							"y": 11,
+							"y": 4,
 							"z": -5
 						}
-					}
-				]
-			}
-		]
-	},
-	"GoonSquad": {
-		"elements": [
-			{
-				"instanceData": [
+					},
 					{
 						"translation": {
-							"y": 2,
+							"x": -2,
+							"y": 4,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 4,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"y": 6,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"x": -2,
+							"y": 6,
+							"z": -5
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 6,
 							"z": -5
 						}
 					}
 				],
-				"objectName": "Tank",
-				"mass": 5.1,
-				"meshShape": "convexHullShape",
-				"isPickable": true
+				"mass": 0.1,
+				"objectName": "Crate.000",
+				"meshShape": "btBoxShape"
 			}
 		],
-		"isCharacter": true
+		"modelName": "StaticObjects"
 	},
 	"UserModelGroup": {
 		"elements": [
 			{
+				"isShadowed": false,
 				"objectName": "skySphere",
 				"scale": {
 					"x": 200,
 					"y": 200,
 					"z": 200
+				}
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -2,
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 4,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"y": 6,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -2,
+							"y": 6,
+							"z": -15
+						}
+					},
+					{
+						"translation": {
+							"x": -4,
+							"y": 6,
+							"z": -15
+						}
+					}
+				],
+				"mass": 0.1,
+				"objectName": "boxTex",
+				"scale": {
+					"x": 2,
+					"y": 2,
+					"z": 2
 				},
-				"isShadowed": false
+				"meshShape": "btBoxShape"
 			}
 		],
 		"modelName": "UserMeshesModel"
+	},
+	"LocalPlayer": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 11,
+							"z": -5
+						}
+					}
+				],
+				"objectName": "LocalPlayerObjectName"
+			}
+		]
+	},
+	"SceneObjects": {
+		"elements": [
+			{
+				"mass": 0.1,
+				"objectName": "Crate*",
+				"meshShape": "btBoxShape"
+			},
+			{
+				"objectName": "cube*",
+				"meshShape": "btBoxShape"
+			},
+			{
+				"objectName": "mushroom*",
+				"meshShape": "convexHullShape",
+				"isKinematic": true
+			},
+			{
+				"objectName": "Wall*",
+				"meshShape": "btBoxShape",
+				"isKinematic": true
+			},
+			{
+				"objectName": "Platform.*",
+				"meshShape": "btBoxShape",
+				"isKinematic": true
+			},
+			{
+				"objectName": "Plane*",
+				"meshShape": "triangleMeshShape",
+				"isKinematic": true
+			}
+		],
+		"modelName": "Scene"
 	},
 	"Features": {
 		"elements": [
@@ -56,10 +174,10 @@
 					{
 						"adaptr": {
 							"class": "com.mygdx.game.features.ExitSensor",
-							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"collisionProcessor": {
 								"class": "com.mygdx.game.features.DebouncedCollisionProc"
 							},
+							"activateOnState": "ROUND_COMPLETE_WAIT",
 							"vT": {
 								"x": -3,
 								"y": 20,
@@ -79,22 +197,17 @@
 							"y": 4,
 							"z": -21
 						},
-						"color": {
-							"r": 1,
-							"g": 1,
-							"a": 0.4
-						},
 						"adaptr": {
 							"class": "com.mygdx.game.features.OOBSensor",
-							"impactType": "FATAL",
 							"vS": {
 								"x": 25
-							}
+							},
+							"impactType": "FATAL"
 						}
 					}
 				],
-				"objectName": "OutOfBounds_no_shape",
-				"featureName": "OutOfBounds_no_graphic"
+				"objectName": "OutOfBounds",
+				"featureName": "OutOfBounds"
 			},
 			{
 				"instanceData": [
@@ -117,12 +230,12 @@
 					}
 				],
 				"objectName": "box",
-				"featureName": "Crapium1",
 				"scale": {
 					"x": 0.95,
 					"y": 0.95,
 					"z": 0.95
-				}
+				},
+				"featureName": "Crapium1"
 			},
 			{
 				"instanceData": [
@@ -188,50 +301,164 @@
 			}
 		]
 	},
-	"SceneObjects": {
+	"PrimitiveObjects": {
 		"elements": [
 			{
-				"objectName": "Crate*",
-				"mass": 0.1,
-				"meshShape": "btBoxShape"
+				"instanceData": [
+					{
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5,
+				"objectName": "cone",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				}
 			},
 			{
-				"objectName": "cube*",
-				"meshShape": "btBoxShape"
+				"instanceData": [
+					{
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5,
+				"objectName": "capsule",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				}
 			},
 			{
-				"objectName": "mushroom*",
-				"meshShape": "convexHullShape",
-				"isKinematic": true
+				"instanceData": [
+					{
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5,
+				"objectName": "cylinder",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				}
 			},
 			{
-				"objectName": "Wall*",
-				"meshShape": "btBoxShape",
-				"isKinematic": true
+				"instanceData": [
+					{
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5,
+				"objectName": "box",
+				"scale": {
+					"x": 2,
+					"y": 3,
+					"z": 2
+				}
 			},
 			{
-				"objectName": "Platform.*",
-				"meshShape": "btBoxShape",
-				"isKinematic": true
-			},
-			{
-				"objectName": "Plane*",
-				"meshShape": "triangleMeshShape",
-				"isKinematic": true
+				"instanceData": [
+					{
+						"translation": {
+							"x": -10,
+							"y": 15,
+							"z": -15
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5,
+				"objectName": "sphere",
+				"scale": {
+					"x": 3,
+					"y": 3,
+					"z": 3
+				}
 			}
-		],
-		"modelName": "Scene"
+		]
 	},
 	"UserModelPartsNodes": {
 		"elements": [
 			{
-				"objectName": "skySphere",
-				"iSWhatever": true
+				"iSWhatever": true,
+				"objectName": "skySphere"
 			},
 			{
 				"objectName": "boxTex"
 			}
 		]
+	},
+	"GoonSquad": {
+		"elements": [
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"y": 2,
+							"z": -5
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5.1,
+				"objectName": "Tank",
+				"meshShape": "convexHullShape"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": -1,
+							"y": 2,
+							"z": -5
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5.1,
+				"objectName": "Tank",
+				"meshShape": "convexHullShape"
+			},
+			{
+				"instanceData": [
+					{
+						"translation": {
+							"x": 1,
+							"y": 2,
+							"z": -5
+						}
+					}
+				],
+				"isPickable": true,
+				"mass": 5.1,
+				"objectName": "Tank",
+				"meshShape": "convexHullShape"
+			}
+		],
+		"isCharacter": true
 	}
 },
 "modelInfo": {
@@ -241,17 +468,17 @@
 	"skySphere": {
 		"fileName": "data/moonsky.png"
 	},
-	"StaticObjects": {
-		"fileName": "data/cubetest.g3dj"
-	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReferecne"
 	},
-	"Tank": {
-		"fileName": "tanks/panzerwagen.g3db"
-	},
 	"Scene": {
 		"fileName": "data/scene.g3dj"
+	},
+	"StaticObjects": {
+		"fileName": "data/cubetest.g3dj"
+	},
+	"Tank": {
+		"fileName": "tanks/panzerwagen.g3db"
 	}
 }
 }
