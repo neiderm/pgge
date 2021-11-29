@@ -63,7 +63,7 @@ public class GameObject {
         this.instanceData.add(instanceData);
     }
 
-    private final Array<InstanceData> instanceData = new Array<InstanceData>();
+    private final Array<InstanceData> instanceData = new Array<>();
 
     public boolean isPickable;
     public boolean isShadowed;
@@ -74,8 +74,8 @@ public class GameObject {
     public Vector3 scale;
 
     private boolean isShootable;
-    @SuppressWarnings("unused")
-    private String featureName; // if Entity is to be part of a Feature
+
+    public String featureName; // if Entity is to be part of a Feature
     // never assigned (from json)
     @SuppressWarnings("unused")
     private String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
