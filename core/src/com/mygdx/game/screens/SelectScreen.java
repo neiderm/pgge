@@ -103,7 +103,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
     private enum MenuType {
         LOGO,
-        CONFIG, // select levels/controller/sound
+        PSTART, // select levels
         LEVELS,
         CONTROLLER,
         SOUND,
@@ -209,6 +209,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 namesArray.add(basename);
             }
         }
+        menuType = MenuType.LEVELS;
         stage.createMenu("Select a mission", namesArray.toArray(new String[0]));
         return namesArray;
     }
@@ -221,12 +222,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 "Android (BT)", // Android BlueTooth
                 "bar" // unused
         };
+        menuType = MenuType.CONTROLLER;
         stage.createMenu("System?", configNames);
     }
 
     private void createLogoMenu() {
-
-        menuType = MenuType.LOGO;
         /*
          * position cube to start point
          */
@@ -236,7 +236,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         modelCompCube.modelInst.transform.setToTranslation(cubePositionVec);
         cubeEndPtX = CUBE_END_PT_X0;
         cubeEndPtY = CUBE_END_PT_Y0;
-
         /*
          * position logo block to start point
          */
@@ -250,7 +249,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
 
         // start logo animation upon completing time delay Action
         final Action animLogo = new Action() {
-
             public boolean act(float delta) {
                 // set the endpoint of logo block to initiate animation
                 logoEndPtX = LOGO_END_PT_X0;
@@ -264,10 +262,11 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 Actions.show(),
                 animLogo
         ));
+        menuType = MenuType.LOGO;
     }
 
-    private void createConfigMenu() {
-        menuType = MenuType.CONFIG;
+    private void createPstartMenu() {
+        menuType = MenuType.PSTART;
         configMenuTable = stage.createMenu(null, "Stage 1", "Password");
 
         // load next audio track
@@ -460,11 +459,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                                 switch (saveSelIndex) {
                                                     default:
                                                     case 0: // P1START
-                                                        menuType = MenuType.CONFIG;
-                                                        createConfigMenu();
+                                                        createPstartMenu();
                                                         break;
                                                     case 1: // CSETUP
-                                                        menuType = MenuType.CONTROLLER;
                                                         createControllerMenu();
                                                         break;
                                                 }
@@ -476,7 +473,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 }
                 break;
 
-            case CONFIG:
+            case PSTART:
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
@@ -501,7 +498,6 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                                         createArmorMenu();
                                                         break;
                                                     case 1: // PASSWORD
-                                                        menuType = MenuType.LEVELS;
                                                         stageNamesList = createScreensMenu();
                                                         break;
                                                 }
@@ -548,7 +544,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                     stage.setMenuVisibility(false);
                     stageName = stageNamesList.get(levelIndex);
-                    createArmorMenu( /* level index */ );
+                    createArmorMenu();
                 }
                 break;
 
@@ -556,6 +552,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 int ctrsIndex = stage.updateMenuSelection();
                 if (stage.getMenuVisibility()) {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+                        // resets the game, because controller setup is dumb :(
                         stage.setMenuVisibility(false); // doesn't matter - new Screen
                         GameWorld.getInstance().setControllerMode(ctrsIndex);
                         GameWorld.getInstance().showScreen();
