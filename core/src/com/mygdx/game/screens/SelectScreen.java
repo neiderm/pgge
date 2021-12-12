@@ -31,11 +31,13 @@ import com.badlogic.gdx.scenes.scene2d.Action;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ActorGestureListener;
+import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -222,6 +224,35 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         stage.createMenu("System?", configNames);
     }
 
+
+    private Color buttonColor = new Color();
+
+    private void createSoundMenu() {
+        String[] configNames = new String[]{
+                "Music On/Off",
+                "Sound FX On/Off",
+        };
+        menuType = MenuType.SOUND;
+        //Table tbl = //dont need the Tbl ref
+        stage.createMenu("Sound", 0, configNames);
+
+        // get enableSound enableMusic from audioManager and set button states
+        boolean musicEnable = GameWorld.AudioManager.getEnableMusic();
+        if (musicEnable) {
+            stage.buttonGroup.setChecked(configNames[0]);
+        }
+        boolean soundEnable = GameWorld.AudioManager.getEnableSound();
+        if (soundEnable) {
+            stage.buttonGroup.setChecked(configNames[1]);
+        }
+
+        Button hilited = stage.buttonGroup.getButtons().get(0);
+        Color bcolor = hilited.getColor();
+        buttonColor.set(bcolor);
+        // indicate hi-lited button by setting transparency
+        hilited.setColor(new Color(bcolor.r, bcolor.g, bcolor.b, 0.5f));
+    }
+
     private void createLogoMenu() {
         /*
          * position cube to start point
@@ -241,7 +272,10 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         logoEndPtX = LOGO_START_PT_X;
         logoEndPtY = LOGO_START_PT_Y; // 0.8f; // see z-dimension of LogoText in cubetest.blend
 
-        logoSelectTable = stage.createMenu(null, "1p Start", "Options");
+        logoSelectTable = stage.createMenu(null,
+                "1p Start",
+                "Controller",
+                "Sound");
 
         // start logo animation upon completing time delay Action
         final Action animLogo = new Action() {
@@ -365,6 +399,96 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
+
+    private int selectedIndex;
+    private int previousIncrement;
+
+    private int focusUpDown() {
+
+        int step = stage.mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
+
+        if (step != 0) {
+            if (null != stage.buttonGroup) {
+                int actorCount = stage.buttonGroup.getButtons().size;
+
+                if (0 == previousIncrement) {
+                    selectedIndex += step;
+                }
+                if (selectedIndex >= actorCount) {
+                    selectedIndex = (actorCount - 1);
+                }
+                if (selectedIndex < 0) {
+                    selectedIndex = 0;
+                }
+            }
+        }
+        previousIncrement = step;
+
+        return selectedIndex;
+    }
+
+    private void updateSoundConfig() {
+
+        boolean soundEnable = false;
+        boolean musicEnable = false;
+
+        Array<TextButton> bb = stage.buttonGroup.getAllChecked();
+        // step thru all buttons on the menu and enable associated options
+        for (TextButton tb : bb) {
+
+            Label ll = tb.getLabel();
+            if (ll.getText().contains("Sound")) {
+
+                Gdx.app.log(CLASS_STRING, "Sound");
+                soundEnable = true;
+            } else if (ll.getText().contains("Music")) {
+
+                Gdx.app.log(CLASS_STRING, "Music");
+                musicEnable = true;
+            }
+        }
+        GameWorld.AudioManager.setEnableSound(soundEnable);
+        GameWorld.AudioManager.setEnableMusic(musicEnable);
+    }
+
+    private int prevFocus;
+    private int prevLR;
+
+    private void updateCheckboxSelection() {
+
+        int focused = focusUpDown();
+
+        if (focused != prevFocus) {
+            // restore un-hilited color to previus hi-lited button
+            Button checkedB = stage.buttonGroup.getButtons().get(prevFocus);
+            checkedB.setColor(buttonColor);
+
+            checkedB = stage.buttonGroup.getButtons().get(focused);
+            checkedB.setColor(buttonColor.r, buttonColor.g, buttonColor.b, 0.5f);
+            prevFocus = focused;
+        }
+
+        // left right toggles state of focused button (debounce it)
+        int lrinput = stage.mapper.getAxisI(InputMapper.VIRTUAL_AD_AXIS);
+
+        if (0 == prevLR){
+            if (0 != lrinput){
+                Button focusedB = stage.buttonGroup.getButtons().get(focused);
+                // fire push event to button
+                InputEvent event = new InputEvent();
+                event.setType(InputEvent.Type.touchDown);
+                event.setPointer(-1);
+                focusedB.fire(event);
+                event.setType(InputEvent.Type.touchUp);
+                event.setPointer(-1);
+                focusedB.fire(event);
+                // change state of variable
+                updateSoundConfig();
+            }
+        }
+        prevLR = lrinput;
+    }
+
     private int saveSelIndex = -1; // hackish ... get Action to work
 
     /**
@@ -445,6 +569,9 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                                                         break;
                                                     case 1: // CSETUP
                                                         createControllerMenu();
+                                                        break;
+                                                    case 2: // SOUND
+                                                        createSoundMenu();
                                                         break;
                                                 }
                                                 return true;
@@ -543,6 +670,19 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                 break;
 
             case SOUND:
+                // update the focused button from up/down keyboard or controller.
+                updateCheckboxSelection();
+
+                if (stage.getMenuVisibility()) {
+                    if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
+
+                        updateSoundConfig();
+
+                        // can this be an action to slide the cube exit-stage-right (slides in from left on start Logo menu)
+                        stage.setMenuVisibility(false);
+                        createLogoMenu();
+                    }
+                }
                 break;
 
             case ARMOR:

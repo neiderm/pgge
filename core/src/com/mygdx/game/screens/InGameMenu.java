@@ -51,7 +51,7 @@ class InGameMenu extends Stage {
     private Table onscreenMenuTbl;
     private final Array<Texture> savedTextureRefs = new Array<>();
 
-    private ButtonGroup<TextButton> buttonGroup;
+    ButtonGroup<TextButton> buttonGroup;
     private int previousIncrement;
 
     // disposables
@@ -111,12 +111,29 @@ class InGameMenu extends Stage {
      */
     Table createMenu(String menuName, String... strNames) {
 
+        Table table = createMenu(menuName, 1, strNames);
+        buttonGroup.setMaxCheckCount(1);
+        return table;
+    }
+
+    private int menuMinCheckCount;
+
+    /**
+     * @param menuName      string
+     * @param minCheckCount int probably 0 or 1
+     * @param strNames      strings
+     * @return table
+     */
+    Table createMenu(String menuName, int minCheckCount, String... strNames) {
+
+        menuMinCheckCount = minCheckCount;
+
         if (null != onscreenMenuTbl) {
             onscreenMenuTbl.remove();
         }
         buttonGroup = new ButtonGroup<>();
-        buttonGroup.setMaxCheckCount(1);
-        buttonGroup.setMinCheckCount(1);
+        buttonGroup.setMaxCheckCount(strNames.length);
+        buttonGroup.setMinCheckCount(minCheckCount);
 
         Table aTable = new Table();
         aTable.setFillParent(true);
@@ -130,7 +147,8 @@ class InGameMenu extends Stage {
             // adds the button to the Button Group
             addButton(aTable, new TextButton(name, uiSkin, "toggle"));
         }
-        TextButton tb = makeTextButton("Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
+        TextButton tb = makeTextButton(
+                "Next", new Color(0, 1f, 0, 1.0f), ButtonEventHandler.EVENT_A);
         aTable.row();
         aTable.add(tb).fillX().uniformX();
         onscreenMenuTbl = aTable;
@@ -193,17 +211,13 @@ class InGameMenu extends Stage {
      * @param inputBinding ButtonEventHandler
      * @return TextButton
      */
-    private TextButton addTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
-        TextButton tButton = makeTextButton(btnText, theColor, inputBinding);
-        addActor(tButton);
-        return tButton;
-    }
+    private TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
 
-    TextButton makeTextButton(String btnText, Color theColor, final ButtonEventHandler inputBinding) {
         TextButton button = new TextButton(btnText, uiSkin, "default");
         button.setSize(GameWorld.VIRTUAL_WIDTH / 4.0f, GameWorld.VIRTUAL_HEIGHT / 4.0f);
         button.setPosition((GameWorld.VIRTUAL_WIDTH / 2.0f) - (GameWorld.VIRTUAL_WIDTH / 8.0f), 0);
         button.setColor(theColor);
+
         button.addListener(new InputListener() {
             final ButtonEventHandler binding = inputBinding;
 
@@ -309,6 +323,11 @@ class InGameMenu extends Stage {
         return buttonGroup.getCheckedIndex();
     }
 
+    /**
+     * radio button style (mutually exclusive)
+     *
+     * @return selected
+     */
     private int checkedUpDown() {
 
         int step = mapper.getAxisI(InputMapper.VIRTUAL_WS_AXIS);
@@ -445,11 +464,14 @@ class InGameMenu extends Stage {
 
         super.act(delta);
 
-        int checkedBox = 0; // button default at top selection
-        if (getMenuVisibility()) {
-            checkedBox = checkedUpDown();
+        /* if 1 min check count, handle as "legacy" radio button style button group menu */
+        if (1 == menuMinCheckCount) {
+            int checkedBox = 0; // button default at top selection
+            if (getMenuVisibility()) {
+                checkedBox = checkedUpDown();
+            }
+            updateMenuSelection(checkedBox);
         }
-        updateMenuSelection(checkedBox);
     }
 
     @Override
