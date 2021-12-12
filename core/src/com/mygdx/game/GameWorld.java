@@ -18,6 +18,8 @@ package com.mygdx.game;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.sceneLoader.GameFeature;
@@ -106,6 +108,74 @@ public final class GameWorld implements Disposable {
         // show splash screen
         showScreen(new SplashScreen());
     }
+
+
+    public static class AudioManager {
+
+        private AudioManager() { // MT
+        }
+
+        private static boolean enableSound = true;
+        private static boolean enableMusic = true;
+
+        public static void setEnableMusic(boolean enable) {
+            enableMusic = enable;
+        }
+
+        public static boolean getEnableMusic() {
+            return enableMusic;
+        }
+
+        public static Music getMusic(String key) {
+
+            Music track = null;
+
+            if (null != key) {
+                track = SceneLoader.getAssets().get(key, Music.class);
+            }
+            return track;
+        }
+
+        public static void playMusic(Music track) {
+            if (getEnableMusic() && (null != track)) {
+                track.setVolume(0.75f);
+                track.play();
+            }
+        }
+
+        public static void pauseMusic(Music track) {
+            if (getEnableMusic() && (null != track)) {
+                track.pause();
+            }
+        }
+
+        public static void stopMusic(Music track) {
+            if (getEnableMusic() && (null != track)) {
+                track.stop();
+            }
+        }
+
+        public static void setEnableSound(boolean enable) {
+            enableSound = enable;
+        }
+
+        public static boolean getEnableSound() {
+            return enableSound;
+        }
+
+        public static Sound getSound(String key) {
+            SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
+            SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
+            return sinfo.sfx;
+        }
+
+        public static void playSound(Sound sfx) {
+            if (getEnableSound() && (null != sfx)) {
+                sfx.play(0.75f);
+            }
+        }
+    }
+
 
     public SceneLoader newSceneLoader() {
         sceneLoader = new SceneLoader(sceneData);
