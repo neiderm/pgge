@@ -29,7 +29,6 @@ import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.features.PhysProjectile;
 import com.mygdx.game.features.Projectile;
 import com.mygdx.game.features.SensProjectile;
-import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.screens.Gunrack;
 import com.mygdx.game.screens.InputMapper;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -109,9 +108,7 @@ public class GunPlatform extends CharacterController {
                 break;
         }
 
-        SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
-        SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
-        firefx = sinfo.sfx;
+        firefx = GameWorld.AudioManager.getSound(key);
     }
 
     @Override
@@ -203,10 +200,7 @@ public class GunPlatform extends CharacterController {
             float mag = -0.15f; // scale accordingly for magnitidue of forward "velocity"
             vFprj.set(ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), tmpM.getRotation(qTemp)));
 
-            if (null != firefx) {
-                firefx.stop();
-                firefx.play();
-            }
+            GameWorld.AudioManager.playSound(firefx);
 
             switch (weapon) {
                 default:

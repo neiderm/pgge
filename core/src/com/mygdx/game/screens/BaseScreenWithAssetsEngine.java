@@ -80,20 +80,27 @@ abstract class BaseScreenWithAssetsEngine implements Screen {
         cam.near = 1f;
         cam.far = 300f;
         cam.update();
-
         // load audio track
         final String AUDIO_TRACK = "Audio_Track_0";
-        // grab a handle to selected entities
+        music = loadAudioTrack(AUDIO_TRACK);
+        Gdx.app.log(Class.class.toString(), "music = " + music);
+    }
+
+    Music loadAudioTrack(String trkname) {
+        // load audio track
+        Music track = null;
         SceneData sd = GameWorld.getInstance().getSceneData();
-        if (null != sd){
-            ModelInfo mi = sd.modelInfo.get(AUDIO_TRACK);
-            if (null != mi){
+
+        if (null != sd) {
+            ModelInfo mi = sd.modelInfo.get(trkname);
+            if (null != mi) {
                 String audioTrack = mi.fileName;
-                if (null != audioTrack){
-                    music = SceneLoader.getAssets().get(audioTrack, Music.class);
+                if (null != audioTrack) {
+                    track = GameWorld.AudioManager.getMusic(audioTrack);
                 }
             }
         }
+        return track;
     }
 
     @Override

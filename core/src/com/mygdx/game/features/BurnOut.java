@@ -25,11 +25,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.util.ModelInstanceEx;
 
 /*
- * quick and dirty, very simple "exploding" effect
+ * use 3d sphere and colors to simulate simple explosion effect for various entities
  */
 public class BurnOut extends FeatureAdaptor {
 
@@ -47,11 +46,9 @@ public class BurnOut extends FeatureAdaptor {
 
     BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType impt) {
 
+        String key;
         this.fxTextureAttrib = fxTextureAttrib;
         this.activateOnState = GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL;
-
-        SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
-        String key = "000";
 
         switch (impt) {
             default:
@@ -79,8 +76,8 @@ public class BurnOut extends FeatureAdaptor {
                 up.set(0, 0.01f, 0); // slowly float up
                 break;
         }
-        SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
-        sfx = sinfo.sfx;
+
+        sfx = GameWorld.AudioManager.getSound(key);
     }
 
     @Override
@@ -97,9 +94,7 @@ public class BurnOut extends FeatureAdaptor {
             ModelInstance mi = mc.modelInst;
             scale.set(mi.nodes.get(0).scale);
 
-            if (null != sfx) {
-                sfx.play();
-            }
+            GameWorld.AudioManager.playSound(sfx);
         }
         //        if (isActivated)
         if (clock > 0) {

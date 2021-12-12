@@ -19,7 +19,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -43,9 +42,7 @@ import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.ModelInfo;
 import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.sceneLoader.SceneLoader;
 
 import java.util.ArrayList;
 
@@ -193,8 +190,7 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
             }
         }
 
-        // starts with Track 13
-        music.play();
+        GameWorld.AudioManager.playMusic(music);
     }
 
     private ArrayList<String> createScreensMenu() {
@@ -272,21 +268,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
         // load next audio track
         music.dispose();
         final String AUDIO_TRACK = "Audio_Track_1";
-        // grab a handle to selected entities
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        if (null != sd) {
-            ModelInfo mi = sd.modelInfo.get(AUDIO_TRACK);
-            if (null != mi) {
-                String audioTrack = mi.fileName;
-                if (null != audioTrack) {
-                    music = SceneLoader.getAssets().get(audioTrack, Music.class);
-
-                    if (null != music) {
-                        music.play();
-                    }
-                }
-            }
-        }
+        music = loadAudioTrack(AUDIO_TRACK);
+        GameWorld.AudioManager.playMusic(music);
     }
 
     private void createArmorMenu() {
@@ -438,9 +421,8 @@ class SelectScreen extends BaseScreenWithAssetsEngine {
                     if (stage.mapper.getControlButton(InputMapper.VirtualButtonCode.BTN_A)) {
                         stage.mapper.setControlButton(InputMapper.VirtualButtonCode.BTN_A, false); // unlatch
                         // stop music
-                        if (null != music) {
-                            music.stop();
-                        }
+                        GameWorld.AudioManager.stopMusic(music);
+
                         // grab index
                         saveSelIndex = stage.updateMenuSelection();
 

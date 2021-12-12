@@ -145,10 +145,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             if (null != pickedPlayer.getComponent(BulletComponent.class).body) {
                 playerUI = initPlayerUI();
                 // restart audio track
-                if (null != music) {
-                    music.setLooping(true);
-                    music.play();
-                }
+                GameWorld.AudioManager.playMusic(music);
             } else {
                 Gdx.app.log(CLASS_STRING, "pickedPlayer collision body can't be null");
             }
@@ -239,17 +236,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             @Override
             void onPaused() {
                 super.onPaused();
-                if (null != music) {
-                    music.pause();
-                }
+                GameWorld.AudioManager.pauseMusic(music);
             }
 
             @Override
             void onUnPaused() {
                 super.onUnPaused();
-                if (null != music) {
-                    music.play();
-                }
+                GameWorld.AudioManager.playMusic(music);
             }
 
             @Override

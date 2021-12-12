@@ -41,7 +41,9 @@ public class MainMenuScreen implements Screen {
     private Music bgMusic;
 
     MainMenuScreen() {
-
+        /*
+         * not using asset loader here (there is no json for this screen)
+         */
         bgMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/Track_15.ogg"));
 
         // get the local player object name from previous screen scene data
@@ -85,10 +87,9 @@ public class MainMenuScreen implements Screen {
     public void show() {
         Gdx.input.setInputProcessor(stage);
         stage.createMenu("Arena Completed", "Score");
-        if (null != bgMusic){
-            bgMusic.setLooping(true);
-            bgMusic.play();
-        }
+
+//        bgMusic = GameWorld.AudioManager.getMusic("audio/Track_15.ogg");
+        GameWorld.AudioManager.playMusic(bgMusic);
     }
 
     @Override
@@ -108,7 +109,10 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        if (null != bgMusic){
+        /*
+         * not using asset loader here (there is no json for this screen)
+         */
+        if (null != bgMusic) {
             bgMusic.dispose();
         }
         stage.dispose();
