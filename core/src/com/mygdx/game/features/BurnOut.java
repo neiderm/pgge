@@ -84,6 +84,9 @@ public class BurnOut extends FeatureAdaptor {
     public void onDestroyed(Entity e) { // MT
     }
 
+    private Vector3 plocation = new Vector3();
+    private Vector3 slocation = new Vector3();
+
     @Override
     public void update(Entity ee) {
 
@@ -94,7 +97,9 @@ public class BurnOut extends FeatureAdaptor {
             ModelInstance mi = mc.modelInst;
             scale.set(mi.nodes.get(0).scale);
 
-            GameWorld.AudioManager.playSound(sfx);
+             GameWorld.AudioManager.playSound(sfx,
+                    GameWorld.getPlayerPosition(plocation),
+                     mi.transform.getTranslation(slocation));
         }
         //        if (isActivated)
         if (clock > 0) {
