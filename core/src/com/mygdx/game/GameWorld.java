@@ -15,13 +15,17 @@
  */
 package com.mygdx.game;
 
+import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
+import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.ModelGroup;
@@ -136,9 +140,13 @@ public final class GameWorld implements Disposable {
             return track;
         }
 
+        private static final float MASTER_VOL = 0.5f;
+
         public static void playMusic(Music track) {
             if (getEnableMusic() && (null != track)) {
-                track.setVolume(0.75f);
+
+                track.setVolume(MASTER_VOL * 0.50f);
+                track.setLooping(true);
                 track.play();
             }
         }
@@ -164,18 +172,62 @@ public final class GameWorld implements Disposable {
         }
 
         public static Sound getSound(String key) {
-            SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
-            SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
-            return sinfo.sfx;
+            if (null != key) {
+                SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
+                SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
+                return sinfo.sfx;
+            }
+            return null; // sorry Charlie
         }
 
         public static void playSound(Sound sfx) {
-            if (getEnableSound() && (null != sfx)) {
-                sfx.play(0.75f);
+            playSound(sfx, 1.0f * MASTER_VOL);
+        }
+
+        public static void playSound(Sound sfx, Vector3 plocation, Vector3 slocation) {
+
+            final float SFX_SCALAR = 50.0f;
+
+            // dx is sqrt(a^2 + b^2 + c^2) .. but don't need sqrt, just scale it
+            float dx = 1 / ((slocation.x - plocation.x) * (slocation.x - plocation.x)
+                    + (slocation.y - plocation.y) * (slocation.y - plocation.y)
+                    + (slocation.z - plocation.z) * (slocation.z - plocation.z));
+            dx *= SFX_SCALAR;
+
+            float volume = Math.abs((dx > 1.0f) ? 1.0f : dx);
+
+            playSound(sfx, volume);
+        }
+
+        public static void playSound(Sound sfx, float volume) {
+
+            final float SFX_MINVOL = 0.05f;
+
+            if (getEnableSound() && (null != sfx) && (volume > SFX_MINVOL)) {
+                sfx.play(volume * MASTER_VOL);
             }
         }
     }
 
+    public static Vector3 getPlayerPosition(Vector3 position) {
+
+        Entity player;
+        GameFeature playerFeature = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
+        if (null != playerFeature) {
+            player = playerFeature.getEntity();
+
+            ModelComponent tmc = player.getComponent(ModelComponent.class);
+
+            if (null != tmc) {
+                Matrix4 tgtTransform = tmc.modelInst.transform;
+
+                if (null != tgtTransform) {
+                    position = tgtTransform.getTranslation(position);
+                }
+            }
+        }
+        return position;
+    }
 
     public SceneLoader newSceneLoader() {
         sceneLoader = new SceneLoader(sceneData);
