@@ -492,9 +492,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 if (null != mc) {
                     BulletComponent bc = e.getComponent(BulletComponent.class);
 
-                    if (null != bc && null != bc.shape /* && null != mc.modelInst */) {
-                        // this could possibly be invoked as a rig animation "entity.modelComp.animation.exploda()"
-                        explodacopia(engine, bc.shape, mc.modelInst, mc.modelInst.model);
+                    if (null != bc) {
+                        explodacopia(engine, bc.shape, mc.modelInst);
                     }
                 }
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
@@ -503,13 +502,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     fc.featureAdpt.onDestroyed(e);
 
                     int bounty = fc.featureAdpt.bounty;
-// bounty provides either points or powerups
+                    // bounty provides either points or powerups
                     if (bounty >= Crapium.BOUNTY_POWERUP) {
 
                         if (null != fc.featureAdpt.fSubType) {
-                            // map  "sub-feature" type to a weapon type
-                            int wtype = fc.featureAdpt.fSubType.ordinal()
-                                    - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
+                            // map "sub-feature" to a weapon type
+                            int wtype =
+                                    fc.featureAdpt.fSubType.ordinal() - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
 
                             if (wtype > 0) {
                                 onWeaponAcquired(wtype);
@@ -552,21 +551,23 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     }
 
     /*
-     * pretty much copy cat of GameOBject:buildNodes()
+     * see also GameObject:buildNodes()
      */
-    private static void buildChildNodes(Engine engine, Array<Node> nodeArray, Model model, btCompoundShape compShape, GameObject gameObject) {
+    private static void buildChildNodes(
+            Engine engine, Model model, btCompoundShape compShape, GameObject gameObject) {
+
+        Array<Node> nodeArray = new Array<>();
+        PrimitivesBuilder.getNodeArray(model.nodes, nodeArray);
 
         int index = 0;
         // have to iterate each node, can't assume that all nodes in array are valid and associated
         // with a child-shape (careful of non-graphical nodes!)
         for (Node node : nodeArray) {
-            ModelInstance instance;
-
-            if (node.parts.size > 0) {   // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
-// recursive
-                instance = new ModelInstance(
-                        model, node.id, true, false, false);
-
+            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
+            if (node.parts.size > 0) {
+                // recursive
+                ModelInstance instance =
+                        new ModelInstance(model, node.id, true, false, false);
                 Node modelNode = instance.getNode(node.id);
 
                 if (null != modelNode) {
@@ -596,12 +597,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      * @param engine    the engine
      * @param shape     collision shape
      * @param modelInst model instance
-     * @param model     model
      */
     private static void explodacopia(
-            Engine engine, btCollisionShape shape, ModelInstance modelInst, Model model) {
+            Engine engine, btCollisionShape shape, ModelInstance modelInst) {
 
-        if (shape.className.equals("btCompoundShape")) {
+        if ((null != shape) && shape.className.equals("btCompoundShape")) {
             Vector3 translation = new Vector3();
             Quaternion rotation = new Quaternion();
             GameObject gameObject = new GameObject(1);
@@ -610,10 +610,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     modelInst.transform.getTranslation(translation),
                     modelInst.transform.getRotation(rotation))
             );
-            Array<Node> nodeFlatArray = new Array<>();
-            PrimitivesBuilder.getNodeArray(model.nodes, nodeFlatArray);
-            // build nodes by iterating the node id list, which hopefullly is in same index order as when the comp shape was builtup
-            buildChildNodes(engine, nodeFlatArray, model, (btCompoundShape) shape, gameObject);
+            // build nodes by iterating the node id list, which hopefully is in same index order as when the comp shape was builtup
+            buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, gameObject);
         } else {
             Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
         }
