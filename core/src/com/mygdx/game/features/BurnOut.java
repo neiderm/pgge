@@ -16,7 +16,6 @@
 package com.mygdx.game.features;
 
 import com.badlogic.ashley.core.Entity;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
@@ -40,13 +39,10 @@ public class BurnOut extends FeatureAdaptor {
 
     private ModelComponent mc = null;
     private int clock = 88;  // using as percent alphA
-    private Sound sfx;
-//    public BurnOut() { // mt
-//   }
+    private String key;
 
     BurnOut(TextureAttribute fxTextureAttrib, KillSensor.ImpactType impt) {
 
-        String key;
         this.fxTextureAttrib = fxTextureAttrib;
         this.activateOnState = GameWorld.GAME_STATE_T.ROUND_ACTIVATE_ON_ALL;
 
@@ -76,8 +72,6 @@ public class BurnOut extends FeatureAdaptor {
                 up.set(0, 0.01f, 0); // slowly float up
                 break;
         }
-
-        sfx = GameWorld.AudioManager.getSound(key);
     }
 
     @Override
@@ -95,7 +89,7 @@ public class BurnOut extends FeatureAdaptor {
             scale.set(mi.nodes.get(0).scale);
 
             Vector3 slocation = new Vector3();
-            GameWorld.AudioManager.playSound(sfx, mi.transform.getTranslation(slocation));
+            GameWorld.AudioManager.playSound(key, mi.transform.getTranslation(slocation));
         }
         //        if (isActivated)
         if (clock > 0) {

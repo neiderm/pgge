@@ -175,6 +175,10 @@ public final class GameWorld implements Disposable {
             if (null != key) {
                 SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
                 SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
+                if (null == sinfo){
+                    Gdx.app.log(CLASS_STRING, "SceneLoader.SoundInfo sinfo can't be null!");
+                    return null;
+                }
                 return sinfo.sfx;
             }
             return null; // sorry Charlie
@@ -182,6 +186,10 @@ public final class GameWorld implements Disposable {
 
         public static void playSound(Sound sfx) {
             playSound(sfx, 1.0f * MASTER_VOL);
+        }
+
+        public static void playSound(String key, Vector3 slocation) {
+            playSound(AudioManager.getSound(key), slocation);
         }
 
         public static void playSound(Sound sfx, Vector3 slocation) {
