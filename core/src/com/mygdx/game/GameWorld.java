@@ -184,7 +184,10 @@ public final class GameWorld implements Disposable {
             playSound(sfx, 1.0f * MASTER_VOL);
         }
 
-        public static void playSound(Sound sfx, Vector3 plocation, Vector3 slocation) {
+        public static void playSound(Sound sfx, Vector3 slocation) {
+            // get player location
+            Vector3 plocation = new Vector3();
+            plocation = getPlayerPosition(plocation);
 
             final float SFX_SCALAR = 50.0f;
 
