@@ -53,6 +53,13 @@ public class FeatureAdaptor implements FeatureIntrf {
     boolean isActivated;
     Vector3 vT = new Vector3(); // sensor location thing, or projectile movement step
 
+    public FeatureAdaptor(){ // MT
+    }
+
+    public FeatureAdaptor(CollisionProcessorIntrf collisionProcessor){
+        this.collisionProcessor = collisionProcessor;
+    }
+
     @Override
     public void init(Object asdf) { // mt
     }

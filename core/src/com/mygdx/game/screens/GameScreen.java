@@ -33,6 +33,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
@@ -53,6 +54,7 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.Crapium;
 import com.mygdx.game.features.FeatureAdaptor;
+import com.mygdx.game.features.CollisionSfx;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -553,11 +555,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     /*
      * see also GameObject:buildNodes()
      */
-    private static void buildChildNodes(
-            Engine engine, Model model, btCompoundShape compShape, GameObject gameObject) {
+    private void buildChildNodes(Engine engine, Model model,
+                                 btCompoundShape compShape, GameObject gameObject, Vector3 slocation) {
 
         Array<Node> nodeArray = new Array<>();
         PrimitivesBuilder.getNodeArray(model.nodes, nodeArray);
+
+        final Vector3 dimensions = new Vector3();
 
         int index = 0;
         // have to iterate each node, can't assume that all nodes in array are valid and associated
@@ -578,11 +582,27 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     modelNode.rotation.idt();
                 }
 
+                BoundingBox boundingBox = new BoundingBox();
+                instance.calculateBoundingBox(boundingBox);
+                boundingBox.getDimensions(dimensions);
+                final double dimensions_len = dimensions.len();
+
                 if (index < compShape.getNumChildShapes()) {
 
                     btCollisionShape shape = compShape.getChildShape(index); // this might be squirrly
 
                     if (shape.getUserIndex() == index) {
+                        // select the sound according to size of object
+                        String key;
+                        if (dimensions_len > 1.0f) {
+                            key = "021";
+                        } else if (dimensions_len > 0.5f) {
+                            key = "022";
+                        } else {
+                            key = "023";
+                        }
+                        gameObject.getInstanceData().get(0).adaptr =
+                                new FeatureAdaptor(new CollisionSfx(key, slocation));
                         gameObject.buildGameObject(engine, instance, shape);
                     }
                 }
@@ -598,8 +618,11 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      * @param shape     collision shape
      * @param modelInst model instance
      */
-    private static void explodacopia(
-            Engine engine, btCollisionShape shape, ModelInstance modelInst) {
+    private void explodacopia(Engine engine, btCollisionShape shape, ModelInstance modelInst) {
+
+        final String key = "020";
+        Vector3 slocation = new Vector3();
+        GameWorld.AudioManager.playSound(key, modelInst.transform.getTranslation(slocation));
 
         if ((null != shape) && shape.className.equals("btCompoundShape")) {
             Vector3 translation = new Vector3();
@@ -611,7 +634,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     modelInst.transform.getRotation(rotation))
             );
             // build nodes by iterating the node id list, which hopefully is in same index order as when the comp shape was builtup
-            buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, gameObject);
+            buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, gameObject, slocation);
         } else {
             Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
         }
