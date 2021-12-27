@@ -21,19 +21,35 @@
         },
         {
           "featureName": "004_FATAL",
-          "objectName": "derplayer__explosion-big-02.ogg"
+          "objectName": "derplayer__explosion-02.ogg"
         },
         {
           "featureName": "010_STANDARD_AMMO",
-          "objectName": "small-pulse-cannon-fire.ogg"
+          "objectName": "lambich__small-pulse-cannon-fire.ogg"
         },
         {
           "featureName": "011_HI_IMPACT_PRJ",
-          "objectName": "heavy-pulse-cannon-fire.ogg"
+          "objectName": "lambich__heavy-pulse-cannon-fire.ogg"
         },
         {
           "featureName": "012_PLASMA_GRENADES",
-          "objectName": "2heavy-pulse-cannon-fire.ogg"
+          "objectName": "lambich__2heavy-pulse-cannon-fire.ogg"
+        },
+        {
+          "featureName": "020_GLASS_BREAKING",
+          "objectName": "wesleyextreme-gamer__glass-breaking.ogg"
+        },
+        {
+          "featureName": "021_METAL_TUBE",
+          "objectName": "278167__adharca__metal-tube-2.ogg"
+        },
+        {
+          "featureName": "022_METAL_CLANK",
+          "objectName": "justinvoke__metal-clank-1.ogg"
+        },
+        {
+          "featureName": "023_METAL_SLAP",
+          "objectName": "abstraktgeneriert__slap.ogg"
         }
       ]
     }
