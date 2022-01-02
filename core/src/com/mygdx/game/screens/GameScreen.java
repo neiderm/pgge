@@ -25,19 +25,15 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
-import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
@@ -54,7 +50,6 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.Crapium;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.features.CollisionSfx;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
 import com.mygdx.game.sceneLoader.InstanceData;
@@ -498,6 +493,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         explodacopia(engine, bc.shape, mc.modelInst);
                     }
                 }
+
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
 
                 if (null != fc && null != fc.featureAdpt) {
@@ -525,7 +521,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 }
                 e.remove(ModelComponent.class);
                 removeBulletComp(e);
-                engine.removeEntity(e); // ... calls BulletSystem:entityRemoved() .. but the bc is no useable :(
+                engine.removeEntity(e); // calls BulletSystem:entityRemoved(), but the bc is not useable :(
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
                     removeBulletComp(e);
@@ -552,65 +548,6 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    /*
-     * see also GameObject:buildNodes()
-     */
-    private void buildChildNodes(Engine engine, Model model,
-                                 btCompoundShape compShape, GameObject gameObject, Vector3 slocation) {
-
-        Array<Node> nodeArray = new Array<>();
-        PrimitivesBuilder.getNodeArray(model.nodes, nodeArray);
-
-        final Vector3 dimensions = new Vector3();
-
-        int index = 0;
-        // have to iterate each node, can't assume that all nodes in array are valid and associated
-        // with a child-shape (careful of non-graphical nodes!)
-        for (Node node : nodeArray) {
-            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
-            if (node.parts.size > 0) {
-                // recursive
-                ModelInstance instance =
-                        new ModelInstance(model, node.id, true, false, false);
-                Node modelNode = instance.getNode(node.id);
-
-                if (null != modelNode) {
-                    // seems only the "panzerwagen" because it's nodes are not central to the rig model which makes it handled like scenery
-                    instance.transform.set(modelNode.globalTransform);
-                    modelNode.translation.set(0, 0, 0);
-                    modelNode.scale.set(1, 1, 1);
-                    modelNode.rotation.idt();
-                }
-
-                BoundingBox boundingBox = new BoundingBox();
-                instance.calculateBoundingBox(boundingBox);
-                boundingBox.getDimensions(dimensions);
-                final double dimensions_len = dimensions.len();
-
-                if (index < compShape.getNumChildShapes()) {
-
-                    btCollisionShape shape = compShape.getChildShape(index); // this might be squirrly
-
-                    if (shape.getUserIndex() == index) {
-                        // select the sound according to size of object
-                        String key;
-                        if (dimensions_len > 1.0f) {
-                            key = "021";
-                        } else if (dimensions_len > 0.5f) {
-                            key = "022";
-                        } else {
-                            key = "023";
-                        }
-                        gameObject.getInstanceData().get(0).adaptr =
-                                new FeatureAdaptor(new CollisionSfx(key, slocation));
-                        gameObject.buildGameObject(engine, instance, shape);
-                    }
-                }
-                index += 1;
-            }
-        }
-    }
-
     /**
      * Exploding effect for Compound shapes
      *
@@ -634,7 +571,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     modelInst.transform.getRotation(rotation))
             );
             // build nodes by iterating the node id list, which hopefully is in same index order as when the comp shape was builtup
-            buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, gameObject, slocation);
+            gameObject.buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, slocation);
         } else {
             Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
         }
@@ -675,22 +612,18 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      */
     private void screenTeardown() {
 
-        Gdx.app.log(CLASS_STRING, "screenTearDown");
-
         engine.removeSystem(bulletSystem); // make the system dispose its stuff
         engine.removeAllEntities(); // allow listeners to be called (for disposal)
 
         BulletWorld.getInstance().dispose();
         playerUI.dispose();
+        debugPrintFont.dispose(); // only instantiated on show() for some reason
 
-        debugPrintFont.dispose(); // only instantiated on show()  for some reaseon
-
-        // I guess not everything is handled by ECS ;)
         PrimitivesBuilder.clearShapeRefs();
 
         // other Systems may have run after last Render System update, so be sure
-        // to clear this queue of model instances first before ....
-        GfxUtil.clearRefs();                 // ... invalidating the underlying models!
+        // to clear this queue of model instances first before invalidating the underlying models.
+        GfxUtil.clearRefs();
     }
 
     @Override

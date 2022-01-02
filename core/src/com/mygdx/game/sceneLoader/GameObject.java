@@ -22,9 +22,10 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.CollisionConstants;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
+import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
@@ -35,6 +36,7 @@ import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.PickRayComponent;
 import com.mygdx.game.components.StatusComponent;
+import com.mygdx.game.features.CollisionSfx;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.util.ModelInstanceEx;
 import com.mygdx.game.util.PrimitivesBuilder;
@@ -63,25 +65,21 @@ public class GameObject {
         this.instanceData.add(instanceData);
     }
 
-    private final Array<InstanceData> instanceData = new Array<>();
-
     public boolean isPickable;
     public boolean isShadowed;
     public boolean iSWhatever;
     public float mass;
+    public String featureName; // if Entity is to be part of a Feature
     public String objectName;
     // all instances should be at same scale (share same collision Shape)
     public Vector3 scale;
-
-    private boolean isShootable;
-
-    public String featureName; // if Entity is to be part of a Feature
     // never assigned (from json)
     @SuppressWarnings("unused")
     private String meshShape; // triangleMeshShape, convexHullShape ... rename me e.g. meshshapename (in json also )
-
+    private boolean isShootable;
+    private final Array<InstanceData> instanceData = new Array<>();
     boolean isCharacter;
-    boolean isKinematic;  // "is Platform" ?
+    boolean isKinematic; // "isPlatform" ?
     boolean isPlayer;
 
     public Array<InstanceData> getInstanceData() {
@@ -98,8 +96,8 @@ public class GameObject {
 
         // special sausce if model has all nodes as children parented under node(0) ... (cherokee and military-jeep)
         if (nodeName.length() < 1 && model.nodes.get(0).hasChildren()) {
-            //  e.g. landscape,goonpatrol models end up here, howerver its only the exploding rig that needs
-            // special sauce:  if object name was '*' than ressuling nodename length would be 0
+            //  e.g. landscape, goonpatrol models end up here, however it's only the exploding rig that needs
+            // special sauce:  if object name was '*' than resulting nodename length would be 0
             nodeArray = (Array<Node>) model.nodes.get(0).getChildren();
             nodeName = null;
         }
@@ -112,26 +110,80 @@ public class GameObject {
                 mi = getModelInstance(model, node.id, scale);
 
             } else if (null == nodeName) {
-                // special sauce - asssumes loading from single parent-node model i.e. requires
-                // recursive search to find the specified node id in the model hierarchy
+                // special sauce - assumes loading from single parent-node model i.e. requires
+                // recursive search to find the specified node ID in the model hierarchy
                 mi = new ModelInstance(model, node.id, true, false, false);
             }
 
             if (null != mi) {
                 btCollisionShape shape = null;
                 // TODO find another way to get shape - depends on the instance which is bass-ackwards
-                // shouldn't need a new shape for each instace - geometery scale etc. belongs to gameObject
+                // shouldn't need a new shape for each instance - geometery scale etc. belongs to gameObject
                 if (null != meshShape) {
-                    BoundingBox boundingBox = new BoundingBox();
-                    Vector3 dimensions = new Vector3();
-                    mi.calculateBoundingBox(boundingBox);
-
-                    shape = PrimitivesBuilder.getShape(
-                            meshShape, boundingBox.getDimensions(dimensions), node);
+                    shape = PrimitivesBuilder.getShape(meshShape, getDimensionsBB(mi), node);
                 }
                 buildGameObject(engine, mi, shape);
-            } // else  ... bail out if matched an un-globbed name ?
+            } // else ... bail out if matched an un-globbed name?
         }
+    }
+
+    public void buildChildNodes(Engine engine, Model model, btCompoundShape compShape, Vector3 slocation) {
+
+        Array<Node> nodeArray = new Array<>();
+        PrimitivesBuilder.getNodeArray(model.nodes, nodeArray);
+
+        int index = 0;
+        // have to iterate each node, can't assume that all nodes in array are valid and associated
+        // with a child-shape (careful of non-graphical nodes!)
+        for (Node node : nodeArray) {
+            // protect for non-graphical nodes in models (they should not be counted in index of child shapes)
+            if (node.parts.size > 0) {
+                // recursive
+                ModelInstance instance =
+                        new ModelInstance(model, node.id, true, false, false);
+                Node modelNode = instance.getNode(node.id);
+
+                if (null != modelNode) {
+                    // seems only the "panzerwagen" because it's nodes are not central to the rig model which makes it handled like scenery
+                    instance.transform.set(modelNode.globalTransform);
+                    modelNode.translation.set(0, 0, 0);
+                    modelNode.scale.set(1, 1, 1);
+                    modelNode.rotation.idt();
+                }
+
+                if (index < compShape.getNumChildShapes()) {
+
+                    btCollisionShape shape = compShape.getChildShape(index);
+
+                    if (shape.getUserIndex() == index) {
+                        // select the sound according to size of object
+                        String key;
+                        final double dimensions_len = getDimensionsBB(instance).len();
+
+                        if (dimensions_len > 1.0f) {
+                            key = "021";
+                        } else if (dimensions_len > 0.5f) {
+                            key = "022";
+                        } else {
+                            key = "023";
+                        }
+                        getInstanceData().get(0).adaptr =
+                                new FeatureAdaptor(new CollisionSfx(key, slocation));
+                        buildGameObject(engine, instance, shape);
+                    }
+                }
+                index += 1;
+            }
+        }
+    }
+
+    private Vector3 getDimensionsBB(ModelInstance instance) {
+        Vector3 dimensions = new Vector3();
+        BoundingBox boundingBox = new BoundingBox();
+        instance.calculateBoundingBox(boundingBox);
+        boundingBox.getDimensions(dimensions);
+
+        return dimensions;
     }
 
     /**
@@ -148,7 +200,7 @@ public class GameObject {
     private static ModelInstance getModelInstance(Model model, String strNodeName, Vector3 scale) {
 
         if (null == strNodeName) {
-            return null; // invalid node name are handled ok, but not if null, so gth out~!
+            return null; // invalid node name are handled ok, but not if null
         }
         ModelInstance instance = new ModelInstance(model, strNodeName);
 
@@ -171,7 +223,7 @@ public class GameObject {
     /*
      * NOTE: copies the passed "instance" ... so caller should discard the reference
      */
-    public void buildGameObject(Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
+    void buildGameObject(Engine engine, ModelInstance modelInst, btCollisionShape btcs) {
 
         InstanceData id = null;
         int n = 0;
@@ -204,17 +256,29 @@ public class GameObject {
     private Entity buildObjectInstance(
             ModelInstance instance, btCollisionShape shape, InstanceData id) {
 
-        FeatureAdaptor instanceFeatureAdapter = null; // note ... use below for collision handling setup .. hackage
-
         Entity e = new Entity();
         StatusComponent statusComp = new StatusComponent(1);
 
+        ModelComponent mc = new ModelComponent(instance);
+        ModelInfo mi = GameWorld.getInstance().getSceneData().modelInfo.get(this.objectName);
+
+        if (null != mi && null != mi.animAdapter) {
+            // new instance (manually copy) of mi.animAdapter - it will be type of subclass
+            mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
+            // Manually copy needed fields, but only fields of the mi.animAdapter base class can be
+            // known so they need to be kind of generic.
+            mc.animAdapter.strMdlNode = mi.animAdapter.strMdlNode;
+        }
+
+        mc.isShadowed = isShadowed; // disable shadowing of skybox
+        e.add(mc);
+
         // if no burnout then flag entity by setting status component bounty to invalid
         if (iSWhatever) {
-            // entity is being excluded from having a BurnOut made on it but it should not be shootable in the first place
+            // entity is being excluded from having a BurnOut made on it (should not be shoot-able in the first place?)
             statusComp.bounty = -1; // temp hack flag object as no-burnout
 
-            // quash the node tranlation for Instance object loaded from model - do this before translation is set from ID below
+            // quash the node translation for Instance object loaded from model - do this before translation is set from ID below
             instance.transform.setTranslation(0, 0, 0); // temp hack use flag to clear model position
         }
 
@@ -226,7 +290,7 @@ public class GameObject {
             }
 
             if (null != id.translation) {
-                // Don't wipe the translation from the incoming Model Instance! (this is where 
+                // Don't wipe the translation from the incoming Model Instance! (this is where
                 // panzerwagen getting screwed up ... its nodes have offsets in the local transform!)
 //                instance.transform.setTranslation(0, 0, 0);
                 instance.transform.trn(id.translation);
@@ -237,67 +301,54 @@ public class GameObject {
             }
 
             if (null != id.adaptr) {
-                // translation can be passed in to a Feature Adapter
                 Vector3 position = new Vector3();
                 position = instance.transform.getTranslation(position);
 
-                instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
-                e.add(new FeatureComponent(instanceFeatureAdapter));
+                // needs the origin location ... might as well send in the entire instance transform
+                e.add(new FeatureComponent(id.adaptr.makeFeatureAdapter(position)));
 
                 // bah this also done below for all non-static Bullet bodies
                 e.add(statusComp); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
 
-        ModelComponent mc = new ModelComponent(instance);
-
-        ModelInfo mi = GameWorld.getInstance().getSceneData().modelInfo.get(this.objectName);
-
-        if (null != mi && null != mi.animAdapter) {
-            //new instance (manually copy) of mi.animAdator - it will be type of subclass !
-            mc.animAdapter = AnimAdapter.getAdapter(mi.animAdapter);
-            // Manually copy needed fields, but only fields of the mi.animAdapter base class can be
-            // known so they need to be kind of generic.
-            mc.animAdapter.strMdlNode = mi.animAdapter.strMdlNode;
-        }
-
-        mc.isShadowed = isShadowed; // disable shadowing of skybox)
-        e.add(mc);
-
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
             e.add(bc);
-
             // "CF_KINEMATIC_OBJECT informs Bullet that the ground is a kinematic body and that we might want to change its transformation"
             // ref https://xoppa.github.io/blog/using-the-libgdx-3d-physics-bullet-wrapper-part2/
-            // explicit flag from json for this: need for e.g. so as not to fall thru "moving platforms" .. for
-            // landscape 'disable deactivation'   wake it when "velocity of the body is below the threshold"  (character resting on it would get "stuck")
+            // Explicit flag from json for this: needed e.g. so as not to fall thru "moving platforms"
+            // For landscape, 'disable deactivation' and wake it when "velocity of the body is below the
+            // threshold" (body resting on it would get "stuck")
             //
             if (isKinematic) {
 
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 
-                bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+                bc.body.setActivationState(CollisionConstants.DISABLE_DEACTIVATION);
 
                 // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
                 BulletWorld.getInstance().addBodyWithCollisionNotif(
                         e, // needs the Entity to add to the table BLAH
                         BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
-            } else
-                // try to enable collision handling callbacks on select objects ...  this crap here needs to go with bullet body setup  BAH
-                if (
-                        isPlayer // make sure gound contact colllision filtering works with player character!
-                                || null != instanceFeatureAdapter
-                                || isShootable
-                                || isCharacter) {
-                    // any "feature" objects will allow to proecess contacts w/ any "terrain/platform" surface
+            } else {
+                FeatureAdaptor fa = null;
+                FeatureComponent fc = e.getComponent(FeatureComponent.class);
+                if (null != fc) {
+                    fa = fc.featureAdpt;
+                }
+                if (isPlayer // make sure ground contact collision filtering works with player character!
+                        || null != fa || isShootable || isCharacter) {
+                    // try to enable collision handling callbacks on select objects ... this crap here needs to go with bullet body setup BAH
+                    // any "feature" objects will allow to process contacts w/ any "terrain/platform" surface
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
                             e, // needs the Entity to add to the table BLAH
                             BulletWorld.OBJECT_FLAG, BulletWorld.GROUND_FLAG);
 
-                    e.add(statusComp); // needs an SC in order to be 'shootable'
+                    e.add(statusComp); // needs a SC in order to be shoot-able
                 }
+            }
         }
         if (isCharacter) {
             e.add(new CharacterComponent());
@@ -323,9 +374,8 @@ public class GameObject {
         if (null != id && null != id.adaptr) {
             // translation can be passed in to Feature Adapter
             Vector3 position = new Vector3(id.translation);
-
-            FeatureAdaptor instanceFeatureAdapter = id.adaptr.makeFeatureAdapter(position); // needs the origin location ... might as well send in the entire instance transform
-            e.add(new FeatureComponent(instanceFeatureAdapter));
+            // needs the origin location ... might as well send in the entire instance transform
+            e.add(new FeatureComponent(id.adaptr.makeFeatureAdapter(position)));
         }
         return e;
     }
