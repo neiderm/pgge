@@ -571,7 +571,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                     modelInst.transform.getRotation(rotation))
             );
             // build nodes by iterating the node id list, which hopefully is in same index order as when the comp shape was builtup
-            gameObject.buildChildNodes(engine, modelInst.model, (btCompoundShape) shape, slocation);
+            gameObject.buildChildNodes(engine, modelInst.model, (btCompoundShape) shape);
         } else {
             Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
         }

@@ -127,7 +127,7 @@ public class GameObject {
         }
     }
 
-    public void buildChildNodes(Engine engine, Model model, btCompoundShape compShape, Vector3 slocation) {
+    public void buildChildNodes(Engine engine, Model model, btCompoundShape compShape) {
 
         Array<Node> nodeArray = new Array<>();
         PrimitivesBuilder.getNodeArray(model.nodes, nodeArray);
@@ -152,28 +152,32 @@ public class GameObject {
                 }
 
                 if (index < compShape.getNumChildShapes()) {
-
-                    btCollisionShape shape = compShape.getChildShape(index);
-
-                    if (shape.getUserIndex() == index) {
-                        // select the sound according to size of object
-                        String key;
-                        final double dimensions_len = getDimensionsBB(instance).len();
-
-                        if (dimensions_len > 1.0f) {
-                            key = "021";
-                        } else if (dimensions_len > 0.5f) {
-                            key = "022";
-                        } else {
-                            key = "023";
-                        }
-                        getInstanceData().get(0).adaptr =
-                                new FeatureAdaptor(new CollisionSfx(key, slocation));
-                        buildGameObject(engine, instance, shape);
-                    }
+                    buildGameObject(engine, index, instance, compShape.getChildShape(index));
                 }
                 index += 1;
             }
+        }
+    }
+
+    private void buildGameObject(
+            Engine engine, int index, ModelInstance instance, btCollisionShape shape) {
+
+        if (shape.getUserIndex() == index) {
+            // select the sound according to size of object
+            String key;
+            final double dimensions_len = getDimensionsBB(instance).len();
+
+            if (dimensions_len > 1.0f) {
+                key = "021";
+            } else if (dimensions_len > 0.5f) {
+                key = "022";
+            } else {
+                key = "023";
+            }
+            Vector3 slocation = new Vector3();
+            slocation = instance.transform.getTranslation(slocation);
+            getInstanceData().get(0).adaptr = new FeatureAdaptor(new CollisionSfx(key, slocation));
+            buildGameObject(engine, instance, shape);
         }
     }
 
@@ -282,6 +286,17 @@ public class GameObject {
             instance.transform.setTranslation(0, 0, 0); // temp hack use flag to clear model position
         }
 
+        if (isCharacter) {
+            e.add(new CharacterComponent());
+        }
+        if (isPickable) {
+            e.add(new PickRayComponent());
+        }
+        if (isPlayer) {
+            GameFeature playerFeature = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
+            playerFeature.setEntity(e); // only 1 player Entity per player Feature
+        }
+
         if (null != id) {
             if (null != id.rotation) {
 // do not idt() this!
@@ -311,6 +326,13 @@ public class GameObject {
                 e.add(statusComp); // needs an SC in order to be 'shootable', and most FAs should be shootable
             }
         }
+        buildPhysObjInstance(e, statusComp, instance, shape);
+
+        return e;
+    }
+
+    private void buildPhysObjInstance(
+            Entity e, StatusComponent statusComp, ModelInstance instance, btCollisionShape shape) {
 
         if (null != shape) {
             BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
@@ -322,7 +344,6 @@ public class GameObject {
             // threshold" (body resting on it would get "stuck")
             //
             if (isKinematic) {
-
                 bc.body.setCollisionFlags(
                         bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 
@@ -330,8 +351,7 @@ public class GameObject {
 
                 // filter out reporting collisions w/ terrain/platform (only process colliding objects of interest)
                 BulletWorld.getInstance().addBodyWithCollisionNotif(
-                        e, // needs the Entity to add to the table BLAH
-                        BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
+                        e, BulletWorld.GROUND_FLAG, BulletWorld.NONE_FLAG);
             } else {
                 FeatureAdaptor fa = null;
                 FeatureComponent fc = e.getComponent(FeatureComponent.class);
@@ -340,7 +360,7 @@ public class GameObject {
                 }
                 if (isPlayer // make sure ground contact collision filtering works with player character!
                         || null != fa || isShootable || isCharacter) {
-                    // try to enable collision handling callbacks on select objects ... this crap here needs to go with bullet body setup BAH
+                    // try to enable collision handling callbacks on select objects (needs to go with bullet body setup?)
                     // any "feature" objects will allow to process contacts w/ any "terrain/platform" surface
                     BulletWorld.getInstance().addBodyWithCollisionNotif(
                             e, // needs the Entity to add to the table BLAH
@@ -350,18 +370,6 @@ public class GameObject {
                 }
             }
         }
-        if (isCharacter) {
-            e.add(new CharacterComponent());
-        }
-        if (isPickable) {
-            e.add(new PickRayComponent());
-        }
-        if (isPlayer) {
-            GameFeature playerFeature =
-                    GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
-            playerFeature.setEntity(e); // only 1 player Entity per player Feature
-        }
-        return e;
     }
 
     /*
