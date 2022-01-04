@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -519,32 +519,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                         }
                     }
                 }
-                e.remove(ModelComponent.class);
-                removeBulletComp(e);
                 engine.removeEntity(e); // calls BulletSystem:entityRemoved(), but the bc is not useable :(
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
-                    removeBulletComp(e);
+                    // only the BC is removed, but the entity is not destroyed
+                    e.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved() ?????
                 }
             }
             sc.deleteFlag = 0;
-        }
-    }
-
-    private static void removeBulletComp(Entity ee) {
-
-        BulletComponent bc = ee.getComponent(BulletComponent.class);
-
-        if (null != bc) {
-            ee.remove(BulletComponent.class); // triggers BulletSystem:entityRemoved()
-
-            if (null != bc.motionstate) {
-                bc.motionstate.dispose();
-            }
-            BulletWorld.getInstance().removeBody(bc.body);
-            bc.shape.dispose();
-            bc.body.dispose();
-            bc.body = null; // idfk ... is this useful?
         }
     }
 
@@ -564,6 +546,10 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         if ((null != shape) && shape.className.equals("btCompoundShape")) {
             Vector3 translation = new Vector3();
             Quaternion rotation = new Quaternion();
+
+            /*
+             *todo cosolidate game object instantiation and instance
+             */
             GameObject gameObject = new GameObject(1);
 
             gameObject.getInstanceData().add(new InstanceData(
