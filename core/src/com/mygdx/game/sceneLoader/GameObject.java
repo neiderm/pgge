@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.collision.CollisionConstants;
@@ -48,9 +49,10 @@ public class GameObject {
         this.isShootable = false;
     }
 
-    public GameObject(float mass) {
+    public GameObject(Vector3 translation, Quaternion rotation) {
         this();
-        this.mass = mass;
+        this.mass = 1.0f;
+        this.getInstanceData().add(new InstanceData(translation, rotation));
     }
 
     public GameObject(String objectName) {
