@@ -522,9 +522,13 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 engine.removeEntity(e); // physics comp disposals in BulletSystem:entityRemoved()
             } else {
                 if (2 == sc.deleteFlag) { // will use flags for comps to remove
-                    // only the BC is removed, but the entity is not destroyed
-                    e.remove(BulletComponent.class);  // physics comp disposals in BulletSystem:entityRemoved()
+                    // only the BC is removed, but the entity is not destroyed - removing the component
+                    // causes entityRemoved() listener called in phys. system, but the component is
+                    // already null by that time
+                    BulletSystem.disposePhysicsComp(e);
+                    e.remove(BulletComponent.class);
                 }
+                // else ... what if physics comp is not removed?
             }
             sc.deleteFlag = 0;
         }

@@ -52,19 +52,22 @@ public class BulletSystem extends IteratingSystem {
 
         @Override
         public void entityRemoved(Entity entity) {
-            BulletComponent bc = entity.getComponent(BulletComponent.class);
-            if (null != bc) {
-                // assert null != bc.shape
-                // assert null != bc.body
-                BulletWorld.getInstance().removeBody(bc.body);
-
-                if (null != bc.motionstate) {
-                    bc.motionstate.dispose();
-                }
-                bc.shape.dispose();
-                bc.body.dispose();
-//                bc.body = null; // idfk ... is this useful?
-            }
+            disposePhysicsComp(entity);
         }
     };
+
+    public static void disposePhysicsComp(Entity entity) {
+        BulletComponent bc = entity.getComponent(BulletComponent.class);
+        if (null != bc) {
+            // assert null != bc.shape
+            // assert null != bc.body
+            BulletWorld.getInstance().removeBody(bc.body);
+
+            if (null != bc.motionstate) {
+                bc.motionstate.dispose();
+            }
+            bc.shape.dispose();
+            bc.body.dispose();
+        }
+    }
 }
