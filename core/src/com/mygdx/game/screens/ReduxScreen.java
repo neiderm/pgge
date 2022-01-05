@@ -45,10 +45,11 @@ import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.BulletComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.PrimitivesBuilder;
+
+import java.util.Random;
 
 /*
  * Simple test screen with ECS, Bullet Physics, but no Scene Loader or much anything else
@@ -186,7 +187,7 @@ public class ReduxScreen implements Screen {
 
         engine.addEntity(e);
 
-        SceneLoader.createTestObjects(engine);
+        createTestObjects(engine);
     }
 
     @Override
@@ -226,6 +227,39 @@ public class ReduxScreen implements Screen {
 
     @Override
     public void hide() { // MT
+    }
+
+
+    private static void createTestObjects(Engine engine) {
+
+        Random rnd = new Random(); // Warning:(157, 26) Save and re-use this "Random".
+
+        int N_ENTITIES = 10;
+        final int N_BOXES = 4;
+        boolean useTestObjects = true;
+        if (!useTestObjects) N_ENTITIES = 0;
+        Vector3 size = new Vector3();
+
+        for (int i = 0; i < N_ENTITIES; i++) {
+
+            size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
+            size.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
+
+            Vector3 translation =
+                    new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
+
+            if (i < N_BOXES) {
+                btCollisionShape shape = PrimitivesBuilder.getShape("boxTex", size); // note: 1 shape re-used
+                engine.addEntity(
+                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "boxTex", shape, size, size.x, translation));
+
+            } else {
+                btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
+                engine.addEntity(
+                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(),
+                                "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
+            }
+        }
     }
 
     // override the equals method in this class

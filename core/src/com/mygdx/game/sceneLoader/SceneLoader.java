@@ -30,14 +30,10 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.util.PrimitivesBuilder;
 
 import java.util.HashMap;
-import java.util.Random;
 
 import static com.badlogic.gdx.graphics.GL20.GL_FRONT;
 
@@ -55,8 +51,6 @@ public class SceneLoader implements Disposable {
     private static final String USER_MODEL_INFO = "UserMeshesModel";
     private static final String LOCAL_PLAYER_MGRP = "LocalPlayer";
     private static final String SFX_GAME = "sfxGame";
-
-    //    private static boolean useTestObjects = true;
     private static AssetManager assets; // see comment below on instantiating it
     private static Model userModel;
 
@@ -98,9 +92,7 @@ public class SceneLoader implements Disposable {
              */
             HashMap<String, ModelGroup> mgrps = sd.modelGroups;
 
-            final String key = SFX_GAME;
-
-            ModelGroup sfGameGroup = mgrps.get(key);
+            ModelGroup sfGameGroup = mgrps.get(SFX_GAME);
 
             final String ff = "sfx/";
 
@@ -162,9 +154,6 @@ public class SceneLoader implements Disposable {
         ModelGroup umg = sd.modelGroups.get(USER_MODEL_PARTS);
 
         if (null != umg) { // may or may not be defined in scene data
-//            if (null != userModel) {
-//                Gdx.app.log(CLASS_STRING, "tex Model not been disposed properly?");
-//            }
             userModel = makeUserModel(umg); // stores reference to model in the dummy ModelInfo block
             /*
              * use the dummy ModelInfo block to store reference to the newly-constructed model
@@ -192,38 +181,6 @@ public class SceneLoader implements Disposable {
                 gameObject.mass = 5.1f;   // should be from the model or something
                 gameObject.isPlayer = true;
                 gameObject.objectName = playerFeature.getObjectName();
-            }
-        }
-    }
-
-    public static void createTestObjects(Engine engine) {
-
-        Random rnd = new Random(); // Warning:(157, 26) Save and re-use this "Random".
-
-        int N_ENTITIES = 10;
-        final int N_BOXES = 4;
-        boolean useTestObjects = true;
-        if (!useTestObjects) N_ENTITIES = 0;
-        Vector3 size = new Vector3();
-
-        for (int i = 0; i < N_ENTITIES; i++) {
-
-            size.set(rnd.nextFloat() + .1f, rnd.nextFloat() + .1f, rnd.nextFloat() + .1f);
-            size.scl(2.0f); // this keeps object "same" size relative to previous primitivesModel size was 2x
-
-            Vector3 translation =
-                    new Vector3(rnd.nextFloat() * 10.0f - 5f, rnd.nextFloat() + 25f, rnd.nextFloat() * 10.0f - 5f);
-
-            if (i < N_BOXES) {
-                btCollisionShape shape = PrimitivesBuilder.getShape("boxTex", size); // note: 1 shape re-used
-                engine.addEntity(
-                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "boxTex", shape, size, size.x, translation));
-
-            } else {
-                btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
-                engine.addEntity(
-                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(),
-                                "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
             }
         }
     }
@@ -349,7 +306,6 @@ public class SceneLoader implements Disposable {
         // dispose and set the static variable to null
         if (null != userModel) {
             userModel.dispose();
-//            userModel = null;
         }
     }
 }
