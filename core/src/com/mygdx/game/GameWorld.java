@@ -268,10 +268,16 @@ public final class GameWorld implements Disposable {
      */
     public void showScreen() {
         String fileName = DEFAULT_SCREEN;
+
         if (Gdx.files.internal(fileName).exists()) {
+
             sceneDataFile = fileName; // keep this persistent for screen restart/reloading
+
             sceneData = SceneData.loadData(sceneDataFile, null);
+// if setSceneDat() != null
             showScreen(new LoadingScreen(LoadingScreen.ScreenTypes.SETUP));
+// else
+//     show redux screen
         } else {
             Gdx.app.log(CLASS_STRING, fileName + " not found, using Test Screen");
             showScreen(new ReduxScreen());
@@ -290,9 +296,18 @@ public final class GameWorld implements Disposable {
         final String FILE_NAME = "screens/" + levelName + ".json";
 
         screenIndex += 1;
+        /*
+         * setSceneData doesn't return anything so first check if file exists ...
+         */
+        if (Gdx.files.internal(FILE_NAME).exists()) {
 
-        setSceneData(FILE_NAME, featureName);
-        showScreen(new LoadingScreen());
+            setSceneData(FILE_NAME, featureName);
+            showScreen(new LoadingScreen());
+
+        } else {
+            Gdx.app.log(CLASS_STRING, FILE_NAME + " not found, using Test Screen");
+            showScreen(new ReduxScreen());
+        }
     }
 
     public void showScreen(String featureName, int index) {
@@ -367,28 +382,25 @@ public final class GameWorld implements Disposable {
 
         sceneDataFile = fileName; // keep this persistent for screen restart/reloading
 
-        ModelInfo selectedModelInfo = null;
-
         if (null != playerObjectName) {
             // get the player model info from previous scene data
-            selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
-        }
-        /*
-         * now you can load the new scene data
-         */
-        sceneData = SceneData.loadData(sceneDataFile, playerObjectName);
+            ModelInfo selectedModelInfo = sceneData.modelInfo.get(playerObjectName);
 
-        // definitely needs to be non-null here!
-        if (null != selectedModelInfo) {
-            // set the player object model info in new scene data isntance
-            sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
+            sceneData = SceneData.loadData(sceneDataFile, playerObjectName);
+
+            if ((null != sceneData) && (null != selectedModelInfo)) {
+                // set the player object model info in new scene data instance
+                sceneData.modelInfo.put(playerObjectName, selectedModelInfo);
+            }
         }
+        // doesn't return anything ...
     }
 
     /*
      * for screen reload/restart only .. assume data file is already set by previous caller
      */
     public void reloadSceneData(String playerObjectName) {
+// doesn' return anything ...
         setSceneData(sceneDataFile, playerObjectName);
     }
 

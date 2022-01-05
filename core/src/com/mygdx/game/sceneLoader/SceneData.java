@@ -53,46 +53,55 @@ public class SceneData {
 
         Json json = new Json();
         FileHandle fileHandle = Gdx.files.internal(path);
-        // if null != fileHandle
-        SceneData screenSdata = json.fromJson(SceneData.class, fileHandle.readString());
+        SceneData screenSdata = null;
 
-        // save data to file while the state of the scene data is still pristine
-        saveData(screenSdata, "GameData_out.json");
+        // fileHandle probably not null even if invalid so handle the exception
+        try {
+            screenSdata = json.fromJson(SceneData.class, fileHandle.readString());
 
-        // load the default assets for UI and other things used throughout the entire game
-        fileHandle = Gdx.files.internal("GameData.json");
-        // if null != fileHandle
-        SceneData baseSdata = json.fromJson(SceneData.class, fileHandle.readString());
-
-        // merge the features/model groups with the data set of the new screen
-        if (null != baseSdata) {
-
-            HashMap<String, ModelInfo> info = baseSdata.modelInfo;
-
-            for (Map.Entry<String, ModelInfo> entry : info.entrySet()) {
-                String key = entry.getKey();
-                screenSdata.modelInfo.put(key, info.get(key));
-            }
-
-            HashMap<String, ModelGroup> mgrps = baseSdata.modelGroups;
-
-            for (Map.Entry<String, ModelGroup> entry : mgrps.entrySet()) {
-                String key = entry.getKey();
-                screenSdata.modelGroups.put(key, mgrps.get(key));
-            }
+        } catch (Exception ex) {
+            Gdx.app.log(Class.class.toString(), "Failed open " + path);
         }
 
-        // localplayer object-name is passed along from parent screen ... make a Game Feature in which
-        // to stash this "persistent" local player info. Other systems/comps will be looking for this
-        // magik name to get reference to the entity.
-        GameFeature gf = screenSdata.features.get(GameWorld.LOCAL_PLAYER_FNAME);
+        if (null != screenSdata){
+            // save data to file while the state of the scene data is still pristine
+            saveData(screenSdata, "GameData_out.json");
 
-        if (null != gf) {
-            // Allow local player game feature to be defined in JSON (user Data)
-            gf.setObjectName(playerObjectName);
-        } else {
-            gf = new GameFeature(playerObjectName);
-            screenSdata.features.put(GameWorld.LOCAL_PLAYER_FNAME, gf);
+            // load the default assets for UI and other things used throughout the entire game
+            fileHandle = Gdx.files.internal("GameData.json");
+            // if null != fileHandle
+            SceneData baseSdata = json.fromJson(SceneData.class, fileHandle.readString());
+
+            // merge the features/model groups with the data set of the new screen
+            if (null != baseSdata) {
+
+                HashMap<String, ModelInfo> info = baseSdata.modelInfo;
+
+                for (Map.Entry<String, ModelInfo> entry : info.entrySet()) {
+                    String key = entry.getKey();
+                    screenSdata.modelInfo.put(key, info.get(key));
+                }
+
+                HashMap<String, ModelGroup> mgrps = baseSdata.modelGroups;
+
+                for (Map.Entry<String, ModelGroup> entry : mgrps.entrySet()) {
+                    String key = entry.getKey();
+                    screenSdata.modelGroups.put(key, mgrps.get(key));
+                }
+            }
+
+            // localplayer object-name is passed along from parent screen ... make a Game Feature in which
+            // to stash this "persistent" local player info. Other systems/comps will be looking for this
+            // magik name to get reference to the entity.
+            GameFeature gf = screenSdata.features.get(GameWorld.LOCAL_PLAYER_FNAME);
+
+            if (null != gf) {
+                // Allow local player game feature to be defined in JSON (user Data)
+                gf.setObjectName(playerObjectName);
+            } else {
+                gf = new GameFeature(playerObjectName);
+                screenSdata.features.put(GameWorld.LOCAL_PLAYER_FNAME, gf);
+            }
         }
 
         return screenSdata;
