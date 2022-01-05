@@ -15,6 +15,7 @@
  */
 package com.mygdx.game;
 
+import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -47,12 +48,11 @@ import com.mygdx.game.util.PrimitivesBuilder;
  */
 public final class GameWorld implements Disposable {
 
-    private static final String CLASS_STRING = "GameWorld";
     private static final String DEFAULT_SCREEN = "SelectScreen.json";
 
     //  screen names in some kind of order
     private static String[] strScreensList = new String[]{
-            "vr_zone", "nextgen", "goonpatrol", "shootme", "caps", "gbr", "GameData"
+            "vr_zone", "nextgen", "goonpatrol", "shootme", "caps", "gbr", "INVALID"
     };
 
     // deserves a more unique name (in json too)
@@ -173,10 +173,10 @@ public final class GameWorld implements Disposable {
 
         public static Sound getSound(String key) {
             if (null != key) {
-                SceneLoader sldr = GameWorld.getInstance().getSceneLoader();
+                SceneLoader sldr = getInstance().getSceneLoader();
                 SceneLoader.SoundInfo sinfo = sldr.getSoundInfo(key);
-                if (null == sinfo){
-                    Gdx.app.log(CLASS_STRING, "SceneLoader.SoundInfo sinfo can't be null!");
+                if (null == sinfo) {
+                    Gdx.app.log(Class.class.toString(), "SceneLoader.SoundInfo can't be null!");
                     return null;
                 }
                 return sinfo.sfx;
@@ -223,7 +223,7 @@ public final class GameWorld implements Disposable {
     public static Vector3 getPlayerPosition(Vector3 position) {
 
         Entity player;
-        GameFeature playerFeature = GameWorld.getInstance().getFeature(GameWorld.LOCAL_PLAYER_FNAME);
+        GameFeature playerFeature = getInstance().getFeature(LOCAL_PLAYER_FNAME);
         if (null != playerFeature) {
             player = playerFeature.getEntity();
 
@@ -279,7 +279,7 @@ public final class GameWorld implements Disposable {
 // else
 //     show redux screen
         } else {
-            Gdx.app.log(CLASS_STRING, fileName + " not found, using Test Screen");
+            Gdx.app.log(Class.class.toString(), fileName + " not found, using Test Screen");
             showScreen(new ReduxScreen());
         }
     }
@@ -291,7 +291,7 @@ public final class GameWorld implements Disposable {
         if (screenIndex < strScreensList.length) {
             levelName = strScreensList[screenIndex];
         } else {
-            Gdx.app.log(CLASS_STRING, "index " + screenIndex + " out of bounds");
+            Gdx.app.log(Class.class.toString(), "index " + screenIndex + " out of bounds");
         }
         final String FILE_NAME = "screens/" + levelName + ".json";
 
@@ -305,7 +305,7 @@ public final class GameWorld implements Disposable {
             showScreen(new LoadingScreen());
 
         } else {
-            Gdx.app.log(CLASS_STRING, FILE_NAME + " not found, using Test Screen");
+            Gdx.app.log(Class.class.toString(), FILE_NAME + " not found, using Test Screen");
             showScreen(new ReduxScreen());
         }
     }
@@ -360,8 +360,8 @@ public final class GameWorld implements Disposable {
         this.isTouchScreen = isTouchScreen;
     }
 
-    // round active state
-    private GAME_STATE_T roundActiveState = GAME_STATE_T.ROUND_NONE; // for better or worse ... ;)  gameScreenState ??
+    // game screen state
+    private GAME_STATE_T roundActiveState = GAME_STATE_T.ROUND_NONE;
 
     public GAME_STATE_T getRoundActiveState() {
         return roundActiveState;
@@ -400,7 +400,7 @@ public final class GameWorld implements Disposable {
      * for screen reload/restart only .. assume data file is already set by previous caller
      */
     public void reloadSceneData(String playerObjectName) {
-// doesn' return anything ...
+        // doesn't return anything ...
         setSceneData(sceneDataFile, playerObjectName);
     }
 
@@ -433,13 +433,24 @@ public final class GameWorld implements Disposable {
          * this is likely jacked up, should it be possible for multiple calls into addSPawner() would result
          * in additional objects queued into that MG instance, but the MG
          */
-        if (null != mg) {
-            Gdx.app.log(CLASS_STRING, "spawners ModelGroup != null");
-        } else {
+        if (null == mg) {
             mg = new ModelGroup(modelName);
             sceneData.modelGroups.put(ModelGroup.SPAWNERS_MGRP_KEY, mg);
+        } else {
+            Gdx.app.log(Class.class.toString(), "spawners ModelGroup != null");
         }
         mg.addElement(object);
+    }
+
+    public static void buildSpawners(Engine engine) {
+
+        SceneData sd = getInstance().getSceneData();
+        ModelGroup mg = sd.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
+
+        if (null != mg /* && mg.size > 0 */) {
+            mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
+            sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group
+        }
     }
 
     @Override

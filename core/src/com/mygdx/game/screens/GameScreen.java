@@ -52,9 +52,6 @@ import com.mygdx.game.features.Crapium;
 import com.mygdx.game.features.FeatureAdaptor;
 import com.mygdx.game.sceneLoader.GameFeature;
 import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
-import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.SceneData;
 import com.mygdx.game.sceneLoader.SceneLoader;
 import com.mygdx.game.systems.BulletSystem;
 import com.mygdx.game.systems.CharacterSystem;
@@ -445,8 +442,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         camController.update();
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
+
+        // purge expired entities()
+        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
+            purgeExpiredEntity(e);
+        }
+
         // update entities queued for spawning
-        runCleanerSpawner();
+        GameWorld.buildSpawners(engine);
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART == GameWorld.getInstance().getRoundActiveState()) {
 
@@ -461,77 +464,61 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    private void runCleanerSpawner() {
-
-        purgeExpiredEntities();
-
-        SceneData sd = GameWorld.getInstance().getSceneData();
-        ModelGroup mg = sd.modelGroups.get(ModelGroup.SPAWNERS_MGRP_KEY);
-
-        if (null != mg /* && mg.size > 0 */) {
-            mg.build(engine, true); // delete objects flag not really needed if rmv the group each frame update
-            sd.modelGroups.remove(ModelGroup.SPAWNERS_MGRP_KEY); // delete the group
-        }
-    }
-
     /**
-     * sweep entities queued for deletion (needs to be done outside of engine/simulation step)
+     * remove entities queued for deletion (needs to be done outside of engine/simulation step)
      */
-    private void purgeExpiredEntities() {
+    private void purgeExpiredEntity(Entity e) {
 
-        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
+        StatusComponent sc = e.getComponent(StatusComponent.class);
 
-            StatusComponent sc = e.getComponent(StatusComponent.class);
+        if (0 == sc.lifeClock) {
+            ModelComponent mc = e.getComponent(ModelComponent.class);
+            // explode effect only available for models w/ child nodes
+            if (null != mc) {
+                BulletComponent bc = e.getComponent(BulletComponent.class);
 
-            if (0 == sc.lifeClock) {
-                ModelComponent mc = e.getComponent(ModelComponent.class);
-                // explode effect only available for models w/ child nodes
-                if (null != mc) {
-                    BulletComponent bc = e.getComponent(BulletComponent.class);
-
-                    if (null != bc) {
-                        explodacopia(engine, bc.shape, mc.modelInst);
-                    }
+                if (null != bc) {
+                    explodacopia(engine, bc.shape, mc.modelInst);
                 }
-
-                FeatureComponent fc = e.getComponent(FeatureComponent.class);
-
-                if (null != fc && null != fc.featureAdpt) {
-                    fc.featureAdpt.onDestroyed(e);
-
-                    int bounty = fc.featureAdpt.bounty;
-                    // bounty provides either points or powerups
-                    if (bounty >= Crapium.BOUNTY_POWERUP) {
-
-                        if (null != fc.featureAdpt.fSubType) {
-                            // map "sub-feature" to a weapon type
-                            int wtype =
-                                    fc.featureAdpt.fSubType.ordinal() - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
-
-                            if (wtype > 0) {
-                                onWeaponAcquired(wtype);
-                            }
-                        }
-                    } else if (bounty > 0) {
-                        StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-                        if (null != psc) {
-                            psc.bounty += bounty;
-                        }
-                    }
-                }
-                engine.removeEntity(e); // physics comp disposals in BulletSystem:entityRemoved()
-            } else {
-                if (2 == sc.deleteFlag) { // will use flags for comps to remove
-                    // only the BC is removed, but the entity is not destroyed - removing the component
-                    // causes entityRemoved() listener called in phys. system, but the component is
-                    // already null by that time
-                    BulletSystem.disposePhysicsComp(e);
-                    e.remove(BulletComponent.class);
-                }
-                // else ... what if physics comp is not removed?
             }
-            sc.deleteFlag = 0;
+
+            FeatureComponent fc = e.getComponent(FeatureComponent.class);
+
+            if (null != fc && null != fc.featureAdpt) {
+                fc.featureAdpt.onDestroyed(e);
+
+                int bounty = fc.featureAdpt.bounty;
+                // bounty provides either points or power-ups
+                if (bounty >= Crapium.BOUNTY_POWERUP) {
+
+                    if (null != fc.featureAdpt.fSubType) {
+                        // bind "sub-feature" to a weapon type
+                        int wtype =
+                                fc.featureAdpt.fSubType.ordinal() - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
+
+                        if (wtype > 0) {
+                            onWeaponAcquired(wtype);
+                        }
+                    }
+                } else if (bounty > 0) {
+                    StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
+                    if (null != psc) {
+                        psc.bounty += bounty;
+                    }
+                }
+            }
+            engine.removeEntity(e); // physics comp disposals in BulletSystem:entityRemoved()
+        } else {
+            if (2 == sc.deleteFlag) { // will use flags for comps to remove
+                // only the BC is removed, but the entity is not destroyed - removing the component
+                // causes entityRemoved() listener called in phys. system, but the component is
+                // already null by that time
+                BulletSystem.disposePhysicsComp(e);
+                e.remove(BulletComponent.class);
+            }
+            // else ... what if physics comp is not removed?
         }
+        sc.deleteFlag = 0;
     }
 
     /**
