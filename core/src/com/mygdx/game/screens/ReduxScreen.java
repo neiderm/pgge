@@ -36,7 +36,7 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.bullet.collision.Collision;
+import com.badlogic.gdx.physics.bullet.collision.CollisionConstants;
 import com.badlogic.gdx.physics.bullet.collision.btBvhTriangleMeshShape;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
@@ -162,7 +162,7 @@ public class ReduxScreen implements Screen {
         // special sauce here for static entity
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-        bc.body.setActivationState(Collision.DISABLE_DEACTIVATION);
+        bc.body.setActivationState(CollisionConstants.DISABLE_DEACTIVATION);
         e.add(bc);
 
         engine.addEntity(e);
@@ -171,7 +171,7 @@ public class ReduxScreen implements Screen {
 
         size = new Vector3(20, 1, 20);
 
-        e = PrimitivesBuilder.load(
+        e = load(
                 new ModelInstance(cube),
                 PrimitivesBuilder.getShape("boxTex", size),
                 size, 0, new Vector3(0, -4, 0)); // trans
@@ -180,7 +180,7 @@ public class ReduxScreen implements Screen {
 
         size = new Vector3(8, 8, 8);
 
-        e = PrimitivesBuilder.load(
+        e = load(
                 new ModelInstance(ball),
                 PrimitivesBuilder.getShape("sphereTex", size),
                 size, 0, new Vector3(10, -5, 0)); // trans
@@ -251,12 +251,12 @@ public class ReduxScreen implements Screen {
             if (i < N_BOXES) {
                 btCollisionShape shape = PrimitivesBuilder.getShape("boxTex", size); // note: 1 shape re-used
                 engine.addEntity(
-                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(), "boxTex", shape, size, size.x, translation));
+                        load(PrimitivesBuilder.getModel(), "boxTex", shape, size, size.x, translation));
 
             } else {
                 btCollisionShape shape = PrimitivesBuilder.getShape("sphereTex", size); // note: 1 shape re-used
                 engine.addEntity(
-                        PrimitivesBuilder.load(PrimitivesBuilder.getModel(),
+                        load(PrimitivesBuilder.getModel(),
                                 "sphereTex", shape, new Vector3(size.x, size.x, size.x), size.x, translation));
             }
         }
@@ -280,5 +280,35 @@ public class ReduxScreen implements Screen {
         public void setWorldTransform(Matrix4 worldTrans) {
             transform.set(worldTrans);
         }
+    }
+
+    public static Entity load(
+            ModelInstance instance, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
+
+        Entity e = new Entity();
+        e.add(new ModelComponent(instance));
+
+        if (null != size) {
+            if (instance.nodes.size > 0) {
+                instance.nodes.get(0).scale.set(size);
+            }
+            instance.calculateTransforms();
+        }
+        // leave translation null if using translation from the model layout
+        if (null != translation) {
+            instance.transform.trn(translation);
+        }
+//        if (null != shape)
+        {
+            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+            e.add(bc);
+        }
+        return e;
+    }
+
+    public static Entity load(Model model, String nodeID, btCollisionShape shape,
+                              Vector3 size, float mass, Vector3 translation) {
+
+        return load(new ModelInstance(model, nodeID), shape, size, mass, translation);
     }
 }

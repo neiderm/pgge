@@ -15,7 +15,6 @@
  */
 package com.mygdx.game.util;
 
-import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -25,7 +24,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
@@ -48,8 +46,6 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.collision.btTriangleInfoMap;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.BulletComponent;
-import com.mygdx.game.components.ModelComponent;
 
 /**
  * Created by neiderm on 12/18/17.
@@ -62,7 +58,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
     private static final float DIM_HE = 1.0f / 2.0f; // primitives half extent constant
     private static final float DIM_CAPS_HT = 1.0f + 0.5f + 0.5f; // define capsule height ala bullet (HeightTotal = H + 1/2R + 1/2R)
 
-    private static Array<btCollisionShape> savedShapeRefs = new Array<btCollisionShape>();
+    private static Array<btCollisionShape> savedShapeRefs = new Array<>();
     private static Model model;
 
     private PrimitivesBuilder() { // MT
@@ -314,7 +310,7 @@ public class PrimitivesBuilder /* implements Disposable */ {
         int rVal = -1;
 
         // "unroll" the nodes list so that the index to the bullet child shape will be consisten
-        Array<Node> nodeFlatArray = new Array<Node>();
+        Array<Node> nodeFlatArray = new Array<>();
         getNodeArray(srcNodeArray, nodeFlatArray);
 
         int index = 0;
@@ -381,42 +377,6 @@ public class PrimitivesBuilder /* implements Disposable */ {
             }
         }
         return meshBuilder.end();
-    }
-
-    /*
-     *  test objects only, not part of Game Object loading stack
-     */
-    public static Entity load(Model model, String nodeID, btCollisionShape shape,
-                              Vector3 size, float mass, Vector3 translation) {
-
-        return load(new ModelInstance(model, nodeID), shape, size, mass, translation);
-    }
-
-    /*
-     *  used by redux screen
-     */
-    public static Entity load(
-            ModelInstance instance, btCollisionShape shape, Vector3 size, float mass, Vector3 translation) {
-
-        Entity e = new Entity();
-        e.add(new ModelComponent(instance));
-
-        if (null != size) {
-            if (instance.nodes.size > 0) {
-                instance.nodes.get(0).scale.set(size);
-            }
-            instance.calculateTransforms();
-        }
-        // leave translation null if using translation from the model layout
-        if (null != translation) {
-            instance.transform.trn(translation);
-        }
-//        if (null != shape)
-        {
-            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
-            e.add(bc);
-        }
-        return e;
     }
 
     public static void dispose() {
