@@ -70,7 +70,7 @@ import static com.mygdx.game.util.GameEvent.EventType.EVT_SEE_OBJECT;
  */
 public class GameScreen extends BaseScreenWithAssetsEngine {
 
-    private static final String CLASS_STRING = "GameScreen";
+    private static final String CLASS_STRING = Class.class.toString();
     private final Signal<GameEvent> gameEventSignal = new Signal<>();
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
@@ -443,12 +443,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         playerUI.act(Gdx.graphics.getDeltaTime());
         playerUI.draw();
 
-        // purge expired entities()
-        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
-            purgeExpiredEntity(e);
-        }
-
-        // update entities queued for spawning
+        // remove entities queued for deletion (needs to be done outside of engine/simulation step)
+        purgeExpiredEntities();
+        // build entities queued for spawning
         GameWorld.buildSpawners(engine);
 
         if (GameWorld.GAME_STATE_T.ROUND_OVER_RESTART == GameWorld.getInstance().getRoundActiveState()) {
@@ -464,52 +461,32 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         }
     }
 
-    /**
-     * remove entities queued for deletion (needs to be done outside of engine/simulation step)
-     */
-    private void purgeExpiredEntity(Entity e) {
+    private void purgeExpiredEntities() {
 
-        StatusComponent sc = e.getComponent(StatusComponent.class);
+        for (Entity e : engine.getEntitiesFor(Family.all(StatusComponent.class).get())) {
 
-        if (0 == sc.lifeClock) {
-            ModelComponent mc = e.getComponent(ModelComponent.class);
-            // explode effect only available for models w/ child nodes
-            if (null != mc) {
+            StatusComponent sc = e.getComponent(StatusComponent.class);
+            if (0 == sc.lifeClock) {
+
                 BulletComponent bc = e.getComponent(BulletComponent.class);
-
                 if (null != bc) {
-                    explodacopia(engine, bc.shape, mc.modelInst);
-                }
-            }
 
-            FeatureComponent fc = e.getComponent(FeatureComponent.class);
+                    ModelComponent mc = e.getComponent(ModelComponent.class);
+                    if (null != mc) {
+                        ModelInstance modelInst = mc.modelInst;
 
-            if (null != fc && null != fc.featureAdpt) {
-                fc.featureAdpt.onDestroyed(e);
+                        final String key = "020";
+                        Vector3 slocation = new Vector3();
+                        GameWorld.AudioManager.playSound(key, modelInst.transform.getTranslation(slocation));
 
-                int bounty = fc.featureAdpt.bounty;
-                // bounty provides either points or power-ups
-                if (bounty >= Crapium.BOUNTY_POWERUP) {
-
-                    if (null != fc.featureAdpt.fSubType) {
-                        // bind "sub-feature" to a weapon type
-                        int wtype =
-                                fc.featureAdpt.fSubType.ordinal() - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
-
-                        if (wtype > 0) {
-                            onWeaponAcquired(wtype);
-                        }
-                    }
-                } else if (bounty > 0) {
-                    StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
-                    if (null != psc) {
-                        psc.bounty += bounty;
+                        destroyCompShape(engine, bc.shape, modelInst);
                     }
                 }
-            }
-            engine.removeEntity(e); // physics comp disposals in BulletSystem:entityRemoved()
-        } else {
-            if (2 == sc.deleteFlag) { // will use flags for comps to remove
+
+                destroyFeature(e);
+                engine.removeEntity(e); // physics comp disposed in BulletSystem:entityRemoved()
+
+            } else if (2 == sc.deleteFlag) { // will use flags for comps to remove
                 // only the BC is removed, but the entity is not destroyed - removing the component
                 // causes entityRemoved() listener called in phys. system, but the component is
                 // already null by that time
@@ -517,8 +494,9 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 e.remove(BulletComponent.class);
             }
             // else ... what if physics comp is not removed?
+
+            sc.deleteFlag = 0;
         }
-        sc.deleteFlag = 0;
     }
 
     /**
@@ -528,22 +506,48 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
      * @param shape     collision shape
      * @param modelInst model instance
      */
-    private void explodacopia(Engine engine, btCollisionShape shape, ModelInstance modelInst) {
+    private void destroyCompShape(Engine engine, btCollisionShape shape, ModelInstance modelInst) {
 
-        final String key = "020";
-        Vector3 slocation = new Vector3();
-        GameWorld.AudioManager.playSound(key, modelInst.transform.getTranslation(slocation));
+        if ((null != shape) && shape.isCompound()) {
 
-        if ((null != shape) && shape.className.equals("btCompoundShape")) {
             Vector3 translation = new Vector3();
             Quaternion rotation = new Quaternion();
             GameObject gameObject = new GameObject(
-                    modelInst.transform.getTranslation(translation),
-                    modelInst.transform.getRotation(rotation));
-            // build nodes by iterating the node id list, which hopefully is in same index order as when the comp shape was builtup
+                    modelInst.transform.getTranslation(translation), modelInst.transform.getRotation(rotation));
+
+            // iterate the node id list, expected in same index order as when the comp shape was built
             gameObject.buildChildNodes(engine, modelInst.model, (btCompoundShape) shape);
         } else {
             Gdx.app.log(CLASS_STRING, "Compound shape only valid for btCompoundShape");
+        }
+    }
+
+    private void destroyFeature(Entity ee) {
+
+        FeatureComponent fc = ee.getComponent(FeatureComponent.class);
+
+        if (null != fc && null != fc.featureAdpt) {
+            fc.featureAdpt.onDestroyed(ee);
+
+            int bounty = fc.featureAdpt.bounty;
+            // bounty provides either points or power-ups
+            if (bounty >= Crapium.BOUNTY_POWERUP) {
+
+                if (null != fc.featureAdpt.fSubType) {
+                    // bind "sub-feature" to a weapon type
+                    int wtype = fc.featureAdpt.fSubType.ordinal()
+                            - FeatureAdaptor.F_SUB_TYPE_T.FT_WEAAPON_0.ordinal(); // i don't know about this
+
+                    if (wtype > 0) {
+                        onWeaponAcquired(wtype);
+                    }
+                }
+            } else if (bounty > 0) {
+                StatusComponent psc = pickedPlayer.getComponent(StatusComponent.class);
+                if (null != psc) {
+                    psc.bounty += bounty;
+                }
+            }
         }
     }
 
