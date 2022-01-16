@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.sceneLoader.GameFeature;
+import com.mygdx.game.sceneloader.GameFeature;
 
 /**
  * Created by neiderm on 12/18/17.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.sceneLoader.SceneLoader;
+import com.mygdx.game.sceneloader.SceneLoader;
 
 import java.util.Locale;
 

@@ -4,7 +4,7 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.controllers.SteeringBulletEntity;
 import com.mygdx.game.controllers.SteeringTankController;
@@ -43,7 +43,7 @@ public class CharacterSystem extends IteratingSystem /*implements EntityListener
         } else {
             // spin up a new steerable
 
-            BulletComponent bc = entity.getComponent(BulletComponent.class);
+            PhysicsComponent bc = entity.getComponent(PhysicsComponent.class);
             if (null != bc) {
 
                 TankController tc = new TankController(bc.body, bc.mass); /* should be a property of the tank? */

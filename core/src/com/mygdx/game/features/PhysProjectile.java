@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
@@ -37,7 +37,7 @@ public class PhysProjectile extends FeatureAdaptor {
         this.vF.set(vFp);
     }
 
-    private BulletComponent bc;
+    private PhysicsComponent bc;
     private final Vector3 relPosition = new Vector3();
     private final Vector3 impulse = new Vector3();
     private final Vector3 tmpV = new Vector3();
@@ -54,7 +54,7 @@ public class PhysProjectile extends FeatureAdaptor {
                 collisionProcessor = new DebouncedCollisionProc(0);
             }
             // impart a physics force
-            bc = ee.getComponent(BulletComponent.class);
+            bc = ee.getComponent(PhysicsComponent.class);
 
             if (null != bc && null != bc.body) {
                 // one shot impulse

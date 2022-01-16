@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class GfxBatch implements Disposable {
 
     private GfxBatch() {
         this.modelBatch = new ModelBatch();
-        debugGraphics = new Array<ModelInstance>();
+        debugGraphics = new Array<>();
     }
 
     GfxBatch(Environment environment, PerspectiveCamera cam) {

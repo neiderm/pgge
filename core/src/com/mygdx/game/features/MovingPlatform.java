@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.mygdx.game.features;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.ModelComponent;
 
 /*
@@ -110,7 +110,7 @@ public class MovingPlatform extends FeatureAdaptor {
                 instance.transform.setTranslation(vA); // snap-to
             }
 
-            BulletComponent bc = featureEnt.getComponent(BulletComponent.class);
+            PhysicsComponent bc = featureEnt.getComponent(PhysicsComponent.class);
 
             if (null != bc) {
                 bc.body.setWorldTransform(instance.transform);

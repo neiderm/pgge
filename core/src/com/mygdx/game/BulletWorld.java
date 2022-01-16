@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSol
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.features.FeatureAdaptor;
 
@@ -125,7 +125,7 @@ public class BulletWorld implements Disposable {
 
             if (match0 && null != ee0) {
 
-                BulletComponent bc = ee0.getComponent(BulletComponent.class);// tmp?
+                PhysicsComponent bc = ee0.getComponent(PhysicsComponent.class);// tmp?
 
                 if (null != bc) { //  getting the bc is rather useless
 
@@ -145,7 +145,7 @@ public class BulletWorld implements Disposable {
 
             if (match1 && null != ee1) {
                 // collision processors typically result in desctruction which may likely be bullet comp being removed
-                BulletComponent bc = ee1.getComponent(BulletComponent.class);// tmp?
+                PhysicsComponent bc = ee1.getComponent(PhysicsComponent.class);// tmp?
 
                 if (null != bc) {
 
@@ -177,11 +177,11 @@ public class BulletWorld implements Disposable {
     public void initialize() {
 
         if (null != collisionWorld) {
-            Gdx.app.log(_CLASS_, "(collisionWorld != null)");
+            Gdx.app.log(Class.class.toString(), "(collisionWorld != null)");
         }
 
-        savedTriangleInfoMapRefs = new Array<btTriangleInfoMap>();
-        userToEntityLUT = new Array<Object>();
+        savedTriangleInfoMapRefs = new Array<>();
+        userToEntityLUT = new Array<>();
         // make sure that valid entry will have index non-zero so we can ensure non-zero userValue on Contact
         userToEntityLUT.add(null);
 
@@ -210,7 +210,7 @@ public class BulletWorld implements Disposable {
     }
 
     // Note:
-    //            is dispose'd by BulletSystem
+    //            is dispose'd by PhysicsSystem
     @Override
     public void dispose() {
 
@@ -303,13 +303,11 @@ public class BulletWorld implements Disposable {
         return rayTest(ray.set(origin, direction), length);
     }
 
-    private static final String _CLASS_ = "BulletWorld";
-
     public void addBody(btRigidBody body) {
         if (null != collisionWorld) {
             collisionWorld.addRigidBody(body);
         } else {
-            Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
+            //Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
         }
     }
 
@@ -317,7 +315,7 @@ public class BulletWorld implements Disposable {
         if (null != collisionWorld) {
             collisionWorld.removeRigidBody(body);
         } else {
-            Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
+            //Gdx.app.log(_CLASS_, "collisionWorld cannot be null!");
         }
     }
 
@@ -348,7 +346,7 @@ public class BulletWorld implements Disposable {
     public void addBodyWithCollisionNotif(Entity ee,
                                           int flag, int filter) {
 
-        BulletComponent bc = ee.getComponent(BulletComponent.class);
+        PhysicsComponent bc = ee.getComponent(PhysicsComponent.class);
 
         if (null != bc) {
 

@@ -79,7 +79,7 @@
 },
 "modelInfo": {
 	"guntruck": {
-		"fileName": "tanks/guntruck.g3db",
+		"fileName": "rigs/guntruck.g3db",
 		"animAdapter": {
 			"class": "com.mygdx.game.animations.RigAnimation",
 			"strMdlNode": "Tank_01.radar"
@@ -89,7 +89,7 @@
 		"fileName": "data/crate.png"
 	},
 	"truck": {
-		"fileName": "tanks/MilitaryCombatVehicle.g3db"
+		"fileName": "rigs/MilitaryCombatVehicle.g3db"
 	},
 	"UserMeshesModel": {
 		"fileName": "DummyForModelReference_derskySphereHere"
@@ -100,14 +100,11 @@
 	"Audio_Track_0": {
 		"fileName": "audio/Track_13.ogg"
 	},
-	"Tank": {
-		"fileName": "tanks/panzerwagen.g3db"
-	},
 	"StaticObjects": {
 		"fileName": "data/cubetest.g3dj"
 	},
 	"Jeep_Renegade_2016": {
-		"fileName": "tanks/Jeep_Renegade_2016.g3db"
+		"fileName": "rigs/Jeep_Renegade_2016.g3db"
 	}
 }
 }

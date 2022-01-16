@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.components.ModelComponent;
 
 class RigSelect {
-
-    private static final String CLASS_STRING = "SetupMenus";
 
     private static final float PLATFORM_START_PT_Y = -50.0f;//tbd
     private static final float PLATFORM_END_PT_Y = -0.1f;

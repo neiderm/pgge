@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,12 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.ModelGroup;
-import com.mygdx.game.sceneLoader.ModelInfo;
-import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.sceneLoader.SceneLoader;
+import com.mygdx.game.sceneloader.GameFeature;
+import com.mygdx.game.sceneloader.GameObject;
+import com.mygdx.game.sceneloader.ModelGroup;
+import com.mygdx.game.sceneloader.ModelInfo;
+import com.mygdx.game.sceneloader.SceneData;
+import com.mygdx.game.sceneloader.SceneLoader;
 import com.mygdx.game.screens.LoadingScreen;
 import com.mygdx.game.screens.ReduxScreen;
 import com.mygdx.game.screens.SplashScreen;
@@ -58,8 +58,8 @@ public final class GameWorld implements Disposable {
     // deserves a more unique name (in json too)
     public static final String LOCAL_PLAYER_FNAME = "Player";
     // default font from gdx-skins
-    public static final String DEFAULT_FONT_FNT = "data/default.fnt";
-    public static final String DEFAULT_FONT_PNG = "data/default.png";
+    public static final String DEFAULT_FONT_FNT = "skin/default.fnt";
+    public static final String DEFAULT_FONT_PNG = "skin/default.png";
 
     //  for working with ViewPort?
 //    public static final int SCREEN_WIDTH = Gdx.graphics.getWidth();

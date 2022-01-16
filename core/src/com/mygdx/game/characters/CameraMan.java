@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class CameraMan extends SteeringEntity {
     }
 
     private final ArrayMap<String, CameraNode> cameraNodes =
-            new ArrayMap<String, CameraNode>(String.class, CameraNode.class);
+            new ArrayMap<>(String.class, CameraNode.class);
 
 
     private void setCameraNode(
@@ -98,7 +98,7 @@ public class CameraMan extends SteeringEntity {
 
         if (null != lookAtM && null != spOffs) {
             // reminder to myself, when pass "this" ("owner:"), we can override stuff in SteerableAdapter, meaining supply overridden implementations of getPosition() etc. etc.
-            sb = new TrackerSB<Vector3>(this, lookAtM, camPosition, spOffs);
+            sb = new TrackerSB<>(this, lookAtM, camPosition, spOffs);
         }
         CameraNode cameraNode = new CameraNode(opMode, camPosition, lookAtM, sb);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,9 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.badlogic.gdx.physics.bullet.linearmath.btMotionState;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.ModelComponent;
-import com.mygdx.game.systems.BulletSystem;
+import com.mygdx.game.systems.PhysicsSystem;
 import com.mygdx.game.systems.RenderSystem;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -63,7 +63,7 @@ public class ReduxScreen implements Screen {
     private final ModelBuilder modelBuilder = new ModelBuilder();
 
     private Engine engine = new Engine();
-    private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
+    private PhysicsSystem bulletSystem; //for invoking removeSystem (dispose)
     private RenderSystem renderSystem; //for invoking removeSystem (dispose)
 
     private PerspectiveCamera cam; // has to be sent to bullet world for update debug draw
@@ -114,7 +114,7 @@ public class ReduxScreen implements Screen {
 
         engine = new Engine();
         renderSystem = new RenderSystem(shadowLight, environment, cam);
-        bulletSystem = new BulletSystem();
+        bulletSystem = new PhysicsSystem();
         engine.addSystem(renderSystem);
         engine.addSystem(bulletSystem);
 
@@ -158,7 +158,7 @@ public class ReduxScreen implements Screen {
         Entity e = new Entity();
         e.add(new ModelComponent(landscapeInstance));
 
-        BulletComponent bc = new BulletComponent(triMesh, landscapeInstance.transform, 0);
+        PhysicsComponent bc = new PhysicsComponent(triMesh, landscapeInstance.transform, 0);
         // special sauce here for static entity
         bc.body.setCollisionFlags(
                 bc.body.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
@@ -300,7 +300,7 @@ public class ReduxScreen implements Screen {
         }
 //        if (null != shape)
         {
-            BulletComponent bc = new BulletComponent(shape, instance.transform, mass);
+            PhysicsComponent bc = new PhysicsComponent(shape, instance.transform, mass);
             e.add(bc);
         }
         return e;

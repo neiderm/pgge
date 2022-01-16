@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2019, 2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.CompCommon;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.util.ModelInstanceEx;
@@ -37,13 +37,6 @@ public class ShootamaThing extends VectorSensor {
     private int shotRecycleTimer = 0;
     private ModelComponent mc;
     private Color gcolor = new Color();
-
-
-//    @Override
-//    public void init(Object target) {
-//
-//        super.init(target);
-//    }
 
     @Override
     public void update(Entity sensor) {
@@ -65,7 +58,6 @@ public class ShootamaThing extends VectorSensor {
             } else if (rotationStep > 0) {
                 //
             }
-
         }
 //        if (null != mc)
         {
@@ -92,19 +84,15 @@ public class ShootamaThing extends VectorSensor {
                 isTriggered = false; // need to unlatch it !
             }
 
-
             // update the rotating platform and re-sync bullet shape with model instance that we've been rotating/moving
             rotationStep =
                     updatePlatformRotation(rotationStep, rotationMin, rotationMax, mc.modelInst.transform);
 
-
             mc.modelInst.calculateTransforms(); // definately need this !
 
-            BulletComponent bc = sensor.getComponent(BulletComponent.class);
+            PhysicsComponent bc = sensor.getComponent(PhysicsComponent.class);
 
             if (null != bc) {
-
-
                 bc.body.setWorldTransform(mc.modelInst.transform);
             }
         }
@@ -170,7 +158,6 @@ public class ShootamaThing extends VectorSensor {
         // set unit vector for direction of travel for theoretical projectile fired perfectly in forwared direction
         float mag = -0.15f; // scale the '-1' accordingly for magnitifdue of forward "velocity"
         ModelInstanceEx.rotateRad(tmpV.set(0, 0, mag), orientation);
-
 
         CompCommon.spawnNewGameObject(
                 new Vector3(0.2f, 0.2f, 0.2f),

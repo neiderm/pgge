@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.util.PrimitivesBuilder;
 
@@ -42,7 +42,7 @@ public class RigAnimation extends AnimAdapter {
     private Node featureNode;
     private int featureIndex = -1;
     private ModelComponent mc;
-    private BulletComponent bc;
+    private PhysicsComponent bc;
 
     public RigAnimation() {
         //mt
@@ -68,13 +68,13 @@ public class RigAnimation extends AnimAdapter {
                 mc = sensor.getComponent(ModelComponent.class);
                 ModelInstance mi = mc.modelInst;
 
-// "unroll" the nodes list so that the index to the bullet child shape will be consistent
+                // "unroll" the nodes list so that the index to the bullet child shape will be consistent
                 featureIndex = PrimitivesBuilder.getNodeIndex(mi.nodes, strMdlNode);
 
                 if (featureIndex >= 0) { // index != -1
                     featureNode = mi.getNode(strMdlNode, true);  // recursive
                 }
-                bc = sensor.getComponent(BulletComponent.class);
+                bc = sensor.getComponent(PhysicsComponent.class);
             }
             /*
              * update
@@ -119,7 +119,7 @@ public class RigAnimation extends AnimAdapter {
 
     private static final int ONE_SEC = 60;
     private static final float FADE_TIME = (0.6f) * ONE_SEC; // component fade time slightlty lesss than 1 frame
-    private static final float alphaIncrement = 100.0f / FADE_TIME; // 100 %cnt in 60frames (1 sec)
+    private static final float ALPHA_INCREMENT = 100.0f / FADE_TIME; // 100 %cnt in 60frames (1 sec)
     private int faderNodeIndex = -1;
     private float alphaPcnt;
 
@@ -128,7 +128,7 @@ public class RigAnimation extends AnimAdapter {
         boolean isFinishedFadein;
 
         // initialize the node array according to the model structure
-        Array<Node> nodeArray = new Array<Node>();
+        Array<Node> nodeArray = new Array<>();
         PrimitivesBuilder.getNodeArray(mInstance.nodes, nodeArray);
 
         if (faderNodeIndex < 0) {
@@ -151,7 +151,7 @@ public class RigAnimation extends AnimAdapter {
         }
 
         if (alphaPcnt < 100) {
-            alphaPcnt += alphaIncrement;
+            alphaPcnt += ALPHA_INCREMENT;
         } else {
             alphaPcnt = 0;
             faderNodeIndex += 1;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.badlogic.gdx.physics.bullet.collision.btCollisionShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
+import com.mygdx.game.sceneloader.GameObject;
+import com.mygdx.game.sceneloader.InstanceData;
 import com.mygdx.game.util.PrimitivesBuilder;
 
 /*
@@ -87,7 +87,7 @@ public class CompCommon {
         Matrix4 transform = mc.modelInst.transform;
         transform.setTranslation(translation);
 
-        ee.add(new BulletComponent(shape, transform, 1f)); // how to set mass?
+        ee.add(new PhysicsComponent(shape, transform, 1f)); // how to set mass?
 
         /* add body to bullet world  default adds as 'OBJECT FLAG'*/
         BulletWorld.getInstance().addBodyWithCollisionNotif(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalShadowLight;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
-import com.mygdx.game.sceneLoader.ModelInfo;
-import com.mygdx.game.sceneLoader.SceneData;
-import com.mygdx.game.sceneLoader.SceneLoader;
+import com.mygdx.game.sceneloader.ModelInfo;
+import com.mygdx.game.sceneloader.SceneData;
+import com.mygdx.game.sceneloader.SceneLoader;
 import com.mygdx.game.systems.RenderSystem;
 
 abstract class BaseScreenWithAssetsEngine implements Screen {

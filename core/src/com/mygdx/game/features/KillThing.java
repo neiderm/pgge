@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2019,2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,26 +73,27 @@ public class KillThing extends KillSensor {
 /*
  fires a projectile in each of 4 "cardinal" directions, nuthin fancy
  */
+        final String SPHERE = "sphere";
         Vector3 vFprj = new Vector3();
 
         CompCommon.spawnNewGameObject(
                 new Vector3(0.1f, 0.1f, 0.1f), trans,
                 new Projectile(vFprj.set(0.1f, 0, 0f), F_SUB_TYPE_T.FT_ACTOR),
-                "sphere");
+                SPHERE);
 
         CompCommon.spawnNewGameObject(
                 new Vector3(0.1f, 0.1f, 0.1f), trans,
                 new Projectile(vFprj.set(-0.1f, 0, 0f), F_SUB_TYPE_T.FT_ACTOR),
-                "sphere");
+                SPHERE);
 
         CompCommon.spawnNewGameObject(
                 new Vector3(0.1f, 0.1f, 0.1f), trans,
                 new Projectile(vFprj.set(0f, 0, 0.1f), F_SUB_TYPE_T.FT_ACTOR),
-                "sphere");
+                SPHERE);
 
         CompCommon.spawnNewGameObject(
                 new Vector3(0.1f, 0.1f, 0.1f), trans,
                 new Projectile(vFprj.set(0f, 0, -0.1f), F_SUB_TYPE_T.FT_ACTOR),
-                "sphere");
+                SPHERE);
     }
 }

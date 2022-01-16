@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class GfxUtil  /* extends Model ??? */  /*extends ModelInstance*/ {
     }
 
     public static void init(){
-        savedModelRefs = new Array<Model>();
+        savedModelRefs = new Array<>();
     }
 
     public static void clearRefs(){

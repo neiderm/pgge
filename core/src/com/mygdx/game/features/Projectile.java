@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Glenn Neidermeier
+ * Copyright (c) 2019,2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,16 +85,15 @@ public class Projectile extends FeatureAdaptor {
                 }
 
                 if (F_SUB_TYPE_T.FT_SLIDEY_BLK == targetType) {
-/* how to exclude Exit box from this ? */
+                    /* how to exclude Exit box from this ? */
 //                    if (null != fa)
                     {
                         // only a slidebox target should be handled this way!
-                        SlideBox sbTarget = (SlideBox)fa;
-//                        if (null != sbTarget)
-                        {
+                        SlideBox sbTarget = (SlideBox) fa;
+                        if (null != sbTarget) {
 //                        // yep target feature adapter gets a reference to its own entity .. thats the way it works
                             sbTarget.handleCollision(target, projectile, 1 /* transferredEnergy */); //// exception handling ?
-                    }
+                        }
                     }
                     // special sauce for the SliderBOx and ExitBox - they are physics entities and get flagged as "shootable" but must definately not be!
                     target = null; //register the impact (show blue puff) but definately don't kill the target!

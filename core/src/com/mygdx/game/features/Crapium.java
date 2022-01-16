@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.components.ModelComponent;
 import com.mygdx.game.components.StatusComponent;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.InstanceData;
-import com.mygdx.game.sceneLoader.SceneLoader;
+import com.mygdx.game.sceneloader.GameObject;
+import com.mygdx.game.sceneloader.InstanceData;
+import com.mygdx.game.sceneloader.SceneLoader;
 
 /*
  * crap you have to pick up

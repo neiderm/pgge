@@ -37,7 +37,7 @@ import com.badlogic.gdx.physics.bullet.collision.btCompoundShape;
 import com.mygdx.game.BulletWorld;
 import com.mygdx.game.GameWorld;
 import com.mygdx.game.characters.CameraMan;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.CharacterComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
@@ -50,10 +50,10 @@ import com.mygdx.game.controllers.TankController;
 import com.mygdx.game.controllers.TrackerSB;
 import com.mygdx.game.features.Crapium;
 import com.mygdx.game.features.FeatureAdaptor;
-import com.mygdx.game.sceneLoader.GameFeature;
-import com.mygdx.game.sceneLoader.GameObject;
-import com.mygdx.game.sceneLoader.SceneLoader;
-import com.mygdx.game.systems.BulletSystem;
+import com.mygdx.game.sceneloader.GameFeature;
+import com.mygdx.game.sceneloader.GameObject;
+import com.mygdx.game.sceneloader.SceneLoader;
+import com.mygdx.game.systems.PhysicsSystem;
 import com.mygdx.game.systems.CharacterSystem;
 import com.mygdx.game.systems.FeatureSystem;
 import com.mygdx.game.systems.PickRaySystem;
@@ -77,7 +77,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
     private Vector3 camDefPosition = new Vector3(1.0f, 13.5f, 02f); // hack: position of fixed camera at 'home" location
     private final Vector3 camDefLookAt = new Vector3(1.0f, 10.5f, -5.0f);
 
-    private BulletSystem bulletSystem; //for invoking removeSystem (dispose)
+    private PhysicsSystem bulletSystem; //for invoking removeSystem (dispose)
     private CameraMan cameraMan;
     private CameraInputController camController;
     private BitmapFont debugPrintFont;
@@ -105,7 +105,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
         guiCam.position.set(guiCam.viewportWidth / 2f, guiCam.viewportHeight / 2f, 0);
         guiCam.update();
 
-        bulletSystem = new BulletSystem();
+        bulletSystem = new PhysicsSystem();
         engine.addSystem(bulletSystem);
         engine.addSystem(new PickRaySystem(gameEventSignal));
         engine.addSystem(new CharacterSystem());
@@ -136,7 +136,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             cameraEntity.add(new CharacterComponent(cameraMan));
             engine.addEntity(cameraEntity);
 
-            if (null != pickedPlayer.getComponent(BulletComponent.class).body) {
+            if (null != pickedPlayer.getComponent(PhysicsComponent.class).body) {
                 playerUI = initPlayerUI();
                 // restart audio track
                 GameWorld.AudioManager.playMusic(music);
@@ -175,7 +175,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             private void makeGunPlatform(boolean withEnergizeDelay) {
                 gunPlatform = new GunPlatform(
                         pickedPlayer.getComponent(ModelComponent.class).modelInst,
-                        pickedPlayer.getComponent(BulletComponent.class).shape,
+                        pickedPlayer.getComponent(PhysicsComponent.class).shape,
                         gunrack, withEnergizeDelay);
 
                 gunPlatform.setControlBundle(cbundle);
@@ -184,8 +184,8 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             @Override
             protected void init() {
                 rigController = new TankController( // todo: model can instantiate body and pickedplayer can set it?
-                        pickedPlayer.getComponent(BulletComponent.class).body,
-                        pickedPlayer.getComponent(BulletComponent.class).mass); /* should be a property of the rig? */
+                        pickedPlayer.getComponent(PhysicsComponent.class).body,
+                        pickedPlayer.getComponent(PhysicsComponent.class).mass); /* should be a property of the rig? */
 
                 cbundle = rigController.getControlBundle();
                 cbundle.setButtons(
@@ -468,7 +468,7 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
             StatusComponent sc = e.getComponent(StatusComponent.class);
             if (0 == sc.lifeClock) {
 
-                BulletComponent bc = e.getComponent(BulletComponent.class);
+                PhysicsComponent bc = e.getComponent(PhysicsComponent.class);
                 if (null != bc) {
 
                     ModelComponent mc = e.getComponent(ModelComponent.class);
@@ -484,14 +484,14 @@ public class GameScreen extends BaseScreenWithAssetsEngine {
                 }
 
                 destroyFeature(e);
-                engine.removeEntity(e); // physics comp disposed in BulletSystem:entityRemoved()
+                engine.removeEntity(e); // physics comp disposed in PhysicsSystem:entityRemoved()
 
             } else if (2 == sc.deleteFlag) { // will use flags for comps to remove
                 // only the BC is removed, but the entity is not destroyed - removing the component
                 // causes entityRemoved() listener called in phys. system, but the component is
                 // already null by that time
-                BulletSystem.disposePhysicsComp(e);
-                e.remove(BulletComponent.class);
+                PhysicsSystem.disposePhysicsComp(e);
+                e.remove(PhysicsComponent.class);
             }
             // else ... what if physics comp is not removed?
 

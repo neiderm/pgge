@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Glenn Neidermeier
+ * Copyright (c) 2021-2022 Glenn Neidermeier
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.collision.btCollisionObject;
 import com.mygdx.game.BulletWorld;
-import com.mygdx.game.components.BulletComponent;
+import com.mygdx.game.components.PhysicsComponent;
 import com.mygdx.game.components.FeatureComponent;
 import com.mygdx.game.components.ModelComponent;
 
@@ -34,7 +34,7 @@ public class SlideBox extends FeatureAdaptor {
     private float fImpactEnergy;
     private final Vector3 tmpScaleStep = new Vector3();
 
-    private BulletComponent bc;
+    private PhysicsComponent bc;
     private ModelInstance instance;
 
     @Override
@@ -43,7 +43,7 @@ public class SlideBox extends FeatureAdaptor {
         super.update(ee);
 
         if (null == bc) {
-            bc = ee.getComponent(BulletComponent.class);
+            bc = ee.getComponent(PhysicsComponent.class);
 
             if (null != bc && null != bc.body) {
                 // re   "BulletWorld.addBodyWithCollisionNotif()"
@@ -110,7 +110,6 @@ public class SlideBox extends FeatureAdaptor {
         }
     }
 
-
     private final Vector3 tmpV3 = new Vector3();
 
     @Override
@@ -130,12 +129,11 @@ public class SlideBox extends FeatureAdaptor {
         }
     }
 
-
     void handleCollision(Entity ee, Entity collisionObject, float energy) {
 
         if (null == bc) {
 
-            bc = ee.getComponent(BulletComponent.class);
+            bc = ee.getComponent(PhysicsComponent.class);
         }
         /*
          * get position of colliding object  and determine the direction/vector of the collision -
